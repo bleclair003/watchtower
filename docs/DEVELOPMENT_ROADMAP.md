@@ -55,7 +55,7 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
 - [x] Live source health, overdue detection, real Diagnostics
 - [x] Production project `watchtower-b9b2a`: Firestore (nam5, Standard), Google auth, web app, rules published (2026-11-20)
 - [x] Owner claim granted; first production collection run (75 events, 0 errors) and live dashboard verified (2026-11-20)
-- [ ] GitHub repository + Actions secrets so collection runs hourly (DEPLOYMENT.md §2 steps 6–9)
+- [x] Private GitHub repo `bleclair003/watchtower`; hourly Collect workflow verified on Actions (2026-11-20)
 - [ ] Adapter: GDELT (context only), pending rate-limit validation from Actions
 - [ ] Incremental snapshot rebuild (read-cost optimization)
 
