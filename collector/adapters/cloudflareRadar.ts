@@ -8,7 +8,8 @@ import { FIRST_RUN_LOOKBACK_DAYS, type AdapterContext, type AdapterResult, type 
 
 const SOURCE_ID = 'cloudflare-radar-outages';
 export const RADAR_TOKEN_ENV = 'CLOUDFLARE_RADAR_TOKEN';
-const STEADY_RANGE_DAYS = 7;
+/** Cloudflare annotates outages after review, sometimes days after they start, so every run reads 30 days. */
+const STEADY_RANGE_DAYS = 30;
 
 export interface RadarState {
   firstRunAt: string;
