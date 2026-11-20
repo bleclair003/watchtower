@@ -1,5 +1,6 @@
 import type { IntelligenceEvent } from '../../shared/domain/types.ts';
-import { WATCH_REGIONS, regionsForPoint } from '../../shared/domain/regions.ts';
+import { WATCH_REGIONS, regionsForCountry, regionsForPoint } from '../../shared/domain/regions.ts';
+import { isCrimea, watchCountryAt } from '../geo/countries.ts';
 import { getSource } from '../../shared/domain/sources.ts';
 import { contentHash } from '../lib/hash.ts';
 import { readSecret } from '../lib/secrets.ts';
@@ -120,8 +121,13 @@ export const firms: SourceAdapter<FirmsState> = {
       if (firstRun && dates.length < 2) continue; // no history at all: cannot judge novelty
 
       const top = ds.reduce((a, b) => (b.frp > a.frp ? b : a));
+      // Watch boxes are coarse rectangles (the Korea box includes north-east China). Keep a
+      // cluster only if its point lies inside one of the region's own countries.
+      const country = watchCountryAt(top.lat, top.lon);
+      const inBox = regionsForPoint(top.lat, top.lon);
+      const regionIds = country ? regionsForCountry(country).filter((r) => inBox.includes(r)) : [];
+      if (!country || regionIds.length === 0) continue;
       const frpSum = Math.round(ds.reduce((s, d) => s + d.frp, 0));
-      const regionIds = regionsForPoint(top.lat, top.lon);
       const occurredAt = `${date}T${top.time.slice(0, 2)}:${top.time.slice(2, 4)}:00.000Z`;
       const id = contentHash(SOURCE_ID, cell, date);
       events.push({
@@ -132,7 +138,7 @@ export const firms: SourceAdapter<FirmsState> = {
         sourceName: `NASA FIRMS — ${def.name}`,
         sourceClass: 'scientific',
         sourceUrl: `https://firms.modaps.eosdis.nasa.gov/map/#d:${date};@${top.lon.toFixed(3)},${top.lat.toFixed(3)},11.0z`,
-        title: truncate(`New thermal-anomaly cluster: ${ds.length} satellite fire detections (${regionIds.map((r) => WATCH_REGIONS.find((w) => w.id === r)?.shortCode ?? r).join('/') || 'watch area'})`, LIMITS.title),
+        title: truncate(`New thermal-anomaly cluster: ${ds.length} satellite fire detections — ${country} (${regionIds.map((r) => WATCH_REGIONS.find((w) => w.id === r)?.shortCode ?? r).join('/')})`, LIMITS.title),
         summary: truncate(
           `${ds.length} VIIRS (NOAA-20) detections on ${date} in a ~25 km cell with none in the previous ${NOVELTY_DAYS} days; total fire radiative power ${frpSum} MW. ` +
             'A thermal anomaly can be a field burn, wildfire, industrial fire or a fire from military action; the satellite cannot tell which.',
@@ -140,7 +146,7 @@ export const firms: SourceAdapter<FirmsState> = {
         ),
         category: 'disaster',
         regionIds,
-        countryCodes: [],
+        countryCodes: [country],
         publishedAt: occurredAt,
         occurredAt,
         collectedAt: nowIso,
@@ -158,6 +164,7 @@ export const firms: SourceAdapter<FirmsState> = {
           dayNight: [...new Set(ds.map((d) => d.daynight))].join('/'),
           geoBasis: 'source-coordinates',
           pointBasis: 'strongest detection in the cell',
+          countryBasis: isCrimea(top.lat, top.lon) ? 'Natural Earth 1:50m borders; Crimea assigned to UA (internationally recognised)' : 'Natural Earth 1:50m borders',
         },
       });
     }

@@ -59,6 +59,7 @@ describe('NASA FIRMS adapter (synthetic CSV)', () => {
     const e = r.events[0];
     expect([e.latitude, e.longitude]).toEqual([47.81, 37.61]);
     expect(e.regionIds).toEqual(['eastern-europe']);
+    expect(e.countryCodes).toEqual(['UA']);
     expect(e.metadata).toMatchObject({ detections: 3, subtype: 'thermal-anomaly-cluster', frpTotalMw: 62 });
     expect(e.summary).toMatch(/cannot tell which/);
     expect(e.sourceUrl).not.toContain('firmsTESTkey123');
@@ -67,6 +68,22 @@ describe('NASA FIRMS adapter (synthetic CSV)', () => {
     // One request per geographic watch area (6), 5 days on the first run.
     expect(calls).toHaveLength(6);
     expect(calls.every((u) => u.endsWith('/5'))).toBe(true);
+  });
+
+  it('drops clusters inside the watch box but outside the region\'s countries (north-east China in the Korea box)', async () => {
+    process.env[FIRMS_KEY_ENV] = 'firmsTESTkey123';
+    const csv = [HEAD, row(35.5, 129.0, '2026-11-19', 'n', 1, '0100'), row(42.99, 126.24, '2026-11-20'), row(42.98, 126.24, '2026-11-20'), row(42.98, 126.23, '2026-11-20'),
+      row(39.03, 125.75, '2026-11-20'), row(39.04, 125.76, '2026-11-20'), row(39.03, 125.76, '2026-11-20')].join('\n');
+    const r = await firms.collect({ now: NOW, state: null, fetch: vi.fn(async (u: string) => ok(u.includes('124,33,131,43') ? csv : HEAD)) });
+    expect(r.events.map((e) => e.countryCodes[0])).toEqual(['KP']);
+  });
+
+  it('assigns Crimea to Ukraine and says so', async () => {
+    process.env[FIRMS_KEY_ENV] = 'firmsTESTkey123';
+    const csv = [HEAD, row(50.0, 30.0, '2026-11-19', 'n', 1), row(44.951, 34.1, '2026-11-20'), row(44.952, 34.1, '2026-11-20'), row(44.953, 34.1, '2026-11-20')].join('\n');
+    const r = await firms.collect({ now: NOW, state: null, fetch: vi.fn(async (u: string) => ok(u.includes('19,43.5,41,57.5') ? csv : HEAD)) });
+    expect(r.events[0].countryCodes).toEqual(['UA']);
+    expect(r.events[0].metadata!.countryBasis).toMatch(/Crimea assigned to UA/);
   });
 
   it('uses stored history on later runs', async () => {

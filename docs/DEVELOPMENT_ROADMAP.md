@@ -118,6 +118,7 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
 - [x] Feed detail shows how location and topic were derived (TXT-GEO tag)
 - [ ] GDELT (retry from an Actions runner), ReliefWeb (needs an approved appname), NGA MSI (503), UKMTO, MARAD
 - [x] Free-key sources built (v0.9.0): NASA FIRMS new fire clusters, Cloudflare Radar attributed outages; catalog v4 (48)
-- [ ] Configure `FIRMS_MAP_KEY` and `CLOUDFLARE_RADAR_TOKEN`, then verify both live
+- [x] FIRMS live since 2026-11-20 (key configured); point-in-country check added after the first run
+- [ ] Configure `CLOUDFLARE_RADAR_TOKEN`, then verify Radar live
 - [x] ACLED evaluated and rejected (no API on personal accounts; EULA excludes dashboard use)
 - [ ] Cross-source corroboration: mark a media report `corroborated` when an independent source reports the same country and topic

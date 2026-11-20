@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.1] — 2026-11-20 — FIRMS live; country check
+
+### Fixed
+- First live FIRMS run (12,373 detections → 15 new clusters): 9 "Korea" clusters were in north-east China, plus one each in Sudan and Turkey, because watch areas are rectangles. Clusters are now kept only inside the region's own countries (Natural Earth 1:50m borders, collector-only), and carry a country code. The 15 stored records were re-tagged in place, with a correction note; none deleted.
+
+
 ## [0.9.0] — 2026-11-21 — Free-key sources
 
 ### Added
