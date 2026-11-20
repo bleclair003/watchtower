@@ -155,7 +155,7 @@ describe('Cloudflare Radar outages (synthetic response)', () => {
     expect(headers.Authorization).toBe('Bearer radarTESTtoken456');
     expect(r.events).toHaveLength(4);
     const kh = r.events.find((e) => e.metadata!.radarId === 'syn-4')!;
-    expect(kh.title).toBe('Internet outage — Kharkiv Oblast, UA: military action (regional)');
+    expect(kh.title).toBe('Internet outage — Kharkiv Oblast: military action (regional)');
     expect(kh.countryCodes).toEqual(['UA']);
     expect(r.rejected).toHaveLength(1);
     const ua = r.events.find((e) => e.metadata!.radarId === 'syn-3')!;

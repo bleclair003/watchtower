@@ -100,7 +100,7 @@ export const cloudflareRadarOutages: SourceAdapter<RadarState> = {
         .map((d) => (d && typeof d === 'object' ? str((d as Record<string, unknown>).name) : ''))
         .filter(Boolean);
       const netNames = [...new Set(nets.map((d) => str(netLoc(d).name)).filter(Boolean))];
-      const names = locNames.length ? locNames : entNames.length ? [`${entNames.join(', ')}${entLocs[0] ? `, ${entLocs[0]}` : ''}`] : netNames;
+      const names = locNames.length ? locNames : entNames.length ? [entNames.slice(0, 2).join(', ')] : netNames;
       const networks = nets.map((d) => cleanText(str(d.name))).filter(Boolean).slice(0, 3);
       const cause = str(a.outage?.outageCause).toUpperCase();
       const type = str(a.outage?.outageType).toUpperCase();
