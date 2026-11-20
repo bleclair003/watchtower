@@ -52,6 +52,22 @@ export class FirestoreStore implements CollectorStore {
     }
     return fresh;
   }
+  async getEvents(ids: string[]) {
+    const out: IntelligenceEvent[] = [];
+    for (let i = 0; i < ids.length; i += 100) {
+      const refs = ids.slice(i, i + 100).map((id) => this.db.collection(COLLECTIONS.events).doc(id));
+      if (!refs.length) continue;
+      for (const s of await this.db.getAll(...refs)) if (s.exists) out.push(s.data() as IntelligenceEvent);
+    }
+    return out;
+  }
+  async replaceEvents(events: IntelligenceEvent[]) {
+    for (let i = 0; i < events.length; i += 400) {
+      const batch = this.db.batch();
+      for (const e of events.slice(i, i + 400)) batch.set(this.db.collection(COLLECTIONS.events).doc(e.id), e);
+      await batch.commit();
+    }
+  }
   async putEvents(events: IntelligenceEvent[]) {
     for (let i = 0; i < events.length; i += 400) {
       const batch = this.db.batch();

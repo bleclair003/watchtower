@@ -46,6 +46,8 @@ export interface SourceRunReport {
   candidates: number;
   imported: number;
   duplicates: number;
+  /** Stored events rewritten because the source revised them (revisable sources only). */
+  revised?: number;
   rejected: number;
   error: string | null;
 }
@@ -126,6 +128,21 @@ export async function runCollection(
       report.duplicates += valid.size - fresh.size;
       const toWrite = [...valid.values()].filter((e) => fresh.has(e.id));
       if (toWrite.length) await store.putEvents(toWrite);
+
+      if (adapter.revisable) {
+        const existing = [...valid.values()].filter((e) => !fresh.has(e.id));
+        const stored = new Map((await store.getEvents(existing.map((e) => e.id))).map((e) => [e.id, e]));
+        const revised = existing.flatMap((e) => {
+          const prev = stored.get(e.id);
+          if (!prev || prev.metadata?.revisionKey === e.metadata?.revisionKey) return [];
+          return [{ ...e, collectedAt: prev.collectedAt, metadata: { ...e.metadata, revisedAt: new Date(now()).toISOString() } }];
+        });
+        if (revised.length) {
+          await store.replaceEvents(revised);
+          report.duplicates -= revised.length;
+          report.revised = revised.length;
+        }
+      }
       importedThisRun.push(...toWrite);
       report.imported = toWrite.length;
 
@@ -166,7 +183,7 @@ export async function runCollection(
     log(
       `${report.ok ? 'OK  ' : 'FAIL'} ${adapter.sourceId.padEnd(26)} ` +
         (report.ok
-          ? `${report.notModified ? '304 not modified' : `${report.itemsSeen} seen`} · ${report.imported} new · ${report.duplicates} dup · ${report.rejected} rejected`
+          ? `${report.notModified ? '304 not modified' : `${report.itemsSeen} seen`} · ${report.imported} new · ${report.duplicates} dup${report.revised ? ` · ${report.revised} revised` : ''} · ${report.rejected} rejected`
           : report.error),
     );
   }

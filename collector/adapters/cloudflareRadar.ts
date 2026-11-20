@@ -24,6 +24,7 @@ interface Annotation {
   locations?: unknown;
   locationsDetails?: unknown;
   asns?: unknown;
+  asnsDetails?: unknown;
   outage?: { outageCause?: unknown; outageType?: unknown };
 }
 
@@ -58,6 +59,7 @@ const str = (v: unknown) => (typeof v === 'string' ? v : '');
 export const cloudflareRadarOutages: SourceAdapter<RadarState> = {
   sourceId: SOURCE_ID,
   requiredEnv: [RADAR_TOKEN_ENV],
+  revisable: true,
   async collect(ctx: AdapterContext<RadarState>): Promise<AdapterResult<RadarState>> {
     const token = readSecret(RADAR_TOKEN_ENV);
     if (!token) throw new Error(`${RADAR_TOKEN_ENV} is not set`);
@@ -80,16 +82,29 @@ export const cloudflareRadarOutages: SourceAdapter<RadarState> = {
         rejected.push({ ref: id || '(no id)', reason: 'missing id or start date' });
         continue;
       }
-      const locs = (Array.isArray(a.locations) ? a.locations : []).filter((l): l is string => typeof l === 'string' && /^[A-Z]{2}$/.test(l));
-      const names = (Array.isArray(a.locationsDetails) ? a.locationsDetails : [])
+      // Country-scoped outages list `locations`; network-scoped ones (a single ISP or AS) put
+      // the country inside each network's details instead.
+      const nets = (Array.isArray(a.asnsDetails) ? a.asnsDetails : []).filter((d): d is Record<string, unknown> => !!d && typeof d === 'object');
+      const netLoc = (d: Record<string, unknown>) => (d.location && typeof d.location === 'object' ? (d.location as Record<string, unknown>) : {});
+      const iso2 = (v: unknown) => (typeof v === 'string' && /^[A-Z]{2}$/.test(v.toUpperCase()) ? v.toUpperCase() : null);
+      const topLocs = (Array.isArray(a.locations) ? a.locations : []).map(iso2).filter((l): l is string => !!l);
+      const netLocs = nets.map((d) => iso2(netLoc(d).code)).filter((l): l is string => !!l);
+      const locs = [...new Set([...topLocs, ...netLocs])];
+      const locNames = (Array.isArray(a.locationsDetails) ? a.locationsDetails : [])
         .map((d) => (d && typeof d === 'object' ? str((d as Record<string, unknown>).name) : ''))
         .filter(Boolean);
+      const netNames = [...new Set(nets.map((d) => str(netLoc(d).name)).filter(Boolean))];
+      const names = locNames.length ? locNames : netNames;
+      const networks = nets.map((d) => cleanText(str(d.name))).filter(Boolean).slice(0, 3);
       const cause = str(a.outage?.outageCause).toUpperCase();
       const type = str(a.outage?.outageType).toUpperCase();
       const endIso = Number.isNaN(Date.parse(str(a.endDate))) ? null : new Date(Date.parse(str(a.endDate))).toISOString();
       const startIso = new Date(start).toISOString();
       const place = names.join(', ') || locs.join(', ') || cleanText(str(a.scope)) || 'location not stated';
       const desc = cleanText(str(a.description));
+      const linked = safeUrl(a.linkedUrl);
+      // Some annotations link to Cloudflare's internal tracker, which outsiders cannot open.
+      const publicLink = linked && !/(^|\.)cfdata\.org$/i.test(new URL(linked).hostname) ? linked : null;
       const radarLink = locs[0] ? `https://radar.cloudflare.com/outage-center?location=${locs[0].toLowerCase()}` : 'https://radar.cloudflare.com/outage-center';
       const key = contentHash(SOURCE_ID, id);
       events.push({
@@ -99,8 +114,11 @@ export const cloudflareRadarOutages: SourceAdapter<RadarState> = {
         sourceId: SOURCE_ID,
         sourceName: `Cloudflare Radar — ${def.name}`,
         sourceClass: 'scientific',
-        sourceUrl: safeUrl(a.linkedUrl) ?? radarLink,
-        title: truncate(`Internet outage — ${place}: ${CAUSE_LABEL[cause] ?? 'cause not stated'}${type ? ` (${type.toLowerCase()})` : ''}`, LIMITS.title),
+        sourceUrl: publicLink ?? radarLink,
+        title: truncate(
+          `Internet outage — ${place}${networks.length && !topLocs.length ? ` (${networks.join(', ')})` : ''}: ${CAUSE_LABEL[cause] ?? 'cause not stated'}${type ? ` (${type.toLowerCase()})` : ''}`,
+          LIMITS.title,
+        ),
         summary: truncate(
           `${desc ? `${desc}. ` : ''}Cloudflare's attributed cause: ${CAUSE_LABEL[cause] ?? 'not stated'}. Started ${startIso}${endIso ? `, ended ${endIso}` : ', ongoing or end not recorded'}.`,
           LIMITS.summary,
@@ -121,7 +139,9 @@ export const cloudflareRadarOutages: SourceAdapter<RadarState> = {
           outageType: type || null,
           endedAt: endIso,
           asns: Array.isArray(a.asns) ? a.asns.filter((n) => typeof n === 'number').slice(0, 20) : [],
-          geoBasis: locs.length ? 'source-country' : 'none',
+          geoBasis: topLocs.length ? 'source-country' : netLocs.length ? 'source-country (network location)' : 'none',
+          networks,
+          revisionKey: contentHash(cause, type, endIso ?? '', desc, locs.join(',')),
           licence: 'CC BY-NC 4.0 — Cloudflare Radar',
         },
       });

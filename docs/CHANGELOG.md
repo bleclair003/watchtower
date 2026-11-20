@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.9.2] — 2026-11-20 — Cloudflare Radar live
+
+### Fixed
+- First live Radar run (15 outages): 8 had no location because network-scoped outages keep their country in the network details; 3 of those were attributed to military action. Countries now come from both places.
+- Links to Cloudflare's internal tracker are replaced by the public Outage Center page.
+
+### Added
+- Revisable sources: a source can declare that it edits items after publication. Changed records are rewritten in place, keeping the original `collectedAt` and adding `metadata.revisedAt`. Cloudflare Radar uses this.
+
+
 ## [0.9.1] — 2026-11-20 — FIRMS live; country check
 
 ### Fixed

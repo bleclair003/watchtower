@@ -35,6 +35,12 @@ export interface SourceAdapter<S = unknown> {
   readonly sourceId: string;
   /** Environment variables (API keys) the adapter needs. Without them the source is NOT CONFIGURED, not failed. */
   readonly requiredEnv?: string[];
+  /**
+   * The source edits items after publication (e.g. Cloudflare adds an end time or revises a
+   * cause). Events must then carry `metadata.revisionKey`; a stored event whose key differs is
+   * rewritten, keeping its original `collectedAt` and gaining `metadata.revisedAt`.
+   */
+  readonly revisable?: boolean;
   collect(ctx: AdapterContext<S>): Promise<AdapterResult<S>>;
 }
 

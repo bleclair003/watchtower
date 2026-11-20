@@ -124,6 +124,15 @@ describe('Cloudflare Radar outages (synthetic response)', () => {
           locationsDetails: [{ code: 'YE', name: 'Yemen' }],
           outage: { outageCause: 'CABLE_CUT', outageType: 'NATIONWIDE' },
         },
+        {
+          id: 'syn-3',
+          description: 'SYNTHETIC: network outage attributed to fighting',
+          startDate: '2026-11-18T10:00:00Z',
+          locations: [],
+          asnsDetails: [{ asn: '12345', name: 'SYNTH-TELECOM', location: { code: 'UA', name: 'Ukraine' } }],
+          linkedUrl: 'https://jira.cfdata.org/browse/RADAR-1',
+          outage: { outageCause: 'MILITARY_ACTION', outageType: 'NETWORK' },
+        },
         { description: 'no id' },
       ],
     },
@@ -136,8 +145,12 @@ describe('Cloudflare Radar outages (synthetic response)', () => {
     const [url, , headers] = fetch.mock.calls[0] as unknown as [string, unknown, Record<string, string>];
     expect(url).not.toContain('radarTESTtoken456');
     expect(headers.Authorization).toBe('Bearer radarTESTtoken456');
-    expect(r.events).toHaveLength(2);
+    expect(r.events).toHaveLength(3);
     expect(r.rejected).toHaveLength(1);
+    const ua = r.events.find((e) => e.metadata!.radarId === 'syn-3')!;
+    expect(ua).toMatchObject({ countryCodes: ['UA'], regionIds: ['eastern-europe'], category: 'military' });
+    expect(ua.title).toBe('Internet outage — Ukraine (SYNTH-TELECOM): military action (network)');
+    expect(ua.sourceUrl).toBe('https://radar.cloudflare.com/outage-center?location=ua');
     const iq = r.events.find((e) => e.countryCodes[0] === 'IQ')!;
     expect(iq).toMatchObject({ category: 'unrest', regionIds: ['middle-east'], locationPrecision: 'country' });
     expect(iq.title).toBe('Internet outage — Iraq: government-directed shutdown (nationwide)');
@@ -160,5 +173,35 @@ describe('Cloudflare Radar outages (synthetic response)', () => {
     const rs = INDICATOR_CATALOG.find((d) => d.id === 'red-sea.outage-attributed')!;
     expect(evaluateIndicator(me, r.events, status, NOW).state).toBe('TRIGGERED');
     expect(evaluateIndicator(rs, r.events, status, NOW).state).toBe('NORMAL'); // cable cut is not a shutdown
+  });
+});
+
+describe('revisable sources', () => {
+  it('rewrites a stored event when the source revises it, keeping the original collectedAt', async () => {
+    const { runCollection } = await import('../pipeline.ts');
+    const { MemoryStore } = await import('../store/memory.ts');
+    const { contentHash } = await import('../lib/hash.ts');
+    const store = new MemoryStore();
+    const id = contentHash('t', 'one');
+    const make = (cause: string, at: number) => ({
+      id, contentHash: id, dataOrigin: 'live' as const, sourceId: 'cloudflare-radar-outages', sourceName: 'Cloudflare Radar — test',
+      sourceClass: 'scientific' as const, sourceUrl: 'https://radar.cloudflare.com/outage-center', title: `Internet outage — Iraq: ${cause}`,
+      category: 'cyber' as const, regionIds: ['middle-east'], countryCodes: ['IQ'], publishedAt: '2026-11-20T00:00:00.000Z', occurredAt: null,
+      collectedAt: new Date(at).toISOString(), credibility: 'official' as const, verificationStatus: 'unreviewed' as const,
+      locationPrecision: 'country' as const, metadata: { revisionKey: cause },
+    });
+    let cause = 'unknown cause';
+    const adapter = { sourceId: 'cloudflare-radar-outages', revisable: true, collect: async ({ now }: { now: number }) => ({ events: [make(cause, now)], rejected: [], itemsSeen: 1, notModified: false, state: {} }) };
+    const t0 = Date.parse('2026-11-20T01:00:00Z');
+    await runCollection([adapter as never], store, { trigger: 'manual', now: () => t0 });
+    const same = await runCollection([adapter as never], store, { trigger: 'manual', now: () => t0 + 3_600_000 });
+    expect(same.reports[0]).toMatchObject({ imported: 0, duplicates: 1 });
+    cause = 'government-directed shutdown';
+    const r = await runCollection([adapter as never], store, { trigger: 'manual', now: () => t0 + 7_200_000 });
+    expect(r.reports[0]).toMatchObject({ imported: 0, duplicates: 0, revised: 1 });
+    const [stored] = await store.getEvents([id]);
+    expect(stored.title).toMatch(/government-directed/);
+    expect(stored.collectedAt).toBe(new Date(t0).toISOString());
+    expect(stored.metadata!.revisedAt).toBe(new Date(t0 + 7_200_000).toISOString());
   });
 });

@@ -36,6 +36,12 @@ export class MemoryStore implements CollectorStore {
   async putEvents(events: IntelligenceEvent[]) {
     for (const e of events) this.events.set(e.id, structuredClone(e));
   }
+  async getEvents(ids: string[]) {
+    return ids.flatMap((id) => (this.events.has(id) ? [structuredClone(this.events.get(id)!)] : []));
+  }
+  async replaceEvents(events: IntelligenceEvent[]) {
+    for (const e of events) this.events.set(e.id, structuredClone(e));
+  }
   async putRun(run: CollectionRun) {
     this.runs.push(structuredClone(run));
   }
