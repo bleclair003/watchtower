@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { Grid3x3, Square } from 'lucide-react';
 import { getRegion } from '@shared/domain/regions';
+import { getIndicator } from '@shared/domain/indicators/catalog';
 import { applyFilters } from '../lib/filters';
 import { projectEvents } from '../lib/geo';
 import { useNow } from '../hooks/useNow';
@@ -17,13 +18,23 @@ import { Panel } from '../components/ui/Panel';
 export default function GlobalOperationsPage() {
   // Re-evaluate time windows once a minute; the clock in the top bar ticks separately.
   const now = useNow(60_000).getTime();
-  const { events } = useData();
+  const { events, regionScores, scoreHistory, indicatorEvaluations } = useData();
   const { filters, setFilters, resetFilters, selectedEventId, selectEvent, globalViewNonce } = useDashboard();
   const { settings, update } = useSettings();
 
   useEffect(() => {
     document.title = 'WATCHTOWER // GOC';
   }, []);
+
+  const indicatorsByEvent = useMemo(() => {
+    const m = new Map<string, string[]>();
+    for (const ev of indicatorEvaluations) {
+      if (ev.state !== 'TRIGGERED' && ev.state !== 'ELEVATED') continue;
+      const name = getIndicator(ev.indicatorId)?.name ?? ev.indicatorId;
+      for (const id of ev.evidenceEventIds) m.set(id, [...(m.get(id) ?? []), `${name} (${ev.state})`]);
+    }
+    return m;
+  }, [indicatorEvaluations]);
 
   const filtered = useMemo(() => applyFilters(events, filters, now), [events, filters, now]);
   const projection = useMemo(() => projectEvents(filtered), [filtered]);
@@ -43,6 +54,8 @@ export default function GlobalOperationsPage() {
       <div className="grid grid-cols-1 gap-1.5 lg:min-h-0 lg:flex-1 lg:grid-cols-[260px_minmax(0,1fr)_360px] 2xl:grid-cols-[290px_minmax(0,1fr)_420px]">
         <RegionalWatchlist
           events={events}
+          regionScores={regionScores}
+          scoreHistory={scoreHistory}
           selectedRegionId={filters.regionId}
           onSelect={(id) => setFilters({ regionId: id })}
           now={now}
@@ -95,6 +108,7 @@ export default function GlobalOperationsPage() {
           selectedEventId={selectedEventId}
           onSelect={selectEvent}
           now={now}
+          indicatorsByEvent={indicatorsByEvent}
           className="order-2 h-[75vh] lg:order-none lg:h-auto"
         />
       </div>

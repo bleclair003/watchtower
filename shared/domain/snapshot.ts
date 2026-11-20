@@ -1,4 +1,5 @@
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from './types.ts';
+import type { IndicatorEvaluation, RegionScore, ScoreHistoryPoint } from './indicators/types.ts';
 
 /**
  * Precomputed dashboard payload, written by the collector to
@@ -12,7 +13,7 @@ export const SNAPSHOT_COLLECTION = 'snapshots';
 export const SNAPSHOT_DOC_ID = 'dashboard';
 export const SNAPSHOT_MAX_EVENTS = 400;
 export const SNAPSHOT_MAX_BYTES = 900_000;
-export const SNAPSHOT_SCHEMA_VERSION = 1;
+export const SNAPSHOT_SCHEMA_VERSION = 2;
 
 export interface DashboardSnapshot {
   schemaVersion: number;
@@ -23,6 +24,12 @@ export interface DashboardSnapshot {
   lastRun: CollectionRun | null;
   /** Totals so the UI can say "showing 400 of 1,234". */
   totalEventsStored: number | null;
+  // --- Phase 3 (optional: absent in schema v1 snapshots) ---
+  indicatorCatalogVersion?: number;
+  indicatorEvaluations?: IndicatorEvaluation[];
+  regionScores?: RegionScore[];
+  /** Recent RAI values, for 24 h change and sparklines. */
+  scoreHistory?: ScoreHistoryPoint[];
 }
 
 /** Firestore collection names — single source of truth for app and collector. */
@@ -32,4 +39,6 @@ export const COLLECTIONS = {
   sourceState: 'sourceState',
   collectionRuns: 'collectionRuns',
   snapshots: SNAPSHOT_COLLECTION,
+  /** Append-only log of indicator state changes (for Phase 6 backtesting). */
+  indicatorHistory: 'indicatorHistory',
 } as const;

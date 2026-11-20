@@ -27,7 +27,10 @@ const MODE_TAG = {
  * subsystems that do not exist yet are reported as such, never as "OK".
  */
 export function SystemStatusPanel({ now }: { now: number }) {
-  const { sourceStatus, mode, loadedAt, error, events, previousSessionAt, refresh, loading, lastRun, generatedAt } = useData();
+  const { sourceStatus, mode, loadedAt, error, events, previousSessionAt, refresh, loading, lastRun, generatedAt, indicatorEvaluations } = useData();
+  const triggered = indicatorEvaluations.filter((e) => e.state === 'TRIGGERED').length;
+  const elevated = indicatorEvaluations.filter((e) => e.state === 'ELEVATED').length;
+  const evaluable = indicatorEvaluations.filter((e) => ['NORMAL', 'ELEVATED', 'TRIGGERED'].includes(e.state)).length;
 
   const statuses = mergeSourceStatus(sourceStatus, now);
   const counts = statuses.reduce<Partial<Record<SourceHealth, number>>>((acc, s) => {
@@ -107,8 +110,21 @@ export function SystemStatusPanel({ now }: { now: number }) {
         )}
       </Cell>
       <Cell label="INDICATORS">
-        <span className="text-wt-inactive">ENGINE OFFLINE</span>
-        <div className="text-2xs text-wt-fg-dim">Phase 3</div>
+        <Link to="/indicators" className="hover:underline">
+          {triggered + elevated > 0 ? (
+            <span>
+              {triggered > 0 && <span className="text-wt-crit">{triggered} TRIGGERED </span>}
+              {elevated > 0 && <span className="text-wt-warn">{elevated} ELEVATED</span>}
+            </span>
+          ) : evaluable > 0 ? (
+            <span>NONE ACTIVE</span>
+          ) : (
+            <span className="text-wt-inactive">NO EVALUABLE DATA</span>
+          )}
+        </Link>
+        <div className="text-2xs text-wt-fg-dim">
+          {evaluable}/{indicatorEvaluations.length} evaluable
+        </div>
       </Cell>
       <Cell label="ALERT DELIVERY">
         <span className="text-wt-inactive">NOT CONFIGURED</span>

@@ -30,6 +30,7 @@ export const COMMAND_HELP: CommandSpec[] = [
   { syntax: 'SEARCH <TEXT>', description: 'Keyword-filter the intelligence feed' },
   { syntax: 'CLEAR', description: 'Reset all dashboard filters' },
   { syntax: 'STATUS', description: 'Open system diagnostics' },
+  { syntax: 'INDICATORS', description: 'Open the Indicator & Warning Engine' },
   { syntax: 'SOURCES', description: 'Open the source directory' },
   { syntax: 'SETTINGS', description: 'Open operator settings' },
   { syntax: 'GOC', description: 'Return to Global Operations Center' },
@@ -37,6 +38,8 @@ export const COMMAND_HELP: CommandSpec[] = [
 
 const NAV: Record<string, string> = {
   STATUS: '/diagnostics',
+  INDICATORS: '/indicators',
+  IWE: '/indicators',
   DIAGNOSTICS: '/diagnostics',
   SOURCES: '/sources',
   SETTINGS: '/settings',
@@ -107,6 +110,7 @@ export function suggestCommands(input: string): string[] {
     'SEARCH ',
     'CLEAR',
     'STATUS',
+    'INDICATORS',
     'SOURCES',
     'SETTINGS',
     'GOC',

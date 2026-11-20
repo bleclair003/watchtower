@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { SOURCE_REGISTRY } from '@shared/domain/sources';
+import { CATALOG_VERSION, INDICATOR_CATALOG } from '@shared/domain/indicators/catalog';
 import { useData, DASHBOARD_EVENT_LIMIT, LIVE_REFRESH_MINUTES } from '../state/DataContext';
 import { useAuth } from '../state/AuthContext';
 import { backendMode, firebaseConfig } from '../config/firebase';
@@ -89,8 +90,24 @@ export default function DiagnosticsPage() {
       </Panel>
 
       <Panel title="Analysis & Alerting" designator="D3">
-        <Row k="INDICATOR ENGINE" v="NOT DEPLOYED (PHASE 3)" tone="inactive" />
-        <Row k="REGIONAL ACTIVITY INDEX" v="NOT EVALUATED" tone="inactive" />
+        <Row k="INDICATOR ENGINE" v={`CATALOG v${CATALOG_VERSION} · ${INDICATOR_CATALOG.length} INDICATORS`} tone="ok" />
+        <Row
+          k="LAST EVALUATION"
+          v={data.indicatorEvaluations[0] ? formatUtc(data.indicatorEvaluations[0].evaluatedAt, true) : mode === 'demo' ? 'IN-BROWSER (DEMO)' : 'NONE RECORDED YET'}
+        />
+        <Row
+          k="EVALUABLE INDICATORS"
+          v={`${data.indicatorEvaluations.filter((e) => ['NORMAL', 'ELEVATED', 'TRIGGERED'].includes(e.state)).length} / ${data.indicatorEvaluations.length}`}
+        />
+        <Row
+          k="REGIONS WITH RAI"
+          v={`${data.regionScores.filter((s) => s.score !== null).length} / ${data.regionScores.length}`}
+        />
+        <Row
+          k="ENGINE ERRORS (LAST RUN)"
+          v={lastRun?.errors.find((e) => e.sourceId === 'indicator-engine')?.message ?? 'NONE'}
+          tone={lastRun?.errors.some((e) => e.sourceId === 'indicator-engine') ? 'crit' : 'ok'}
+        />
         <Row k="ALERT ENGINE" v="NOT DEPLOYED (PHASE 4)" tone="inactive" />
         <Row k="DISCORD WEBHOOK" v="NOT CONFIGURED" tone="inactive" />
       </Panel>

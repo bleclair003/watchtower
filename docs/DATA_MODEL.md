@@ -27,10 +27,10 @@ Time fields:
 | `sourceStatus` | source id | collector | owner | Health + counters |
 | `sourceState` | source id | collector | **nobody** | Adapter memory: ETag/Last-Modified, advisory level baseline |
 | `collectionRuns` | run id | collector | owner | Diagnostics history; retain 90 days |
-| `snapshots` | `dashboard` | collector | owner | `DashboardSnapshot` (shared/domain/snapshot.ts): ≤ 400 newest events, source status, last run; trimmed to ≤ 900 KB |
+| `snapshots` | `dashboard` | collector | owner | `DashboardSnapshot` schema v2 (shared/domain/snapshot.ts): ≤ 400 newest events, source status, last run, indicator evaluations, region scores, ~3 days of RAI history; trimmed to ≤ 900 KB |
 | `regions` | region id | deploy script | owner | Mirrors `WATCH_REGIONS` |
-| `indicators` | indicator id | owner (UI) | collector, owner | Definitions, versioned |
-| `indicatorStates` | indicator id | collector | owner | Current state + evidence |
+| `indicatorHistory` | `<time>_<indicatorId>` | collector | owner | Append-only log of indicator state transitions (Phase 3) |
+| `indicators` | indicator id | owner (UI) | collector, owner | Phase 4: operator-edited definitions (v1 catalog lives in code) |
 | `alertRules` | auto | owner (UI) | collector | Declarative, validated by rules |
 | `alerts` | `ruleId_evidenceHash` | collector | owner | Ack/dismiss fields writable by owner |
 | `incidents` | auto | owner / collector | owner | Phase 5 |

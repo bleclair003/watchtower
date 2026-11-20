@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.3.0] — 2026-11-20 — Phase 3: Indicator & Warning Engine
+
+### Added
+- Declarative condition language with allow-listed fields and own-property lookups (`shared/domain/indicators/conditions.ts`).
+- Deterministic indicator evaluator with source-health gating (UNKNOWN / DATA_UNAVAILABLE), windows, distinct-source corroboration, baselines with history-sufficiency checks, evidence capture, and state continuity.
+- Regional Activity Index v0: coverage, per-source cap (60%), severity weighting, bands, 24 h change from recorded history, full breakdown.
+- Catalog v1 (16 indicators) built only on sources actually collected; Pentagon Pizza Index kept as experimental with NO DATA.
+- Collector evaluates after every run (one events query feeds both evaluation and snapshot), logs transitions to `indicatorHistory`, supports `--evaluate-only`; snapshot schema v2.
+- UI: Indicators page (thresholds, baselines, conditions, evidence links, experimental section, browser preview), RAI and breakdown in the watchlist, evidence tags in the feed, live indicator status.
+- `firstSuccessAt` on source status.
+
+### Fixed
+- CISA "Adds N KEV to Catalog" announcements were counted as non-routine alerts, double-counting KEV evidence; now classified `kev-announcement` and excluded.
+- Guidance documents (`/resources-tools/`) classified as `guidance` (routine).
+
+
 ## [0.2.0] — 2026-11-20 — Phase 2: live collection
 
 ### Added

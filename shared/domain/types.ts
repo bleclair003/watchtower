@@ -183,43 +183,17 @@ export interface SourceStatus {
   parseErrors: number;
   /** Most recent error message, sanitized. */
   lastError: string | null;
+  /**
+   * First successful collection. Bounds how far back this source's history is
+   * complete, which decides whether an indicator baseline is trustworthy.
+   * Optional for records written before Phase 3.
+   */
+  firstSuccessAt?: string | null;
 }
 
 // ---------------------------------------------------------------------------
-// Indicators (schema defined now; engine arrives in Phase 3)
+// Indicators: see shared/domain/indicators/ (Phase 3)
 // ---------------------------------------------------------------------------
-
-export type IndicatorState =
-  | 'NORMAL'
-  | 'ELEVATED'
-  | 'TRIGGERED'
-  | 'UNKNOWN'
-  | 'DATA_UNAVAILABLE'
-  | 'DISABLED';
-
-export interface IndicatorDefinition {
-  id: string;
-  name: string;
-  description: string;
-  category: EventCategory | 'information-environment' | 'experimental';
-  regionIds: string[];
-  requiredSourceIds: string[];
-  evaluationWindowHours: number;
-  baselineMethod: string;
-  weight: number;
-  severity: 'low' | 'medium' | 'high';
-  experimental: boolean;
-  configVersion: number;
-}
-
-export interface IndicatorStateRecord {
-  indicatorId: string;
-  state: IndicatorState;
-  lastEvaluatedAt: string | null;
-  lastTriggeredAt: string | null;
-  evidenceEventIds: string[];
-  configVersion: number;
-}
 
 // ---------------------------------------------------------------------------
 // Collection runs
@@ -230,6 +204,8 @@ export interface CollectionRun {
   startedAt: string;
   finishedAt: string | null;
   trigger: 'schedule' | 'manual' | 'local';
+  /** 'evaluate-only' runs re-evaluate indicators without fetching sources. */
+  mode?: 'collect' | 'evaluate-only';
   recordsFetched: number;
   recordsImported: number;
   recordsRejected: number;

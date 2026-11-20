@@ -8,6 +8,10 @@ import { IntelFeed } from './IntelFeed';
 import { RegionalWatchlist } from './RegionalWatchlist';
 import { CommandConsole } from '../layout/CommandConsole';
 import { DashboardProvider, useDashboard } from '../../state/DashboardContext';
+import { DataProvider } from '../../state/DataContext';
+import { DemoRepository } from '../../data/repository';
+import IndicatorsPage from '../../pages/IndicatorsPage';
+import type { RegionScore } from '@shared/domain/indicators/types';
 
 const NOW = Date.parse('2026-11-20T12:00:00Z');
 const events = buildDemoEvents(NOW);
@@ -67,12 +71,52 @@ describe('IntelFeed', () => {
 });
 
 describe('RegionalWatchlist', () => {
-  it('never shows a fabricated RAI score and toggles region selection', async () => {
+  it('shows N/E rather than a fabricated score when no indicator is evaluable', async () => {
     const onSelect = vi.fn();
-    render(<RegionalWatchlist events={events} selectedRegionId={null} onSelect={onSelect} now={NOW} />);
+    render(<RegionalWatchlist events={events} regionScores={[]} scoreHistory={[]} selectedRegionId={null} onSelect={onSelect} now={NOW} />);
     expect(screen.getAllByText('RAI N/E')).toHaveLength(7);
     await userEvent.click(screen.getByText('RED SEA / GULF OF ADEN'));
     expect(onSelect).toHaveBeenCalledWith('red-sea');
+  });
+
+  it('shows score, band, 24 h change and a traceable breakdown for the selected region', () => {
+    const score: RegionScore = {
+      regionId: 'red-sea', score: 42, band: 'ELEVATED', coverage: 1, activeIndicators: 1, evaluatedAt: new Date(NOW - 3_600_000).toISOString(),
+      contributions: [
+        { indicatorId: 'red-sea.advisory-raised', name: 'REDSEA travel advisory raised', state: 'TRIGGERED', weight: 3, severity: 'high', raw: 6, applied: 6, capped: false },
+        { indicatorId: 'red-sea.advisory-activity', name: 'REDSEA advisory publication burst', state: 'NORMAL', weight: 2, severity: 'medium', raw: 0, applied: 0, capped: false },
+      ],
+    };
+    const history = [{ at: new Date(NOW - 24 * 3_600_000).toISOString(), scores: { 'red-sea': 30 } }];
+    render(
+      <MemoryRouter>
+        <RegionalWatchlist events={events} regionScores={[score]} scoreHistory={history} selectedRegionId="red-sea" onSelect={() => {}} now={NOW} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('RAI 42 · ELEVATED')).toBeInTheDocument();
+    expect(screen.getByText('+12')).toBeInTheDocument();
+    expect(screen.getByText('REDSEA travel advisory raised')).toBeInTheDocument();
+    expect(screen.getByText('+6.0')).toBeInTheDocument();
+    expect(screen.getByText('COVERAGE 100%')).toBeInTheDocument();
+  });
+});
+
+describe('IndicatorsPage', () => {
+  it('lists the catalog, separates experimental signals, and reports no-data states honestly', async () => {
+    render(
+      <MemoryRouter>
+        <DataProvider repository={new DemoRepository(NOW)}>
+          <IndicatorsPage />
+        </DataProvider>
+      </MemoryRouter>,
+    );
+    expect(await screen.findByText('Experimental Signals — Unvalidated')).toBeInTheDocument();
+    expect(screen.getByText('Pentagon Pizza Index')).toBeInTheDocument();
+    expect(screen.getByText('Ransomware-linked KEV additions')).toBeInTheDocument();
+    // Demo data comes from no real collected source: everything is NO DATA, nothing NORMAL.
+    expect(screen.queryAllByText('NORMAL')).toHaveLength(0);
+    expect(screen.getAllByText('NO DATA').length).toBeGreaterThan(10);
+    expect(screen.getAllByText('RAI N/E').length).toBeGreaterThan(0);
   });
 });
 

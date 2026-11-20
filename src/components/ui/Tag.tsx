@@ -15,7 +15,7 @@ export function Tag({ tone = 'muted', children, title }: { tone?: Tone; children
   return (
     <span
       title={title}
-      className={`inline-flex h-4 shrink-0 items-center border px-1 text-2xs leading-none tracking-wider uppercase ${TONE_CLASSES[tone]}`}
+      className={`inline-flex h-4 shrink-0 items-center border px-1 text-2xs leading-none tracking-wider whitespace-nowrap uppercase ${TONE_CLASSES[tone]}`}
     >
       {children}
     </span>

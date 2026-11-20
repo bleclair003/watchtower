@@ -1,5 +1,6 @@
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../../shared/domain/types.ts';
 import type { DashboardSnapshot } from '../../shared/domain/snapshot.ts';
+import type { IndicatorTransition } from '../../shared/domain/indicators/types.ts';
 
 /**
  * Persistence used by the collector. Implementations: Firestore (production
@@ -14,8 +15,10 @@ export interface CollectorStore {
   filterNewEventIds(ids: string[]): Promise<Set<string>>;
   putEvents(events: IntelligenceEvent[]): Promise<void>;
   putRun(run: CollectionRun): Promise<void>;
-  /** Newest-first events for the snapshot (by publishedAt, nulls last). */
-  recentEvents(limit: number): Promise<IntelligenceEvent[]>;
+  /** Events collected at or after `sinceIso`, newest collected first, capped at `limit`. */
+  eventsCollectedSince(sinceIso: string, limit: number): Promise<IntelligenceEvent[]>;
   countEvents(): Promise<number | null>;
+  getSnapshot(): Promise<DashboardSnapshot | null>;
   putSnapshot(snapshot: DashboardSnapshot): Promise<void>;
+  putIndicatorTransitions(transitions: IndicatorTransition[]): Promise<void>;
 }

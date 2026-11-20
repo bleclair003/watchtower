@@ -3,6 +3,7 @@ import type { CollectionRun, IntelligenceEvent, SourceStatus } from '@shared/dom
 import { backendMode } from '../config/firebase';
 import { createRepository, PermissionDeniedError, type DataMode, type IntelRepository } from '../data/repository';
 import { readStorage, writeStorage } from '../lib/storage';
+import type { IndicatorEvaluation, RegionScore, ScoreHistoryPoint } from '@shared/domain/indicators/types';
 
 /** Max events kept in the dashboard working set (the snapshot is already bounded). */
 export const DASHBOARD_EVENT_LIMIT = 500;
@@ -18,6 +19,9 @@ interface DataState {
   /** When the collector generated the data being shown (null in demo mode). */
   generatedAt: string | null;
   totalEventsStored: number | null;
+  indicatorEvaluations: IndicatorEvaluation[];
+  regionScores: RegionScore[];
+  scoreHistory: ScoreHistoryPoint[];
   loading: boolean;
   error: string | null;
   accessDenied: boolean;
@@ -38,6 +42,9 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
     lastRun: null as CollectionRun | null,
     generatedAt: null as string | null,
     totalEventsStored: null as number | null,
+    indicatorEvaluations: [] as IndicatorEvaluation[],
+    regionScores: [] as RegionScore[],
+    scoreHistory: [] as ScoreHistoryPoint[],
     loadedAt: null as string | null,
     readsThisSession: null as number | null,
   });
@@ -62,6 +69,9 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
         lastRun: d.lastRun,
         generatedAt: d.generatedAt,
         totalEventsStored: d.totalEventsStored,
+        indicatorEvaluations: d.indicatorEvaluations,
+        regionScores: d.regionScores,
+        scoreHistory: d.scoreHistory,
         loadedAt: new Date().toISOString(),
         readsThisSession: repo.readsThisSession(),
       });

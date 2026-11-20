@@ -10,6 +10,8 @@ import { Tag } from '../ui/Tag';
 
 interface Props {
   event: IntelligenceEvent;
+  /** Names of ELEVATED/TRIGGERED indicators that cite this event as evidence. */
+  indicators?: string[];
   selected: boolean;
   onSelect: () => void;
   now: number;
@@ -24,7 +26,7 @@ const PRECISION_LABEL: Record<IntelligenceEvent['locationPrecision'], string> = 
 };
 
 /** One intelligence feed entry. Expanded view shows full provenance. */
-export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem({ event: e, selected, onSelect, now }, ref) {
+export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem({ event: e, selected, onSelect, now, indicators = [] }, ref) {
   const cred = CREDIBILITY_LABELS[e.credibility];
   const url = safeExternalUrl(e.sourceUrl);
   const isDemo = e.dataOrigin === 'demo';
@@ -49,6 +51,11 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem({ eve
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-1 pl-[17px]">
           {isDemo && <Tag tone="warn">DEMO</Tag>}
+          {indicators.length > 0 && (
+            <Tag tone="warn" title={`Evidence for: ${indicators.join('; ')}`}>
+              IND ×{indicators.length}
+            </Tag>
+          )}
           {e.metadata?.change === 'raised' && <Tag tone="warn" title="Advisory level raised">LEVEL ▲</Tag>}
           {e.metadata?.change === 'lowered' && <Tag tone="info" title="Advisory level lowered">LEVEL ▼</Tag>}
           {e.metadata?.change === 'new' && <Tag tone="warn" title="New advisory">NEW</Tag>}
@@ -87,7 +94,9 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem({ eve
               {e.countryCodes.length > 0 && <span className="text-wt-fg-dim"> · {e.countryCodes.join(', ')}</span>}
             </dd>
             <dt className="text-wt-fg-dim">INDICATORS</dt>
-            <dd className="text-wt-inactive">{e.indicatorIds?.length ? e.indicatorIds.join(', ') : 'NONE (ENGINE PHASE 3)'}</dd>
+            <dd className={indicators.length ? 'text-wt-warn' : 'text-wt-fg-dim'}>
+              {indicators.length ? indicators.join(' · ') : 'Not cited by any active indicator'}
+            </dd>
             <dt className="text-wt-fg-dim">RECORD</dt>
             <dd className="text-wt-fg-dim">{e.id}</dd>
           </dl>

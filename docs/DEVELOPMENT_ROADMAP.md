@@ -59,12 +59,17 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
 - [ ] Adapter: GDELT (context only), pending rate-limit validation from Actions
 - [ ] Incremental snapshot rebuild (read-cost optimization)
 
-## Phase 3 — Indicator engine
-- [ ] Indicator schema + declarative condition language
-- [ ] Deterministic evaluator (in collector) + unit tests
-- [ ] Indicator state tracking with evidence references
-- [ ] Regional Activity Index v0 with transparent breakdown
-- [ ] Indicators page; manual evaluation trigger
+## Phase 3 — Indicator engine ✅
+- [x] Indicator schema + declarative condition language (allow-listed fields, no code)
+- [x] Deterministic evaluator (shared; runs in collector and browser) + unit tests
+- [x] State tracking with evidence references, stateSince / lastTriggeredAt, transition log (`indicatorHistory`)
+- [x] Data-availability states (UNKNOWN / DATA_UNAVAILABLE) that never read as calm
+- [x] Baselines with history-sufficiency check
+- [x] Regional Activity Index v0: coverage, per-source cap, transparent breakdown, 24 h change
+- [x] Catalog v1: 16 indicators (State Dept ×12, CISA/KEV ×3, experimental ×1)
+- [x] Indicators page, watchlist RAI + breakdown, feed evidence tags, status/diagnostics
+- [x] Manual evaluation: `--evaluate-only` CLI and in-browser preview
+- [ ] Operator editing of indicators (with Phase 4 rule builder)
 
 ## Phase 4 — Alerting
 - [ ] Alert rules (graphical builder → declarative JSON)

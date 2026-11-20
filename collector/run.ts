@@ -4,6 +4,7 @@
  *   node collector/run.ts                      # write to Firestore (ADC credentials)
  *   node collector/run.ts --dry-run            # fetch + process, print results, write nothing
  *   node collector/run.ts --sources cisa-kev   # subset of sources
+ *   node collector/run.ts --evaluate-only      # re-evaluate indicators on stored data; fetch nothing
  *
  * Environment:
  *   WATCHTOWER_PROJECT_ID     Firebase project id (required unless --dry-run)
@@ -23,6 +24,7 @@ async function main(): Promise<number> {
   const { values } = parseArgs({
     options: {
       'dry-run': { type: 'boolean', default: false },
+      'evaluate-only': { type: 'boolean', default: false },
       sources: { type: 'string' },
     },
   });
@@ -52,7 +54,13 @@ async function main(): Promise<number> {
   const trigger = (process.env.COLLECTOR_TRIGGER ?? 'local') as CollectionRun['trigger'];
   console.log(`WATCHTOWER collection run · trigger=${trigger} · ${adapters.length} source(s)${values['dry-run'] ? ' · DRY RUN' : ''}`);
 
-  const { run, reports, snapshot } = await runCollection(adapters, store, { trigger, log: (m) => console.log(m) });
+  const evaluateOnly = values['evaluate-only'];
+  const { run, reports, snapshot } = await runCollection(evaluateOnly ? [] : adapters, store, {
+    trigger,
+    mode: evaluateOnly ? 'evaluate-only' : 'collect',
+    trackedSourceIds: ADAPTERS.map((a) => a.sourceId),
+    log: (m) => console.log(m),
+  });
 
   console.log(
     `Run ${run.id}: fetched ${run.recordsFetched} · imported ${run.recordsImported} · duplicates ${run.duplicatesSuppressed} · rejected ${run.recordsRejected} · errors ${run.errors.length}`,
@@ -61,7 +69,10 @@ async function main(): Promise<number> {
   if (values['dry-run']) {
     for (const e of snapshot.events.slice(0, 12)) console.log(`  · [${e.sourceId}] ${e.publishedAt?.slice(0, 10) ?? '----------'} ${e.title}`);
   }
-  return reports.every((r) => r.ok) ? 0 : 2;
+  for (const s of snapshot.regionScores ?? []) {
+    console.log(`  RAI ${s.regionId.padEnd(18)} ${s.score === null ? 'N/E' : String(s.score).padStart(3)} ${s.band ?? ''} · coverage ${Math.round(s.coverage * 100)}%`);
+  }
+  return reports.every((r) => r.ok) && run.errors.length === 0 ? 0 : 2;
 }
 
 main().then(

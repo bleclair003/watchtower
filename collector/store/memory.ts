@@ -1,8 +1,8 @@
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../../shared/domain/types.ts';
 import type { DashboardSnapshot } from '../../shared/domain/snapshot.ts';
+import type { IndicatorTransition } from '../../shared/domain/indicators/types.ts';
 import type { CollectorStore } from './types.ts';
 
-const sortKey = (e: IntelligenceEvent) => e.publishedAt ?? e.collectedAt;
 
 /** In-memory store for tests and --dry-run. Deep-copies on write like a real database. */
 export class MemoryStore implements CollectorStore {
@@ -11,6 +11,7 @@ export class MemoryStore implements CollectorStore {
   readonly sourceStatus = new Map<string, SourceStatus>();
   readonly runs: CollectionRun[] = [];
   snapshot: DashboardSnapshot | null = null;
+  readonly transitions: IndicatorTransition[] = [];
 
   async getSourceState<S>(id: string) {
     return (this.sourceState.has(id) ? structuredClone(this.sourceState.get(id)) : null) as S | null;
@@ -33,13 +34,23 @@ export class MemoryStore implements CollectorStore {
   async putRun(run: CollectionRun) {
     this.runs.push(structuredClone(run));
   }
-  async recentEvents(limit: number) {
-    return [...this.events.values()].sort((a, b) => sortKey(b).localeCompare(sortKey(a))).slice(0, limit);
+  async eventsCollectedSince(sinceIso: string, limit: number) {
+    return [...this.events.values()]
+      .filter((e) => e.collectedAt >= sinceIso)
+      .sort((a, b) => b.collectedAt.localeCompare(a.collectedAt))
+      .slice(0, limit)
+      .map((e) => structuredClone(e));
   }
   async countEvents() {
     return this.events.size;
   }
+  async getSnapshot() {
+    return this.snapshot ? structuredClone(this.snapshot) : null;
+  }
   async putSnapshot(s: DashboardSnapshot) {
     this.snapshot = structuredClone(s);
+  }
+  async putIndicatorTransitions(t: IndicatorTransition[]) {
+    this.transitions.push(...structuredClone(t));
   }
 }

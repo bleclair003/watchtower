@@ -2,6 +2,7 @@ import { initializeApp, applicationDefault, getApps, type App } from 'firebase-a
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../../shared/domain/types.ts';
 import { COLLECTIONS, SNAPSHOT_DOC_ID, type DashboardSnapshot } from '../../shared/domain/snapshot.ts';
+import type { IndicatorTransition } from '../../shared/domain/indicators/types.ts';
 import type { CollectorStore } from './types.ts';
 
 /**
@@ -63,13 +64,32 @@ export class FirestoreStore implements CollectorStore {
   async putRun(run: CollectionRun) {
     await this.db.collection(COLLECTIONS.collectionRuns).doc(run.id).set(run);
   }
-  async recentEvents(limit: number) {
-    const snap = await this.db.collection(COLLECTIONS.events).orderBy('publishedAt', 'desc').limit(limit).get();
+  async eventsCollectedSince(sinceIso: string, limit: number) {
+    // Single-field range + order on collectedAt: served by Firestore's automatic index.
+    const snap = await this.db
+      .collection(COLLECTIONS.events)
+      .where('collectedAt', '>=', sinceIso)
+      .orderBy('collectedAt', 'desc')
+      .limit(limit)
+      .get();
     return snap.docs.map((d) => d.data() as IntelligenceEvent);
   }
   async countEvents() {
     const agg = await this.db.collection(COLLECTIONS.events).count().get();
     return agg.data().count;
+  }
+  async getSnapshot() {
+    const snap = await this.db.collection(COLLECTIONS.snapshots).doc(SNAPSHOT_DOC_ID).get();
+    return snap.exists ? (snap.data() as DashboardSnapshot) : null;
+  }
+  async putIndicatorTransitions(transitions: IndicatorTransition[]) {
+    for (let i = 0; i < transitions.length; i += 400) {
+      const batch = this.db.batch();
+      for (const t of transitions.slice(i, i + 400)) {
+        batch.set(this.db.collection(COLLECTIONS.indicatorHistory).doc(`${t.at.replace(/[:.]/g, '-')}_${t.indicatorId}`), t);
+      }
+      await batch.commit();
+    }
   }
   async putSnapshot(s: DashboardSnapshot) {
     await this.db.collection(COLLECTIONS.snapshots).doc(SNAPSHOT_DOC_ID).set(s);

@@ -2,6 +2,10 @@ import type { CollectionRun, IntelligenceEvent, SourceStatus } from '@shared/dom
 import { SOURCE_REGISTRY } from '@shared/domain/sources';
 import { backendMode, type BackendMode } from '../config/firebase';
 import { buildDemoEvents } from './demo/demoEvents';
+import type { IndicatorEvaluation, RegionScore, ScoreHistoryPoint } from '@shared/domain/indicators/types';
+import { INDICATOR_CATALOG } from '@shared/domain/indicators/catalog';
+import { evaluateAll } from '@shared/domain/indicators/evaluate';
+import { computeAllRegionScores } from '@shared/domain/indicators/rai';
 
 /**
  * Data access boundary for the UI.
@@ -19,6 +23,9 @@ export interface DashboardData {
   /** When the collector built the data the dashboard is showing. */
   generatedAt: string | null;
   totalEventsStored: number | null;
+  indicatorEvaluations: IndicatorEvaluation[];
+  regionScores: RegionScore[];
+  scoreHistory: ScoreHistoryPoint[];
 }
 
 export interface IntelRepository {
@@ -45,7 +52,14 @@ export class DemoRepository implements IntelRepository {
   }
 
   async loadDashboard(): Promise<DashboardData> {
+    // The real engine runs on demo data too. Demo sources are not real collected
+    // sources, so every indicator honestly reports DATA_UNAVAILABLE and RAI is N/E.
+    const now = Date.now();
+    const { evaluations } = evaluateAll(INDICATOR_CATALOG, this.events, [], now);
     return {
+      indicatorEvaluations: evaluations,
+      regionScores: computeAllRegionScores(INDICATOR_CATALOG, evaluations, now),
+      scoreHistory: [],
       events: this.events,
       // No collector has ever run in demo mode, so every source is honestly NOT_CONFIGURED.
       sourceStatus: SOURCE_REGISTRY.map((s) => ({

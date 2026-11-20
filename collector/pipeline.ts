@@ -7,6 +7,10 @@ import {
   SNAPSHOT_SCHEMA_VERSION,
   type DashboardSnapshot,
 } from '../shared/domain/snapshot.ts';
+import { CATALOG_VERSION, INDICATOR_CATALOG } from '../shared/domain/indicators/catalog.ts';
+import { evaluateAll, requiredLookbackHours } from '../shared/domain/indicators/evaluate.ts';
+import { appendScoreHistory, computeAllRegionScores } from '../shared/domain/indicators/rai.ts';
+import type { IndicatorDefinition } from '../shared/domain/indicators/types.ts';
 import type { SourceAdapter } from './adapters/types.ts';
 import type { CollectorStore } from './store/types.ts';
 import { politeFetch, type FetchOptions } from './lib/http.ts';
@@ -15,6 +19,11 @@ import { truncate } from './lib/text.ts';
 
 export interface PipelineOptions {
   trigger: CollectionRun['trigger'];
+  /** Sources whose status appears in the snapshot (defaults to the adapters run). */
+  trackedSourceIds?: string[];
+  /** Indicator catalog to evaluate (defaults to the built-in catalog). */
+  catalog?: IndicatorDefinition[];
+  mode?: CollectionRun['mode'];
   now?: () => number;
   fetchOptions?: Omit<FetchOptions, 'validators'>;
   log?: (msg: string) => void;
@@ -59,6 +68,7 @@ export async function runCollection(
     startedAt,
     finishedAt: null,
     trigger: opts.trigger,
+    mode: opts.mode ?? 'collect',
     recordsFetched: 0,
     recordsImported: 0,
     recordsRejected: 0,
@@ -113,6 +123,7 @@ export async function runCollection(
         ...prevStatus,
         lastAttemptAt: attemptAt,
         lastSuccessAt: attemptAt,
+        firstSuccessAt: prevStatus.firstSuccessAt ?? prevStatus.lastSuccessAt ?? attemptAt,
         lastNewItemAt: toWrite.length ? attemptAt : prevStatus.lastNewItemAt,
         consecutiveFailures: 0,
         parseErrors: result.rejected.length,
@@ -149,32 +160,75 @@ export async function runCollection(
     );
   }
 
+  const tracked = opts.trackedSourceIds ?? adapters.map((a) => a.sourceId);
+  const snapshot = await buildSnapshot(store, run, tracked, opts.catalog ?? INDICATOR_CATALOG, now(), log);
   run.finishedAt = new Date(now()).toISOString();
+  snapshot.lastRun = run;
   await store.putRun(run);
-  const snapshot = await buildSnapshot(store, run, adapters.map((a) => a.sourceId), now());
   await store.putSnapshot(snapshot);
   return { run, reports, snapshot };
 }
 
-/** Builds the dashboard snapshot, trimming events until it fits the Firestore document limit. */
+/** Hours of event history loaded per run: the longest indicator lookback plus margin. */
+export function snapshotLookbackHours(catalog: IndicatorDefinition[]): number {
+  return Math.max(14 * 24, requiredLookbackHours(catalog) + 24);
+}
+/** Upper bound on events read per run (Firestore reads are metered). */
+export const EVENT_QUERY_LIMIT = 2000;
+
+const eventTime = (e: { publishedAt: string | null; collectedAt: string }) => e.publishedAt ?? e.collectedAt;
+
+/**
+ * Loads recent events ONCE, evaluates indicators and the RAI over them, logs
+ * state transitions, and assembles the dashboard snapshot from the same data.
+ * An indicator-engine failure is recorded on the run, never silently dropped,
+ * and never prevents the snapshot (with fresh events) from being written.
+ */
 export async function buildSnapshot(
   store: CollectorStore,
   run: CollectionRun,
   sourceIds: string[],
+  catalog: IndicatorDefinition[],
   now: number,
+  log: (msg: string) => void = () => {},
 ): Promise<DashboardSnapshot> {
   const statuses = (await Promise.all(sourceIds.map((id) => store.getSourceStatus(id)))).filter(
     (s): s is SourceStatus => s !== null,
   );
-  let events = await store.recentEvents(SNAPSHOT_MAX_EVENTS);
+  const since = new Date(now - snapshotLookbackHours(catalog) * 3_600_000).toISOString();
+  const loaded = await store.eventsCollectedSince(since, EVENT_QUERY_LIMIT);
+  const previous = await store.getSnapshot();
+
   const snapshot: DashboardSnapshot = {
     schemaVersion: SNAPSHOT_SCHEMA_VERSION,
     generatedAt: new Date(now).toISOString(),
-    events,
+    events: [],
     sourceStatus: statuses,
     lastRun: run,
     totalEventsStored: await store.countEvents(),
+    indicatorCatalogVersion: CATALOG_VERSION,
+    indicatorEvaluations: previous?.indicatorEvaluations ?? [],
+    regionScores: previous?.regionScores ?? [],
+    scoreHistory: previous?.scoreHistory ?? [],
   };
+
+  try {
+    const { evaluations, transitions } = evaluateAll(catalog, loaded, statuses, now, previous?.indicatorEvaluations ?? []);
+    const scores = computeAllRegionScores(catalog, evaluations, now);
+    if (transitions.length) await store.putIndicatorTransitions(transitions);
+    snapshot.indicatorEvaluations = evaluations;
+    snapshot.regionScores = scores;
+    snapshot.scoreHistory = appendScoreHistory(previous?.scoreHistory ?? [], scores, now);
+    const active = evaluations.filter((e) => e.state === 'TRIGGERED' || e.state === 'ELEVATED').length;
+    log(`IWE  ${evaluations.length} indicators evaluated · ${active} active · ${transitions.length} state change(s)`);
+  } catch (err) {
+    const message = sanitizeError(err);
+    run.errors.push({ sourceId: 'indicator-engine', message });
+    log(`IWE  FAILED: ${message} (previous indicator states retained)`);
+  }
+
+  let events = [...loaded].sort((a, b) => eventTime(b).localeCompare(eventTime(a))).slice(0, SNAPSHOT_MAX_EVENTS);
+  snapshot.events = events;
   while (Buffer.byteLength(JSON.stringify(snapshot)) > SNAPSHOT_MAX_BYTES && events.length > 0) {
     events = events.slice(0, Math.floor(events.length * 0.9));
     snapshot.events = events;

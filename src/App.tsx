@@ -9,6 +9,7 @@ import GlobalOperationsPage from './pages/GlobalOperationsPage';
 import SourcesPage from './pages/SourcesPage';
 import DiagnosticsPage from './pages/DiagnosticsPage';
 import SettingsPage from './pages/SettingsPage';
+import IndicatorsPage from './pages/IndicatorsPage';
 
 function NotFound() {
   return (
@@ -35,6 +36,7 @@ export default function App() {
                     <Route path="sources" element={<SourcesPage />} />
                     <Route path="diagnostics" element={<DiagnosticsPage />} />
                     <Route path="settings" element={<SettingsPage />} />
+                    <Route path="indicators" element={<IndicatorsPage />} />
                     <Route path="*" element={<NotFound />} />
                   </Route>
                 </Routes>

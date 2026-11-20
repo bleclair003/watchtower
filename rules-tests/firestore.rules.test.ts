@@ -34,6 +34,7 @@ beforeEach(async () => {
     await setDoc(doc(db, 'events/abc'), { title: 'x' });
     await setDoc(doc(db, 'sourceStatus/cisa-kev'), { health: 'ONLINE' });
     await setDoc(doc(db, 'collectionRuns/r1'), { recordsImported: 1 });
+    await setDoc(doc(db, 'indicatorHistory/t1'), { to: 'TRIGGERED' });
     await setDoc(doc(db, 'sourceState/cisa-kev'), { state: { etag: 'x' } });
   });
 });
@@ -50,6 +51,7 @@ describe('collected data', () => {
     await assertSucceeds(getDocs(collection(owner(), 'events')));
     await assertSucceeds(getDoc(doc(owner(), 'sourceStatus/cisa-kev')));
     await assertSucceeds(getDoc(doc(owner(), 'collectionRuns/r1')));
+    await assertSucceeds(getDoc(doc(owner(), 'indicatorHistory/t1')));
   });
 
   it('unauthenticated, non-owner and spoofed-claim users cannot read anything', async () => {
@@ -57,6 +59,7 @@ describe('collected data', () => {
       await assertFails(getDoc(doc(db, 'snapshots/dashboard')));
       await assertFails(getDoc(doc(db, 'events/abc')));
       await assertFails(getDocs(collection(db, 'events')));
+      await assertFails(getDoc(doc(db, 'indicatorHistory/t1')));
     }
   });
 
@@ -66,6 +69,7 @@ describe('collected data', () => {
     await assertFails(deleteDoc(doc(owner(), 'events/abc')));
     await assertFails(setDoc(doc(owner(), 'sourceStatus/cisa-kev'), { health: 'ONLINE' }));
     await assertFails(setDoc(doc(owner(), 'collectionRuns/r2'), {}));
+    await assertFails(setDoc(doc(owner(), 'indicatorHistory/forged'), { to: 'NORMAL' }));
   });
 
   it('collector-internal source state is never readable by clients', async () => {

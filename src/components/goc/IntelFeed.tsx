@@ -15,6 +15,8 @@ interface Props {
   onSelect: (id: string | null) => void;
   now: number;
   className?: string;
+  /** eventId → names of active indicators citing it. */
+  indicatorsByEvent?: Map<string, string[]>;
 }
 
 /** Chronological intelligence feed. Keyboard: J / K or ↓ / ↑ to move, Esc to collapse. */
@@ -80,6 +82,7 @@ export function IntelFeed(props: Props) {
               selected={e.id === selectedEventId}
               onSelect={() => onSelect(e.id === selectedEventId ? null : e.id)}
               now={now}
+              indicators={props.indicatorsByEvent?.get(e.id)}
             />
           ))}
         </ul>

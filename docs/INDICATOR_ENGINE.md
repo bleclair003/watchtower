@@ -1,42 +1,85 @@
-# Indicator & Warning Engine (IWE) — Design
+# Indicator & Warning Engine (IWE)
 
-**Status: design only. Not implemented (Phase 3).** The UI currently shows RAI `N/E` (not evaluated) and indicators as offline.
+**Status: implemented (Phase 3, catalog v1).** Code: [`shared/domain/indicators/`](../shared/domain/indicators/). The same module runs in the collector, which records the official state, and in the browser, which runs it for demo mode and for the "Evaluate now — preview" button.
 
 ## Principles
 
-1. Deterministic first. Indicators are declarative conditions evaluated in the collector; no AI and no user-supplied JavaScript.
-2. Absence of data is not evidence of calm. Missing or stale required sources yield `UNKNOWN` / `DATA_UNAVAILABLE`, never `NORMAL`.
-3. Every state change records the event IDs that caused it.
-4. Experimental signals (`experimental: true`) never feed RAI without a documented evaluation policy.
+1. **Deterministic and declarative.** An indicator is JSON: a condition, a window and thresholds. There is no AI and no executable code. The same inputs always give the same state.
+2. **Absence of data is not evidence of calm.** If a required source has never been collected, the result is `DATA_UNAVAILABLE`. If a source is OFFLINE or STALE, it is `UNKNOWN`. Neither is ever `NORMAL`, and both lower RAI *coverage* instead of lowering the score.
+3. **Every state is explainable.** Each evaluation records its matched count, its effective thresholds, its baseline status, a plain-language reason and up to 25 evidence event ids.
+4. **Every state change is logged** in `indicatorHistory` for Phase 6 backtesting.
+5. **Experimental signals are quarantined.** They have weight 0 by rule, never feed the RAI, and are shown under *Experimental signals — unvalidated*.
 
-## Condition language (draft)
+## Evaluation
+
+For each indicator, at time `now`:
+
+1. **Gate on source health.** Each required source must have succeeded at least once and must not be OFFLINE or STALE.
+2. **Match.** Select events matching the condition, de-duplicated by content hash. Each is dated by `publishedAt`, falling back to `collectedAt`.
+3. **Count.** Count matches in `(now − window, now]`, along with the number of distinct sources.
+4. **Baseline (optional).** Compute the mean matches per window over the preceding `days`. The baseline counts as *sufficient* only when the source's complete history (first success minus the 30-day first-run backfill) reaches back that far. When sufficient, the effective thresholds become `max(fixed, ceil(ratio × mean))`. Otherwise the fixed thresholds apply and the reason says "Baseline not applied".
+5. **State.**
+   - `TRIGGERED` if count ≥ trigger threshold and distinct sources ≥ the required number.
+   - Otherwise `ELEVATED` if count ≥ elevated threshold.
+   - Otherwise `NORMAL`.
+
+`stateSince` and `lastTriggeredAt` are carried over from the previous run's snapshot.
+
+## Condition language
 
 ```jsonc
-{
-  "id": "redsea-maritime-official-burst",
-  "window": { "hours": 24 },
-  "match": {
-    "all": [
-      { "field": "regionIds", "op": "contains", "value": "red-sea" },
-      { "field": "category", "op": "eq", "value": "maritime" },
-      { "field": "credibility", "op": "eq", "value": "official" }
-    ]
-  },
-  "trigger": { "countAtLeast": 2, "distinctSourcesAtLeast": 1 },
-  "elevated": { "countAtLeast": 1 },
-  "baseline": { "method": "rolling-median", "days": 28, "ratioAtLeast": 2.0 }
-}
+{ "all": [
+    { "field": "sourceId", "op": "eq", "value": "cisa-advisories" },
+    { "field": "metadata.subtype", "op": "in", "value": ["alert", "joint-advisory", "analysis-report"] },
+    { "not": { "field": "title", "op": "contains", "value": "Known Exploited Vulnerabilit" } }
+] }
 ```
 
-Fields and operators are drawn from a fixed allowlist and validated with a schema on write.
+- **Groups:** `all`, `any`, `not`, nesting at most 6 deep.
+- **Operators:** `eq`, `neq`, `in`, `contains`, `gte`, `lte`, `exists`. String comparison is case-insensitive, and array fields match if any element matches.
+- **Fields:** an allow-list (`CONDITION_FIELDS`) of event properties and selected `metadata.*` keys. Lookups are own-property only, so inherited names such as `constructor` are rejected; this is tested.
+- `validateCondition()` and `validateCatalog()` reject malformed definitions, and the catalog is validated in CI.
 
-## Regional Activity Index (RAI) v0 — proposal
+## Catalog v1
 
-`RAI = min(100, Σ contribution_i) × coverageFactor`, where each triggered or elevated indicator contributes `weight × severityMultiplier × recencyDecay`. Safeguards:
+| Region | Indicator | Window | Elevated / Triggered | Baseline | Weight · Severity |
+|---|---|---|---|---|---|
+| each of 6 geographic regions | Travel advisory **raised** (State Dept) | 7 d | 1 / 1 | — | 3 · high |
+| each of 6 geographic regions | Advisory publication **burst** (State Dept) | 72 h | 2 / 4 | 28 d, ×2 / ×3 | 2 · medium |
+| Global cyber | KEV addition surge | 72 h | 4 / 8 | 28 d, ×1.5 / ×2.5 | 2 · medium |
+| Global cyber | Ransomware-linked KEV additions | 7 d | 1 / 3 | — | 2 · high |
+| Global cyber | Non-routine CISA advisories (alerts, joint advisories, analysis reports; excludes KEV announcements and guidance) | 72 h | 1 / 3 | — | 2 · medium |
+| Experimental | Pentagon Pizza Index | — | — | — | 0 · always NO DATA |
 
-- **Per-source cap:** a single source's evidence contributes at most 30% of a region's score.
-- **Dedup:** events sharing a `contentHash` or a clustered story id count once.
-- **Corroboration** requires different organizations, not syndicated copies.
-- **Coverage factor:** the share of the region's required sources that are healthy. Shown alongside the score (e.g. `RAI 42 · coverage 60%`), so a quiet region with dead feeds can't look calm.
+All thresholds are **initial engineering judgements, not empirically validated**. Phase 6 backtesting exists to revise them. To change a definition, bump its `configVersion` and `CATALOG_VERSION`.
 
-Bands (Baseline / Increased / Elevated / Significant / Exceptional) are display conventions, not validated thresholds. RAI is never presented as a probability.
+**Duplicate-evidence fix (found during verification):** CISA's "Adds N Known Exploited Vulnerabilities to Catalog" alerts announce the same KEV additions the KEV indicators already count. They are now classified as `kev-announcement` (routine) and excluded from the non-routine indicator, both by subtype and by title so that records stored earlier are covered too.
+
+## Regional Activity Index (RAI) v0
+
+```
+max      = Σ weight × severityMultiplier                over evaluable indicators
+points_i = weight_i × severityMultiplier_i × stateFactor_i
+RAI      = round(100 × Σ capped points / max)
+```
+
+- `severityMultiplier`: low 1, medium 1.5, high 2.
+- `stateFactor`: TRIGGERED 1, ELEVATED 0.4, NORMAL 0.
+- **Evaluable** means NORMAL, ELEVATED or TRIGGERED. **Coverage** is evaluable indicators ÷ the region's enabled non-experimental indicators, and is always shown next to the score. With zero coverage the RAI is `N/E`, never 0.
+- **Per-source cap:** indicators sharing a primary source contribute at most 60% of `max`. A region informed only by the State Dept therefore cannot exceed 60 (*Significant*) on that source alone.
+- **Bands:** 0–19 Baseline, 20–39 Increased, 40–59 Elevated, 60–79 Significant, 80–100 Exceptional. These are display conventions only.
+- **24 h change** uses the stored score-history point closest to now − 24 h, within ±4 h. If no such point exists it shows "—", never an invented figure.
+
+**The RAI is not a probability of war, attack or any event.** It measures unusual activity in the sources WATCHTOWER monitors.
+
+## Operations
+
+- The collector evaluates after every run. Run `node collector/run.ts --evaluate-only` (or `npm run collect:emulator -- --evaluate-only`) to re-evaluate stored data without fetching.
+- An engine failure is recorded on the run as `indicator-engine`, the previous states are kept, and the job exits with code 2. The snapshot with fresh events is still written.
+- Cost: one events query per run (at most 2,000 docs, collected in the last 31+ days), one snapshot read, and one write per state change.
+
+## Not yet built
+
+- An operator UI for editing indicators. This is planned together with the Phase 4 alert-rule builder, which uses the same condition language.
+- Recency decay inside a window.
+- Story clustering to recognize syndicated copies across sources. Today only identical content is de-duplicated.

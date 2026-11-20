@@ -87,6 +87,8 @@ describe('CISA advisories adapter', () => {
     expect(cisaSubtype('https://www.cisa.gov/news-events/ics-advisories/icsa-26-323-02')).toBe('ics-advisory');
     expect(cisaSubtype('https://www.cisa.gov/news-events/alerts/2026/11/18/x')).toBe('alert');
     expect(cisaSubtype('https://www.cisa.gov/news-events/cybersecurity-advisories/aa26-100a')).toBe('joint-advisory');
+    expect(cisaSubtype('https://www.cisa.gov/news-events/alerts/2026/11/18/cisa-adds-four-known-exploited-vulnerabilities-catalog')).toBe('kev-announcement');
+    expect(cisaSubtype('https://www.cisa.gov/resources-tools/resources/post-quantum-questions-ask-your-vendors')).toBe('guidance');
 
     const r = await cisaAdvisories.collect({ now: NOW, state: null, fetch: okFetch(fixture('cisa-advisories.sample.xml')) });
     expect(r.events).toHaveLength(5);

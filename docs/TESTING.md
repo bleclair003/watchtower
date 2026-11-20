@@ -8,7 +8,7 @@ npm run build       # typecheck + production build
 npm run collect:dry # live end-to-end fetch/parse of real sources; writes nothing
 ```
 
-## Current coverage (69 unit/component + 6 rules tests, all passing)
+## Current coverage (102 unit/component + 6 rules tests, all passing)
 
 | File | Covers |
 |---|---|
@@ -16,6 +16,7 @@ npm run collect:dry # live end-to-end fetch/parse of real sources; writes nothin
 | `src/lib/geo.test.ts` | No-invented-coordinates rule, point vs. area-level vs. unlocated split, [lon, lat] order, watch-area polygons |
 | `src/lib/misc.test.ts` | Map style transform (and immutability), command parser + autocomplete, URL sanitizer, time formatting |
 | `src/data/demo/demoEvents.test.ts` | Demo integrity: every record `demo`, `[SIMULATED]` prefix, no source URL, no coordinates on imprecise records, collected ≥ published; demo repository returns only demo records, `NOT_CONFIGURED` health and no collector run |
+| `shared/domain/indicators/indicators.test.ts` | Condition language (operators, groups, validation, prototype-name safety), catalog validity and semantics (KEV-announcement exclusion), evaluator states incl. UNKNOWN / DATA_UNAVAILABLE, window boundaries, dedupe, corroboration, evidence cap, state continuity, baselines (applied vs insufficient history), transitions, RAI (N/E, coverage, per-source cap, experimental exclusion, bands, 24 h delta) |
 | `src/lib/sourceHealth.test.ts` | View-time health recomputation (ONLINE → STALE), overdue detection |
 | `collector/test/lib.test.ts` | HTML/entity sanitization, bidi/control stripping, URL allowlist, RFC-822 dates (two-digit year, date-only, invalid), RSS/Atom parsing on **real feed fixtures**, refusal of entity declarations, **every observed FIPS tag** cross-checked against CLDR country names, polite fetch (conditional headers, 304, 429/5xx backoff, no 4xx retry, size cap), hashing, health rules |
 | `collector/test/adapters.test.ts` | State Dept first-run baseline and lookback, no-change runs, RAISED/LOWERED/reissued detection, Gaza→PS, 304 handling; CISA subtypes and lookback; KEV window, ransomware flag, malformed JSON |
