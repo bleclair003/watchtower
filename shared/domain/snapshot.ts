@@ -12,7 +12,9 @@ import type { AlertRuleProblem } from './alerts/types.ts';
  */
 export const SNAPSHOT_COLLECTION = 'snapshots';
 export const SNAPSHOT_DOC_ID = 'dashboard';
-export const SNAPSHOT_MAX_EVENTS = 400;
+export const SNAPSHOT_MAX_EVENTS = 700;
+/** Summaries are shortened in the snapshot only; the full text stays in the `events` collection. */
+export const SNAPSHOT_SUMMARY_CHARS = 280;
 export const SNAPSHOT_MAX_BYTES = 900_000;
 export const SNAPSHOT_SCHEMA_VERSION = 2;
 

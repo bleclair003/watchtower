@@ -28,6 +28,23 @@ function text(v: unknown): string {
   return '';
 }
 
+/**
+ * Text of an Atom `type="xhtml"` element: the parser turns the inline XHTML into nested
+ * objects, so collect every text node in document order (depth-limited).
+ */
+function deepText(v: unknown, depth = 0): string {
+  if (v == null || depth > 8) return '';
+  if (typeof v === 'string' || typeof v === 'number') return String(v);
+  if (Array.isArray(v)) return v.map((x) => deepText(x, depth + 1)).join(' ');
+  if (typeof v === 'object') {
+    return Object.entries(v as Record<string, unknown>)
+      .filter(([k]) => !k.startsWith('@'))
+      .map(([, x]) => deepText(x, depth + 1))
+      .join(' ');
+  }
+  return '';
+}
+
 /** Basic XML entity decoding (processEntities is off for safety). */
 function xmlDecode(s: string): string {
   return s
@@ -81,7 +98,7 @@ export function parseFeed(xml: string): FeedItem[] {
       return {
         title: xmlDecode(text(e.title)),
         link: String(alt?.['@href'] ?? ''),
-        description: xmlDecode(text(e.summary) || text(e.content)),
+        description: xmlDecode(text(e.summary) || text(e.content) || deepText(e.summary) || deepText(e.content)).replace(/\s+/g, ' ').trim(),
         published: text(e.published) || text(e.updated),
         guid: text(e.id),
         categories: ((e.category as Record<string, unknown>[] | undefined) ?? []).map((c) => ({

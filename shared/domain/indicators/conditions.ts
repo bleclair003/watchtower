@@ -29,6 +29,9 @@ export const CONDITION_FIELDS = {
   'metadata.advisoryLevel': (e: IntelligenceEvent) => e.metadata?.advisoryLevel,
   'metadata.previousLevel': (e: IntelligenceEvent) => e.metadata?.previousLevel,
   'metadata.knownRansomwareUse': (e: IntelligenceEvent) => e.metadata?.knownRansomwareUse,
+  'metadata.seismicType': (e: IntelligenceEvent) => e.metadata?.seismicType,
+  'metadata.alertLevel': (e: IntelligenceEvent) => e.metadata?.alertLevel,
+  'metadata.magnitude': (e: IntelligenceEvent) => e.metadata?.magnitude,
 } as const;
 
 export type ConditionField = keyof typeof CONDITION_FIELDS;

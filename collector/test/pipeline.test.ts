@@ -4,6 +4,7 @@ import type { IntelligenceEvent } from '../../shared/domain/types.ts';
 import type { SourceAdapter } from '../adapters/types.ts';
 import { runCollection } from '../pipeline.ts';
 import { MemoryStore } from '../store/memory.ts';
+import { SNAPSHOT_MAX_EVENTS } from '../../shared/domain/snapshot.ts';
 import { contentHash } from '../lib/hash.ts';
 import { INDICATOR_CATALOG } from '../../shared/domain/indicators/catalog.ts';
 
@@ -106,7 +107,7 @@ describe('runCollection', () => {
     const r = await runCollection([adapter('cisa-kev', () => big)], store, { trigger: 'local', now: () => NOW });
     const bytes = Buffer.byteLength(JSON.stringify(r.snapshot));
     expect(bytes).toBeLessThanOrEqual(900_000);
-    expect(r.snapshot.events.length).toBeLessThanOrEqual(400);
+    expect(r.snapshot.events.length).toBeLessThanOrEqual(SNAPSHOT_MAX_EVENTS);
     expect(r.snapshot.events[0].id).toBe(ev(0).id);
     expect(r.snapshot.totalEventsStored).toBe(600);
     expect(r.snapshot.lastRun?.recordsImported).toBe(600);

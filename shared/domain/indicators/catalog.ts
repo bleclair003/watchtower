@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 2;
+export const CATALOG_VERSION = 3;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -143,6 +143,130 @@ const cyberIndicators: IndicatorDefinition[] = [
   },
 ];
 
+const FCDO = 'uk-fcdo-travel';
+const IODA = 'ioda-outages';
+const USGS = 'usgs-earthquakes';
+const MEDIA = ['bbc-world', 'aljazeera'];
+
+/** Indicators from the v0.8 source expansion (UK FCDO, IODA, USGS, media). */
+const expansionIndicators: IndicatorDefinition[] = [
+  ...ADVISORY_REGIONS.flatMap((r): IndicatorDefinition[] => [
+    {
+      id: `${r.id}.fcdo-updates`,
+      name: `${r.shortCode} UK travel advice updates`,
+      description: `UK FCDO travel advice for ${r.name} countries was updated within 72 hours.`,
+      family: 'diplomatic',
+      regionId: r.id,
+      requiredSourceIds: [FCDO],
+      match: {
+        all: [
+          { field: 'sourceId', op: 'eq', value: FCDO },
+          { field: 'regionIds', op: 'contains', value: r.id },
+        ],
+      },
+      windowHours: 72,
+      elevated: { countAtLeast: 2 },
+      triggered: { countAtLeast: 4 },
+      baseline: { days: 28, triggerRatio: 3, elevatedRatio: 2 },
+      weight: 1,
+      severity: 'medium',
+      experimental: false,
+      enabled: true,
+      configVersion: 1,
+      rationale:
+        'A second government’s travel-risk view, independent of the U.S. State Department. Many FCDO updates are routine edits (entry rules, contact details), so the weight is low and the change note should be read before acting.',
+    },
+    {
+      id: `${r.id}.connectivity-drop`,
+      name: `${r.shortCode} internet connectivity drop`,
+      description: `IODA detected an internet connectivity drop of 4 h or more in a ${r.name} country within 48 hours.`,
+      family: 'information-environment',
+      regionId: r.id,
+      requiredSourceIds: [IODA],
+      match: {
+        all: [
+          { field: 'sourceId', op: 'eq', value: IODA },
+          { field: 'regionIds', op: 'contains', value: r.id },
+        ],
+      },
+      windowHours: 48,
+      elevated: { countAtLeast: 1 },
+      triggered: { countAtLeast: 3 },
+      baseline: { days: 28, triggerRatio: 3, elevatedRatio: 2 },
+      weight: 2,
+      severity: 'medium',
+      experimental: false,
+      enabled: true,
+      configVersion: 1,
+      rationale:
+        'Governments restrict connectivity during unrest and military operations. Power cuts, cable faults, scheduled exam-season shutdowns (e.g. Iraq, Syria) and measurement artefacts produce the same signal, so this is corroborating evidence, not proof.',
+    },
+    {
+      id: `${r.id}.media-conflict-reporting`,
+      name: `${r.shortCode} conflict-reporting volume (media)`,
+      description: `BBC and Al Jazeera headlines about ${r.name} classified as military, compared with the 28-day baseline.`,
+      family: 'experimental',
+      regionId: r.id,
+      requiredSourceIds: MEDIA,
+      match: {
+        all: [
+          { field: 'sourceId', op: 'in', value: MEDIA },
+          { field: 'regionIds', op: 'contains', value: r.id },
+          { field: 'category', op: 'eq', value: 'military' },
+        ],
+      },
+      windowHours: 24,
+      elevated: { countAtLeast: 4, distinctSourcesAtLeast: 2 },
+      triggered: { countAtLeast: 8, distinctSourcesAtLeast: 2 },
+      baseline: { days: 28, triggerRatio: 3, elevatedRatio: 2 },
+      weight: 0,
+      severity: 'low',
+      experimental: true,
+      enabled: true,
+      configVersion: 1,
+      rationale:
+        'Media attention rises with real escalation but also with news cycles, anniversaries and analysis pieces. Topic and region come from headline keywords. Unvalidated, so it never affects the RAI.',
+      research: {
+        hypothesis: 'A sharp rise in military-topic headlines about a region, across two independent outlets, accompanies or precedes escalation.',
+        dataAvailability: 'Available: BBC World (4 section feeds) and Al Jazeera RSS collected hourly since 2026-11-20.',
+        baselinePeriod: '28 days of collection. Not yet available, so fixed thresholds apply.',
+        expectedRelationship: 'Coincident with escalation more often than leading it; the value is in confirming other indicators.',
+        historicalExamples: 'None in collected data yet.',
+        confounders: 'Editorial priorities, other big stories crowding out coverage, feature and analysis pieces, keyword misclassification.',
+        falsePositives: 'Expected: retrospective coverage and opinion pieces use the same vocabulary.',
+        retrospectiveResults: 'Insufficient history. Re-run in Signal Lab once 90+ days are collected.',
+        evidenceQuality: 'weak',
+      },
+    },
+  ]),
+  {
+    id: 'korean-peninsula.seismic-non-earthquake',
+    name: 'KOREA non-earthquake seismic event',
+    description: 'USGS classified a seismic event inside the Korean Peninsula watch area as something other than an earthquake (for example "explosion").',
+    family: 'official-activity',
+    regionId: 'korean-peninsula',
+    requiredSourceIds: [USGS],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: USGS },
+        { field: 'regionIds', op: 'contains', value: 'korean-peninsula' },
+        { field: 'metadata.seismicType', op: 'neq', value: 'earthquake' },
+      ],
+    },
+    windowHours: 168,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 1 },
+    baseline: null,
+    weight: 3,
+    severity: 'high',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale:
+      'North Korea’s nuclear tests were detected seismically, and USGS labels events it identifies as explosions. The feed only lists M4.5+, and the USGS label can change after review; read the USGS event page before drawing conclusions.',
+  },
+];
+
 const experimentalIndicators: IndicatorDefinition[] = [
   {
     id: 'experimental.pentagon-pizza',
@@ -207,7 +331,12 @@ const experimentalIndicators: IndicatorDefinition[] = [
   },
 ];
 
-export const INDICATOR_CATALOG: IndicatorDefinition[] = [...advisoryIndicators, ...cyberIndicators, ...experimentalIndicators];
+export const INDICATOR_CATALOG: IndicatorDefinition[] = [
+  ...advisoryIndicators,
+  ...cyberIndicators,
+  ...expansionIndicators,
+  ...experimentalIndicators,
+];
 
 export function getIndicator(id: string): IndicatorDefinition | undefined {
   return INDICATOR_CATALOG.find((d) => d.id === id);

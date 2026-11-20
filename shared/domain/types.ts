@@ -24,6 +24,7 @@ export const EVENT_CATEGORIES = [
   'disaster',
   'economic',
   'official',
+  'general',
 ] as const;
 export type EventCategory = (typeof EVENT_CATEGORIES)[number];
 

@@ -31,6 +31,22 @@ const PRECISION_LABEL: Record<IntelligenceEvent['locationPrecision'], string> = 
 /** One intelligence feed entry. Expanded view shows full provenance. */
 export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem({ event: e, selected, onSelect, now, indicators = [], allowDossier = false }, ref) {
   const cred = CREDIBILITY_LABELS[e.credibility];
+  const m = e.metadata ?? {};
+  const terms = Array.isArray(m.geoTerms) ? (m.geoTerms as unknown[]).filter((t): t is string => typeof t === 'string') : [];
+  const geoBasis =
+    m.geoBasis === 'text-mention'
+      ? `From place names in the headline: ${terms.join(', ')}. A mention is not a location.`
+      : m.geoBasis === 'source-coordinates'
+        ? 'Coordinates supplied by the source.'
+        : m.geoBasis === 'source-country'
+          ? 'Country supplied by the source.'
+          : null;
+  const topicBasis =
+    m.topicBasis === 'keyword'
+      ? `Classified from the headline keyword "${String(m.topicTerm)}".`
+      : m.topicBasis === 'none'
+        ? 'No topic keyword in the headline: filed as general news.'
+        : null;
   const url = safeExternalUrl(e.sourceUrl);
   const isDemo = e.dataOrigin === 'demo';
 
@@ -64,6 +80,12 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem({ eve
           {e.metadata?.change === 'new' && <Tag tone="warn" title="New advisory">NEW</Tag>}
           {e.metadata?.routine === true && <Tag tone="inactive" title="Routine product advisory">ROUTINE</Tag>}
           {e.metadata?.knownRansomwareUse === true && <Tag tone="warn" title="Known ransomware campaign use">RANSOMWARE</Tag>}
+          {typeof e.metadata?.alertLevel === 'string' && (
+            <Tag tone={e.metadata.alertLevel === 'Red' ? 'crit' : e.metadata.alertLevel === 'Orange' ? 'warn' : 'muted'} title="GDACS alert level">
+              {e.metadata.alertLevel.toUpperCase()}
+            </Tag>
+          )}
+          {e.metadata?.geoBasis === 'text-mention' && <Tag tone="inactive" title="Location from place names mentioned in the headline, not geolocation">TXT-GEO</Tag>}
           <Tag tone={cred.tone} title={cred.label}>{cred.code}</Tag>
           <Tag>{CATEGORY_STYLES[e.category].code}</Tag>
           {e.regionIds.map((r) => (
@@ -95,7 +117,14 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem({ eve
             <dd>
               {PRECISION_LABEL[e.locationPrecision]}
               {e.countryCodes.length > 0 && <span className="text-wt-fg-dim"> · {e.countryCodes.join(', ')}</span>}
+              {geoBasis && <span className="block text-wt-fg-dim">{geoBasis}</span>}
             </dd>
+            {topicBasis && (
+              <>
+                <dt className="text-wt-fg-dim">TOPIC</dt>
+                <dd className="text-wt-fg-dim">{topicBasis}</dd>
+              </>
+            )}
             <dt className="text-wt-fg-dim">INDICATORS</dt>
             <dd className={indicators.length ? 'text-wt-warn' : 'text-wt-fg-dim'}>
               {indicators.length ? indicators.join(' · ') : 'Not cited by any active indicator'}

@@ -7,6 +7,7 @@ import { DataProvider } from '../state/DataContext';
 import { DemoRepository } from '../data/repository';
 import SitrepPage from './SitrepPage';
 import SignalLabPage from './SignalLabPage';
+import { INDICATOR_CATALOG } from '@shared/domain/indicators/catalog';
 
 const wrap = (ui: React.ReactNode) => (
   <MemoryRouter>
@@ -32,6 +33,6 @@ describe('SignalLabPage', () => {
     expect(await screen.findByText('Pentagon Pizza Index')).toBeInTheDocument();
     expect(screen.getByText('State Dept advisory tempo (global)')).toBeInTheDocument();
     expect(screen.getByText('EVIDENCE: ANECDOTAL')).toBeInTheDocument();
-    expect(screen.getAllByText('HYPOTHESIS').length).toBe(2);
+    expect(screen.getAllByText('HYPOTHESIS').length).toBe(INDICATOR_CATALOG.filter((d) => d.experimental).length);
   });
 });

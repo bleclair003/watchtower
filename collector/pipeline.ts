@@ -4,6 +4,7 @@ import { computeHealth } from '../shared/domain/health.ts';
 import {
   SNAPSHOT_MAX_BYTES,
   SNAPSHOT_MAX_EVENTS,
+  SNAPSHOT_SUMMARY_CHARS,
   SNAPSHOT_SCHEMA_VERSION,
   type DashboardSnapshot,
 } from '../shared/domain/snapshot.ts';
@@ -274,7 +275,10 @@ export async function buildSnapshot(
     log(`IWE  FAILED: ${message} (previous indicator states retained)`);
   }
 
-  let events = [...loaded].sort((a, b) => eventTime(b).localeCompare(eventTime(a))).slice(0, SNAPSHOT_MAX_EVENTS);
+  let events = [...loaded]
+    .sort((a, b) => eventTime(b).localeCompare(eventTime(a)))
+    .slice(0, SNAPSHOT_MAX_EVENTS)
+    .map((e) => (e.summary && e.summary.length > SNAPSHOT_SUMMARY_CHARS ? { ...e, summary: `${e.summary.slice(0, SNAPSHOT_SUMMARY_CHARS - 1)}…` } : e));
   snapshot.events = events;
   while (Buffer.byteLength(JSON.stringify(snapshot)) > SNAPSHOT_MAX_BYTES && events.length > 0) {
     events = events.slice(0, Math.floor(events.length * 0.9));

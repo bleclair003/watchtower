@@ -11,7 +11,7 @@ npm run test:e2e    # Playwright: builds in demo mode, serves with the productio
 
 Locally the E2E suite uses the installed Microsoft Edge (`channel: 'msedge'`); CI installs Playwright's Chromium.
 
-## Current coverage (152 unit/component + 11 rules + 57 end-to-end tests, all passing)
+## Current coverage (172 unit/component + 11 rules + 57 end-to-end tests, all passing)
 
 | File | Covers |
 |---|---|
@@ -25,6 +25,7 @@ Locally the E2E suite uses the installed Microsoft Edge (`channel: 'msedge'`); C
 | `shared/domain/incidents/incidents.test.ts` | Seeding from events, no duplicate links, validation (ids, regions, self-links, notes, indicators), three-clock ordering with fallbacks and lags, explainable suggestions and stop words, Markdown export (links, caveats, non-live labelling) |
 | `shared/domain/history/history.test.ts` | Hindsight rule (collected vs published), status reconstruction, replay before collection, episodes / hits / lead times / misses / false alarms, co-activation, step simulation without retroactive data, data sufficiency, bucket counts, SITREP sections / backfill separation / citations / Markdown |
 | `src/pages/history.test.tsx` | SITREP generation in demo mode; Signal Lab experimental research records |
+| `collector/test/expansion.test.ts` | v0.8 sources on real feed snapshots: gazetteer (longest match, case-sensitive abbreviations, ambiguous names skipped, seas and straits), topic classifier (figurative "coup"), BBC feed merge and de-duplication with no coordinates, IAEA dates, FCDO country mapping and XHTML change notes, USGS exact points and regions by box, the Korea non-earthquake indicator, GDACS level filtering and escalation ids, IODA duration threshold and wording, catalog v3 validity |
 | `src/lib/sourceHealth.test.ts` | View-time health recomputation (ONLINE → STALE), overdue detection |
 | `collector/test/lib.test.ts` | HTML/entity sanitization, bidi/control stripping, URL allowlist, RFC-822 dates (two-digit year, date-only, invalid), RSS/Atom parsing on **real feed fixtures**, refusal of entity declarations, **every observed FIPS tag** cross-checked against CLDR country names, polite fetch (conditional headers, 304, 429/5xx backoff, no 4xx retry, size cap), hashing, health rules |
 | `collector/test/adapters.test.ts` | State Dept first-run baseline and lookback, no-change runs, RAISED/LOWERED/reissued detection, Gaza→PS, 304 handling; CISA subtypes and lookback; KEV window, ransomware flag, malformed JSON |

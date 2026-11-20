@@ -40,7 +40,7 @@ For each indicator, at time `now`:
 - **Fields:** an allow-list (`CONDITION_FIELDS`) of event properties and selected `metadata.*` keys. Lookups are own-property only, so inherited names such as `constructor` are rejected; this is tested.
 - `validateCondition()` and `validateCatalog()` reject malformed definitions, and the catalog is validated in CI.
 
-## Catalog v1
+## Catalog v3 (36 indicators)
 
 | Region | Indicator | Window | Elevated / Triggered | Baseline | Weight · Severity |
 |---|---|---|---|---|---|
@@ -49,7 +49,14 @@ For each indicator, at time `now`:
 | Global cyber | KEV addition surge | 72 h | 4 / 8 | 28 d, ×1.5 / ×2.5 | 2 · medium |
 | Global cyber | Ransomware-linked KEV additions | 7 d | 1 / 3 | — | 2 · high |
 | Global cyber | Non-routine CISA advisories (alerts, joint advisories, analysis reports; excludes KEV announcements and guidance) | 72 h | 1 / 3 | — | 2 · medium |
+| each of 6 geographic regions | UK FCDO travel advice updates (v3) | 72 h | 2 / 4 | 28 d, ×2 / ×3 | 1 · medium |
+| each of 6 geographic regions | Internet connectivity drop ≥ 4 h, IODA (v3) | 48 h | 1 / 3 | 28 d, ×2 / ×3 | 2 · medium |
+| Korean Peninsula | USGS seismic event typed as something other than "earthquake" (v3) | 7 d | 1 / 1 | — | 3 · high |
+| each of 6 geographic regions, experimental | Media conflict-reporting volume: BBC + Al Jazeera military-topic headlines, ≥ 2 outlets (v3) | 24 h | 4 / 8 | 28 d, ×2 / ×3 | 0 · never in the RAI |
+| Experimental | State Dept advisory tempo (global) | 72 h | 6 / 12 | 28 d | 0 |
 | Experimental | Pentagon Pizza Index | — | — | — | 0 · always NO DATA |
+
+**v3 note:** connectivity drops have known innocent causes (power cuts, cable faults, exam-season shutdowns in Iraq and Syria), so they are weighted as corroborating evidence. Media volume is experimental because topic and region come from headline keywords.
 
 All thresholds are **initial engineering judgements, not empirically validated**. Phase 6 backtesting exists to revise them. To change a definition, bump its `configVersion` and `CATALOG_VERSION`.
 

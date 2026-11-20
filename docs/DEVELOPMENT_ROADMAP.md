@@ -109,3 +109,13 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
 - [x] Accessibility: axe WCAG 2.1 A/AA clean on every module; contrast fix; skip link; feed focus ring
 - [x] Performance: modules are code-split (first-load JS 469 KB → 285 KB); stale-chunk reload after deploys
 - [ ] Hosting deploy from CI (currently deployed from the operator's machine)
+
+## Phase 8 — Source expansion (v0.8.0)
+- [x] 10 new collectors (3 → 13): UK FCDO, USGS, GDACS, IODA, DoD, UK MOD, IAEA, UN News, BBC World, Al Jazeera
+- [x] Headline gazetteer (country/region from explicit mentions, terms recorded) and keyword topic classifier; `general` category
+- [x] Exact-coordinate sources on the map (USGS epicentres, GDACS event points)
+- [x] Catalog v3: FCDO updates, connectivity drops, Korea non-earthquake seismic events, experimental media volume
+- [x] Feed detail shows how location and topic were derived (TXT-GEO tag)
+- [ ] GDELT (retry from an Actions runner), ReliefWeb (needs an approved appname), NGA MSI (503), UKMTO, MARAD
+- [ ] Free-key sources: NASA FIRMS fire detections (strike/fire activity), ACLED (account), Cloudflare Radar (token)
+- [ ] Cross-source corroboration: mark a media report `corroborated` when an independent source reports the same country and topic

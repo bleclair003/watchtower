@@ -70,6 +70,11 @@ export function getRegion(id: string): WatchRegion | undefined {
   return WATCH_REGIONS.find((r) => r.id === id);
 }
 
+/** Watch regions whose (coarse) watch-area box contains an exact point. */
+export function regionsForPoint(lat: number, lon: number): string[] {
+  return WATCH_REGIONS.filter((r) => r.bbox && lon >= r.bbox[0] && lon <= r.bbox[2] && lat >= r.bbox[1] && lat <= r.bbox[3]).map((r) => r.id);
+}
+
 /** Watch regions that claim a given ISO 3166-1 alpha-2 country code. */
 export function regionsForCountry(iso: string): string[] {
   const code = iso.toUpperCase();

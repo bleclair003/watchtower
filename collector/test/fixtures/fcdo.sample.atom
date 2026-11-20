@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xml:lang="en-US" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://www.gov.uk/foreign-travel-advice</id>
+  <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice"/>
+  <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice.atom"/>
+  <title>Travel Advice Summary</title>
+  <updated>2026-11-20T19:57:12+00:00</updated>
+  <author>
+    <name>GOV.UK</name>
+  </author>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/usa#2026-11-20T19:57:12+00:00</id>
+    <updated>2026-11-20T19:57:12+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/usa"/>
+    <title>USA</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/usa.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>Removal of information about air traffic disruptions across the US</p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/ecuador#2026-11-20T13:14:04+00:00</id>
+    <updated>2026-11-20T13:14:04+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/ecuador"/>
+    <title>Ecuador</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/ecuador.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>Updated information following the Ecuadorean government extending the state of emergency for a further 30 days, and updated information about drug-assisted robbery ('Warnings and insurance' and 'Safety and security' pages).</p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/laos#2026-11-19T14:37:32+00:00</id>
+    <updated>2026-11-19T14:37:32+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/laos"/>
+    <title>Laos</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/laos.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>Updated information about the Laos legal system and the consequences of illegal drugs in Laos (See ‘Legal system’ and ‘Illegal drugs and the death penalty’ on the ‘Safety and security’ page).</p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/pakistan#2026-11-18T16:36:34+00:00</id>
+    <updated>2026-11-18T16:36:34+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/pakistan"/>
+    <title>Pakistan</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/pakistan.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>Updated information about regional tensions (See ‘Warnings and insurance’ page).</p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/turkey#2026-11-18T16:36:28+00:00</id>
+    <updated>2026-11-18T16:36:28+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/turkey"/>
+    <title>Turkey</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/turkey.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>Updated information about regional tensions (See ‘Warnings and insurance’ page).</p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/syria#2026-11-18T16:36:20+00:00</id>
+    <updated>2026-11-18T16:36:20+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/syria"/>
+    <title>Syria</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/syria.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>Updated information about regional tensions (See ‘Warnings and insurance’ page).</p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/yemen#2026-11-18T16:36:14+00:00</id>
+    <updated>2026-11-18T16:36:14+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/yemen"/>
+    <title>Yemen</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/yemen.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>Updated information about regional tensions (See ‘Warnings and insurance’ page). </p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/united-arab-emirates#2026-11-18T16:33:03+00:00</id>
+    <updated>2026-11-18T16:33:03+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/united-arab-emirates"/>
+    <title>United Arab Emirates</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/united-arab-emirates.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>Updated information about regional tensions (See ‘Warnings and insurance’ page). </p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/saudi-arabia#2026-11-18T16:32:22+00:00</id>
+    <updated>2026-11-18T16:32:22+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/saudi-arabia"/>
+    <title>Saudi Arabia</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/saudi-arabia.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>Updated information about regional tensions (See ‘Warnings and insurance’ page). </p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/palestine#2026-11-18T16:32:19+00:00</id>
+    <updated>2026-11-18T16:32:19+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/palestine"/>
+    <title>Palestine</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/palestine.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>Updated information about regional tensions (‘Warnings and insurance’ page).</p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/qatar#2026-11-18T16:32:02+00:00</id>
+    <updated>2026-11-18T16:32:02+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/qatar"/>
+    <title>Qatar</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/qatar.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>Updated information about regional tensions (See ‘Warnings and insurance’ page). </p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/oman#2026-11-18T16:31:54+00:00</id>
+    <updated>2026-11-18T16:31:54+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/oman"/>
+    <title>Oman</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/oman.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>Updated information about regional tensions (See ‘Warnings and insurance’ page). </p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/israel#2026-11-18T16:31:51+00:00</id>
+    <updated>2026-11-18T16:31:51+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/israel"/>
+    <title>Israel</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/israel.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>Updated information about regional tensions (‘Warnings and insurance’ page).</p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/kuwait#2026-11-18T16:31:45+00:00</id>
+    <updated>2026-11-18T16:31:45+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/kuwait"/>
+    <title>Kuwait</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/kuwait.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>Updated information about regional tensions (See ‘Warnings and insurance’ page).</p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/iraq#2026-11-18T16:31:24+00:00</id>
+    <updated>2026-11-18T16:31:24+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/iraq"/>
+    <title>Iraq</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/iraq.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>Updated information about regional tensions (‘Warnings and insurance’ page).</p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/bahrain#2026-11-18T16:31:19+00:00</id>
+    <updated>2026-11-18T16:31:19+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/bahrain"/>
+    <title>Bahrain</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/bahrain.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>Updated information about regional tensions (See ‘Warnings and insurance’ page). </p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/jordan#2026-11-18T16:31:10+00:00</id>
+    <updated>2026-11-18T16:31:10+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/jordan"/>
+    <title>Jordan</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/jordan.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>Updated information about regional tensions, demonstrations and mass gatherings, and incidents of terrorism (‘Warnings and insurance’ and ‘Safety and security’ pages). </p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/iran#2026-11-18T16:30:59+00:00</id>
+    <updated>2026-11-18T16:30:59+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/iran"/>
+    <title>Iran</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/iran.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>Updated information about regional tensions (‘Warnings and insurance’ page).</p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/malaysia#2026-11-18T15:21:43+00:00</id>
+    <updated>2026-11-18T15:21:43+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/malaysia"/>
+    <title>Malaysia</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/malaysia.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>New information about cannabis and drug offences (‘Warnings and insurance’ page). </p>      </div>
+    </summary>
+  </entry>
+  <entry>
+    <id>https://www.gov.uk/foreign-travel-advice/cambodia#2026-11-18T15:21:31+00:00</id>
+    <updated>2026-11-18T15:21:31+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/foreign-travel-advice/cambodia"/>
+    <title>Cambodia</title>
+    <link rel="self" type="application/atom+xml" href="https://www.gov.uk/foreign-travel-advice/cambodia.atom"/>
+    <summary type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+<p>New information about cannabis and drug offences (‘Warnings and insurance’ page). </p>      </div>
+    </summary>
+  </entry>
+</feed>

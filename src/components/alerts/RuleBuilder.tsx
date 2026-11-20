@@ -15,7 +15,7 @@ type Kind = AlertRule['trigger']['kind'];
 interface Row { field: ConditionField; op: Operator; value: string; negate: boolean }
 
 const OPS: Operator[] = ['eq', 'neq', 'in', 'contains', 'gte', 'lte', 'exists'];
-const NUMERIC = new Set<ConditionField>(['metadata.advisoryLevel', 'metadata.previousLevel']);
+const NUMERIC = new Set<ConditionField>(['metadata.advisoryLevel', 'metadata.previousLevel', 'metadata.magnitude']);
 const BOOLEAN = new Set<ConditionField>(['metadata.routine', 'metadata.knownRansomwareUse']);
 const SUGGESTIONS: Partial<Record<ConditionField, string[]>> = {
   regionIds: WATCH_REGIONS.map((r) => r.id),
@@ -24,7 +24,9 @@ const SUGGESTIONS: Partial<Record<ConditionField, string[]>> = {
   sourceId: SOURCE_REGISTRY.map((s) => s.id),
   sourceClass: ['official', 'media', 'aggregator', 'scientific'],
   'metadata.change': ['raised', 'lowered', 'new', 'reissued', 'initial'],
-  'metadata.subtype': ['alert', 'joint-advisory', 'analysis-report', 'ics-advisory', 'kev-announcement', 'guidance'],
+  'metadata.subtype': ['alert', 'joint-advisory', 'analysis-report', 'ics-advisory', 'kev-announcement', 'guidance', 'internet-outage'],
+  'metadata.seismicType': ['earthquake', 'explosion', 'nuclear explosion', 'quarry blast'],
+  'metadata.alertLevel': ['Green', 'Orange', 'Red'],
   'metadata.routine': ['true', 'false'],
   'metadata.knownRansomwareUse': ['true', 'false'],
   locationPrecision: ['exact', 'city', 'country', 'region', 'none'],

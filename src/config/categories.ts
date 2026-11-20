@@ -48,6 +48,12 @@ export const CATEGORY_STYLES: Record<EventCategory, CategoryStyle> = {
     path: 'M12 2 L22 9.5 L18 21 L6 21 L2 9.5 Z',
   },
   official: { id: 'official', label: 'Other official', code: 'OFF', path: 'M3 7 H21 V17 H3 Z' },
+  general: {
+    id: 'general',
+    label: 'General news',
+    code: 'GEN',
+    path: 'M5 3 L12 10 L19 3 L21 5 L14 12 L21 19 L19 21 L12 14 L5 21 L3 19 L10 12 L3 5 Z',
+  },
 };
 
 export const CREDIBILITY_LABELS: Record<Credibility, { label: string; code: string; tone: Tone }> = {

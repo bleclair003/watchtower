@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.0] — 2026-11-20 — Source expansion
+
+### Added
+- 10 collectors (13 total): UK FCDO travel advice, USGS earthquakes, GDACS, IODA internet outages, U.S. DoD news, UK MOD, IAEA, UN News, BBC World (4 feeds), Al Jazeera.
+- Generic RSS/Atom adapter; headline gazetteer and keyword topic classifier, with the basis recorded on every record; `general` news category.
+- First exact-coordinate records on the map (USGS, GDACS).
+- Indicator catalog v3 (36 indicators): FCDO updates and IODA connectivity drops per region, Korea non-earthquake seismic events, experimental media conflict-reporting volume.
+- `collector/inspect.ts`: shows how live items would be tagged, without writing anything.
+
+### Changed
+- The dashboard snapshot holds 700 events (was 400). Summaries in the snapshot are cut to 280 characters; full text stays in the archive.
+
+### Fixed
+- Atom summaries in XHTML form (GOV.UK) were read as empty.
+
 ## [0.7.0] — 2026-11-20 — Phase 7: Refinement & deployment
 
 ### Added

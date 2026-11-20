@@ -2,7 +2,7 @@
 
 Machine-readable version: [`shared/domain/sources.ts`](../shared/domain/sources.ts) — keep both in sync.
 
-**Probe method (2026-11-20):** single `curl` GET per endpoint from a residential connection, following redirects, with a descriptive User-Agent. "Reachable" confirms the endpoint returned parseable content on that date, nothing more. **Active collectors (v0.2.0):** `state-travel-advisories`, `cisa-advisories`, `cisa-kev`. All other sources read `NOT CONFIGURED` until an adapter is written.
+**Probe method (2026-11-20):** single `curl` GET per endpoint from a residential connection, following redirects, with a descriptive User-Agent. "Reachable" confirms the endpoint returned parseable content on that date, nothing more. **Active collectors (v0.8.0): 13.** `state-travel-advisories`, `cisa-advisories`, `cisa-kev` (since v0.2.0); `uk-fcdo-travel`, `usgs-earthquakes`, `gdacs`, `ioda-outages`, `war-gov-news`, `uk-mod`, `iaea-news`, `un-news`, `bbc-world`, `aljazeera` (since v0.8.0). Second probe round: 2026-11-20 21:45 UTC. All other sources read `NOT CONFIGURED` until an adapter is written.
 
 ## P1 — first adapters (Phase 2): State Dept + CISA implemented ✅
 
@@ -15,17 +15,36 @@ Machine-readable version: [`shared/domain/sources.ts`](../shared/domain/sources.
 
 **PDD substitution:** the PDD suggested State Dept + GDELT as the first two adapters. Recommendation: **State Dept + CISA (advisories + KEV)** first. Both are reliable and structured, and they cover the Diplomatic and Cyber watches. Add GDELT third, once rate-limit behaviour from Actions is confirmed, as a *context* source rather than an evidence source.
 
+## v0.8.0 expansion — implemented ✅
+
+| Source | Endpoint | Class · credibility | Geography | What WATCHTOWER keeps | Caveats |
+|---|---|---|---|---|---|
+| UK FCDO travel advice | `https://www.gov.uk/foreign-travel-advice.atom` | official · official | Country from the page title | Every page update, with FCDO's own change note | No numeric level in the feed, so none is inferred. Many updates are routine edits. Atom summaries are XHTML; the parser now flattens them. |
+| USGS earthquakes M4.5+ | `…/summary/4.5_day.geojson` | scientific · official | **Exact** epicentre; region by watch-area box | One record per USGS event id; magnitude, depth, USGS `type`, tsunami flag, PAGER alert | No country (USGS gives a place description, not a code). The USGS `type` can change after review. |
+| GDACS | `https://www.gdacs.org/xml/rss.xml` | scientific · official | **Exact** event point; ISO3 country when given | Orange/Red worldwide; Green only inside watch areas; a level change is a new record | ~700 KB feed, mostly Green wildfires. CC BY 4.0. |
+| IODA outages | `https://api.ioda.inetintel.cc.gatech.edu/v2/outages/events` | scientific · official | Country (from IODA's entity code) | Country-level outages lasting **≥ 4 h**; re-reads a 3-day window each run | A connectivity drop is not proof of a shutdown: power cuts, cable faults and artefacts look the same. ~300 country events/week, median ~1 h, hence the threshold. |
+| U.S. DoD (war.gov) news | `…/RSS.ashx?ContentType=1&Site=945&max=10` | official · official | Headline gazetteer (country/region, never coordinates) | Every release | Mostly U.S.-domestic; few geographic tags. |
+| UK MOD | `…/ministry-of-defence.atom` | official · official | Headline gazetteer | Every announcement | OGL v3.0. |
+| IAEA Top News | `https://www.iaea.org/feeds/topnews` | official · official | Headline gazetteer | Every item | `pubDate` is `YY-MM-DD HH:mm` with no timezone; read as UTC (may be up to 2 h off). |
+| UN News | `…/news/all/rss.xml` | official · official | Headline gazetteer | Every item; topic by keyword classifier | Region-specific UN feeds returned no items. |
+| BBC News World | 4 feeds: world, middle_east, europe, asia | media · single-source | Headline gazetteer | Articles only (video/live pages skipped); de-duplicated across feeds | BBC RSS terms: personal non-commercial use, headline + summary + link. |
+| Al Jazeera English | `https://www.aljazeera.com/xml/rss/all.xml` | media · single-source | Headline gazetteer | Articles only | State-funded (Qatar). |
+
+### How geography and topic are assigned for text feeds
+
+- **Gazetteer** ([`shared/domain/geo/gazetteer.ts`](../shared/domain/geo/gazetteer.ts)): explicit names, unambiguous demonyms, capitals and major cities, and a few armed groups tied to one territory (Hamas → PS, Hezbollah → LB, Houthis → YE). It reads the **headline only**. Longest names match first ("Papua New Guinea" before "Guinea"); abbreviations such as US, UK and UAE are case-sensitive.
+- **Excluded as ambiguous:** bare "Georgia", "Congo" and "Korea"; "Jerusalem"; "Aden"; "Washington".
+- **What gets stored:** country or region precision, never coordinates. `metadata.geoBasis = 'text-mention'` and `metadata.geoTerms` record exactly which words matched. The feed shows a **TXT-GEO** tag and spells out the basis.
+- **Limits:** a headline that mentions a country is about that country in some way, but the event may be elsewhere. "Japan scrambles jets after Russian incursion" is tagged JP and RU, so it lands in Eastern Europe because of RU.
+- **Topic classifier** ([`collector/lib/topic.ts`](../collector/lib/topic.ts)): keyword lists checked in priority order: cyber, military, maritime, aviation, unrest, disaster, diplomatic, economic. A headline with no keyword is filed as **General news**. The matched keyword is stored in `metadata.topicTerm`. Figurative "coup" was a false positive, so only literal phrases ("military coup", "coup attempt") count.
+- **Tool:** `node collector/inspect.ts <source-id>…` prints how each live item would be tagged, and writes nothing.
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |
 |---|---|---|---|---|---|---|
-| U.S. Dept of War news | `https://www.war.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=945&max=10` | Defense releases | RSS | None | ✅ 200 | No structured geography; needs gazetteer matching. `defense.gov` serves identical feed. |
 | FAA TFR list | `https://tfr.faa.gov/tfrapi/exportTfrList` | U.S. temporary flight restrictions | JSON | None | ✅ 200 | Undocumented endpoint behind the public TFR viewer; U.S.-only. |
-| UK MoD | `https://www.gov.uk/government/organisations/ministry-of-defence.atom` | UK defence news | Atom | None | ✅ 200 | OGL v3.0. |
-| IAEA Top News | `https://www.iaea.org/feeds/topnews` | Nuclear safety / safeguards | RSS | None | ✅ 200 | Low volume, high relevance. |
-| UN News | `https://news.un.org/feed/subscribe/en/news/all/rss.xml` | UN news | RSS | None | ✅ 200 | UN editorial reporting, not resolutions. |
-| USGS earthquakes M4.5+ | `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson` | Seismic events, exact coordinates | GeoJSON | None | ✅ 200 | First real test of point-precision mapping. |
-| GDACS | `https://www.gdacs.org/xml/rss.xml` | Multi-hazard alerts with coordinates | RSS | None | ✅ 200 | Alert levels green/orange/red. |
+| GDELT DOC 2.0 | see P1 table | News coverage volume | API | None | ⚠️ 429 again at 21:45 | Retry from a GitHub Actions runner. |
 
 ## Research — not integrable as specified
 
@@ -34,9 +53,11 @@ Machine-readable version: [`shared/domain/sources.ts`](../shared/domain/sources.
 | **CENTCOM public releases** | Standard ArticleCS RSS endpoint returns HTTP 200 with an **empty channel** | Find the correct category/ContentType id; else check robots.txt and consider low-frequency parsing of the releases page. |
 | **FAA NOTAMs** | Public NOTAM search returns **HTTP 403** to scripted clients | Do **not** scrape it. Apply for the FAA NOTAM API (free, registration + approval); credentials go in Actions secrets only. |
 | **UKMTO** | Next.js site; no RSS or API discovered (`/api/incidents` → 404) | Review terms + robots.txt; if permitted, parse the incident list at ≤1 request/hour. Highest-value maritime source for REDSEA. |
-| **NGA MSI broadcast warnings** | **HTTP 503** at probe time | Retest; documented public API for NAVAREA / HYDROPAC warnings. |
-| **NATO news** | Legacy RSS path → **404** | Locate the current feed after the site redesign. |
+| **NGA MSI broadcast warnings** | **HTTP 503** at both probes (08:00, 21:45) | Retest; documented public API for NAVAREA / HYDROPAC warnings. |
+| **NATO news** | Legacy RSS path and `/cps/rss/…` → **404** | Locate the current feed after the site redesign. |
 | **EEAS press** | Page reachable; no feed found yet | Look for an RSS link; EU reuse policy is permissive with attribution. |
+| **MARAD maritime advisories** | `maritime.dot.gov/rss.xml` → **403** | Find the advisory-specific feed; high value for REDSEA. |
+| **ReliefWeb API** | **406 "Blocked due to bot activity"** | Register an approved `appname` with OCHA (free). |
 | **Pentagon Pizza Index** | No legal, free, historical aggregate dataset. Map-service "popular times" are popularity estimates (not order counts), have no free API, and scraping them violates provider terms. | Preserved as an inactive concept: `DATA SOURCE UNAVAILABLE`. |
 
 ## Adapter conventions (Phase 2)
