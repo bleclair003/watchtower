@@ -19,7 +19,7 @@ export const ROUTES = [
  * test machine is offline those requests fail, so network-level failures to that host are ignored.
  */
 export const test = base.extend<{ problems: string[] }>({
-  problems: async ({ page }, use) => {
+  problems: async ({ page }, provide) => {
     const problems: string[] = [];
     page.on('pageerror', (e) => problems.push(`pageerror: ${e.message}`));
     page.on('console', (m) => {
@@ -33,7 +33,7 @@ export const test = base.extend<{ problems: string[] }>({
         console.error(`CSP violation: ${e.violatedDirective} ${e.blockedURI}`);
       });
     });
-    await use(problems);
+    await provide(problems);
   },
 });
 
