@@ -133,6 +133,14 @@ describe('Cloudflare Radar outages (synthetic response)', () => {
           linkedUrl: 'https://jira.cfdata.org/browse/RADAR-1',
           outage: { outageCause: 'MILITARY_ACTION', outageType: 'NETWORK' },
         },
+        {
+          id: 'syn-4',
+          description: 'SYNTHETIC: regional outage',
+          startDate: '2026-11-17T10:00:00Z',
+          locations: [],
+          entities: [{ entityLocation: 'UA', entityName: 'Kharkiv Oblast', entityType: 'ADM1', entityValue: '706482' }],
+          outage: { outageCause: 'MILITARY_ACTION', outageType: 'REGIONAL' },
+        },
         { description: 'no id' },
       ],
     },
@@ -145,7 +153,10 @@ describe('Cloudflare Radar outages (synthetic response)', () => {
     const [url, , headers] = fetch.mock.calls[0] as unknown as [string, unknown, Record<string, string>];
     expect(url).not.toContain('radarTESTtoken456');
     expect(headers.Authorization).toBe('Bearer radarTESTtoken456');
-    expect(r.events).toHaveLength(3);
+    expect(r.events).toHaveLength(4);
+    const kh = r.events.find((e) => e.metadata!.radarId === 'syn-4')!;
+    expect(kh.title).toBe('Internet outage — Kharkiv Oblast, UA: military action (regional)');
+    expect(kh.countryCodes).toEqual(['UA']);
     expect(r.rejected).toHaveLength(1);
     const ua = r.events.find((e) => e.metadata!.radarId === 'syn-3')!;
     expect(ua).toMatchObject({ countryCodes: ['UA'], regionIds: ['eastern-europe'], category: 'military' });

@@ -26,6 +26,7 @@ interface Annotation {
   locationsDetails?: unknown;
   asns?: unknown;
   asnsDetails?: unknown;
+  entities?: unknown;
   outage?: { outageCause?: unknown; outageType?: unknown };
 }
 
@@ -90,12 +91,16 @@ export const cloudflareRadarOutages: SourceAdapter<RadarState> = {
       const iso2 = (v: unknown) => (typeof v === 'string' && /^[A-Z]{2}$/.test(v.toUpperCase()) ? v.toUpperCase() : null);
       const topLocs = (Array.isArray(a.locations) ? a.locations : []).map(iso2).filter((l): l is string => !!l);
       const netLocs = nets.map((d) => iso2(netLoc(d).code)).filter((l): l is string => !!l);
-      const locs = [...new Set([...topLocs, ...netLocs])];
+      // Regional outages (a province or state) describe the area as entities: name + country.
+      const ents = (Array.isArray(a.entities) ? a.entities : []).filter((d): d is Record<string, unknown> => !!d && typeof d === 'object');
+      const entLocs = ents.map((d) => iso2(d.entityLocation)).filter((l): l is string => !!l);
+      const entNames = [...new Set(ents.map((d) => cleanText(str(d.entityName))).filter(Boolean))].slice(0, 3);
+      const locs = [...new Set([...topLocs, ...netLocs, ...entLocs])];
       const locNames = (Array.isArray(a.locationsDetails) ? a.locationsDetails : [])
         .map((d) => (d && typeof d === 'object' ? str((d as Record<string, unknown>).name) : ''))
         .filter(Boolean);
       const netNames = [...new Set(nets.map((d) => str(netLoc(d).name)).filter(Boolean))];
-      const names = locNames.length ? locNames : netNames;
+      const names = locNames.length ? locNames : entNames.length ? [`${entNames.join(', ')}${entLocs[0] ? `, ${entLocs[0]}` : ''}`] : netNames;
       const networks = nets.map((d) => cleanText(str(d.name))).filter(Boolean).slice(0, 3);
       const cause = str(a.outage?.outageCause).toUpperCase();
       const type = str(a.outage?.outageType).toUpperCase();
@@ -140,7 +145,8 @@ export const cloudflareRadarOutages: SourceAdapter<RadarState> = {
           outageType: type || null,
           endedAt: endIso,
           asns: Array.isArray(a.asns) ? a.asns.filter((n) => typeof n === 'number').slice(0, 20) : [],
-          geoBasis: topLocs.length ? 'source-country' : netLocs.length ? 'source-country (network location)' : 'none',
+          geoBasis: topLocs.length ? 'source-country' : entLocs.length ? 'source-country (affected area)' : netLocs.length ? 'source-country (network location)' : 'none',
+          areas: entNames,
           networks,
           revisionKey: contentHash(cause, type, endIso ?? '', desc, locs.join(',')),
           licence: 'CC BY-NC 4.0 — Cloudflare Radar',
