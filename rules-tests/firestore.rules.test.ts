@@ -122,6 +122,35 @@ describe('alert rules and alerts', () => {
   });
 });
 
+describe('incidents', () => {
+  const incident = (p: Record<string, unknown> = {}) => ({
+    id: 'i1', title: 'Red Sea shipping attacks', summary: '', status: 'developing', category: 'maritime', regionIds: ['red-sea'],
+    evidence: [], notes: [], linkedIncidentIds: [], indicatorIds: [], createdAt: '2026-11-20T00:00:00Z', updatedAt: '2026-11-20T00:00:00Z', version: 1, ...p,
+  });
+
+  it('owner can create, update with version +1, read and delete', async () => {
+    await assertSucceeds(setDoc(doc(owner(), 'incidents/i1'), incident()));
+    await assertSucceeds(setDoc(doc(owner(), 'incidents/i1'), incident({ version: 2, status: 'stable', updatedAt: '2026-11-20T01:00:00Z' })));
+    await assertSucceeds(getDoc(doc(owner(), 'incidents/i1')));
+    await assertSucceeds(deleteDoc(doc(owner(), 'incidents/i1')));
+  });
+
+  it('rejects stale or skipped versions, changed createdAt, and malformed dossiers', async () => {
+    await assertSucceeds(setDoc(doc(owner(), 'incidents/i1'), incident()));
+    await assertFails(setDoc(doc(owner(), 'incidents/i1'), incident({ version: 1, title: 'stale overwrite' })));
+    await assertFails(setDoc(doc(owner(), 'incidents/i1'), incident({ version: 3 })));
+    await assertFails(setDoc(doc(owner(), 'incidents/i1'), incident({ version: 2, createdAt: '2020-01-01T00:00:00Z' })));
+    await assertFails(setDoc(doc(owner(), 'incidents/i2'), incident({ id: 'i2', version: 2 })));
+    await assertFails(setDoc(doc(owner(), 'incidents/i3'), incident({ id: 'i3', status: 'panic' })));
+    await assertFails(setDoc(doc(owner(), 'incidents/i4'), incident({ id: 'i4', title: '' })));
+    await assertFails(setDoc(doc(owner(), 'incidents/i5'), incident({ id: 'i5', linkedIncidentIds: ['i5'] })));
+    await assertFails(setDoc(doc(owner(), 'incidents/i6'), incident({ id: 'i6', extra: true })));
+    await assertFails(setDoc(doc(owner(), 'incidents/other'), incident()));
+    await assertFails(setDoc(doc(stranger(), 'incidents/i7'), incident({ id: 'i7' })));
+    await assertFails(getDoc(doc(fakeOwner(), 'incidents/i1')));
+  });
+});
+
 describe('user settings', () => {
   it('owner can manage only their own settings document', async () => {
     await assertSucceeds(setDoc(doc(owner(), 'userSettings/owner-uid'), { scanlines: true }));

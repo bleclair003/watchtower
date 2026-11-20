@@ -82,8 +82,16 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
 - [x] Security rules: validated rule shape, alerts read-only except ack/dismiss; collector state hidden
 - [x] Discord webhook secret added; *Test alert delivery* succeeded (2026-11-20)
 
-## Phase 5 — Dossiers
-- [ ] Incident model, linking, timelines, analyst notes, verification classes
+## Phase 5 — Dossiers ✅
+- [x] Incident model with denormalized, traceable evidence records
+- [x] Operator assessments (confirmed / unconfirmed / disputed / context), separate from source credibility
+- [x] Three-clock timeline (occurred / published / collected) with fallbacks flagged and lags shown
+- [x] Explainable related-record suggestions (shared terms / country / region / time)
+- [x] Analyst notes, linked dossiers, attached indicators, regional context (RAI + indicator states)
+- [x] + DOSSIER from any feed item (new or existing dossier)
+- [x] Markdown evidence-packet export (PDD §12.2)
+- [x] Security rules with shape/size validation and optimistic concurrency (version + 1)
+- [ ] Automatic clustering suggestions for new events; per-dossier edit history
 
 ## Phase 6 — Advanced analysis
 - [ ] Baselines, experimental-signal framework, replay, backtesting, SITREP + "Export Intelligence Context"

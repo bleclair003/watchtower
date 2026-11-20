@@ -17,7 +17,7 @@ const NAV: NavItem[] = [
   { to: '/settings', label: 'SETTINGS' },
   { to: '/indicators', label: 'INDICATORS' },
   { to: '/alerts', label: 'ALERTS' },
-  { to: '/dossiers', label: 'DOSSIERS', phase: 5 },
+  { to: '/dossiers', label: 'DOSSIERS' },
   { to: '/sitrep', label: 'SITREP', phase: 6 },
   { to: '/replay', label: 'REPLAY', phase: 6 },
 ];

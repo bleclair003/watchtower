@@ -17,6 +17,7 @@ interface Props {
   className?: string;
   /** eventId → names of active indicators citing it. */
   indicatorsByEvent?: Map<string, string[]>;
+  allowDossier?: boolean;
 }
 
 /** Chronological intelligence feed. Keyboard: J / K or ↓ / ↑ to move, Esc to collapse. */
@@ -83,6 +84,7 @@ export function IntelFeed(props: Props) {
               onSelect={() => onSelect(e.id === selectedEventId ? null : e.id)}
               now={now}
               indicators={props.indicatorsByEvent?.get(e.id)}
+              allowDossier={props.allowDossier}
             />
           ))}
         </ul>

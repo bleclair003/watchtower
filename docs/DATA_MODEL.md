@@ -34,7 +34,7 @@ Time fields:
 | `alertRules` | random 20-char id | owner (UI, shape-validated) | collector, owner | `AlertRule` (shared/domain/alerts/types.ts) |
 | `alerts` | `hash(ruleId, dedupeKey)` | collector | owner | `AlertRecord`; owner may change only acknowledged/dismissed fields |
 | `collectorState` | `alerting` | collector | **nobody** | Per-rule last-notified times (cooldowns) |
-| `incidents` | auto | owner / collector | owner | Phase 5 |
+| `incidents` | random 20-char id | owner | owner | `Incident` (shared/domain/incidents/types.ts); updates must bump `version` by 1 |
 | `briefings` | auto | owner | owner | Phase 6 |
 | `userSettings` | uid | owner | owner | |
 

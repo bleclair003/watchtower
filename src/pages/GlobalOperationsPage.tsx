@@ -18,7 +18,7 @@ import { Panel } from '../components/ui/Panel';
 export default function GlobalOperationsPage() {
   // Re-evaluate time windows once a minute; the clock in the top bar ticks separately.
   const now = useNow(60_000).getTime();
-  const { events, regionScores, scoreHistory, indicatorEvaluations } = useData();
+  const { events, regionScores, scoreHistory, indicatorEvaluations, mode } = useData();
   const { filters, setFilters, resetFilters, selectedEventId, selectEvent, globalViewNonce } = useDashboard();
   const { settings, update } = useSettings();
 
@@ -109,6 +109,7 @@ export default function GlobalOperationsPage() {
           onSelect={selectEvent}
           now={now}
           indicatorsByEvent={indicatorsByEvent}
+          allowDossier={mode !== 'demo'}
           className="order-2 h-[75vh] lg:order-none lg:h-auto"
         />
       </div>

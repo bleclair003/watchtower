@@ -7,11 +7,14 @@ import { formatAge, formatUtc } from '../../lib/time';
 import { safeExternalUrl } from '../../lib/sanitize';
 import { CategoryGlyph } from '../ui/CategoryGlyph';
 import { Tag } from '../ui/Tag';
+import { AddToDossier } from './AddToDossier';
 
 interface Props {
   event: IntelligenceEvent;
   /** Names of ELEVATED/TRIGGERED indicators that cite this event as evidence. */
   indicators?: string[];
+  /** Show the + DOSSIER control (live backends only). */
+  allowDossier?: boolean;
   selected: boolean;
   onSelect: () => void;
   now: number;
@@ -26,7 +29,7 @@ const PRECISION_LABEL: Record<IntelligenceEvent['locationPrecision'], string> = 
 };
 
 /** One intelligence feed entry. Expanded view shows full provenance. */
-export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem({ event: e, selected, onSelect, now, indicators = [] }, ref) {
+export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem({ event: e, selected, onSelect, now, indicators = [], allowDossier = false }, ref) {
   const cred = CREDIBILITY_LABELS[e.credibility];
   const url = safeExternalUrl(e.sourceUrl);
   const isDemo = e.dataOrigin === 'demo';
@@ -112,6 +115,7 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem({ eve
           ) : (
             <p className="text-wt-warn">{isDemo ? 'SIMULATED RECORD — NO ORIGINAL SOURCE EXISTS' : 'SOURCE LINK UNAVAILABLE'}</p>
           )}
+          {allowDossier && <AddToDossier event={e} />}
         </div>
       )}
     </li>

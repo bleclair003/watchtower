@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.5.0] — 2026-11-20 — Phase 5: Incident dossiers
+
+### Added
+- Incident model (`shared/domain/incidents/`): denormalized evidence records, operator assessments, notes, linked dossiers, attached indicators; full validation.
+- Three-clock timeline (occurred / published / collected) with flagged fallbacks and reporting/collection lags.
+- Deterministic, explainable related-record suggestions.
+- Markdown evidence-packet export with analytical caveats.
+- UI: dossier index, dossier workspace (draft + save, discard, unsaved-changes guard, conflict reload), + DOSSIER on feed items.
+- Security rules for `incidents`: owner-only, shape/size limits, `version` must increase by exactly 1, `createdAt` immutable; emulator tests.
+
+### Fixed
+- Suggestions no longer link records on advisory boilerplate ("Do Not Travel").
+
+
 ## [0.4.0] — 2026-11-20 — Phase 4: Alerting
 
 ### Added

@@ -53,4 +53,6 @@ export const COLLECTIONS = {
   alerts: 'alerts',
   /** Collector-internal bookkeeping (e.g. notification cooldowns). Not client-readable. */
   collectorState: 'collectorState',
+  /** Operator-curated incident dossiers (Phase 5). */
+  incidents: 'incidents',
 } as const;

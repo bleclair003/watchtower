@@ -11,6 +11,8 @@ import DiagnosticsPage from './pages/DiagnosticsPage';
 import SettingsPage from './pages/SettingsPage';
 import IndicatorsPage from './pages/IndicatorsPage';
 import AlertsPage from './pages/AlertsPage';
+import DossiersPage from './pages/DossiersPage';
+import DossierPage from './pages/DossierPage';
 
 function NotFound() {
   return (
@@ -39,6 +41,8 @@ export default function App() {
                     <Route path="settings" element={<SettingsPage />} />
                     <Route path="indicators" element={<IndicatorsPage />} />
                     <Route path="alerts" element={<AlertsPage />} />
+                    <Route path="dossiers" element={<DossiersPage />} />
+                    <Route path="dossiers/:id" element={<DossierPage />} />
                     <Route path="*" element={<NotFound />} />
                   </Route>
                 </Routes>
