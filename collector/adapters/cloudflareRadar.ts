@@ -112,6 +112,10 @@ export const cloudflareRadarOutages: SourceAdapter<RadarState> = {
       // Some annotations link to Cloudflare's internal tracker, which outsiders cannot open.
       const publicLink = linked && !/(^|\.)cfdata\.org$/i.test(new URL(linked).hostname) ? linked : null;
       const radarLink = locs[0] ? `https://radar.cloudflare.com/outage-center?location=${locs[0].toLowerCase()}` : 'https://radar.cloudflare.com/outage-center';
+      const title = truncate(
+        `Internet outage — ${place}${networks.length && !topLocs.length ? ` (${networks.join(', ')})` : ''}: ${CAUSE_LABEL[cause] ?? 'cause not stated'}${type ? ` (${type.toLowerCase()})` : ''}`,
+        LIMITS.title,
+      );
       const key = contentHash(SOURCE_ID, id);
       events.push({
         id: key,
@@ -121,10 +125,7 @@ export const cloudflareRadarOutages: SourceAdapter<RadarState> = {
         sourceName: `Cloudflare Radar — ${def.name}`,
         sourceClass: 'scientific',
         sourceUrl: publicLink ?? radarLink,
-        title: truncate(
-          `Internet outage — ${place}${networks.length && !topLocs.length ? ` (${networks.join(', ')})` : ''}: ${CAUSE_LABEL[cause] ?? 'cause not stated'}${type ? ` (${type.toLowerCase()})` : ''}`,
-          LIMITS.title,
-        ),
+        title,
         summary: truncate(
           `${desc ? `${desc}. ` : ''}Cloudflare's attributed cause: ${CAUSE_LABEL[cause] ?? 'not stated'}. Started ${startIso}${endIso ? `, ended ${endIso}` : ', ongoing or end not recorded'}.`,
           LIMITS.summary,
@@ -148,7 +149,7 @@ export const cloudflareRadarOutages: SourceAdapter<RadarState> = {
           geoBasis: topLocs.length ? 'source-country' : entLocs.length ? 'source-country (affected area)' : netLocs.length ? 'source-country (network location)' : 'none',
           areas: entNames,
           networks,
-          revisionKey: contentHash(cause, type, endIso ?? '', desc, locs.join(',')),
+          revisionKey: contentHash(cause, type, endIso ?? '', desc, locs.join(','), title),
           licence: 'CC BY-NC 4.0 — Cloudflare Radar',
         },
       });
