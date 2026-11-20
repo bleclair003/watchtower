@@ -60,7 +60,7 @@ export function TopBar() {
           <span className="text-wt-inactive">OFFLINE</span>
         </Readout>
         <Readout label="DATA">
-          <span className={mode === 'demo' ? 'text-wt-warn' : 'text-wt-fg'}>{mode === 'demo' ? 'DEMO' : 'LIVE'}</span>
+          <span className={mode === 'demo' ? 'text-wt-warn' : mode === 'emulator' ? 'text-wt-info' : 'text-wt-fg'}>{mode.toUpperCase()}</span>
         </Readout>
       </div>
 

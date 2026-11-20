@@ -14,8 +14,8 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
 - [x] README + docs set
 - [x] Source feasibility matrix (live probes, 2026-11-20)
 - [x] Vitest + React Testing Library configured
-- [~] Git repository initialized (initial commit created; no GitHub remote yet)
-- [ ] Firebase project created (operator action — see DEPLOYMENT.md)
+- [x] Git repository initialized
+- [x] Firebase project created (operator)
 
 ## Phase 1 — Global Operations Center ✅ (demo data)
 
@@ -40,19 +40,23 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
 - [x] Clearly labelled demonstration dataset (banner, DEMO tags, `[SIMULATED]` titles, no source links)
 - [x] Visible map failure states (style fetch error, 20 s init watchdog, error counter)
 
-## Phase 2 — Live source collection (NEXT)
+## Phase 2 — Live source collection ✅ (verified on emulators; production hookup pending operator steps)
 
-- [ ] Create Firebase project (Spark) + enable Firestore + Auth (operator)
-- [ ] `collector/` package: `SourceAdapter` interface, HTTP client with conditional GET + backoff
-- [ ] Adapter: State Dept travel advisories (with level-change detection)
-- [ ] Adapter: CISA advisories + KEV
-- [ ] Normalization, validation, sanitization, content hashing
-- [ ] Firestore writes: `events`, `sourceStatus`, `collectionRuns`, `snapshots/dashboard`
-- [ ] `.github/workflows/collect.yml` (hourly cron + `workflow_dispatch`)
-- [ ] `FirestoreRepository` + Firebase Auth sign-in (owner only)
-- [ ] Firestore security rules + emulator tests
-- [ ] Source health computed from real runs; Diagnostics shows real run history
-- [ ] Adapter: GDELT (context only), pending rate-limit validation
+- [x] `collector/`: `SourceAdapter` contract, polite HTTP (UA, conditional GET, backoff, size and time limits)
+- [x] Adapter: State Dept travel advisories with level-change detection (RAISED / LOWERED / reissued / NEW)
+- [x] Adapter: CISA advisories (subtype classification, routine flag)
+- [x] Adapter: CISA KEV (ETag → 304, ransomware flag)
+- [x] Normalization, validation gate, HTML/URL sanitization, content hashing, FIPS→ISO mapping
+- [x] Firestore writes: `events`, `sourceStatus`, `sourceState`, `collectionRuns`, `snapshots/dashboard`
+- [x] Idempotency (verified: second run imports 0), failure isolation, health escalation, secret redaction
+- [x] `.github/workflows/collect.yml` (hourly + manual), `ci.yml`, `grant-owner.yml`
+- [x] `FirestoreRepository` (1 read per load) + Google sign-in + owner custom-claim gate
+- [x] Firestore security rules + emulator tests (6 tests, mutation-checked)
+- [x] Live source health, overdue detection, real Diagnostics
+- [ ] **Operator:** enable Firestore and Google auth, `.env.local`, deploy rules, service account, GitHub secrets (DEPLOYMENT.md §2)
+- [ ] First production collection run + live verification
+- [ ] Adapter: GDELT (context only), pending rate-limit validation from Actions
+- [ ] Incremental snapshot rebuild (read-cost optimization)
 
 ## Phase 3 — Indicator engine
 - [ ] Indicator schema + declarative condition language

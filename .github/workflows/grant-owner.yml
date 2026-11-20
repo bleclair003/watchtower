@@ -1,0 +1,35 @@
+# One-off: grant the `owner` custom claim to the operator account.
+#
+# The email is read from a SECRET (OWNER_EMAIL), never from a workflow input,
+# so it does not appear in run logs or on the run page of a public repository.
+# Required: secret OWNER_EMAIL, secret FIREBASE_SERVICE_ACCOUNT (needs the
+# "Firebase Authentication Admin" role in addition to "Cloud Datastore User"),
+# variable WATCHTOWER_PROJECT_ID. Sign in to WATCHTOWER once before running.
+name: Grant owner
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  grant:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --omit=dev --ignore-scripts
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      - name: Grant owner claim
+        env:
+          WATCHTOWER_PROJECT_ID: ${{ vars.WATCHTOWER_PROJECT_ID }}
+          OWNER_EMAIL: ${{ secrets.OWNER_EMAIL }}
+          METADATA_SERVER_DETECTION: none
+        run: node scripts/grant-owner.ts "$OWNER_EMAIL"

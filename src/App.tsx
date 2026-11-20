@@ -3,6 +3,8 @@ import { AppShell } from './components/layout/AppShell';
 import { DataProvider } from './state/DataContext';
 import { DashboardProvider } from './state/DashboardContext';
 import { SettingsProvider } from './state/SettingsContext';
+import { AuthProvider } from './state/AuthContext';
+import { AuthGate } from './components/layout/AuthGate';
 import GlobalOperationsPage from './pages/GlobalOperationsPage';
 import SourcesPage from './pages/SourcesPage';
 import DiagnosticsPage from './pages/DiagnosticsPage';
@@ -22,21 +24,25 @@ function NotFound() {
 export default function App() {
   return (
     <SettingsProvider>
-      <DataProvider>
-        <BrowserRouter>
-          <DashboardProvider>
-            <Routes>
-              <Route element={<AppShell />}>
-                <Route index element={<GlobalOperationsPage />} />
-                <Route path="sources" element={<SourcesPage />} />
-                <Route path="diagnostics" element={<DiagnosticsPage />} />
-                <Route path="settings" element={<SettingsPage />} />
-                <Route path="*" element={<NotFound />} />
-              </Route>
-            </Routes>
-          </DashboardProvider>
-        </BrowserRouter>
-      </DataProvider>
+      <AuthProvider>
+        <AuthGate>
+          <DataProvider>
+            <BrowserRouter>
+              <DashboardProvider>
+                <Routes>
+                  <Route element={<AppShell />}>
+                    <Route index element={<GlobalOperationsPage />} />
+                    <Route path="sources" element={<SourcesPage />} />
+                    <Route path="diagnostics" element={<DiagnosticsPage />} />
+                    <Route path="settings" element={<SettingsPage />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Route>
+                </Routes>
+              </DashboardProvider>
+            </BrowserRouter>
+          </DataProvider>
+        </AuthGate>
+      </AuthProvider>
     </SettingsProvider>
   );
 }

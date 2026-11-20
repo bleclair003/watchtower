@@ -4,7 +4,7 @@
 
 A browser-based OSINT monitoring console with a command-centre interface. Every record is traceable to a public source, and source health and uncertainty are always visible. It is built to run at $0 recurring cost.
 
-> **Status:** Phase 0 + Phase 1 complete. The dashboard runs on a **clearly labelled demonstration dataset**; live collection starts in Phase 2. See [docs/DEVELOPMENT_ROADMAP.md](docs/DEVELOPMENT_ROADMAP.md).
+> **Status (v0.2.0):** Phases 0–2 built. Without Firebase config the dashboard runs on a **clearly labelled demo dataset**. With config it shows **live** records collected hourly from the U.S. State Department and CISA. To connect your Firebase project, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) §2.
 
 ## Quick start
 
@@ -23,6 +23,11 @@ npm run dev        # http://localhost:5173
 | `npm run typecheck` | TypeScript project check |
 | `npm run build` | Type check + production build to `dist/` |
 | `npm run preview` | Serve the production build |
+| `npm run test:rules` | Firestore security-rules tests (emulator, Java 21) |
+| `npm run collect:dry` | Fetch and process real sources, write nothing |
+| `npm run emulators` | Local Auth + Firestore emulators |
+| `npm run collect:emulator` / `dev:emulator` | Collector / app against the emulators |
+| `npm run grant-owner -- <email>` | Grant the owner claim (Admin SDK credentials required) |
 
 ## Using the console
 

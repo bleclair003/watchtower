@@ -1,27 +1,38 @@
-import type { IntelligenceEvent, SourceStatus } from '@shared/domain/types';
+import type { CollectionRun, IntelligenceEvent, SourceStatus } from '@shared/domain/types';
 import { SOURCE_REGISTRY } from '@shared/domain/sources';
+import { backendMode, type BackendMode } from '../config/firebase';
 import { buildDemoEvents } from './demo/demoEvents';
 
 /**
  * Data access boundary for the UI.
  *
  * Components never talk to Firestore (or fixtures) directly — they go through
- * an IntelRepository. Phase 2 adds a FirestoreRepository implementing the same
- * interface; nothing above this layer needs to change.
+ * an IntelRepository. Demo fixtures and Firestore are interchangeable.
  */
-export type DataMode = 'demo' | 'live';
+export type DataMode = BackendMode;
 
-export interface EventQuery {
-  /** Only events published/collected after this ISO time. */
-  since?: string;
-  /** Hard cap on returned records (Firestore reads are metered). */
-  limit: number;
+export interface DashboardData {
+  events: IntelligenceEvent[];
+  sourceStatus: SourceStatus[];
+  /** Most recent collector run, if any has happened. */
+  lastRun: CollectionRun | null;
+  /** When the collector built the data the dashboard is showing. */
+  generatedAt: string | null;
+  totalEventsStored: number | null;
 }
 
 export interface IntelRepository {
   readonly mode: DataMode;
-  listEvents(query: EventQuery): Promise<IntelligenceEvent[]>;
-  listSourceStatus(): Promise<SourceStatus[]>;
+  loadDashboard(): Promise<DashboardData>;
+  /** Firestore document reads this session (null if not applicable). */
+  readsThisSession(): number | null;
+}
+
+export class PermissionDeniedError extends Error {
+  constructor() {
+    super('ACCESS DENIED — signed-in account is not authorized as WATCHTOWER owner');
+    this.name = 'PermissionDeniedError';
+  }
 }
 
 /** Fixture-backed repository. All records it returns have dataOrigin = 'demo'. */
@@ -33,32 +44,33 @@ export class DemoRepository implements IntelRepository {
     this.events = buildDemoEvents(now);
   }
 
-  async listEvents({ since, limit }: EventQuery): Promise<IntelligenceEvent[]> {
-    const cutoff = since ? Date.parse(since) : -Infinity;
-    return this.events
-      .filter((e) => Date.parse(e.publishedAt ?? e.collectedAt) >= cutoff)
-      .slice(0, limit);
+  async loadDashboard(): Promise<DashboardData> {
+    return {
+      events: this.events,
+      // No collector has ever run in demo mode, so every source is honestly NOT_CONFIGURED.
+      sourceStatus: SOURCE_REGISTRY.map((s) => ({
+        sourceId: s.id,
+        health: 'NOT_CONFIGURED',
+        lastAttemptAt: null,
+        lastSuccessAt: null,
+        lastNewItemAt: null,
+        consecutiveFailures: 0,
+        parseErrors: 0,
+        lastError: null,
+      })),
+      lastRun: null,
+      generatedAt: null,
+      totalEventsStored: null,
+    };
   }
 
-  /**
-   * In demo mode no collector has ever run, so every real source is honestly
-   * reported as NOT_CONFIGURED rather than given a fabricated health status.
-   */
-  async listSourceStatus(): Promise<SourceStatus[]> {
-    return SOURCE_REGISTRY.map((s) => ({
-      sourceId: s.id,
-      health: 'NOT_CONFIGURED',
-      lastAttemptAt: null,
-      lastSuccessAt: null,
-      lastNewItemAt: null,
-      consecutiveFailures: 0,
-      parseErrors: 0,
-      lastError: null,
-    }));
+  readsThisSession() {
+    return null;
   }
 }
 
-export function createRepository(): IntelRepository {
-  // Phase 2: return new FirestoreRepository(...) when isFirebaseConfigured.
-  return new DemoRepository();
+export async function createRepository(): Promise<IntelRepository> {
+  if (backendMode === 'demo') return new DemoRepository();
+  const { FirestoreRepository } = await import('./firestoreRepository');
+  return new FirestoreRepository(backendMode);
 }

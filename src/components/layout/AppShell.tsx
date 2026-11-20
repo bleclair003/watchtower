@@ -24,6 +24,14 @@ const NAV: NavItem[] = [
 
 function DemoStrip() {
   const { mode } = useData();
+  if (mode === 'emulator') {
+    return (
+      <div role="note" className="flex shrink-0 items-center gap-2 border-b border-wt-info/40 bg-wt-info/10 px-3 py-0.5 text-2xs tracking-wider text-wt-info">
+        <TriangleAlert size={11} aria-hidden />
+        <span>LOCAL EMULATOR — REAL PUBLIC-SOURCE RECORDS IN A LOCAL TEST DATABASE. NOT THE PRODUCTION PROJECT.</span>
+      </div>
+    );
+  }
   if (mode !== 'demo') return null;
   return (
     <div
@@ -32,7 +40,7 @@ function DemoStrip() {
     >
       <TriangleAlert size={11} aria-hidden />
       <span>
-        DEMONSTRATION DATA — ALL EVENTS SHOWN ARE SIMULATED FIXTURES, NOT REAL INTELLIGENCE. LIVE COLLECTION BEGINS IN PHASE 2.
+        DEMONSTRATION DATA — ALL EVENTS SHOWN ARE SIMULATED FIXTURES, NOT REAL INTELLIGENCE. CONFIGURE FIREBASE IN .ENV.LOCAL FOR LIVE DATA.
       </span>
     </div>
   );

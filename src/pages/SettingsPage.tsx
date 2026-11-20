@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useSettings, type OperatorSettings } from '../state/SettingsContext';
+import { useAuth } from '../state/AuthContext';
 import { Panel } from '../components/ui/Panel';
 
 const OPTIONS: { key: keyof OperatorSettings; label: string; help: string }[] = [
@@ -16,6 +17,7 @@ const OPTIONS: { key: keyof OperatorSettings; label: string; help: string }[] = 
 
 export default function SettingsPage() {
   const { settings, update, reset } = useSettings();
+  const { status, user, signOut } = useAuth();
   useEffect(() => {
     document.title = 'WATCHTOWER // SETTINGS';
   }, []);
@@ -50,9 +52,23 @@ export default function SettingsPage() {
           ))}
         </fieldset>
         <p className="border-t border-wt-line px-3 py-2 text-2xs text-wt-fg-dim">
-          Settings are stored in this browser only. They will sync to Firestore once authentication is added in Phase 2.
+          Display settings are stored in this browser only.
         </p>
       </Panel>
+      {status === 'signed-in' && (
+        <Panel title="Operator Account" designator="O2" className="mt-1.5 max-w-2xl">
+          <div className="flex flex-wrap items-center gap-3 px-3 py-2 text-xs">
+            <span className="text-wt-fg-dim">SIGNED IN AS</span>
+            <span className="break-all">{user?.email}</span>
+            <button
+              onClick={() => void signOut()}
+              className="ml-auto border border-wt-line-strong px-2 py-0.5 text-2xs tracking-widest text-wt-fg-muted hover:border-wt-fg hover:text-wt-fg"
+            >
+              SIGN OUT
+            </button>
+          </div>
+        </Panel>
+      )}
     </div>
   );
 }

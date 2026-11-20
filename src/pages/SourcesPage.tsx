@@ -3,7 +3,9 @@ import { ExternalLink } from 'lucide-react';
 import { SOURCE_REGISTRY } from '@shared/domain/sources';
 import type { IntegrationPriority, SourceDefinition } from '@shared/domain/types';
 import { useData } from '../state/DataContext';
-import { formatUtc } from '../lib/time';
+import { formatAge, formatUtc } from '../lib/time';
+import { mergeSourceStatus } from '../lib/sourceHealth';
+import { useNow } from '../hooks/useNow';
 import { safeExternalUrl } from '../lib/sanitize';
 import { Panel } from '../components/ui/Panel';
 import { Lamp, Tag } from '../components/ui/Tag';
@@ -29,6 +31,8 @@ const FEAS_TONE: Record<SourceDefinition['feasibility']['result'], Tone> = {
 /** Intelligence Source Directory: every configured and prospective source. */
 export default function SourcesPage() {
   const { sourceStatus } = useData();
+  const now = useNow(60_000).getTime();
+  const statuses = mergeSourceStatus(sourceStatus, now);
   const [expanded, setExpanded] = useState<string | null>(null);
 
   useEffect(() => {
@@ -40,7 +44,7 @@ export default function SourcesPage() {
       <Panel title="Intelligence Source Directory" designator="S1">
         <p className="border-b border-wt-line px-2 py-1.5 text-2xs leading-relaxed text-wt-fg-muted">
           FEASIBILITY = result of a manual probe from a residential connection on the date shown. It confirms reachability only.
-          STATUS = live collector health; every source reads NOT CONFIGURED until the Phase 2 collectors are deployed.
+          STATUS = health reported by the collector, re-evaluated against the current time (a silent collector turns sources STALE). Sources without an adapter read NOT CONFIGURED.
           Select a row for reliability and terms notes.
         </p>
         <div className="overflow-x-auto">
@@ -54,7 +58,7 @@ export default function SourcesPage() {
             </thead>
             <tbody>
               {SOURCE_REGISTRY.map((s) => {
-                const st = sourceStatus.find((x) => x.sourceId === s.id);
+                const st = statuses.find((x) => x.sourceId === s.id);
                 const open = expanded === s.id;
                 const site = safeExternalUrl(s.website);
                 return (
@@ -115,6 +119,18 @@ export default function SourcesPage() {
                             <dt className="text-wt-fg-dim">FREE ACCESS</dt><dd>{s.freeAccess}</dd>
                             <dt className="text-wt-fg-dim">UPDATE FREQ.</dt><dd>{s.expectedUpdateFrequency}</dd>
                             <dt className="text-wt-fg-dim">PROBE</dt><dd>{formatUtc(s.feasibility.checkedAt)} — {s.feasibility.note}</dd>
+                            {st && st.lastAttemptAt && (
+                              <>
+                                <dt className="text-wt-fg-dim">COLLECTOR</dt>
+                                <dd>
+                                  last attempt {formatAge(st.lastAttemptAt, now)} ago · last new item{' '}
+                                  {st.lastNewItemAt ? `${formatAge(st.lastNewItemAt, now)} ago` : 'never'} · consecutive failures{' '}
+                                  {st.consecutiveFailures} · rejected items {st.parseErrors}
+                                </dd>
+                                <dt className="text-wt-fg-dim">LAST ERROR</dt>
+                                <dd className={st.lastError ? 'text-wt-crit' : 'text-wt-fg-muted'}>{st.lastError ?? 'none'}</dd>
+                              </>
+                            )}
                             <dt className="text-wt-fg-dim">RELIABILITY</dt><dd className="text-wt-fg-muted">{s.reliabilityNotes}</dd>
                             <dt className="text-wt-fg-dim">TERMS</dt><dd className="text-wt-fg-muted">{s.termsNotes}</dd>
                           </dl>

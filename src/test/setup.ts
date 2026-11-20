@@ -5,6 +5,6 @@ import { cleanup } from '@testing-library/react';
 afterEach(() => cleanup());
 
 // jsdom does not implement layout APIs.
-if (!Element.prototype.scrollIntoView) {
+if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = function scrollIntoView() {};
 }

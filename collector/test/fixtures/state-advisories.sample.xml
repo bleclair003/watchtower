@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>travel.state.gov: Travel Advisories</title>
+    <link>https://travel.state.gov/content/travel/en/traveladvisories/traveladvisories.html</link>
+    <description>As a first step in planning any trip abroad, check the Travel Advisories for your intended destination.</description>
+    <pubDate>Fri, 20 Nov 2026 07:50:01 GMT</pubDate>
+    <dc:date>2026-11-20T07:50:01Z</dc:date>
+    <item>
+      <title>Iran - Level 4: Do Not Travel</title>
+      <link>https://travel.state.gov/content/tsg_aem/us/en/home/international-travel/travel-advisories/destination.irn.html</link>
+      <pubDate>Fri, 23 Oct 2026</pubDate>
+      <description><![CDATA[Do not travel<p>to <b>Iran </b>due to the risk of <b>terrorism</b>, <b>unrest</b>, <b>kidnapping</b>, <b>arbitrary arrest</b> of U.S. citizens, and <b>wrongful detention</b>. Read the entire Travel Advisory.</p>
+<ul>
+<li><span class='body-regular'><b>Do not travel to Iran for any reason. U.S. citizens in Iran should leave immediately</b>.&nbsp;</span></li>
+<li></p>]]></description>
+      <category domain="Threat-Level">Level 4: Do Not Travel</category>
+      <category domain="Country-Tag">IR</category>
+      <category domain="Keyword">advisory</category>
+      <guid>https://travel.state.gov/content/tsg_aem/us/en/home/international-travel/travel-advisories/destination.irn.html</guid>
+      <dc:identifier>IR,advisory</dc:identifier>
+    </item>
+<item>
+      <title>Yemen - Level 4: Do Not Travel</title>
+      <link>https://travel.state.gov/content/tsg_aem/us/en/home/international-travel/travel-advisories/destination.yem.html</link>
+      <pubDate>Fri, 23 Oct 2026</pubDate>
+      <description><![CDATA[Do not travel<p>in <b>Yemen </b>due to risk of <b>terrorism</b>, <b>unrest</b>, <b>crime</b>, <b>health risks</b>, <b>kidnapping</b>, and <b>landmines</b>.</p>
+<p>Do not travel to Yemen for any reason, including the island of Socotra. The U.S. Embassy in Sana’a suspended its operations in February 2015. The U.S. government cannot offer emergency services to U.S. citizens in Yemen due to the safety risks.</p>
+</p>]]></description>
+      <category domain="Threat-Level">Level 4: Do Not Travel</category>
+      <category domain="Country-Tag">YM</category>
+      <category domain="Keyword">advisory</category>
+      <guid>https://travel.state.gov/content/tsg_aem/us/en/home/international-travel/travel-advisories/destination.yem.html</guid>
+      <dc:identifier>YM,advisory</dc:identifier>
+    </item>
+<item>
+      <title>Israel - Level 3: Reconsider Travel</title>
+      <link>https://travel.state.gov/content/tsg_aem/us/en/home/international-travel/travel-advisories/destination.isr.html</link>
+      <pubDate>Fri, 23 Oct 2026</pubDate>
+      <description><![CDATA[Reconsider travel<p>to <b>Israel </b>due to <b>terrorism </b>and <b>unrest</b>. Some areas have increased risk. Read the entire Travel Advisory.</p>
+<p>As of August 26, 2026, family members may join U.S. government employees who work in Israel.</p>
+<h5><b style='font-size: 18.24px;'>U.S. government employee travel restrictions</b></h5>
+</p>]]></description>
+      <category domain="Threat-Level">Level 3: Reconsider Travel</category>
+      <category domain="Country-Tag">IS</category>
+      <category domain="Keyword">advisory</category>
+      <guid>https://travel.state.gov/content/tsg_aem/us/en/home/international-travel/travel-advisories/destination.isr.html</guid>
+      <dc:identifier>IS,advisory</dc:identifier>
+    </item>
+<item>
+      <title>Ukraine - Level 4: Do Not Travel</title>
+      <link>https://travel.state.gov/content/tsg_aem/us/en/home/international-travel/travel-advisories/destination.ukr.html</link>
+      <pubDate>Fri, 28 Aug 2026</pubDate>
+      <description><![CDATA[Do not travel<p>to <b>Ukraine for any reason</b> due to the <b>Russia-Ukraine war</b>.</p>
+<h5><b>U.S. embassy operations</b></h5>
+<ul>
+<li>The Embassy is open and operating in Kyiv; however, Embassy personnel are subject to movement, curfew, and activity restrictions, which may cause delays in provision of consular assistance to U.S. citizens outside of Kyiv.</li>
+</p>]]></description>
+      <category domain="Threat-Level">Level 4: Do Not Travel</category>
+      <category domain="Country-Tag">UP</category>
+      <category domain="Keyword">advisory</category>
+      <guid>https://travel.state.gov/content/tsg_aem/us/en/home/international-travel/travel-advisories/destination.ukr.html</guid>
+      <dc:identifier>UP,advisory</dc:identifier>
+    </item>
+<item>
+      <title>Gaza - Level 4: Do Not Travel</title>
+      <link>https://travel.state.gov/content/tsg_aem/us/en/home/international-travel/travel-advisories/destination.xgz.html</link>
+      <pubDate>Wed, 26 Aug 2026</pubDate>
+      <description><![CDATA[Do not travel<p> to <b>Gaza </b>due to <b>terrorism</b>, <b>unrest</b>, and <b>limited health infrastructure.</b></p>
+<p><b>Restrictions on U.S. Government Personnel Movement</b></p>
+<p>U.S. government employees are prohibited from traveling to Gaza for any reason due to safety risks. The U.S. government is unable to provide routine or emergency consular services to U.S. citizens in Gaza.</p>
+<p></p>]]></description>
+      <category domain="Threat-Level">Level 4: Do Not Travel</category>
+      <category domain="Country-Tag">IS</category>
+      <category domain="Keyword">advisory</category>
+      <guid>https://travel.state.gov/content/tsg_aem/us/en/home/international-travel/travel-advisories/destination.xgz.html</guid>
+      <dc:identifier>IS,advisory</dc:identifier>
+    </item>
+<item>
+      <title>Vietnam - Level 1: Exercise Normal Precautions</title>
+      <link>https://travel.state.gov/content/tsg_aem/us/en/home/international-travel/travel-advisories/destination.vnm.html</link>
+      <pubDate>Wed, 24 Jun 2026</pubDate>
+      <description><![CDATA[Exercise normal precaution<p>in <b>Vietnam</b>.</p>
+<ul>
+<li>Vietnam is generally a safe destination for travelers.&nbsp; Petty crime is common, especially in popular tourist locations. Stay aware of your surroundings.</li>
+</p>]]></description>
+      <category domain="Threat-Level">Level 1: Exercise Normal Precautions</category>
+      <category domain="Country-Tag">VM</category>
+      <category domain="Keyword">advisory</category>
+      <guid>https://travel.state.gov/content/tsg_aem/us/en/home/international-travel/travel-advisories/destination.vnm.html</guid>
+      <dc:identifier>VM,advisory</dc:identifier>
+    </item>
+<item>
+      <title>Russia - Level 4: Do Not Travel</title>
+      <link>https://travel.state.gov/content/tsg_aem/us/en/home/international-travel/travel-advisories/destination.rus.html</link>
+      <pubDate>Mon, 29 Dec 2025</pubDate>
+      <description><![CDATA[Do not travel<p>to <b>Russia </b>for any reason due to <b>terrorism</b>, <b>unrest</b>, <b>wrongful detention </b>and <b>other risks</b>.</p>
+<p><span class='body-regular'><b>U.S. citizens in Russia should leave immediately<br>
+ </b></span><b data-rte-class='rte-temp'></p>]]></description>
+      <category domain="Threat-Level">Level 4: Do Not Travel</category>
+      <category domain="Country-Tag">RS</category>
+      <category domain="Keyword">advisory</category>
+      <guid>https://travel.state.gov/content/tsg_aem/us/en/home/international-travel/travel-advisories/destination.rus.html</guid>
+      <dc:identifier>RS,advisory</dc:identifier>
+    </item>
+<item>
+      <title>French West Indies - Level 1: Exercise Normal Precautions</title>
+      <link>https://travel.state.gov/content/travel/en/traveladvisories/traveladvisories/french-west-indies-travel-advisory.html</link>
+      <pubDate>Thu, 22 Aug 2024</pubDate>
+      <description><![CDATA[<p><b><i>Reissued after periodic review with minor edits.</i></b></p>
+<p>Exercise normal precautions in the French West Indies, which includes the islands of Guadeloupe, Martinique, French Saint Martin, and Saint Barth&#233;lemy.<b></b></p>
+<p>Read the </p>]]></description>
+      <category domain="Threat-Level">Level 1: Exercise Normal Precautions</category>
+      <category domain="Country-Tag">A3</category>
+      <category domain="Keyword">advisory</category>
+      <guid>https://travel.state.gov/content/travel/en/traveladvisories/traveladvisories/french-west-indies-travel-advisory.html</guid>
+      <dc:identifier>A3,advisory</dc:identifier>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,874 @@
+[
+{
+"fips": "A1",
+"name": "Bonaire"
+},
+{
+"fips": "A1",
+"name": "Saba and Sint Eustatius"
+},
+{
+"fips": "A2",
+"name": "French Guiana"
+},
+{
+"fips": "A3",
+"name": "French West Indies"
+},
+{
+"fips": "AA",
+"name": "Aruba"
+},
+{
+"fips": "AC",
+"name": "Antigua and Barbuda"
+},
+{
+"fips": "AE",
+"name": "United Arab Emirates"
+},
+{
+"fips": "AF",
+"name": "Afghanistan"
+},
+{
+"fips": "AG",
+"name": "Algeria"
+},
+{
+"fips": "AJ",
+"name": "Azerbaijan"
+},
+{
+"fips": "AL",
+"name": "Albania"
+},
+{
+"fips": "AM",
+"name": "Armenia"
+},
+{
+"fips": "AN",
+"name": "Andorra"
+},
+{
+"fips": "AO",
+"name": "Angola"
+},
+{
+"fips": "AR",
+"name": "Argentina"
+},
+{
+"fips": "AS",
+"name": "Australia"
+},
+{
+"fips": "AU",
+"name": "Austria"
+},
+{
+"fips": "AV",
+"name": "Anguilla"
+},
+{
+"fips": "AY",
+"name": "Antarctica"
+},
+{
+"fips": "BA",
+"name": "Bahrain"
+},
+{
+"fips": "BB",
+"name": "Barbados"
+},
+{
+"fips": "BC",
+"name": "Botswana"
+},
+{
+"fips": "BD",
+"name": "Bermuda"
+},
+{
+"fips": "BE",
+"name": "Belgium"
+},
+{
+"fips": "BF",
+"name": "The Bahamas"
+},
+{
+"fips": "BG",
+"name": "Bangladesh"
+},
+{
+"fips": "BH",
+"name": "Belize"
+},
+{
+"fips": "BK",
+"name": "Bosnia and Herzegovina"
+},
+{
+"fips": "BL",
+"name": "Bolivia"
+},
+{
+"fips": "BM",
+"name": "Burma"
+},
+{
+"fips": "BN",
+"name": "Benin"
+},
+{
+"fips": "BO",
+"name": "Belarus"
+},
+{
+"fips": "BP",
+"name": "Solomon Islands"
+},
+{
+"fips": "BR",
+"name": "Brazil"
+},
+{
+"fips": "BT",
+"name": "Bhutan"
+},
+{
+"fips": "BU",
+"name": "Bulgaria"
+},
+{
+"fips": "BX",
+"name": "Brunei"
+},
+{
+"fips": "BY",
+"name": "Burundi"
+},
+{
+"fips": "CA",
+"name": "Canada"
+},
+{
+"fips": "CB",
+"name": "Cambodia"
+},
+{
+"fips": "CD",
+"name": "Chad"
+},
+{
+"fips": "CE",
+"name": "Sri Lanka"
+},
+{
+"fips": "CF",
+"name": "Republic of Congo"
+},
+{
+"fips": "CG",
+"name": "Democratic Republic of the Congo"
+},
+{
+"fips": "CH",
+"name": "China"
+},
+{
+"fips": "CI",
+"name": "Chile"
+},
+{
+"fips": "CJ",
+"name": "Cayman Islands"
+},
+{
+"fips": "CM",
+"name": "Cameroon"
+},
+{
+"fips": "CN",
+"name": "Comoros"
+},
+{
+"fips": "CO",
+"name": "Colombia"
+},
+{
+"fips": "CS",
+"name": "Costa Rica"
+},
+{
+"fips": "CT",
+"name": "Central African Republic"
+},
+{
+"fips": "CU",
+"name": "Cuba"
+},
+{
+"fips": "CV",
+"name": "Cabo Verde"
+},
+{
+"fips": "CY",
+"name": "Cyprus"
+},
+{
+"fips": "DA",
+"name": "Denmark"
+},
+{
+"fips": "DJ",
+"name": "Djibouti"
+},
+{
+"fips": "DO",
+"name": "Dominica"
+},
+{
+"fips": "DR",
+"name": "Dominican Republic"
+},
+{
+"fips": "EC",
+"name": "Ecuador"
+},
+{
+"fips": "EG",
+"name": "Egypt"
+},
+{
+"fips": "EI",
+"name": "Ireland"
+},
+{
+"fips": "EK",
+"name": "Equatorial Guinea"
+},
+{
+"fips": "EN",
+"name": "Estonia"
+},
+{
+"fips": "ER",
+"name": "Eritrea"
+},
+{
+"fips": "ES",
+"name": "El Salvador"
+},
+{
+"fips": "ET",
+"name": "Ethiopia"
+},
+{
+"fips": "EZ",
+"name": "Czechia"
+},
+{
+"fips": "FI",
+"name": "Finland"
+},
+{
+"fips": "FJ",
+"name": "Fiji"
+},
+{
+"fips": "FM",
+"name": "Federated States of Micronesia"
+},
+{
+"fips": "FP",
+"name": "French Polynesia"
+},
+{
+"fips": "FR",
+"name": "France"
+},
+{
+"fips": "GA",
+"name": "The Gambia"
+},
+{
+"fips": "GB",
+"name": "Gabon"
+},
+{
+"fips": "GG",
+"name": "Georgia"
+},
+{
+"fips": "GH",
+"name": "Ghana"
+},
+{
+"fips": "GJ",
+"name": "Grenada"
+},
+{
+"fips": "GL",
+"name": "Greenland"
+},
+{
+"fips": "GM",
+"name": "Germany"
+},
+{
+"fips": "GP",
+"name": "Guadeloupe"
+},
+{
+"fips": "GR",
+"name": "Greece"
+},
+{
+"fips": "GT",
+"name": "Guatemala"
+},
+{
+"fips": "GV",
+"name": "Guinea"
+},
+{
+"fips": "GW",
+"name": "Guinea-Bissau"
+},
+{
+"fips": "GY",
+"name": "Guyana"
+},
+{
+"fips": "HA",
+"name": "Haiti"
+},
+{
+"fips": "HK",
+"name": "Hong Kong"
+},
+{
+"fips": "HO",
+"name": "Honduras"
+},
+{
+"fips": "HR",
+"name": "Croatia"
+},
+{
+"fips": "HU",
+"name": "Hungary"
+},
+{
+"fips": "IC",
+"name": "Iceland"
+},
+{
+"fips": "ID",
+"name": "Indonesia"
+},
+{
+"fips": "IN",
+"name": "India"
+},
+{
+"fips": "IR",
+"name": "Iran"
+},
+{
+"fips": "IS",
+"name": "Gaza"
+},
+{
+"fips": "IS",
+"name": "Israel"
+},
+{
+"fips": "IS",
+"name": "The West Bank"
+},
+{
+"fips": "IT",
+"name": "Italy"
+},
+{
+"fips": "IV",
+"name": "Côte d’Ivoire"
+},
+{
+"fips": "IZ",
+"name": "Iraq"
+},
+{
+"fips": "JA",
+"name": "Japan"
+},
+{
+"fips": "JM",
+"name": "Jamaica"
+},
+{
+"fips": "JO",
+"name": "Jordan"
+},
+{
+"fips": "KE",
+"name": "Kenya"
+},
+{
+"fips": "KG",
+"name": "The Kyrgyz Republic"
+},
+{
+"fips": "KN",
+"name": "North Korea"
+},
+{
+"fips": "KR",
+"name": "Kiribati"
+},
+{
+"fips": "KS",
+"name": "South Korea"
+},
+{
+"fips": "KU",
+"name": "Kuwait"
+},
+{
+"fips": "KV",
+"name": "Kosovo"
+},
+{
+"fips": "KZ",
+"name": "Kazakhstan"
+},
+{
+"fips": "LA",
+"name": "Laos"
+},
+{
+"fips": "LE",
+"name": "Lebanon"
+},
+{
+"fips": "LG",
+"name": "Latvia"
+},
+{
+"fips": "LH",
+"name": "Lithuania"
+},
+{
+"fips": "LI",
+"name": "Liberia"
+},
+{
+"fips": "LO",
+"name": "Slovakia"
+},
+{
+"fips": "LS",
+"name": "Liechtenstein"
+},
+{
+"fips": "LT",
+"name": "Lesotho"
+},
+{
+"fips": "LU",
+"name": "Luxembourg"
+},
+{
+"fips": "LY",
+"name": "Libya"
+},
+{
+"fips": "MA",
+"name": "Madagascar"
+},
+{
+"fips": "MC",
+"name": "Macau"
+},
+{
+"fips": "MD",
+"name": "Moldova"
+},
+{
+"fips": "MF",
+"name": "French Saint Martin"
+},
+{
+"fips": "MG",
+"name": "Mongolia"
+},
+{
+"fips": "MH",
+"name": "Montserrat"
+},
+{
+"fips": "MI",
+"name": "Malawi"
+},
+{
+"fips": "MJ",
+"name": "Montenegro"
+},
+{
+"fips": "MK",
+"name": "North Macedonia"
+},
+{
+"fips": "ML",
+"name": "Mali"
+},
+{
+"fips": "MO",
+"name": "Morocco"
+},
+{
+"fips": "MP",
+"name": "Mauritius"
+},
+{
+"fips": "MQ",
+"name": "Martinique"
+},
+{
+"fips": "MR",
+"name": "Mauritania"
+},
+{
+"fips": "MT",
+"name": "Malta"
+},
+{
+"fips": "MU",
+"name": "Oman"
+},
+{
+"fips": "MV",
+"name": "Maldives"
+},
+{
+"fips": "MX",
+"name": "Mexico Travel Advisory"
+},
+{
+"fips": "MY",
+"name": "Malaysia"
+},
+{
+"fips": "MZ",
+"name": "Mozambique"
+},
+{
+"fips": "NC",
+"name": "New Caledonia"
+},
+{
+"fips": "NG",
+"name": "Niger"
+},
+{
+"fips": "NH",
+"name": "Vanuatu"
+},
+{
+"fips": "NI",
+"name": "Nigeria"
+},
+{
+"fips": "NL",
+"name": "Netherlands"
+},
+{
+"fips": "NN",
+"name": "Sint Maarten"
+},
+{
+"fips": "NO",
+"name": "Norway"
+},
+{
+"fips": "NP",
+"name": "Nepal"
+},
+{
+"fips": "NR",
+"name": "Naoero"
+},
+{
+"fips": "NS",
+"name": "Suriname"
+},
+{
+"fips": "NT",
+"name": "Saint Barthelemy"
+},
+{
+"fips": "NU",
+"name": "Nicaragua"
+},
+{
+"fips": "NZ",
+"name": "New Zealand"
+},
+{
+"fips": "OD",
+"name": "South Sudan"
+},
+{
+"fips": "PA",
+"name": "Paraguay"
+},
+{
+"fips": "PE",
+"name": "Peru"
+},
+{
+"fips": "PK",
+"name": "Pakistan"
+},
+{
+"fips": "PL",
+"name": "Poland"
+},
+{
+"fips": "PM",
+"name": "Panama"
+},
+{
+"fips": "PO",
+"name": "Portugal"
+},
+{
+"fips": "PP",
+"name": "Papua New Guinea"
+},
+{
+"fips": "PS",
+"name": "Palau"
+},
+{
+"fips": "QA",
+"name": "Qatar"
+},
+{
+"fips": "RI",
+"name": "Serbia"
+},
+{
+"fips": "RM",
+"name": "Marshall Islands"
+},
+{
+"fips": "RO",
+"name": "Romania"
+},
+{
+"fips": "RP",
+"name": "Philippines"
+},
+{
+"fips": "RS",
+"name": "Russia"
+},
+{
+"fips": "RW",
+"name": "Rwanda"
+},
+{
+"fips": "SA",
+"name": "Saudi Arabia"
+},
+{
+"fips": "SC",
+"name": "Saint Kitts and Nevis"
+},
+{
+"fips": "SE",
+"name": "Seychelles"
+},
+{
+"fips": "SF",
+"name": "South Africa"
+},
+{
+"fips": "SG",
+"name": "Senegal"
+},
+{
+"fips": "SI",
+"name": "Slovenia"
+},
+{
+"fips": "SL",
+"name": "Sierra Leone"
+},
+{
+"fips": "SN",
+"name": "Singapore"
+},
+{
+"fips": "SO",
+"name": "Somalia"
+},
+{
+"fips": "SP",
+"name": "Spain"
+},
+{
+"fips": "SR",
+"name": "Switzerland"
+},
+{
+"fips": "ST",
+"name": "Saint Lucia"
+},
+{
+"fips": "SU",
+"name": "Sudan"
+},
+{
+"fips": "SW",
+"name": "Sweden"
+},
+{
+"fips": "SY",
+"name": "Syria"
+},
+{
+"fips": "TA",
+"name": "Tonga"
+},
+{
+"fips": "TD",
+"name": "Trinidad and Tobago"
+},
+{
+"fips": "TH",
+"name": "Thailand"
+},
+{
+"fips": "TI",
+"name": "Tajikistan"
+},
+{
+"fips": "TK",
+"name": "Turks and Caicos Islands"
+},
+{
+"fips": "TN",
+"name": "Tonga"
+},
+{
+"fips": "TO",
+"name": "Togo"
+},
+{
+"fips": "TP",
+"name": "São Tomé and Príncipe"
+},
+{
+"fips": "TS",
+"name": "Tunisia"
+},
+{
+"fips": "TT",
+"name": "Timor-Leste"
+},
+{
+"fips": "TU",
+"name": "Turkey"
+},
+{
+"fips": "TV",
+"name": "Tuvalu"
+},
+{
+"fips": "TW",
+"name": "Taiwan"
+},
+{
+"fips": "TX",
+"name": "Turkmenistan"
+},
+{
+"fips": "TZ",
+"name": "Tanzania"
+},
+{
+"fips": "UC",
+"name": "Curaçao"
+},
+{
+"fips": "UG",
+"name": "Uganda"
+},
+{
+"fips": "UK",
+"name": "United Kingdom"
+},
+{
+"fips": "UP",
+"name": "Ukraine"
+},
+{
+"fips": "UV",
+"name": "Burkina Faso"
+},
+{
+"fips": "UY",
+"name": "Uruguay"
+},
+{
+"fips": "UZ",
+"name": "Uzbekistan"
+},
+{
+"fips": "VC",
+"name": "Saint Vincent and the Grenadines"
+},
+{
+"fips": "VE",
+"name": "Venezuela"
+},
+{
+"fips": "VI",
+"name": "British Virgin Islands"
+},
+{
+"fips": "VM",
+"name": "Vietnam"
+},
+{
+"fips": "WA",
+"name": "Namibia"
+},
+{
+"fips": "WS",
+"name": "Samoa"
+},
+{
+"fips": "WZ",
+"name": "Eswatini"
+},
+{
+"fips": "YM",
+"name": "Yemen"
+},
+{
+"fips": "ZA",
+"name": "Zambia"
+},
+{
+"fips": "ZI",
+"name": "Zimbabwe"
+}
+]

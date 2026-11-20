@@ -18,15 +18,16 @@ Time fields:
 - `occurredAt`: when the underlying event reportedly happened (`null` = not stated).
 - `collectedAt`: when WATCHTOWER first saw it. **Replay (Phase 6) gates on this field** to avoid hindsight bias.
 
-## Firestore collections (planned, Phase 2+)
+## Firestore collections
 
 | Collection | Doc ID | Written by | Read by | Notes |
 |---|---|---|---|---|
-| `events` | `contentHash` | collector | owner | Idempotent: same item → same ID |
+| `events` | `contentHash` (32 hex) | collector | owner | Idempotent: same item → same ID; written with `create()` |
 | `sources` | source id | deploy script | owner | Mirrors `SOURCE_REGISTRY` |
 | `sourceStatus` | source id | collector | owner | Health + counters |
+| `sourceState` | source id | collector | **nobody** | Adapter memory: ETag/Last-Modified, advisory level baseline |
 | `collectionRuns` | run id | collector | owner | Diagnostics history; retain 90 days |
-| `snapshots` | `dashboard` | collector | owner | Precomputed dashboard payload (≤ 1 MiB) |
+| `snapshots` | `dashboard` | collector | owner | `DashboardSnapshot` (shared/domain/snapshot.ts): ≤ 400 newest events, source status, last run; trimmed to ≤ 900 KB |
 | `regions` | region id | deploy script | owner | Mirrors `WATCH_REGIONS` |
 | `indicators` | indicator id | owner (UI) | collector, owner | Definitions, versioned |
 | `indicatorStates` | indicator id | collector | owner | Current state + evidence |

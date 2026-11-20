@@ -1,4 +1,4 @@
-import type { WatchRegion } from './types';
+import type { WatchRegion } from './types.ts';
 
 /**
  * Initial operator watch regions.
@@ -68,4 +68,10 @@ export const WATCH_REGIONS: WatchRegion[] = [
 
 export function getRegion(id: string): WatchRegion | undefined {
   return WATCH_REGIONS.find((r) => r.id === id);
+}
+
+/** Watch regions that claim a given ISO 3166-1 alpha-2 country code. */
+export function regionsForCountry(iso: string): string[] {
+  const code = iso.toUpperCase();
+  return WATCH_REGIONS.filter((r) => r.countryCodes.includes(code)).map((r) => r.id);
 }

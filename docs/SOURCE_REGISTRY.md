@@ -2,15 +2,15 @@
 
 Machine-readable version: [`shared/domain/sources.ts`](../shared/domain/sources.ts) — keep both in sync.
 
-**Probe method (2026-11-20):** single `curl` GET per endpoint from a residential connection, following redirects, with a descriptive User-Agent. "Reachable" confirms the endpoint returned parseable content on that date, nothing more. **No collector exists for any source yet**, so every source's live status is `NOT CONFIGURED`.
+**Probe method (2026-11-20):** single `curl` GET per endpoint from a residential connection, following redirects, with a descriptive User-Agent. "Reachable" confirms the endpoint returned parseable content on that date, nothing more. **Active collectors (v0.2.0):** `state-travel-advisories`, `cisa-advisories`, `cisa-kev`. All other sources read `NOT CONFIGURED` until an adapter is written.
 
-## P1 — first adapters (Phase 2)
+## P1 — first adapters (Phase 2): State Dept + CISA implemented ✅
 
 | Source | Official URL / endpoint | Information | Method | Auth | Free | Update freq. | Probe | Reliability concerns |
 |---|---|---|---|---|---|---|---|---|
-| U.S. State Dept Travel Advisories | `https://travel.state.gov/_res/rss/TAsTWs.xml` | Per-country advisory level 1–4 | RSS | None | Yes | Several / week | ✅ 200, 218 items | Items carry `Country-Tag` (ISO) and `Threat-Level` categories, which is excellent for region mapping. ~550 KB, so use conditional GET. Many items are periodic reissues with no level change; detect real changes by diffing level. |
-| CISA Cybersecurity Advisories | `https://www.cisa.gov/cybersecurity-advisories/all.xml` | ICS advisories, alerts, joint advisories | RSS | None | Yes | Daily+ | ✅ 200 | High volume of routine ICS advisories; classify before surfacing. |
-| CISA KEV Catalog | `https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json` | Vulnerabilities exploited in the wild | JSON | None | Yes | Several / week | ✅ 200 | 1.9 MB; diff on `catalogVersion` / `dateAdded`. |
+| U.S. State Dept Travel Advisories | `https://travel.state.gov/_res/rss/TAsTWs.xml` | Per-country advisory level 1–4 | RSS | None | Yes | Several / week | ✅ 200, 218 items | `Country-Tag` is **FIPS 10-4, not ISO** (RS = Russia, IS = Israel; Gaza and the West Bank share IS). It is mapped through a tested table; "French West Indies" is deliberately left unmapped. The ETag is weak and changes often, so changes are detected by comparing against each advisory's stored level. |
+| CISA Cybersecurity Advisories | `https://www.cisa.gov/cybersecurity-advisories/all.xml` | ICS advisories, alerts, joint advisories | RSS | None | Yes | Daily+ | ✅ 200 | Uses **two-digit years** (`Thu, 19 Nov 26`). ICS advisories are tagged `routine`. The feed sends no validators (`no-cache`), so de-duplication is by content hash. |
+| CISA KEV Catalog | `https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json` | Vulnerabilities exploited in the wild | JSON | None | Yes | Several / week | ✅ 200 | 1,786 entries. A strong ETag means most runs get `304 Not Modified`. One event per newly added CVE; known ransomware use is flagged. |
 | GDELT DOC 2.0 | `https://api.gdeltproject.org/api/v2/doc/doc` | Global news coverage search, volume timelines | API | None | Yes (1 req / 5 s) | 15 min | ⚠️ **429 rate-limited** on 2 probes | Media coverage, **not** confirmed events. Strict serialization, ≥6 s spacing, few queries per run. Re-test from Actions runners (shared IPs may be throttled harder). |
 
 **PDD substitution:** the PDD suggested State Dept + GDELT as the first two adapters. Recommendation: **State Dept + CISA (advisories + KEV)** first. Both are reliable and structured, and they cover the Diplomatic and Cyber watches. Add GDELT third, once rate-limit behaviour from Actions is confirmed, as a *context* source rather than an evidence source.

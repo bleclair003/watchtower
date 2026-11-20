@@ -1,0 +1,49 @@
+# Scheduled collection: fetch public sources → Firestore → rebuild dashboard snapshot.
+#
+# Required repository configuration (Settings → Secrets and variables → Actions):
+#   Variable  WATCHTOWER_PROJECT_ID     Firebase project id
+#   Secret    FIREBASE_SERVICE_ACCOUNT  Service-account key JSON (role: Cloud Datastore User)
+#
+# GitHub cron is best-effort: runs are often delayed and may occasionally be skipped.
+# The dashboard shows actual run times and flags the collector as OVERDUE after 3 h.
+name: Collect
+
+on:
+  schedule:
+    - cron: '17 * * * *' # hourly, off the top of the hour to avoid peak scheduler load
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: collector
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install runtime dependencies
+        run: npm ci --omit=dev --ignore-scripts
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Collect
+        env:
+          WATCHTOWER_PROJECT_ID: ${{ vars.WATCHTOWER_PROJECT_ID }}
+          COLLECTOR_TRIGGER: ${{ github.event_name == 'schedule' && 'schedule' || 'manual' }}
+          METADATA_SERVER_DETECTION: none
+        # Exit 2 (a source failed) fails the job so GitHub notifies the repository owner.
+        run: node collector/run.ts

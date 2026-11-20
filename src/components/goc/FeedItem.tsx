@@ -49,6 +49,11 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem({ eve
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-1 pl-[17px]">
           {isDemo && <Tag tone="warn">DEMO</Tag>}
+          {e.metadata?.change === 'raised' && <Tag tone="warn" title="Advisory level raised">LEVEL ▲</Tag>}
+          {e.metadata?.change === 'lowered' && <Tag tone="info" title="Advisory level lowered">LEVEL ▼</Tag>}
+          {e.metadata?.change === 'new' && <Tag tone="warn" title="New advisory">NEW</Tag>}
+          {e.metadata?.routine === true && <Tag tone="inactive" title="Routine product advisory">ROUTINE</Tag>}
+          {e.metadata?.knownRansomwareUse === true && <Tag tone="warn" title="Known ransomware campaign use">RANSOMWARE</Tag>}
           <Tag tone={cred.tone} title={cred.label}>{cred.code}</Tag>
           <Tag>{CATEGORY_STYLES[e.category].code}</Tag>
           {e.regionIds.map((r) => (

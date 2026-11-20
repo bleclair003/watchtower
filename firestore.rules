@@ -1,41 +1,33 @@
 rules_version = '2';
 
-// DRAFT — Phase 2 will finalize and test these with the Firebase Emulator Suite.
+// WATCHTOWER Firestore security rules.
 //
-// Model: a single authorized owner. Collectors write with the Admin SDK from
-// GitHub Actions, which bypasses these rules — so the browser is granted
-// read access plus narrowly-scoped writes to operator-owned configuration.
+// Model: a single authorized owner, identified by the `owner: true` custom
+// claim on their Firebase Auth token (granted with `npm run grant-owner` or the
+// "Grant owner" GitHub workflow). No UID or email is stored in this file.
+//
+// The collector writes with the Admin SDK from GitHub Actions, which bypasses
+// these rules. The browser therefore gets read-only access to collected data;
+// nothing a browser does can create, alter or delete intelligence records.
+//
+// Tested by rules-tests/firestore.rules.test.ts against the emulator.
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Replace with the owner's Firebase Auth UID after first sign-in.
     function isOwner() {
-      return request.auth != null && request.auth.uid == 'REPLACE_WITH_OWNER_UID';
+      return request.auth != null && request.auth.token.owner == true;
     }
 
-    // Collector-owned data: read-only for the owner.
-    match /events/{id}          { allow read: if isOwner(); allow write: if false; }
-    match /sources/{id}         { allow read: if isOwner(); allow write: if false; }
+    // Collector-owned data: owner may read; no client may write.
+    match /snapshots/{id}       { allow read: if isOwner(); allow write: if false; }
+    match /events/{id}          { allow get, list: if isOwner(); allow write: if false; }
     match /sourceStatus/{id}    { allow read: if isOwner(); allow write: if false; }
     match /collectionRuns/{id}  { allow read: if isOwner(); allow write: if false; }
-    match /snapshots/{id}       { allow read: if isOwner(); allow write: if false; }
-    match /indicatorStates/{id} { allow read: if isOwner(); allow write: if false; }
-    match /regions/{id}         { allow read: if isOwner(); allow write: if false; }
 
-    // Operator-owned configuration.
-    match /indicators/{id}  { allow read, write: if isOwner(); }
-    match /alertRules/{id}  { allow read, write: if isOwner(); }
-    match /incidents/{id}   { allow read, write: if isOwner(); }
-    match /briefings/{id}   { allow read, write: if isOwner(); }
+    // Collector-internal state (ETags, advisory baselines): never exposed to clients.
+    match /sourceState/{id}     { allow read, write: if false; }
 
-    // Alerts: created by collector; owner may only acknowledge/dismiss.
-    match /alerts/{id} {
-      allow read: if isOwner();
-      allow update: if isOwner()
-        && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['acknowledged', 'acknowledgedAt', 'dismissed', 'dismissedAt']);
-    }
-
+    // Owner settings (Phase 3+ will add indicators / alertRules with schema validation).
     match /userSettings/{uid} {
       allow read, write: if isOwner() && request.auth.uid == uid;
     }

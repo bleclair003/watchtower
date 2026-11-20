@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xml:base="https://www.cisa.gov/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>All CISA Advisories</title>
+    <link>https://www.cisa.gov/</link>
+    <description></description>
+    <language>en</language>
+    
+    <item>
+  <title>Elecbrakes EB2, VM1, ELBC2000</title>
+  <link>https://www.cisa.gov/news-events/ics-advisories/icsa-26-323-02</link>
+  <description>&lt;p&gt;&lt;a href=&quot;https://github.com/cisagov/CSAF/blob/develop/csaf_files/OT/white/2026/icsa-26-323-02.json&quot;&gt;&lt;strong&gt;View CSAF&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;Summary&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Successful exploitation of these vulnerabilities could allow an attacker to gain control of the brakes of a trailer, modify the firmware, disable the brake lights, modify the brake conditions or disable other critical safety features.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The following versions of Elecbrakes EB2, VM1, ELBC2000 are affected:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;EB2 &amp;lt;=3.0.4.2.0 (CVE-2026-124281, CVE-2026-125273, CVE-2026-96805)&lt;/li&gt;
+</description>
+  <pubDate>Thu, 19 Nov 26 12:00:00 +0000</pubDate>
+    <dc:creator>CISA</dc:creator>
+    <guid isPermaLink="false">/node/25826</guid>
+    </item>
+<item>
+  <title>libumqtt</title>
+  <link>https://www.cisa.gov/news-events/ics-advisories/icsa-26-323-03</link>
+  <description>&lt;p&gt;&lt;a href=&quot;https://github.com/cisagov/CSAF/blob/develop/csaf_files/OT/white/2026/icsa-26-323-03.json&quot;&gt;&lt;strong&gt;View CSAF&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;Summary&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Successful exploitation of this vulnerability could allow a remote attacker to cause a denial of service, memory corruption, or information disclosure.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The following versions of libumqtt are affected:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;libumqtt &amp;lt;=1.1.1 (CVE-2026-125132)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;csaf-table&quot;&gt;
+</description>
+  <pubDate>Thu, 19 Nov 26 12:00:00 +0000</pubDate>
+    <dc:creator>CISA</dc:creator>
+    <guid isPermaLink="false">/node/25827</guid>
+    </item>
+<item>
+  <title>Autonomy Logic OpenPLC Runtime</title>
+  <link>https://www.cisa.gov/news-events/ics-advisories/icsa-26-323-01</link>
+  <description>&lt;p&gt;&lt;a href=&quot;https://github.com/cisagov/CSAF/blob/develop/csaf_files/OT/white/2026/icsa-26-323-01.json&quot;&gt;&lt;strong&gt;View CSAF&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;Summary&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Successful exploitation of this vulnerability could allow several unauthenticated admin accounts to be created.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The following versions of Autonomy Logic OpenPLC Runtime are affected:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;OpenPLC Runtime &amp;lt;=4.2.4 (CVE-2026-126088)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;csaf-table&quot;&gt;
+</description>
+  <pubDate>Thu, 19 Nov 26 12:00:00 +0000</pubDate>
+    <dc:creator>CISA</dc:creator>
+    <guid isPermaLink="false">/node/25825</guid>
+    </item>
+<item>
+  <title>Elecbrakes EB2, VM1, ELBC2000</title>
+  <link>https://www.cisa.gov/news-events/ics-advisories/icsa-26-323-02</link>
+  <description>&lt;p&gt;&lt;a href=&quot;https://github.com/cisagov/CSAF/blob/develop/csaf_files/OT/white/2026/icsa-26-323-02.json&quot;&gt;&lt;strong&gt;View CSAF&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;Summary&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Successful exploitation of these vulnerabilities could allow an attacker to gain control of the brakes of a trailer, modify the firmware, disable the brake lights, modify the brake conditions or disable other critical safety features.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The following versions of Elecbrakes EB2, VM1, ELBC2000 are affected:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;EB2 &amp;lt;=3.0.4.2.0 (CVE-2026-124281, CVE-2026-125273, CVE-2026-96805)&lt;/li&gt;
+</description>
+  <pubDate>Thu, 19 Nov 26 12:00:00 +0000</pubDate>
+    <dc:creator>CISA</dc:creator>
+    <guid isPermaLink="false">/node/25826</guid>
+    </item>
+<item>
+  <title>Critical Java Vulnerability Requires Immediate Patching</title>
+  <link>https://www.cisa.gov/news-events/alerts/2026/11/17/critical-java-vulnerability-requires-immediate-patching</link>
+  <description>&lt;h2&gt;&lt;strong&gt;Purpose&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;CISA strongly urges organizations to immediately patch the recently disclosed Oracle Java vulnerability &lt;a href=&quot;https://www.cve.org/CVERecord?id=CVE-2026-114938&quot; target=&quot;_blank&quot;&gt;CVE-2026-114938&lt;/a&gt;. This critical memory-corruption vulnerability, known as “Java4Shell,” affects the Base64 decoder of the x86-64 HotSpot Java Virtual Machine (JVM), which is part of the Java Development Kit (JDK). Specially crafted Base64 input could crash the JVM and allow for unauthenticated remote code execution.&lt;/p&gt;
+&lt;h2&gt;&lt;strong&gt;Actions to take&lt;/strong&gt;&lt;/h2&gt;
+</description>
+  <pubDate>Tue, 17 Nov 26 12:00:00 +0000</pubDate>
+    <dc:creator>CISA</dc:creator>
+    <guid isPermaLink="false">/node/25817</guid>
+    </item>
+  </channel>
+</rss>

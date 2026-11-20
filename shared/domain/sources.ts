@@ -1,4 +1,4 @@
-import type { SourceDefinition } from './types';
+import type { SourceDefinition } from './types.ts';
 
 /**
  * Source registry.

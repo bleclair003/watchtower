@@ -1,0 +1,35 @@
+import type { CollectionRun, IntelligenceEvent, SourceStatus } from './types.ts';
+
+/**
+ * Precomputed dashboard payload, written by the collector to
+ * `snapshots/dashboard` after every run. The dashboard loads with ONE
+ * Firestore read instead of one read per event (see ARCHITECTURE.md §4.3).
+ *
+ * Firestore documents are capped at 1 MiB; the collector trims `events`
+ * until the serialized snapshot fits under SNAPSHOT_MAX_BYTES.
+ */
+export const SNAPSHOT_COLLECTION = 'snapshots';
+export const SNAPSHOT_DOC_ID = 'dashboard';
+export const SNAPSHOT_MAX_EVENTS = 400;
+export const SNAPSHOT_MAX_BYTES = 900_000;
+export const SNAPSHOT_SCHEMA_VERSION = 1;
+
+export interface DashboardSnapshot {
+  schemaVersion: number;
+  generatedAt: string;
+  /** Newest first, by publishedAt ?? collectedAt. */
+  events: IntelligenceEvent[];
+  sourceStatus: SourceStatus[];
+  lastRun: CollectionRun | null;
+  /** Totals so the UI can say "showing 400 of 1,234". */
+  totalEventsStored: number | null;
+}
+
+/** Firestore collection names — single source of truth for app and collector. */
+export const COLLECTIONS = {
+  events: 'events',
+  sourceStatus: 'sourceStatus',
+  sourceState: 'sourceState',
+  collectionRuns: 'collectionRuns',
+  snapshots: SNAPSHOT_COLLECTION,
+} as const;

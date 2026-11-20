@@ -1,6 +1,6 @@
 # WATCHTOWER — Architecture
 
-Status: Phase 0/1 implemented. This document also records the **Task A architecture review** of PDD v1.0.
+Status: Phases 0–2 implemented (Phase 2 verified against local emulators). This document also records the **Task A architecture review** of PDD v1.0.
 
 ## 1. System overview
 
@@ -51,8 +51,16 @@ watchtower/
       goc/              RegionalWatchlist, IntelFeed, FeedItem, FeedFilters, SystemStatusPanel
       ui/               Panel, Tag/Lamp, CategoryGlyph
     pages/              Route-level screens
-  collector/            (Phase 2) scheduled collection jobs
-  .github/workflows/    (Phase 2) collect.yml
+  collector/            Scheduled collection (Node 24 type-stripping, no build step)
+    run.ts              CLI entry (exit 0 ok · 2 source failed · 1 fatal)
+    pipeline.ts         fetch → validate → dedupe → write → status → run record → snapshot
+    adapters/           One file per source, common SourceAdapter contract
+    lib/                http (polite fetch), feed (RSS/Atom), dates, text sanitization, hash, fips, validate
+    store/              CollectorStore: Firestore (Admin SDK) + in-memory (tests / --dry-run)
+    test/               Unit tests + trimmed real-feed fixtures
+  scripts/grant-owner.ts  Grants the `owner` custom claim (Admin SDK)
+  rules-tests/          Firestore security-rules tests (emulator)
+  .github/workflows/    collect.yml (hourly), ci.yml, grant-owner.yml
   docs/                 Project documentation
   firebase.json, firestore.rules, firestore.indexes.json
 ```
@@ -71,6 +79,16 @@ Rule of thumb: anything that must behave identically in the browser and in colle
 | **Command console is a parser over real actions** | `parseCommand()` returns typed commands; unbuilt modules return explicit errors. No canned terminal output. |
 | **Firebase SDK deferred to Phase 2** | Nothing reads Firestore yet; installing it now would add ~100 KB of unused code. Config scaffolding exists. |
 | **Fonts self-hosted** (`@fontsource`) | No third-party font requests; OFL-licensed. |
+
+## 3a. Phase 2 implementation notes
+
+- **Auth model:** Google sign-in plus an `owner: true` **custom claim** set by the Admin SDK. Rules check the claim, so no UID or email appears in the repo. Spoofed claims (e.g. the string `"true"`) are rejected, and this is tested.
+- **The browser is read-only** for collected data: only the Admin SDK can write events, snapshots, status and runs. Collector-internal `sourceState` (ETags, advisory baselines) is unreadable by clients.
+- **The Firebase SDK is lazy-loaded** (dynamic import), so demo mode never downloads it.
+- **Sign-in flow:** popup, falling back to redirect when the popup is blocked; redirect in emulator mode. The emulator build also offers an email/password test sign-in that does not exist in live builds.
+- **Health is recomputed in the browser** from the snapshot's timestamps. If the collector stops, sources visibly decay to STALE, and the status strip shows OVERDUE after 3 h.
+- **State Dept change detection:** the adapter stores the last-seen level per advisory and emits RAISED / LOWERED / reissued / NEW events. Tags are **FIPS 10-4, not ISO** (`RS` = Russia, `IS` = Israel) and are mapped by a tested table.
+- **Planned optimization:** rebuild the snapshot incrementally (merge new events into the previous snapshot) instead of re-querying 400 events each run. This would cut collector reads by roughly 90%.
 
 ## 4. Task A — architecture review of PDD v1.0
 

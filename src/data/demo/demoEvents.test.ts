@@ -41,14 +41,13 @@ describe('demo dataset integrity', () => {
 });
 
 describe('DemoRepository', () => {
-  it('honours since and limit, and reports every source as NOT_CONFIGURED', async () => {
+  it('returns only demo events and reports every source as NOT_CONFIGURED with no collector run', async () => {
     const repo = new DemoRepository(NOW);
-    const all = await repo.listEvents({ limit: 1000 });
-    const recent = await repo.listEvents({ since: new Date(NOW - 6 * 3_600_000).toISOString(), limit: 1000 });
-    expect(recent.length).toBeGreaterThan(0);
-    expect(recent.length).toBeLessThan(all.length);
-    expect(await repo.listEvents({ limit: 3 })).toHaveLength(3);
-    const status = await repo.listSourceStatus();
-    expect(status.every((s) => s.health === 'NOT_CONFIGURED' && s.lastSuccessAt === null)).toBe(true);
+    const d = await repo.loadDashboard();
+    expect(d.events.length).toBeGreaterThan(0);
+    expect(d.events.every((e) => e.dataOrigin === 'demo')).toBe(true);
+    expect(d.sourceStatus.every((s) => s.health === 'NOT_CONFIGURED' && s.lastSuccessAt === null)).toBe(true);
+    expect(d).toMatchObject({ lastRun: null, generatedAt: null });
+    expect(repo.readsThisSession()).toBeNull();
   });
 });

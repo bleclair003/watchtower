@@ -1,36 +1,49 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { IntelligenceEvent, SourceStatus } from '@shared/domain/types';
-import { createRepository, type DataMode, type IntelRepository } from '../data/repository';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import type { CollectionRun, IntelligenceEvent, SourceStatus } from '@shared/domain/types';
+import { backendMode } from '../config/firebase';
+import { createRepository, PermissionDeniedError, type DataMode, type IntelRepository } from '../data/repository';
 import { readStorage, writeStorage } from '../lib/storage';
 
-/** Max events loaded into the dashboard at once (bounded query). */
+/** Max events kept in the dashboard working set (the snapshot is already bounded). */
 export const DASHBOARD_EVENT_LIMIT = 500;
-/** Lookback for the dashboard's working set. */
-const DASHBOARD_LOOKBACK_DAYS = 14;
+/** How often a live dashboard re-reads the snapshot (1 Firestore read each). */
+export const LIVE_REFRESH_MINUTES = 10;
 const LAST_SESSION_KEY = 'wt.lastSessionAt';
 
 interface DataState {
   mode: DataMode;
   events: IntelligenceEvent[];
   sourceStatus: SourceStatus[];
+  lastRun: CollectionRun | null;
+  /** When the collector generated the data being shown (null in demo mode). */
+  generatedAt: string | null;
+  totalEventsStored: number | null;
   loading: boolean;
   error: string | null;
-  /** When the dashboard last successfully loaded data from the repository. */
+  accessDenied: boolean;
+  /** When this browser last successfully loaded from the repository. */
   loadedAt: string | null;
-  /** When the operator's previous session started (for "new since last session"). */
   previousSessionAt: string | null;
+  readsThisSession: number | null;
   refresh: () => Promise<void>;
 }
 
 const DataContext = createContext<DataState | null>(null);
 
 export function DataProvider({ children, repository }: { children: ReactNode; repository?: IntelRepository }) {
-  const [repo] = useState<IntelRepository>(() => repository ?? createRepository());
-  const [events, setEvents] = useState<IntelligenceEvent[]>([]);
-  const [sourceStatus, setSourceStatus] = useState<SourceStatus[]>([]);
+  const repoRef = useRef<Promise<IntelRepository> | null>(null);
+  const [state, setState] = useState({
+    events: [] as IntelligenceEvent[],
+    sourceStatus: [] as SourceStatus[],
+    lastRun: null as CollectionRun | null,
+    generatedAt: null as string | null,
+    totalEventsStored: null as number | null,
+    loadedAt: null as string | null,
+    readsThisSession: null as number | null,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [loadedAt, setLoadedAt] = useState<string | null>(null);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [previousSessionAt] = useState<string | null>(() => {
     const prev = readStorage<string | null>(LAST_SESSION_KEY, null);
     writeStorage(LAST_SESSION_KEY, new Date().toISOString());
@@ -40,39 +53,48 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const since = new Date(Date.now() - DASHBOARD_LOOKBACK_DAYS * 86_400_000).toISOString();
-      const [ev, st] = await Promise.all([
-        repo.listEvents({ since, limit: DASHBOARD_EVENT_LIMIT }),
-        repo.listSourceStatus(),
-      ]);
-      setEvents(ev);
-      setSourceStatus(st);
-      setLoadedAt(new Date().toISOString());
+      repoRef.current ??= repository ? Promise.resolve(repository) : createRepository();
+      const repo = await repoRef.current;
+      const d = await repo.loadDashboard();
+      setState({
+        events: d.events.slice(0, DASHBOARD_EVENT_LIMIT),
+        sourceStatus: d.sourceStatus,
+        lastRun: d.lastRun,
+        generatedAt: d.generatedAt,
+        totalEventsStored: d.totalEventsStored,
+        loadedAt: new Date().toISOString(),
+        readsThisSession: repo.readsThisSession(),
+      });
       setError(null);
+      setAccessDenied(false);
     } catch (err) {
       // Never fail silently: surface the error in the status bar and diagnostics.
+      setAccessDenied(err instanceof PermissionDeniedError);
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
-  }, [repo]);
+  }, [repository]);
 
   useEffect(() => {
     void refresh();
-  }, [refresh]);
+    const mode = repository?.mode ?? backendMode;
+    if (mode === 'demo') return;
+    const id = window.setInterval(() => void refresh(), LIVE_REFRESH_MINUTES * 60_000);
+    return () => window.clearInterval(id);
+  }, [refresh, repository]);
 
   const value = useMemo<DataState>(
     () => ({
-      mode: repo.mode,
-      events,
-      sourceStatus,
+      mode: repository?.mode ?? backendMode,
+      ...state,
       loading,
       error,
-      loadedAt,
+      accessDenied,
       previousSessionAt,
       refresh,
     }),
-    [repo, events, sourceStatus, loading, error, loadedAt, previousSessionAt, refresh],
+    [repository, state, loading, error, accessDenied, previousSessionAt, refresh],
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
