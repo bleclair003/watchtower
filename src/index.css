@@ -1,0 +1,139 @@
+@import "tailwindcss";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
+@import "@fontsource/share-tech-mono/400.css";
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+/*
+ * WATCHTOWER design tokens — see docs/DESIGN_SYSTEM.md.
+ * Usage: bg-wt-bg, text-wt-fg, border-wt-line, text-wt-warn, etc.
+ */
+@theme {
+  --color-wt-bg: #050a08;
+  --color-wt-bg2: #0b1511;
+  --color-wt-panel: #07100c;
+  --color-wt-line: #18301f;
+  --color-wt-line-strong: #24503a;
+  --color-wt-fg: #6aff9b;
+  --color-wt-fg-muted: #80a992;
+  --color-wt-fg-dim: #4c6b5a;
+  --color-wt-warn: #ffc857;
+  --color-wt-crit: #ff5555;
+  --color-wt-info: #69c6d5;
+  --color-wt-inactive: #65746c;
+
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --font-display: "Share Tech Mono", "IBM Plex Mono", ui-monospace, monospace;
+
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 0.875rem;
+
+  --animate-blink: wt-blink 1.2s steps(2, start) infinite;
+  --animate-sweep: wt-sweep 4s linear infinite;
+}
+
+@keyframes wt-blink {
+  to { visibility: hidden; }
+}
+@keyframes wt-sweep {
+  to { transform: rotate(360deg); }
+}
+@keyframes wt-flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.94; }
+  94% { opacity: 1; }
+  97% { opacity: 0.97; }
+}
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    background: var(--color-wt-bg);
+    color: var(--color-wt-fg);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: var(--color-wt-fg);
+    color: var(--color-wt-bg);
+  }
+  :focus-visible {
+    outline: 1px solid var(--color-wt-info);
+    outline-offset: 1px;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-wt-line-strong) transparent;
+  }
+}
+
+/* ---------------------------------------------------------- retro effects */
+
+html.fx-glow .glow {
+  text-shadow: 0 0 6px rgb(106 255 155 / 0.45);
+}
+
+html.fx-scanlines body::after {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0) 0px,
+    rgb(0 0 0 / 0) 2px,
+    rgb(0 0 0 / 0.18) 3px
+  );
+}
+
+html.fx-flicker #root {
+  animation: wt-flicker 6s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.fx-flicker #root { animation: none; }
+  .motion-safe-only { animation: none !important; }
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* --------------------------------------------------------- map overrides */
+
+.maplibregl-ctrl-group {
+  background: var(--color-wt-panel) !important;
+  border: 1px solid var(--color-wt-line-strong);
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.maplibregl-ctrl-group button + button {
+  border-top-color: var(--color-wt-line) !important;
+}
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(77%) sepia(40%) saturate(600%) hue-rotate(85deg);
+}
+.maplibregl-ctrl-attrib {
+  background: rgb(5 10 8 / 0.8) !important;
+  color: var(--color-wt-fg-dim);
+  font-size: 10px;
+}
+.maplibregl-ctrl-attrib a { color: var(--color-wt-fg-muted); }
+.maplibregl-ctrl-attrib-button { filter: invert(1) hue-rotate(180deg); }
+
+.maplibregl-popup-content {
+  background: var(--color-wt-panel);
+  border: 1px solid var(--color-wt-line-strong);
+  border-radius: 0;
+  color: var(--color-wt-fg);
+  font-family: var(--font-mono);
+  padding: 6px 8px;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.6);
+}
+.maplibregl-popup-tip { display: none; }

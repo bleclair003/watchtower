@@ -1,0 +1,52 @@
+# Data Model
+
+Canonical TypeScript definitions: [`shared/domain/types.ts`](../shared/domain/types.ts).
+
+## IntelligenceEvent — extensions to the PDD schema
+
+| Field | Change | Why |
+|---|---|---|
+| `dataOrigin: 'live' \| 'imported' \| 'demo'` | **Added** | Lets code and tests guarantee simulated or retrospective records are never shown as live collection. |
+| `sourceClass: 'official' \| 'media' \| 'aggregator' \| 'scientific'` | **Added** | Drives the "official vs media" filter without a join to `sources`. |
+| `category`, `credibility` | Now enums (`EVENT_CATEGORIES`, `CREDIBILITY_LEVELS`) | Prevents free-text drift. |
+| `locationPrecision` | Now **required** enum | `country` / `region` / `none` **must not** carry lat/lon (enforced by `isPlottable`). |
+| `verificationStatus` | Enum: `unreviewed` / `confirmed` / `disputed` / `retracted` | |
+| `indicatorIds?` | Added | Back-reference for feed display (Phase 3). |
+
+Time fields:
+- `publishedAt`: when the source published the item (`null` if the source gives no date).
+- `occurredAt`: when the underlying event reportedly happened (`null` = not stated).
+- `collectedAt`: when WATCHTOWER first saw it. **Replay (Phase 6) gates on this field** to avoid hindsight bias.
+
+## Firestore collections (planned, Phase 2+)
+
+| Collection | Doc ID | Written by | Read by | Notes |
+|---|---|---|---|---|
+| `events` | `contentHash` | collector | owner | Idempotent: same item → same ID |
+| `sources` | source id | deploy script | owner | Mirrors `SOURCE_REGISTRY` |
+| `sourceStatus` | source id | collector | owner | Health + counters |
+| `collectionRuns` | run id | collector | owner | Diagnostics history; retain 90 days |
+| `snapshots` | `dashboard` | collector | owner | Precomputed dashboard payload (≤ 1 MiB) |
+| `regions` | region id | deploy script | owner | Mirrors `WATCH_REGIONS` |
+| `indicators` | indicator id | owner (UI) | collector, owner | Definitions, versioned |
+| `indicatorStates` | indicator id | collector | owner | Current state + evidence |
+| `alertRules` | auto | owner (UI) | collector | Declarative, validated by rules |
+| `alerts` | `ruleId_evidenceHash` | collector | owner | Ack/dismiss fields writable by owner |
+| `incidents` | auto | owner / collector | owner | Phase 5 |
+| `briefings` | auto | owner | owner | Phase 6 |
+| `userSettings` | uid | owner | owner | |
+
+## Planned indexes (driven by actual queries)
+
+| Query | Index |
+|---|---|
+| Archive: events by region, newest first | `events(regionIds ARRAY_CONTAINS, publishedAt DESC)` |
+| Archive: events by source, newest first | `events(sourceId ASC, publishedAt DESC)` |
+| Archive: events by category in range | `events(category ASC, publishedAt DESC)` |
+| Alerts: unacknowledged by severity | `alerts(acknowledged ASC, createdAt DESC)` |
+
+The dashboard itself reads `snapshots/dashboard`, not `events`, so it needs no composite index.
+
+## Retention
+
+At ~2 KB per event, the 1 GiB Spark storage holds roughly 400k events. Planned policy: keep events 24 months, collectionRuns 90 days, and prune in the collector.

@@ -1,0 +1,46 @@
+rules_version = '2';
+
+// DRAFT — Phase 2 will finalize and test these with the Firebase Emulator Suite.
+//
+// Model: a single authorized owner. Collectors write with the Admin SDK from
+// GitHub Actions, which bypasses these rules — so the browser is granted
+// read access plus narrowly-scoped writes to operator-owned configuration.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Replace with the owner's Firebase Auth UID after first sign-in.
+    function isOwner() {
+      return request.auth != null && request.auth.uid == 'REPLACE_WITH_OWNER_UID';
+    }
+
+    // Collector-owned data: read-only for the owner.
+    match /events/{id}          { allow read: if isOwner(); allow write: if false; }
+    match /sources/{id}         { allow read: if isOwner(); allow write: if false; }
+    match /sourceStatus/{id}    { allow read: if isOwner(); allow write: if false; }
+    match /collectionRuns/{id}  { allow read: if isOwner(); allow write: if false; }
+    match /snapshots/{id}       { allow read: if isOwner(); allow write: if false; }
+    match /indicatorStates/{id} { allow read: if isOwner(); allow write: if false; }
+    match /regions/{id}         { allow read: if isOwner(); allow write: if false; }
+
+    // Operator-owned configuration.
+    match /indicators/{id}  { allow read, write: if isOwner(); }
+    match /alertRules/{id}  { allow read, write: if isOwner(); }
+    match /incidents/{id}   { allow read, write: if isOwner(); }
+    match /briefings/{id}   { allow read, write: if isOwner(); }
+
+    // Alerts: created by collector; owner may only acknowledge/dismiss.
+    match /alerts/{id} {
+      allow read: if isOwner();
+      allow update: if isOwner()
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['acknowledged', 'acknowledgedAt', 'dismissed', 'dismissedAt']);
+    }
+
+    match /userSettings/{uid} {
+      allow read, write: if isOwner() && request.auth.uid == uid;
+    }
+
+    // Everything else is denied.
+    match /{document=**} { allow read, write: if false; }
+  }
+}

@@ -1,0 +1,52 @@
+import { useState } from 'react';
+import { EVENT_CATEGORIES } from '@shared/domain/types';
+import { CATEGORY_STYLES } from '../../config/categories';
+import { CategoryGlyph } from '../ui/CategoryGlyph';
+
+interface Props {
+  plotted: number;
+  areaLevel: number;
+  unlocated: number;
+}
+
+/** Collapsible legend explaining symbols and location-precision handling. */
+export function MapLegend({ plotted, areaLevel, unlocated }: Props) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="pointer-events-auto absolute bottom-2 left-2 z-10 max-w-[230px] border border-wt-line-strong bg-wt-panel/95 text-2xs">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between px-2 py-1 tracking-widest text-wt-fg-muted hover:text-wt-fg"
+      >
+        LEGEND <span>{open ? '−' : '+'}</span>
+      </button>
+      {open && (
+        <div className="space-y-1.5 border-t border-wt-line p-2">
+          <ul className="grid grid-cols-2 gap-x-2 gap-y-0.5">
+            {EVENT_CATEGORIES.map((c) => (
+              <li key={c} className="flex items-center gap-1 text-wt-fg">
+                <CategoryGlyph category={c} size={10} />
+                <span className="text-wt-fg-muted">{CATEGORY_STYLES[c].label}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
+            <div className="flex justify-between">
+              <span>Plotted (exact/city)</span>
+              <span className="text-wt-fg tabular-nums">{plotted}</span>
+            </div>
+            <div className="flex justify-between" title="Country- or region-level reports. Counted on the dashed watch area, never pinned to an invented point.">
+              <span>Area-level (dashed box)</span>
+              <span className="text-wt-fg tabular-nums">{areaLevel}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>No geography (feed only)</span>
+              <span className="text-wt-fg tabular-nums">{unlocated}</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
