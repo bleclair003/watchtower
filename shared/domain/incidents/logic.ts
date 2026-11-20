@@ -1,3 +1,4 @@
+import { mdInline, mdUrl, UNTRUSTED_SOURCE_NOTICE } from '../markdown.ts';
 import type { IntelligenceEvent } from '../types.ts';
 import { EVENT_CATEGORIES } from '../types.ts';
 import { getRegion } from '../regions.ts';
@@ -234,21 +235,22 @@ const ASSESSMENT_LABEL = { confirmed: 'CONFIRMED', unconfirmed: 'UNCONFIRMED', d
 export function incidentToMarkdown(incident: Incident, exportedAt: string): string {
   const lines: string[] = [];
   const timeline = buildTimeline(incident.evidence, 'occurred');
-  lines.push(`# WATCHTOWER dossier: ${incident.title}`, '');
+  lines.push(`# WATCHTOWER dossier: ${mdInline(incident.title, 200)}`, '');
   lines.push(`- Status: ${incident.status.toUpperCase()}`);
   lines.push(`- Regions: ${incident.regionIds.map((r) => getRegion(r)?.name ?? r).join(', ') || 'none'}`);
   lines.push(`- Category: ${incident.category}`);
   lines.push(`- Opened: ${incident.createdAt} · Updated: ${incident.updatedAt} · Exported: ${exportedAt}`);
   lines.push(`- Evidence records: ${incident.evidence.length}`, '');
   lines.push('> Analytical caveats: an official statement establishes that a statement was made, not that its claims are true.');
-  lines.push('> Assessments below are the operator’s, not the sources’. Do not introduce facts not supported by the cited records.', '');
+  lines.push('> Assessments below are the operator’s, not the sources’. Do not introduce facts not supported by the cited records.');
+  lines.push(UNTRUSTED_SOURCE_NOTICE, '');
   if (incident.summary.trim()) lines.push('## Operator summary', '', incident.summary.trim(), '');
   lines.push('## Timeline (by reported occurrence; falls back to publication, then collection)', '');
   for (const t of timeline) {
     const e = t.link.event;
     lines.push(
-      `- **${t.at}** (${t.basisUsed}) · [${ASSESSMENT_LABEL[t.link.assessment]}] ${e.title}`,
-      `  - Source: ${e.sourceName} (${e.sourceClass}, credibility: ${e.credibility})${e.sourceUrl ? ` — ${e.sourceUrl}` : ''}`,
+      `- **${t.at}** (${t.basisUsed}) · [${ASSESSMENT_LABEL[t.link.assessment]}] ${mdInline(e.title)}`,
+      `  - Source: ${mdInline(e.sourceName, 120)} (${e.sourceClass}, credibility: ${e.credibility})${mdUrl(e.sourceUrl) ? ` — ${mdUrl(e.sourceUrl)}` : ''}`,
       `  - Occurred: ${e.occurredAt ?? 'not stated'} · Published: ${e.publishedAt ?? 'not stated'} · Collected: ${e.collectedAt}`,
       ...(e.dataOrigin !== 'live' ? [`  - Data origin: ${e.dataOrigin.toUpperCase()} (not live collection)`] : []),
       ...(t.link.note.trim() ? [`  - Operator note: ${t.link.note.trim()}`] : []),

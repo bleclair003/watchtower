@@ -26,7 +26,7 @@ export function TopBar() {
 
   return (
     <header className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 border-b border-wt-line-strong bg-wt-bg2 px-3 py-1.5 md:h-12 md:flex-nowrap md:py-0">
-      <Link to="/" className="flex items-center gap-2 pr-2" aria-label="WATCHTOWER home">
+      <Link to="/" className="flex items-center gap-2 pr-2">
         <span className="relative grid size-7 place-items-center border border-wt-fg/60">
           <Radar size={16} className="text-wt-fg" aria-hidden />
         </span>

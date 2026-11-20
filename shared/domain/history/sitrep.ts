@@ -4,6 +4,7 @@ import { getIndicator, INDICATOR_CATALOG } from '../indicators/catalog.ts';
 import type { IndicatorEvaluation, IndicatorTransition, RegionScore, ScoreHistoryPoint } from '../indicators/types.ts';
 import type { AlertRecord } from '../alerts/types.ts';
 import type { Incident } from '../incidents/types.ts';
+import { mdInline, mdUrl, UNTRUSTED_SOURCE_NOTICE } from '../markdown.ts';
 
 /**
  * SITREP — Situation Report (PDD §12).
@@ -190,11 +191,14 @@ export function buildSitrep(input: SitrepInput): Sitrep {
 }
 
 export function sitrepToMarkdown(s: Sitrep): string {
-  const out: string[] = [`# WATCHTOWER SITREP`, '', `- Period: ${s.from} → ${s.to}`, `- Generated: ${s.generatedAt}`, ''];
+  const out: string[] = [`# WATCHTOWER SITREP`, '', `- Period: ${s.from} → ${s.to}`, `- Generated: ${s.generatedAt}`, '', UNTRUSTED_SOURCE_NOTICE, ''];
   s.sections.forEach((sec, i) => {
     out.push(`## ${i + 1}. ${sec.title}`, '');
     if (!sec.items.length) out.push(`_${sec.empty}_`);
-    for (const it of sec.items) out.push(`- ${it.at ? `**${it.at}** ` : ''}${it.text}${it.url ? ` (${it.url})` : ''}`);
+    for (const it of sec.items) {
+      const url = mdUrl(it.url);
+      out.push(`- ${it.at ? `**${it.at}** ` : ''}${mdInline(it.text)}${url ? ` (${url})` : ''}`);
+    }
     out.push('');
   });
   out.push('## Limitations', '', ...s.limitations.map((l) => `- ${l}`), '');

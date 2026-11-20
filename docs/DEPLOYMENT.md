@@ -83,13 +83,30 @@ Without the secret, alerts are still recorded and shown in the app (delivery `no
 
 Emulator project ids start with `demo-`, which the Firebase tools guarantee can never reach real cloud resources.
 
-## 4. Hosting (Phase 7, can be done any time)
+## 4. Hosting (live since Phase 7)
+
+Live at **https://watchtower-b9b2a.web.app**. The page is public, but nothing is readable without the owner sign-in: Firestore rules enforce that, not the UI.
 
 ```bash
-npm run build
-npx firebase deploy --only hosting --project <project-id>
+npm run build                        # needs .env.local (live web config)
+npx firebase deploy --only hosting --project watchtower-b9b2a
 ```
+Authenticate with `npx firebase login`, or point `GOOGLE_APPLICATION_CREDENTIALS` at the service-account key kept outside the repo.
 Firebase automatically authorizes the `*.web.app` / `*.firebaseapp.com` domains for sign-in.
+
+What `firebase.json` sets:
+
+| Path | Header |
+|---|---|
+| everything | Content-Security-Policy (self + Google sign-in + Firestore + OpenFreeMap only; no `unsafe-eval`, `object-src 'none'`, `frame-ancestors 'none'`), HSTS, `nosniff`, `X-Frame-Options: DENY`, Referrer-Policy, Permissions-Policy, COOP `same-origin-allow-popups` (needed for the Google popup) |
+| `/assets/**` | `Cache-Control: immutable`, one year (file names are content-hashed) |
+| routes and `index.html` | `Cache-Control: no-cache`, so a deploy takes effect on the next load |
+
+A tab left open across a deploy may request a module chunk that no longer exists. The app reloads once to pick up the new build.
+
+If you add a new external host (a new map style, for example), add it to the CSP. The E2E suite fails on any CSP violation, because `vite preview` serves the same headers.
+
+Hosting stays within the Spark free tier: 10 GB storage and 360 MB/day transfer. A full first load is about 1.1 MB gzipped, and assets are cached for a year.
 
 ## 5. Secrets policy
 

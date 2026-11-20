@@ -17,11 +17,11 @@
   --color-wt-line-strong: #24503a;
   --color-wt-fg: #6aff9b;
   --color-wt-fg-muted: #80a992;
-  --color-wt-fg-dim: #4c6b5a;
+  --color-wt-fg-dim: #628a73;
   --color-wt-warn: #ffc857;
   --color-wt-crit: #ff5555;
   --color-wt-info: #69c6d5;
-  --color-wt-inactive: #65746c;
+  --color-wt-inactive: #74857b;
 
   --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
   --font-display: "Share Tech Mono", "IBM Plex Mono", ui-monospace, monospace;

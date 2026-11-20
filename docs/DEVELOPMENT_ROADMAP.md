@@ -102,5 +102,10 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
 - [x] Deterministic SITREP (8 sections + limitations) with Markdown "Export Intelligence Context"
 - [ ] Reconstruct historical source outages in replay (from collectionRuns)
 
-## Phase 7 — Refinement & deployment
-- [ ] Firebase Hosting deploy, Playwright E2E, security review, a11y audit, performance pass
+## Phase 7 — Refinement & deployment ✅
+- [x] Firebase Hosting deploy: https://watchtower-b9b2a.web.app (owner sign-in required)
+- [x] Security headers: CSP, HSTS, frame denial, Permissions-Policy, COOP; Markdown exports neutralise source text
+- [x] Playwright E2E (demo build with production headers): every module, key flows, mobile overflow, CSP violations
+- [x] Accessibility: axe WCAG 2.1 A/AA clean on every module; contrast fix; skip link; feed focus ring
+- [x] Performance: modules are code-split (first-load JS 469 KB → 285 KB); stale-chunk reload after deploys
+- [ ] Hosting deploy from CI (currently deployed from the operator's machine)

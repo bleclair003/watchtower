@@ -70,7 +70,7 @@ export function IntelFeed(props: Props) {
           tabIndex={0}
           onKeyDown={onKeyDown}
           aria-label="Intelligence feed items"
-          className="min-h-0 flex-1 divide-y divide-wt-line overflow-y-auto focus:outline-none"
+          className="min-h-0 flex-1 divide-y divide-wt-line overflow-y-auto focus-visible:outline focus-visible:-outline-offset-1 focus-visible:outline-wt-info"
         >
           {events.map((e) => (
             <FeedItem

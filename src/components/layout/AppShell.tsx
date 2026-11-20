@@ -50,6 +50,12 @@ function DemoStrip() {
 export function AppShell() {
   return (
     <div className="flex h-full flex-col">
+      <a
+        href="#main"
+        className="sr-only z-50 bg-wt-fg px-2 py-1 text-xs text-wt-bg focus:not-sr-only focus:absolute focus:top-1 focus:left-1"
+      >
+        Skip to content
+      </a>
       <TopBar />
       <DemoStrip />
       <nav aria-label="Modules" className="flex h-7 shrink-0 items-stretch gap-px overflow-x-auto border-b border-wt-line bg-wt-bg px-2">
@@ -80,7 +86,7 @@ export function AppShell() {
           ),
         )}
       </nav>
-      <main className="min-h-0 flex-1">
+      <main id="main" tabIndex={-1} className="min-h-0 flex-1 focus:outline-none">
         <Outlet />
       </main>
     </div>

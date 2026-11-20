@@ -6,9 +6,12 @@ npm run test:rules  # Firestore security rules against the emulator (needs Java 
 npm run typecheck   # tsc -b (app, collector, scripts, rules tests)
 npm run build       # typecheck + production build
 npm run collect:dry # live end-to-end fetch/parse of real sources; writes nothing
+npm run test:e2e    # Playwright: builds in demo mode, serves with the production headers, runs the browser suite
 ```
 
-## Current coverage (149 unit/component + 11 rules tests, all passing)
+Locally the E2E suite uses the installed Microsoft Edge (`channel: 'msedge'`); CI installs Playwright's Chromium.
+
+## Current coverage (152 unit/component + 11 rules + 57 end-to-end tests, all passing)
 
 | File | Covers |
 |---|---|
@@ -29,9 +32,18 @@ npm run collect:dry # live end-to-end fetch/parse of real sources; writes nothin
 | `rules-tests/firestore.rules.test.ts` | Owner read access; denial for anonymous, non-owner and spoofed-claim users; no client writes to collected data; `sourceState` hidden; per-user settings; default deny |
 | `src/components/goc/components.test.tsx` | Feed DEMO tags and "no original source" message, empty state, watchlist never shows a fabricated RAI, command console drives filters and navigation and reports unbuilt modules |
 
+### End-to-end (`e2e/`)
+
+| File | What it checks |
+|---|---|
+| `smoke.spec.ts` | Every module loads with no page errors, console errors or CSP violations, always shows the demo banner, and has no sideways scroll, on desktop and on a phone viewport (Pixel 7) |
+| `flows.spec.ts` | Navigation and `aria-current`; `/` focuses the command console, and commands navigate; not-found recovery; SITREP builds all 8 sections plus limitations; external links are http(s) with `noopener noreferrer`; security headers present; skip link moves focus to the content |
+| `a11y.spec.ts` | axe-core WCAG 2.1 A/AA on every module (the map canvas excluded; the feed carries the same data) |
+
 ## Not covered yet
 
-- `WorldMap` rendering (WebGL is unavailable in jsdom). It was verified manually in a browser on 2026-11-20. Playwright E2E is planned for Phase 7.
+- Map tile rendering is not asserted in E2E: tiles come from OpenFreeMap, and the tests must not depend on a third party. The map was verified manually.
+- Live-mode E2E (real sign-in, real Firestore) is not automated: it would need test credentials in the production project. It was verified manually after the deploy.
 - Google popup sign-in against the real project (needs operator setup). Emulator email/password sign-in, owner gating, and the full collector → Firestore → dashboard path were verified manually on 2026-11-20.
 
 Mutation checks: mapping FIPS `RS` to Serbia makes the FIPS test fail, and allowing owner writes to `events` makes the rules test fail.

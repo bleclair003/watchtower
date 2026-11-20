@@ -9,6 +9,9 @@
     },
     {
       "path": "./tsconfig.collector.json"
+    },
+    {
+      "path": "./tsconfig.e2e.json"
     }
   ]
 }

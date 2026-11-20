@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.7.0] — 2026-11-20 — Phase 7: Refinement & deployment
+
+### Added
+- Deployed to Firebase Hosting (https://watchtower-b9b2a.web.app) with CSP, HSTS, Permissions-Policy, COOP and cache headers.
+- Playwright end-to-end suite: 57 tests (every module, key flows, mobile, CSP violations, axe WCAG A/AA). Runs in CI.
+- Skip-to-content link; module error boundary; one-time reload when a chunk from an older deploy is missing.
+
+### Changed
+- Route modules are code-split: first-load JavaScript falls from 469 KB to 285 KB (144 KB to 91 KB gzipped).
+- `fg-dim` and `inactive` text colours lightened to meet WCAG AA contrast (4.6:1 or better).
+
+### Security
+- SITREP and dossier Markdown exports collapse and escape source text, and say that quoted source text is data, not instructions. This guards against prompt injection from feed content when an export is pasted into an AI assistant.
+
+
 ## [0.6.0] — 2026-11-20 — Phase 6: Advanced analysis
 
 ### Added

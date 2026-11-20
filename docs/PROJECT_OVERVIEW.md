@@ -38,5 +38,6 @@ Phase 0 is complete, and Phase 1 is complete on a clearly labelled **demonstrati
 | [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) | Tokens, typography, symbols, effects |
 | [TESTING.md](TESTING.md) | Test commands and coverage |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | $0 hosting path, quotas, setup checklist, secrets |
+| [SECURITY_AND_ACCESSIBILITY.md](SECURITY_AND_ACCESSIBILITY.md) | Phase 7 security review, threat model, accessibility audit |
 | [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md) | Milestone checklist |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |

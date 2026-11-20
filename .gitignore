@@ -37,3 +37,6 @@ ui-debug.log*
 
 # Firebase emulator export
 .emulator-data/
+dist-e2e
+playwright-report
+test-results
