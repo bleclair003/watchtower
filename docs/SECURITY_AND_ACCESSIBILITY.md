@@ -21,7 +21,8 @@ Reviewed 2026-11-20 against v0.7.0. This is a single-operator tool. The review c
 | 3 | No HSTS, Permissions-Policy or COOP | Low | **Fixed.** COOP is `same-origin-allow-popups`, so the Google popup still works |
 | 4 | HTML was cacheable for an hour after a deploy, and code-split chunks from the old build disappear on deploy | Low (availability) | **Fixed.** Routes are served `no-cache`; the app reloads once if a chunk is missing; an error boundary contains module failures |
 | 5 | `style-src 'unsafe-inline'` remains | Accepted | MapLibre and React style attributes need it. Style injection cannot run script under this CSP |
-| 6 | 13 moderate `npm audit` advisories in `firebase-tools` | Accepted | Dev-only CLI, never shipped. The production audit is clean, and CI fails on high-severity production advisories |
+| 6 | After Google sign-in, the console logs "Cross-Origin-Opener-Policy policy would block the window.close call" | Accepted | Logged by the Firebase popup flow under COOP `same-origin-allow-popups`. Sign-in completes normally (verified on the live site, 2026-11-20) |
+| 7 | 13 moderate `npm audit` advisories in `firebase-tools` | Accepted | Dev-only CLI, never shipped. The production audit is clean, and CI fails on high-severity production advisories |
 
 Checked and found clean:
 - No `innerHTML`, `dangerouslySetInnerHTML` or `eval`. Map popups use `textContent`.
