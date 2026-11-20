@@ -93,8 +93,14 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
 - [x] Security rules with shape/size validation and optimistic concurrency (version + 1)
 - [ ] Automatic clustering suggestions for new events; per-dossier edit history
 
-## Phase 6 — Advanced analysis
-- [ ] Baselines, experimental-signal framework, replay, backtesting, SITREP + "Export Intelligence Context"
+## Phase 6 — Advanced analysis ✅ (method complete; needs ~90 days of collection to be informative)
+- [x] Long-term RAI history (`raiHistory`, one point per run)
+- [x] Historical Operations Replay with the hindsight rule (collectedAt ≤ T) and engine re-evaluation per frame
+- [x] Backtesting: step simulation, episodes, hits / lead times / misses / false alarms, co-activation, data sufficiency
+- [x] Trend charts: record volume, RAI history (small multiples, table view)
+- [x] Experimental-signal framework: research records (PDD §7.3); new computable experimental signal
+- [x] Deterministic SITREP (8 sections + limitations) with Markdown "Export Intelligence Context"
+- [ ] Reconstruct historical source outages in replay (from collectionRuns)
 
 ## Phase 7 — Refinement & deployment
 - [ ] Firebase Hosting deploy, Playwright E2E, security review, a11y audit, performance pass

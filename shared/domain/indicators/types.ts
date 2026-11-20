@@ -70,6 +70,20 @@ export interface IndicatorDefinition {
   configVersion: number;
   /** Why this indicator exists and what it does NOT mean. */
   rationale: string;
+  /** Research record for experimental signals (PDD §7.3). */
+  research?: ExperimentalResearch;
+}
+
+export interface ExperimentalResearch {
+  hypothesis: string;
+  dataAvailability: string;
+  baselinePeriod: string;
+  expectedRelationship: string;
+  historicalExamples: string;
+  confounders: string;
+  falsePositives: string;
+  retrospectiveResults: string;
+  evidenceQuality: 'none' | 'anecdotal' | 'weak' | 'moderate' | 'strong';
 }
 
 export interface BaselineResult {

@@ -18,8 +18,9 @@ const NAV: NavItem[] = [
   { to: '/indicators', label: 'INDICATORS' },
   { to: '/alerts', label: 'ALERTS' },
   { to: '/dossiers', label: 'DOSSIERS' },
-  { to: '/sitrep', label: 'SITREP', phase: 6 },
-  { to: '/replay', label: 'REPLAY', phase: 6 },
+  { to: '/sitrep', label: 'SITREP' },
+  { to: '/replay', label: 'REPLAY' },
+  { to: '/signal-lab', label: 'SIGNAL LAB' },
 ];
 
 function DemoStrip() {

@@ -24,6 +24,7 @@ service cloud.firestore {
     match /sourceStatus/{id}    { allow read: if isOwner(); allow write: if false; }
     match /collectionRuns/{id}  { allow read: if isOwner(); allow write: if false; }
     match /indicatorHistory/{id} { allow read: if isOwner(); allow write: if false; }
+    match /raiHistory/{id}      { allow read: if isOwner(); allow write: if false; }
 
     // Collector-internal state (ETags, advisory baselines): never exposed to clients.
     match /sourceState/{id}     { allow read, write: if false; }

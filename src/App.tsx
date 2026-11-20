@@ -13,6 +13,9 @@ import IndicatorsPage from './pages/IndicatorsPage';
 import AlertsPage from './pages/AlertsPage';
 import DossiersPage from './pages/DossiersPage';
 import DossierPage from './pages/DossierPage';
+import SitrepPage from './pages/SitrepPage';
+import ReplayPage from './pages/ReplayPage';
+import SignalLabPage from './pages/SignalLabPage';
 
 function NotFound() {
   return (
@@ -43,6 +46,9 @@ export default function App() {
                     <Route path="alerts" element={<AlertsPage />} />
                     <Route path="dossiers" element={<DossiersPage />} />
                     <Route path="dossiers/:id" element={<DossierPage />} />
+                    <Route path="sitrep" element={<SitrepPage />} />
+                    <Route path="replay" element={<ReplayPage />} />
+                    <Route path="signal-lab" element={<SignalLabPage />} />
                     <Route path="*" element={<NotFound />} />
                   </Route>
                 </Routes>

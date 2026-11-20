@@ -55,4 +55,6 @@ export const COLLECTIONS = {
   collectorState: 'collectorState',
   /** Operator-curated incident dossiers (Phase 5). */
   incidents: 'incidents',
+  /** One RAI point per collection run, kept long-term for trends and SITREP comparisons (Phase 6). */
+  raiHistory: 'raiHistory',
 } as const;

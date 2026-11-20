@@ -33,6 +33,9 @@ export const COMMAND_HELP: CommandSpec[] = [
   { syntax: 'INDICATORS', description: 'Open the Indicator & Warning Engine' },
   { syntax: 'ALERTS', description: 'Open the Alert Center' },
   { syntax: 'DOSSIERS', description: 'Open incident dossiers' },
+  { syntax: 'SITREP', description: 'Open the situation report generator' },
+  { syntax: 'REPLAY', description: 'Open historical replay' },
+  { syntax: 'LAB', description: 'Open Signal Lab (trends, backtests)' },
   { syntax: 'SOURCES', description: 'Open the source directory' },
   { syntax: 'SETTINGS', description: 'Open operator settings' },
   { syntax: 'GOC', description: 'Return to Global Operations Center' },
@@ -43,6 +46,8 @@ const NAV: Record<string, string> = {
   INDICATORS: '/indicators',
   ALERTS: '/alerts',
   DOSSIERS: '/dossiers',
+  REPLAY: '/replay',
+  LAB: '/signal-lab',
   IWE: '/indicators',
   DIAGNOSTICS: '/diagnostics',
   SOURCES: '/sources',
@@ -80,7 +85,7 @@ export function parseCommand(input: string): Command {
   if (verb === 'HELP' || verb === '?') return { kind: 'help' };
   if (verb === 'CLEAR' || verb === 'RESET') return { kind: 'clear' };
   if (NAV[verb] && !arg) return { kind: 'navigate', to: NAV[verb] };
-  if (verb === 'SITREP') return { kind: 'error', message: 'SITREP GENERATOR NOT YET DEPLOYED (PHASE 6)' };
+  if (verb === 'SITREP') return { kind: 'navigate', to: '/sitrep' };
 
   if (verb === 'MAP') {
     if (arg.toUpperCase() === 'GLOBAL' || !arg) return { kind: 'map-global' };
@@ -116,6 +121,9 @@ export function suggestCommands(input: string): string[] {
     'INDICATORS',
     'ALERTS',
     'DOSSIERS',
+    'SITREP',
+    'REPLAY',
+    'LAB',
     'SOURCES',
     'SETTINGS',
     'GOC',

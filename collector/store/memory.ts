@@ -1,6 +1,6 @@
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../../shared/domain/types.ts';
 import type { DashboardSnapshot } from '../../shared/domain/snapshot.ts';
-import type { IndicatorTransition } from '../../shared/domain/indicators/types.ts';
+import type { IndicatorTransition, ScoreHistoryPoint } from '../../shared/domain/indicators/types.ts';
 import type { AlertRecord } from '../../shared/domain/alerts/types.ts';
 import type { AlertingState, CollectorStore } from './types.ts';
 
@@ -13,6 +13,7 @@ export class MemoryStore implements CollectorStore {
   readonly runs: CollectionRun[] = [];
   snapshot: DashboardSnapshot | null = null;
   readonly transitions: IndicatorTransition[] = [];
+  readonly raiPoints: ScoreHistoryPoint[] = [];
   readonly alertRules = new Map<string, unknown>();
   readonly alerts = new Map<string, AlertRecord>();
   alertingState: AlertingState | null = null;
@@ -53,6 +54,9 @@ export class MemoryStore implements CollectorStore {
   }
   async putSnapshot(s: DashboardSnapshot) {
     this.snapshot = structuredClone(s);
+  }
+  async putRaiPoint(p: ScoreHistoryPoint) {
+    this.raiPoints.push(structuredClone(p));
   }
   async putIndicatorTransitions(t: IndicatorTransition[]) {
     this.transitions.push(...structuredClone(t));

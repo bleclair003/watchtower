@@ -1,6 +1,6 @@
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../../shared/domain/types.ts';
 import type { DashboardSnapshot } from '../../shared/domain/snapshot.ts';
-import type { IndicatorTransition } from '../../shared/domain/indicators/types.ts';
+import type { IndicatorTransition, ScoreHistoryPoint } from '../../shared/domain/indicators/types.ts';
 import type { AlertRecord } from '../../shared/domain/alerts/types.ts';
 
 export interface AlertingState {
@@ -27,6 +27,7 @@ export interface CollectorStore {
   getSnapshot(): Promise<DashboardSnapshot | null>;
   putSnapshot(snapshot: DashboardSnapshot): Promise<void>;
   putIndicatorTransitions(transitions: IndicatorTransition[]): Promise<void>;
+  putRaiPoint(point: ScoreHistoryPoint): Promise<void>;
   /** Raw stored rules (unvalidated: the caller validates). */
   listAlertRules(): Promise<unknown[]>;
   filterNewAlertIds(ids: string[]): Promise<Set<string>>;

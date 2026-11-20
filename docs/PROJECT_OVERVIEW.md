@@ -34,6 +34,7 @@ Phase 0 is complete, and Phase 1 is complete on a clearly labelled **demonstrati
 | [INDICATOR_ENGINE.md](INDICATOR_ENGINE.md) | Indicator & Warning Engine and RAI |
 | [ALERTING.md](ALERTING.md) | Alert rules, delivery, Discord, cooldowns |
 | [DOSSIERS.md](DOSSIERS.md) | Incident dossiers, assessments, timelines, export |
+| [ANALYSIS.md](ANALYSIS.md) | SITREP, historical replay, backtesting, trends, experimental signals |
 | [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) | Tokens, typography, symbols, effects |
 | [TESTING.md](TESTING.md) | Test commands and coverage |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | $0 hosting path, quotas, setup checklist, secrets |

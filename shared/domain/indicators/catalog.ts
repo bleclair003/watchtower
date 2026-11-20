@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 1;
+export const CATALOG_VERSION = 2;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -163,6 +163,47 @@ const experimentalIndicators: IndicatorDefinition[] = [
     configVersion: 1,
     rationale:
       'No legal, free, historical aggregate data source exists; popularity estimates are not order counts. Preserved as an untestable research concept and never fed fabricated values.',
+    research: {
+      hypothesis: 'Late-night food orders near the Pentagon rise before major U.S. military operations because staff work unusual hours.',
+      dataAvailability: 'None. Map-service "popular times" are modelled popularity estimates (not orders), have no free API, and scraping them breaches provider terms.',
+      baselinePeriod: 'Not applicable without data.',
+      expectedRelationship: 'If real: an anomaly would precede publicly announced operations by hours to days.',
+      historicalExamples: 'Anecdotes are widely shared after the fact. No systematic, pre-registered evaluation is known to WATCHTOWER.',
+      confounders: 'Sports events, weather, holidays, local events, restaurant promotions, and normal shift patterns.',
+      falsePositives: 'Expected to be frequent; unknown because untested.',
+      retrospectiveResults: 'Not testable: no data.',
+      evidenceQuality: 'anecdotal',
+    },
+  },
+  {
+    id: 'experimental.state-reissue-tempo',
+    name: 'State Dept advisory tempo (global)',
+    description: 'All State Department advisory publications worldwide in 72 hours, compared with the 28-day baseline.',
+    family: 'experimental',
+    regionId: 'global',
+    requiredSourceIds: [STATE],
+    match: { field: 'sourceId', op: 'eq', value: STATE },
+    windowHours: 72,
+    elevated: { countAtLeast: 6 },
+    triggered: { countAtLeast: 12 },
+    baseline: { days: 28, triggerRatio: 3, elevatedRatio: 2 },
+    weight: 0,
+    severity: 'low',
+    experimental: true,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'Tests whether a surge in official publication tempo, regardless of region, precedes significant developments. Unvalidated, so it never affects the RAI.',
+    research: {
+      hypothesis: 'Bursts of advisory publications across many countries reflect a government-wide security reassessment.',
+      dataAvailability: 'Available: collected hourly from the State Department advisories feed since 2026-11-20.',
+      baselinePeriod: '28 days of collection. Not yet available, so fixed thresholds apply.',
+      expectedRelationship: 'A burst would coincide with or precede regional escalations already visible in other indicators.',
+      historicalExamples: 'The 23 Oct 2026 batch of 13 Middle East reissues is the only burst in the collected data so far.',
+      confounders: 'Scheduled periodic reviews, administrative template changes, and holiday publication backlogs.',
+      falsePositives: 'Likely, because routine annual reviews are published in batches.',
+      retrospectiveResults: 'Insufficient history. Re-run in Signal Lab once 90+ days are collected.',
+      evidenceQuality: 'none',
+    },
   },
 ];
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.6.0] — 2026-11-20 — Phase 6: Advanced analysis
+
+### Added
+- SITREP generator: deterministic, eight sections, source-linked, backfill separated, limitations; Markdown "Export Intelligence Context".
+- Historical Operations Replay: hindsight-safe (collectedAt ≤ T), re-runs the indicator engine per frame, LATE tags, hidden-by-default hindsight panel with later outcomes.
+- Signal Lab: record-volume and RAI-history charts, backtesting against dossier outcomes (lead times, misses, false alarms, co-activation, data sufficiency), experimental research records.
+- Collector writes one `raiHistory` point per run; owner-read-only security rule and test.
+- Catalog v2: research metadata for experimental signals; new experimental "State Dept advisory tempo (global)".
+- Bounded archive service with read counts and truncation reporting.
+
+### Fixed (found during verification)
+- Replay and backtest windows rounded the end down to the hour, excluding the most recent collection.
+- Charts scaled text with the container; they now draw at real pixel width.
+
+
 ## [0.5.0] — 2026-11-20 — Phase 5: Incident dossiers
 
 ### Added

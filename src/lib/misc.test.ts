@@ -56,9 +56,10 @@ describe('parseCommand', () => {
     expect(parseCommand('help')).toEqual({ kind: 'help' });
   });
 
-  it('reports unbuilt modules as errors rather than faking output', () => {
+  it('maps module commands to real pages', () => {
     expect(parseCommand('ALERTS')).toEqual({ kind: 'navigate', to: '/alerts' });
-    expect(parseCommand('SITREP 24H')).toMatchObject({ kind: 'error' });
+    expect(parseCommand('SITREP 24H')).toEqual({ kind: 'navigate', to: '/sitrep' });
+    expect(parseCommand('REPLAY')).toEqual({ kind: 'navigate', to: '/replay' });
   });
 
   it('resolves FEED sources and treats free text as search', () => {

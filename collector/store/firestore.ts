@@ -2,7 +2,7 @@ import { initializeApp, applicationDefault, getApps, type App } from 'firebase-a
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../../shared/domain/types.ts';
 import { COLLECTIONS, SNAPSHOT_DOC_ID, type DashboardSnapshot } from '../../shared/domain/snapshot.ts';
-import type { IndicatorTransition } from '../../shared/domain/indicators/types.ts';
+import type { IndicatorTransition, ScoreHistoryPoint } from '../../shared/domain/indicators/types.ts';
 import type { AlertRecord } from '../../shared/domain/alerts/types.ts';
 import type { AlertingState, CollectorStore } from './types.ts';
 
@@ -82,6 +82,9 @@ export class FirestoreStore implements CollectorStore {
   async getSnapshot() {
     const snap = await this.db.collection(COLLECTIONS.snapshots).doc(SNAPSHOT_DOC_ID).get();
     return snap.exists ? (snap.data() as DashboardSnapshot) : null;
+  }
+  async putRaiPoint(p: ScoreHistoryPoint) {
+    await this.db.collection(COLLECTIONS.raiHistory).doc(p.at.replace(/[:.]/g, '-')).set(p);
   }
   async putIndicatorTransitions(transitions: IndicatorTransition[]) {
     for (let i = 0; i < transitions.length; i += 400) {

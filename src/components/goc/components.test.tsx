@@ -153,10 +153,10 @@ describe('CommandConsole', () => {
     expect(screen.getByRole('status')).toHaveTextContent('WATCH REDSEA — FEED FILTERED, MAP FOCUSED');
   });
 
-  it('reports unbuilt modules honestly', async () => {
+  it('reports invalid commands honestly instead of faking output', async () => {
     const input = setup('/');
-    await userEvent.type(input, 'SITREP 24H{Enter}');
-    expect(screen.getByRole('status')).toHaveTextContent('SITREP GENERATOR NOT YET DEPLOYED (PHASE 6)');
+    await userEvent.type(input, 'WATCH ATLANTIS{Enter}');
+    expect(screen.getByRole('status')).toHaveTextContent('UNKNOWN REGION: ATLANTIS');
   });
 
   it('free text becomes a keyword filter', async () => {

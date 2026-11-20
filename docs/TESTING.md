@@ -8,7 +8,7 @@ npm run build       # typecheck + production build
 npm run collect:dry # live end-to-end fetch/parse of real sources; writes nothing
 ```
 
-## Current coverage (137 unit/component + 11 rules tests, all passing)
+## Current coverage (149 unit/component + 11 rules tests, all passing)
 
 | File | Covers |
 |---|---|
@@ -20,6 +20,8 @@ npm run collect:dry # live end-to-end fetch/parse of real sources; writes nothin
 | `shared/domain/alerts/alerts.test.ts` | Rule validation (incl. path-like ids, unknown fields/kinds), event / indicator / RAI edge semantics, first-look behaviour and dedupe keys, test-mode preview |
 | `collector/test/alerting.test.ts` | One alert per input across runs, batching and mention neutralization, cooldown suppression and resumption, not-configured / not-requested, invalid-rule reporting, delivery failure without leaking the webhook, indicator transitions and late-created rules, Discord URL validation, 429 retry, >10-alert summary |
 | `shared/domain/incidents/incidents.test.ts` | Seeding from events, no duplicate links, validation (ids, regions, self-links, notes, indicators), three-clock ordering with fallbacks and lags, explainable suggestions and stop words, Markdown export (links, caveats, non-live labelling) |
+| `shared/domain/history/history.test.ts` | Hindsight rule (collected vs published), status reconstruction, replay before collection, episodes / hits / lead times / misses / false alarms, co-activation, step simulation without retroactive data, data sufficiency, bucket counts, SITREP sections / backfill separation / citations / Markdown |
+| `src/pages/history.test.tsx` | SITREP generation in demo mode; Signal Lab experimental research records |
 | `src/lib/sourceHealth.test.ts` | View-time health recomputation (ONLINE → STALE), overdue detection |
 | `collector/test/lib.test.ts` | HTML/entity sanitization, bidi/control stripping, URL allowlist, RFC-822 dates (two-digit year, date-only, invalid), RSS/Atom parsing on **real feed fixtures**, refusal of entity declarations, **every observed FIPS tag** cross-checked against CLDR country names, polite fetch (conditional headers, 304, 429/5xx backoff, no 4xx retry, size cap), hashing, health rules |
 | `collector/test/adapters.test.ts` | State Dept first-run baseline and lookback, no-change runs, RAISED/LOWERED/reissued detection, Gaza→PS, 304 handling; CISA subtypes and lookback; KEV window, ransomware flag, malformed JSON |

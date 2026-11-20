@@ -265,6 +265,7 @@ export async function buildSnapshot(
     snapshot.indicatorEvaluations = evaluations;
     snapshot.regionScores = scores;
     snapshot.scoreHistory = appendScoreHistory(previous?.scoreHistory ?? [], scores, now);
+    await store.putRaiPoint(snapshot.scoreHistory[snapshot.scoreHistory.length - 1]);
     const active = evaluations.filter((e) => e.state === 'TRIGGERED' || e.state === 'ELEVATED').length;
     log(`IWE  ${evaluations.length} indicators evaluated · ${active} active · ${transitions.length} state change(s)`);
   } catch (err) {

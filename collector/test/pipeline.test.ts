@@ -133,6 +133,7 @@ describe('runCollection', () => {
     await runCollection([a], store, { trigger: 'local', now: () => NOW + 3_600_000 });
     expect(store.transitions.length).toBe(firstTransitions); // unchanged states → no new log entries
     expect(store.snapshot!.scoreHistory).toHaveLength(2);
+    expect(store.raiPoints).toHaveLength(2); // long-term RAI history, one point per run
   });
 
   it('records firstSuccessAt once and keeps it', async () => {
