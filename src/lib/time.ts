@@ -25,7 +25,9 @@ export function formatAge(iso: string | null | undefined, now: number = Date.now
   if (!iso) return '—';
   const t = Date.parse(iso);
   if (Number.isNaN(t)) return '—';
-  const diff = now - t;
+  // Treat small negative differences (a stale "now", minor clock skew) as zero rather than "in the future".
+  const raw = now - t;
+  const diff = raw < 0 && raw > -120_000 ? 0 : raw;
   const sign = diff < 0 ? '+' : '';
   const m = Math.floor(Math.abs(diff) / 60_000);
   if (m < 1) return `${sign}<1m`;

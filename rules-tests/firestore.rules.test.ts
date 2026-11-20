@@ -11,7 +11,7 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc, deleteDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
 
 let env: RulesTestEnvironment;
 
@@ -74,6 +74,51 @@ describe('collected data', () => {
 
   it('collector-internal source state is never readable by clients', async () => {
     await assertFails(getDoc(doc(owner(), 'sourceState/cisa-kev')));
+  });
+});
+
+describe('alert rules and alerts', () => {
+  const validRule = (id = 'r1') => ({
+    id, name: 'Red Sea', enabled: true, severity: 'WARNING',
+    trigger: { kind: 'event', match: { field: 'regionIds', op: 'contains', value: 'red-sea' } },
+    notify: { discord: true }, cooldownMinutes: 60, version: 1,
+    createdAt: '2026-11-20T00:00:00Z', updatedAt: '2026-11-20T00:00:00Z',
+  });
+
+  it('owner can create, update, read and delete well-formed rules', async () => {
+    await assertSucceeds(setDoc(doc(owner(), 'alertRules/r1'), validRule()));
+    await assertSucceeds(setDoc(doc(owner(), 'alertRules/r1'), { ...validRule(), enabled: false, version: 2 }));
+    await assertSucceeds(getDoc(doc(owner(), 'alertRules/r1')));
+    await assertSucceeds(deleteDoc(doc(owner(), 'alertRules/r1')));
+  });
+
+  it('rejects malformed rules and non-owners', async () => {
+    await assertFails(setDoc(doc(owner(), 'alertRules/r1'), { ...validRule(), severity: 'PANIC' }));
+    await assertFails(setDoc(doc(owner(), 'alertRules/r1'), { ...validRule(), trigger: { kind: 'script' } }));
+    await assertFails(setDoc(doc(owner(), 'alertRules/r1'), { ...validRule(), cooldownMinutes: -1 }));
+    await assertFails(setDoc(doc(owner(), 'alertRules/r1'), { ...validRule(), extra: 'x' }));
+    await assertFails(setDoc(doc(owner(), 'alertRules/r1'), { ...validRule(), name: 'x'.repeat(81) }));
+    await assertFails(setDoc(doc(owner(), 'alertRules/other'), validRule('r1'))); // id must match path
+    await assertFails(setDoc(doc(owner(), 'alertRules/r1'), { ...validRule(), notify: { discord: true, webhook: 'https://x' } }));
+    await assertFails(setDoc(doc(stranger(), 'alertRules/r1'), validRule()));
+    await assertFails(getDoc(doc(fakeOwner(), 'alertRules/r1')));
+  });
+
+  it('alerts: owner may only acknowledge or dismiss; nobody may create or delete', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'alerts/a1'), {
+        title: 'x', severity: 'WARNING', acknowledged: false, acknowledgedAt: null, dismissed: false, dismissedAt: null, delivery: { discord: 'sent' },
+      });
+    });
+    await assertSucceeds(getDoc(doc(owner(), 'alerts/a1')));
+    await assertSucceeds(updateDoc(doc(owner(), 'alerts/a1'), { acknowledged: true, acknowledgedAt: '2026-11-20T01:00:00Z' }));
+    await assertSucceeds(updateDoc(doc(owner(), 'alerts/a1'), { dismissed: true, dismissedAt: '2026-11-20T01:00:00Z' }));
+    await assertFails(updateDoc(doc(owner(), 'alerts/a1'), { severity: 'INFORMATION' }));
+    await assertFails(updateDoc(doc(owner(), 'alerts/a1'), { acknowledged: 'yes' }));
+    await assertFails(setDoc(doc(owner(), 'alerts/forged'), { title: 'forged' }));
+    await assertFails(deleteDoc(doc(owner(), 'alerts/a1')));
+    await assertFails(getDoc(doc(stranger(), 'alerts/a1')));
+    await assertFails(getDoc(doc(owner(), 'collectorState/alerting')));
   });
 });
 

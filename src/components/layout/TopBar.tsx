@@ -7,6 +7,7 @@ import { useNow, useOnline } from '../../hooks/useNow';
 import { useData } from '../../state/DataContext';
 import { Lamp } from '../ui/Tag';
 import { CommandConsole } from './CommandConsole';
+import { useOpenAlerts } from '../../hooks/useOpenAlerts';
 
 function Readout({ label, children, title }: { label: string; children: ReactNode; title?: string }) {
   return (
@@ -21,6 +22,7 @@ export function TopBar() {
   const now = useNow(1000);
   const online = useOnline();
   const { loadedAt, error, mode } = useData();
+  const openAlerts = useOpenAlerts();
 
   return (
     <header className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 border-b border-wt-line-strong bg-wt-bg2 px-3 py-1.5 md:h-12 md:flex-nowrap md:py-0">
@@ -56,8 +58,16 @@ export function TopBar() {
           </span>
         </Readout>
         <Readout label="WATCHES">{WATCH_REGIONS.length}</Readout>
-        <Readout label="ALERTS" title="Alert system not deployed until Phase 4">
-          <span className="text-wt-inactive">OFFLINE</span>
+        <Readout label="ALERTS" title="Unacknowledged alerts">
+          <Link to="/alerts" className="hover:underline">
+            {mode === 'demo' ? (
+              <span className="text-wt-inactive">N/A</span>
+            ) : openAlerts === null ? (
+              <span className="text-wt-fg-muted">—</span>
+            ) : (
+              <span className={openAlerts > 0 ? 'text-wt-warn' : ''}>{openAlerts} OPEN</span>
+            )}
+          </Link>
         </Readout>
         <Readout label="DATA">
           <span className={mode === 'demo' ? 'text-wt-warn' : mode === 'emulator' ? 'text-wt-info' : 'text-wt-fg'}>{mode.toUpperCase()}</span>

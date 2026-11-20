@@ -31,8 +31,9 @@ Time fields:
 | `regions` | region id | deploy script | owner | Mirrors `WATCH_REGIONS` |
 | `indicatorHistory` | `<time>_<indicatorId>` | collector | owner | Append-only log of indicator state transitions (Phase 3) |
 | `indicators` | indicator id | owner (UI) | collector, owner | Phase 4: operator-edited definitions (v1 catalog lives in code) |
-| `alertRules` | auto | owner (UI) | collector | Declarative, validated by rules |
-| `alerts` | `ruleId_evidenceHash` | collector | owner | Ack/dismiss fields writable by owner |
+| `alertRules` | random 20-char id | owner (UI, shape-validated) | collector, owner | `AlertRule` (shared/domain/alerts/types.ts) |
+| `alerts` | `hash(ruleId, dedupeKey)` | collector | owner | `AlertRecord`; owner may change only acknowledged/dismissed fields |
+| `collectorState` | `alerting` | collector | **nobody** | Per-rule last-notified times (cooldowns) |
 | `incidents` | auto | owner / collector | owner | Phase 5 |
 | `briefings` | auto | owner | owner | Phase 6 |
 | `userSettings` | uid | owner | owner | |

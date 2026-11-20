@@ -60,6 +60,16 @@ Do these once. Nothing here requires a credit card.
 - **Public:** unlimited Actions minutes; code is visible (no secrets are in it). GitHub disables scheduled workflows after **60 days without repository activity** — Diagnostics will show the collector as OVERDUE if that happens; any commit re-enables it.
 - **Private:** free plan includes a monthly minutes allowance; hourly collection uses roughly 750–1,100 min/month.
 
+### Alert notifications (optional)
+
+1. In Discord: channel → *Edit channel* → *Integrations* → *Webhooks* → *New webhook* → *Copy webhook URL*.
+2. Add it as the repository secret `DISCORD_WEBHOOK_URL`. For example, in PowerShell:
+   `Get-Clipboard | gh secret set DISCORD_WEBHOOK_URL --repo bleclair003/watchtower`
+3. Run **Actions → Test alert delivery** and confirm the test message arrives.
+4. Create rules under **ALERTS → RULES**.
+
+Without the secret, alerts are still recorded and shown in the app (delivery `not-configured`).
+
 ## 3. Local development modes
 
 | Command | Mode | Needs |

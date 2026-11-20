@@ -10,6 +10,7 @@ import SourcesPage from './pages/SourcesPage';
 import DiagnosticsPage from './pages/DiagnosticsPage';
 import SettingsPage from './pages/SettingsPage';
 import IndicatorsPage from './pages/IndicatorsPage';
+import AlertsPage from './pages/AlertsPage';
 
 function NotFound() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
                     <Route path="diagnostics" element={<DiagnosticsPage />} />
                     <Route path="settings" element={<SettingsPage />} />
                     <Route path="indicators" element={<IndicatorsPage />} />
+                    <Route path="alerts" element={<AlertsPage />} />
                     <Route path="*" element={<NotFound />} />
                   </Route>
                 </Routes>

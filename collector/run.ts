@@ -10,6 +10,8 @@
  *   WATCHTOWER_PROJECT_ID     Firebase project id (required unless --dry-run)
  *   FIRESTORE_EMULATOR_HOST   e.g. 127.0.0.1:8080 to target the local emulator
  *   COLLECTOR_TRIGGER         schedule | manual | local (default: local)
+ *   DISCORD_WEBHOOK_URL       optional Discord webhook for alert notifications (secret; never logged)
+ *   WATCHTOWER_APP_URL        optional public dashboard URL for notification links
  *
  * Exit codes: 0 = all sources OK · 2 = completed but ≥1 source failed · 1 = fatal error.
  */
@@ -17,6 +19,7 @@ import { parseArgs } from 'node:util';
 import { ADAPTERS } from './adapters/index.ts';
 import { runCollection } from './pipeline.ts';
 import { MemoryStore } from './store/memory.ts';
+import { isDiscordWebhookUrl } from './alerts/discord.ts';
 import type { CollectorStore } from './store/types.ts';
 import type { CollectionRun } from '../shared/domain/types.ts';
 
@@ -55,15 +58,23 @@ async function main(): Promise<number> {
   console.log(`WATCHTOWER collection run · trigger=${trigger} · ${adapters.length} source(s)${values['dry-run'] ? ' · DRY RUN' : ''}`);
 
   const evaluateOnly = values['evaluate-only'];
+  const webhook = process.env.DISCORD_WEBHOOK_URL?.trim() || null;
+  let discordWebhookUrl: string | null = null;
+  if (webhook && values['dry-run']) console.log('Discord: disabled for dry runs');
+  else if (webhook && isDiscordWebhookUrl(webhook)) discordWebhookUrl = webhook;
+  else if (webhook) console.error('DISCORD_WEBHOOK_URL is set but is not a Discord webhook URL — notifications disabled.');
+  console.log(`Discord notifications: ${discordWebhookUrl ? 'configured' : 'not configured'}`);
   const { run, reports, snapshot } = await runCollection(evaluateOnly ? [] : adapters, store, {
     trigger,
     mode: evaluateOnly ? 'evaluate-only' : 'collect',
     trackedSourceIds: ADAPTERS.map((a) => a.sourceId),
+    discordWebhookUrl,
+    appUrl: process.env.WATCHTOWER_APP_URL?.trim() || undefined,
     log: (m) => console.log(m),
   });
 
   console.log(
-    `Run ${run.id}: fetched ${run.recordsFetched} · imported ${run.recordsImported} · duplicates ${run.duplicatesSuppressed} · rejected ${run.recordsRejected} · errors ${run.errors.length}`,
+    `Run ${run.id}: fetched ${run.recordsFetched} · imported ${run.recordsImported} · duplicates ${run.duplicatesSuppressed} · rejected ${run.recordsRejected} · alerts ${run.alertsCreated ?? 0} · notified ${run.notificationsSent ?? 0} · errors ${run.errors.length}`,
   );
   console.log(`Snapshot: ${snapshot.events.length} events, ${Buffer.byteLength(JSON.stringify(snapshot))} bytes`);
   if (values['dry-run']) {

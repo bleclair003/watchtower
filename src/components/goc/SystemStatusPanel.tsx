@@ -28,6 +28,8 @@ const MODE_TAG = {
  */
 export function SystemStatusPanel({ now }: { now: number }) {
   const { sourceStatus, mode, loadedAt, error, events, previousSessionAt, refresh, loading, lastRun, generatedAt, indicatorEvaluations } = useData();
+  const { discordConfigured, activeAlertRules, alertRuleProblems } = useData();
+  const deliveryErrors = lastRun?.errors.filter((e) => e.sourceId === 'alert-delivery' || e.sourceId === 'alert-engine').length ?? 0;
   const triggered = indicatorEvaluations.filter((e) => e.state === 'TRIGGERED').length;
   const elevated = indicatorEvaluations.filter((e) => e.state === 'ELEVATED').length;
   const evaluable = indicatorEvaluations.filter((e) => ['NORMAL', 'ELEVATED', 'TRIGGERED'].includes(e.state)).length;
@@ -127,8 +129,22 @@ export function SystemStatusPanel({ now }: { now: number }) {
         </div>
       </Cell>
       <Cell label="ALERT DELIVERY">
-        <span className="text-wt-inactive">NOT CONFIGURED</span>
-        <div className="text-2xs text-wt-fg-dim">Phase 4</div>
+        <Link to="/alerts" className="hover:underline">
+          {mode === 'demo' ? (
+            <span className="text-wt-inactive">N/A (DEMO)</span>
+          ) : deliveryErrors > 0 ? (
+            <span className="text-wt-crit">{deliveryErrors} DELIVERY ERROR(S)</span>
+          ) : discordConfigured ? (
+            <span>DISCORD READY</span>
+          ) : discordConfigured === false ? (
+            <span className="text-wt-warn">IN-APP ONLY</span>
+          ) : (
+            <span className="text-wt-fg-muted">—</span>
+          )}
+        </Link>
+        <div className="text-2xs text-wt-fg-dim">
+          {activeAlertRules ?? 0} rule(s){alertRuleProblems.length ? ` · ${alertRuleProblems.length} invalid` : ''}
+        </div>
       </Cell>
       <Cell label="NEW SINCE LAST SESSION">
         {newSinceLast == null ? (

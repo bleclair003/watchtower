@@ -3,6 +3,7 @@
 # Required repository configuration (Settings → Secrets and variables → Actions):
 #   Variable  WATCHTOWER_PROJECT_ID     Firebase project id
 #   Secret    FIREBASE_SERVICE_ACCOUNT  Service-account key JSON (role: Cloud Datastore User)
+#   Secret    DISCORD_WEBHOOK_URL       Optional Discord webhook for alert notifications
 #
 # GitHub cron is best-effort: runs are often delayed and may occasionally be skipped.
 # The dashboard shows actual run times and flags the collector as OVERDUE after 3 h.
@@ -45,5 +46,7 @@ jobs:
           WATCHTOWER_PROJECT_ID: ${{ vars.WATCHTOWER_PROJECT_ID }}
           COLLECTOR_TRIGGER: ${{ github.event_name == 'schedule' && 'schedule' || 'manual' }}
           METADATA_SERVER_DETECTION: none
+          # Optional: alert notifications. Unset → alerts are still recorded in the app.
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         # Exit 2 (a source failed) fails the job so GitHub notifies the repository owner.
         run: node collector/run.ts

@@ -57,7 +57,7 @@ describe('parseCommand', () => {
   });
 
   it('reports unbuilt modules as errors rather than faking output', () => {
-    expect(parseCommand('ALERTS')).toMatchObject({ kind: 'error' });
+    expect(parseCommand('ALERTS')).toEqual({ kind: 'navigate', to: '/alerts' });
     expect(parseCommand('SITREP 24H')).toMatchObject({ kind: 'error' });
   });
 

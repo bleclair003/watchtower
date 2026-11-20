@@ -1,5 +1,6 @@
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from './types.ts';
 import type { IndicatorEvaluation, RegionScore, ScoreHistoryPoint } from './indicators/types.ts';
+import type { AlertRuleProblem } from './alerts/types.ts';
 
 /**
  * Precomputed dashboard payload, written by the collector to
@@ -30,6 +31,13 @@ export interface DashboardSnapshot {
   regionScores?: RegionScore[];
   /** Recent RAI values, for 24 h change and sparklines. */
   scoreHistory?: ScoreHistoryPoint[];
+  // --- Phase 4 ---
+  /** Stored alert rules that failed validation and were NOT evaluated. */
+  alertRuleProblems?: AlertRuleProblem[];
+  /** Enabled, valid alert rules evaluated in the last run. */
+  activeAlertRules?: number;
+  /** Whether a Discord webhook was configured for the last run. */
+  discordConfigured?: boolean;
 }
 
 /** Firestore collection names — single source of truth for app and collector. */
@@ -41,4 +49,8 @@ export const COLLECTIONS = {
   snapshots: SNAPSHOT_COLLECTION,
   /** Append-only log of indicator state changes (for Phase 6 backtesting). */
   indicatorHistory: 'indicatorHistory',
+  alertRules: 'alertRules',
+  alerts: 'alerts',
+  /** Collector-internal bookkeeping (e.g. notification cooldowns). Not client-readable. */
+  collectorState: 'collectorState',
 } as const;

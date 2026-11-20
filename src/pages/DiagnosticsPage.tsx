@@ -108,8 +108,23 @@ export default function DiagnosticsPage() {
           v={lastRun?.errors.find((e) => e.sourceId === 'indicator-engine')?.message ?? 'NONE'}
           tone={lastRun?.errors.some((e) => e.sourceId === 'indicator-engine') ? 'crit' : 'ok'}
         />
-        <Row k="ALERT ENGINE" v="NOT DEPLOYED (PHASE 4)" tone="inactive" />
-        <Row k="DISCORD WEBHOOK" v="NOT CONFIGURED" tone="inactive" />
+        <Row k="ALERT RULES (VALID, ENABLED)" v={data.activeAlertRules ?? (mode === 'demo' ? 'N/A (DEMO)' : '—')} />
+        <Row
+          k="INVALID ALERT RULES"
+          v={data.alertRuleProblems.length ? data.alertRuleProblems.map((p) => p.ruleName).join(', ') : 'NONE'}
+          tone={data.alertRuleProblems.length ? 'crit' : 'ok'}
+        />
+        <Row
+          k="DISCORD WEBHOOK"
+          v={data.discordConfigured === null ? 'UNKNOWN' : data.discordConfigured ? 'CONFIGURED' : 'NOT CONFIGURED (IN-APP ALERTS ONLY)'}
+          tone={data.discordConfigured ? 'ok' : 'warn'}
+        />
+        <Row k="LAST RUN ALERTS / NOTIFIED" v={lastRun ? `${lastRun.alertsCreated ?? 0} / ${lastRun.notificationsSent ?? 0}` : '—'} />
+        <Row
+          k="ALERT ERRORS (LAST RUN)"
+          v={lastRun?.errors.filter((e) => e.sourceId.startsWith('alert')).map((e) => e.message).join(' · ') || 'NONE'}
+          tone={lastRun?.errors.some((e) => e.sourceId.startsWith('alert')) ? 'crit' : 'ok'}
+        />
       </Panel>
 
       <Panel title="Client" designator="D4">

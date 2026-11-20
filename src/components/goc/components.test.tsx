@@ -11,6 +11,7 @@ import { DashboardProvider, useDashboard } from '../../state/DashboardContext';
 import { DataProvider } from '../../state/DataContext';
 import { DemoRepository } from '../../data/repository';
 import IndicatorsPage from '../../pages/IndicatorsPage';
+import { RuleBuilder } from '../alerts/RuleBuilder';
 import type { RegionScore } from '@shared/domain/indicators/types';
 
 const NOW = Date.parse('2026-11-20T12:00:00Z');
@@ -154,8 +155,8 @@ describe('CommandConsole', () => {
 
   it('reports unbuilt modules honestly', async () => {
     const input = setup('/');
-    await userEvent.type(input, 'ALERTS{Enter}');
-    expect(screen.getByRole('status')).toHaveTextContent('ALERT SYSTEM NOT YET DEPLOYED (PHASE 4)');
+    await userEvent.type(input, 'SITREP 24H{Enter}');
+    expect(screen.getByRole('status')).toHaveTextContent('SITREP GENERATOR NOT YET DEPLOYED (PHASE 6)');
   });
 
   it('free text becomes a keyword filter', async () => {
@@ -164,3 +165,45 @@ describe('CommandConsole', () => {
     expect(screen.getByTestId('probe')).toHaveTextContent('/|none|tanker');
   });
 });
+
+describe('RuleBuilder', () => {
+  async function setup() {
+    const onSave = vi.fn(async () => {});
+    render(
+      <DataProvider repository={new DemoRepository(Date.now())}>
+        <RuleBuilder initial={null} canSave={false} onSave={onSave} onCancel={() => {}} />
+      </DataProvider>,
+    );
+    return onSave;
+  }
+
+  it('validates live, renders the condition in words, and blocks saving in demo mode', async () => {
+    await setup();
+    expect(await screen.findByText(/name must be/)).toBeInTheDocument();
+    await userEvent.type(screen.getByPlaceholderText(/Red Sea maritime/), 'Red Sea watch');
+    expect(screen.queryByText(/name must be/)).not.toBeInTheDocument();
+    expect(screen.getByText('regionIds CONTAINS red-sea')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'SAVE RULE' })).toBeDisabled();
+    expect(screen.getByText('SAVE DISABLED IN DEMO MODE')).toBeInTheDocument();
+  });
+
+  it('test mode previews matches without creating anything', async () => {
+    await setup();
+    await userEvent.type(screen.getByPlaceholderText(/Red Sea maritime/), 'Red Sea watch');
+    await userEvent.click(screen.getByRole('button', { name: 'TEST RULE' }));
+    expect(screen.getByText(/TEST MODE: \d+ match\(es\)\. No alert created, nothing sent\./)).toBeInTheDocument();
+    expect(screen.getAllByText(/\[SIMULATED\]/).length).toBeGreaterThan(0);
+  });
+
+  it('switches to JSON mode and flags invalid JSON', async () => {
+    await setup();
+    await userEvent.type(screen.getByPlaceholderText(/Red Sea maritime/), 'x');
+    await userEvent.click(screen.getByRole('button', { name: '[JSON]' }));
+    const area = screen.getByLabelText('Condition JSON');
+    await userEvent.clear(area);
+    await userEvent.type(area, '{{"field": "evil"');
+    expect(screen.getByText(/^• JSON:/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'TEST RULE' })).toBeDisabled();
+  });
+});
+

@@ -1,0 +1,25 @@
+# Sends one labelled TEST notification to Discord to verify alert delivery.
+# Requires secret DISCORD_WEBHOOK_URL. Creates no alert records.
+name: Test alert delivery
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --omit=dev --ignore-scripts
+      - name: Send test notification
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: node collector/test-alert.ts

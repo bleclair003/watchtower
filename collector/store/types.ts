@@ -1,6 +1,12 @@
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../../shared/domain/types.ts';
 import type { DashboardSnapshot } from '../../shared/domain/snapshot.ts';
 import type { IndicatorTransition } from '../../shared/domain/indicators/types.ts';
+import type { AlertRecord } from '../../shared/domain/alerts/types.ts';
+
+export interface AlertingState {
+  lastNotifiedAt: Record<string, string>;
+  updatedAt: string;
+}
 
 /**
  * Persistence used by the collector. Implementations: Firestore (production
@@ -21,4 +27,12 @@ export interface CollectorStore {
   getSnapshot(): Promise<DashboardSnapshot | null>;
   putSnapshot(snapshot: DashboardSnapshot): Promise<void>;
   putIndicatorTransitions(transitions: IndicatorTransition[]): Promise<void>;
+  /** Raw stored rules (unvalidated: the caller validates). */
+  listAlertRules(): Promise<unknown[]>;
+  filterNewAlertIds(ids: string[]): Promise<Set<string>>;
+  /** Creates alerts; must fail rather than overwrite an existing id. */
+  putAlerts(alerts: AlertRecord[]): Promise<void>;
+  updateAlertDelivery(ids: string[], delivery: AlertRecord['delivery']): Promise<void>;
+  getAlertingState(): Promise<AlertingState | null>;
+  putAlertingState(state: AlertingState): Promise<void>;
 }

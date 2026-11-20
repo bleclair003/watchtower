@@ -28,7 +28,39 @@ service cloud.firestore {
     // Collector-internal state (ETags, advisory baselines): never exposed to clients.
     match /sourceState/{id}     { allow read, write: if false; }
 
-    // Owner settings (Phase 3+ will add indicators / alertRules with schema validation).
+    // Collector-internal bookkeeping (notification cooldowns).
+    match /collectorState/{id}  { allow read, write: if false; }
+
+    // Alert rules: owner-managed. Shape is validated here; deep validation of
+    // the condition happens in the collector, which skips and reports invalid rules.
+    function validRule(d, id) {
+      return d.keys().hasOnly(['id', 'name', 'enabled', 'severity', 'trigger', 'notify', 'cooldownMinutes', 'version', 'createdAt', 'updatedAt'])
+        && d.keys().hasAll(['id', 'name', 'enabled', 'severity', 'trigger', 'notify', 'cooldownMinutes', 'version', 'createdAt', 'updatedAt'])
+        && d.id == id
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 80
+        && d.enabled is bool
+        && d.severity in ['INFORMATION', 'ADVISORY', 'WARNING', 'CRITICAL']
+        && d.trigger is map && d.trigger.kind in ['event', 'indicator', 'rai']
+        && d.notify is map && d.notify.keys().hasOnly(['discord']) && d.notify.discord is bool
+        && d.cooldownMinutes is int && d.cooldownMinutes >= 0 && d.cooldownMinutes <= 10080
+        && d.version is int && d.version >= 1
+        && d.createdAt is string && d.updatedAt is string;
+    }
+    match /alertRules/{id} {
+      allow read, delete: if isOwner();
+      allow create, update: if isOwner() && validRule(request.resource.data, id);
+    }
+
+    // Alerts: created only by the collector; the owner may acknowledge / dismiss.
+    match /alerts/{id} {
+      allow read: if isOwner();
+      allow update: if isOwner()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['acknowledged', 'acknowledgedAt', 'dismissed', 'dismissedAt'])
+        && request.resource.data.acknowledged is bool
+        && request.resource.data.dismissed is bool;
+      allow create, delete: if false;
+    }
+
     match /userSettings/{uid} {
       allow read, write: if isOwner() && request.auth.uid == uid;
     }

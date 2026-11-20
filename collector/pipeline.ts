@@ -10,7 +10,8 @@ import {
 import { CATALOG_VERSION, INDICATOR_CATALOG } from '../shared/domain/indicators/catalog.ts';
 import { evaluateAll, requiredLookbackHours } from '../shared/domain/indicators/evaluate.ts';
 import { appendScoreHistory, computeAllRegionScores } from '../shared/domain/indicators/rai.ts';
-import type { IndicatorDefinition } from '../shared/domain/indicators/types.ts';
+import type { IndicatorDefinition, IndicatorTransition, RegionScore } from '../shared/domain/indicators/types.ts';
+import { runAlerting } from './alerts/alerting.ts';
 import type { SourceAdapter } from './adapters/types.ts';
 import type { CollectorStore } from './store/types.ts';
 import { politeFetch, type FetchOptions } from './lib/http.ts';
@@ -24,6 +25,12 @@ export interface PipelineOptions {
   /** Indicator catalog to evaluate (defaults to the built-in catalog). */
   catalog?: IndicatorDefinition[];
   mode?: CollectionRun['mode'];
+  /** Validated Discord webhook URL (from the DISCORD_WEBHOOK_URL secret), or null. */
+  discordWebhookUrl?: string | null;
+  /** Public URL of the dashboard, used in notification links. */
+  appUrl?: string;
+  /** Injected for tests (Discord delivery). */
+  alertFetch?: typeof fetch;
   now?: () => number;
   fetchOptions?: Omit<FetchOptions, 'validators'>;
   log?: (msg: string) => void;
@@ -76,6 +83,7 @@ export async function runCollection(
     errors: [],
   };
   const reports: SourceRunReport[] = [];
+  const importedThisRun: IntelligenceEvent[] = [];
 
   for (const adapter of adapters) {
     const def = getSource(adapter.sourceId);
@@ -116,6 +124,7 @@ export async function runCollection(
       report.duplicates += valid.size - fresh.size;
       const toWrite = [...valid.values()].filter((e) => fresh.has(e.id));
       if (toWrite.length) await store.putEvents(toWrite);
+      importedThisRun.push(...toWrite);
       report.imported = toWrite.length;
 
       await store.putSourceState(adapter.sourceId, result.state);
@@ -161,7 +170,36 @@ export async function runCollection(
   }
 
   const tracked = opts.trackedSourceIds ?? adapters.map((a) => a.sourceId);
-  const snapshot = await buildSnapshot(store, run, tracked, opts.catalog ?? INDICATOR_CATALOG, now(), log);
+  const { snapshot, transitions, previousScores, previousEvaluatedAt } = await buildSnapshot(store, run, tracked, opts.catalog ?? INDICATOR_CATALOG, now(), log);
+
+  // Alerting: only this run's CHANGES can fire, so unchanged inputs never re-alert.
+  try {
+    const alerting = await runAlerting(store, {
+      now: now(),
+      newEvents: importedThisRun,
+      transitions,
+      previousScores,
+      currentScores: snapshot.regionScores ?? [],
+      currentEvaluations: snapshot.indicatorEvaluations ?? [],
+      previousEvaluatedAt,
+      discordWebhookUrl: opts.discordWebhookUrl ?? null,
+      appUrl: opts.appUrl,
+      fetchImpl: opts.alertFetch,
+      sleep: async () => {},
+      log,
+    });
+    run.alertsCreated = alerting.created;
+    run.notificationsSent = alerting.notificationsSent;
+    snapshot.activeAlertRules = alerting.activeRules;
+    snapshot.alertRuleProblems = alerting.problems;
+    for (const e of alerting.errors) run.errors.push({ sourceId: 'alert-delivery', message: sanitizeError(e) });
+    for (const p of alerting.problems) log(`ALRT rule "${p.ruleName}" invalid, skipped: ${p.problems.join('; ')}`);
+  } catch (err) {
+    run.errors.push({ sourceId: 'alert-engine', message: sanitizeError(err) });
+    log(`ALRT FAILED: ${sanitizeError(err)}`);
+  }
+  snapshot.discordConfigured = Boolean(opts.discordWebhookUrl);
+
   run.finishedAt = new Date(now()).toISOString();
   snapshot.lastRun = run;
   await store.putRun(run);
@@ -191,7 +229,12 @@ export async function buildSnapshot(
   catalog: IndicatorDefinition[],
   now: number,
   log: (msg: string) => void = () => {},
-): Promise<DashboardSnapshot> {
+): Promise<{
+  snapshot: DashboardSnapshot;
+  transitions: IndicatorTransition[];
+  previousScores: RegionScore[];
+  previousEvaluatedAt: string | null;
+}> {
   const statuses = (await Promise.all(sourceIds.map((id) => store.getSourceStatus(id)))).filter(
     (s): s is SourceStatus => s !== null,
   );
@@ -212,8 +255,11 @@ export async function buildSnapshot(
     scoreHistory: previous?.scoreHistory ?? [],
   };
 
+  let transitions: IndicatorTransition[] = [];
   try {
-    const { evaluations, transitions } = evaluateAll(catalog, loaded, statuses, now, previous?.indicatorEvaluations ?? []);
+    const evaluated = evaluateAll(catalog, loaded, statuses, now, previous?.indicatorEvaluations ?? []);
+    const evaluations = evaluated.evaluations;
+    transitions = evaluated.transitions;
     const scores = computeAllRegionScores(catalog, evaluations, now);
     if (transitions.length) await store.putIndicatorTransitions(transitions);
     snapshot.indicatorEvaluations = evaluations;
@@ -233,5 +279,10 @@ export async function buildSnapshot(
     events = events.slice(0, Math.floor(events.length * 0.9));
     snapshot.events = events;
   }
-  return snapshot;
+  return {
+    snapshot,
+    transitions,
+    previousScores: previous?.regionScores ?? [],
+    previousEvaluatedAt: previous?.indicatorEvaluations?.[0]?.evaluatedAt ?? null,
+  };
 }

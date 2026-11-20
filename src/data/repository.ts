@@ -6,6 +6,7 @@ import type { IndicatorEvaluation, RegionScore, ScoreHistoryPoint } from '@share
 import { INDICATOR_CATALOG } from '@shared/domain/indicators/catalog';
 import { evaluateAll } from '@shared/domain/indicators/evaluate';
 import { computeAllRegionScores } from '@shared/domain/indicators/rai';
+import type { AlertRuleProblem } from '@shared/domain/alerts/types';
 
 /**
  * Data access boundary for the UI.
@@ -26,6 +27,9 @@ export interface DashboardData {
   indicatorEvaluations: IndicatorEvaluation[];
   regionScores: RegionScore[];
   scoreHistory: ScoreHistoryPoint[];
+  alertRuleProblems: AlertRuleProblem[];
+  activeAlertRules: number | null;
+  discordConfigured: boolean | null;
 }
 
 export interface IntelRepository {
@@ -60,6 +64,9 @@ export class DemoRepository implements IntelRepository {
       indicatorEvaluations: evaluations,
       regionScores: computeAllRegionScores(INDICATOR_CATALOG, evaluations, now),
       scoreHistory: [],
+      alertRuleProblems: [],
+      activeAlertRules: null,
+      discordConfigured: null,
       events: this.events,
       // No collector has ever run in demo mode, so every source is honestly NOT_CONFIGURED.
       sourceStatus: SOURCE_REGISTRY.map((s) => ({

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.0] — 2026-11-20 — Phase 4: Alerting
+
+### Added
+- Alert rule model and validation (`shared/domain/alerts/`): event, indicator-state and RAI-crossing triggers; edge-based evaluation; first-look semantics for new rules; browser test mode.
+- Collector alert stage: deterministic alert ids, write-before-notify, per-rule cooldown, one Discord message per rule per run, delivery outcome recorded, failures reported (exit 2).
+- Discord delivery: strict webhook URL validation, markdown/mention neutralization, `allowed_mentions` empty, single 429 retry, URL never logged.
+- UI: Alert Center (inbox with ack/dismiss, rules list, graphical rule builder with JSON mode and live validation), top-bar open-alert counter, alert delivery status in status strip and Diagnostics.
+- Workflows: `DISCORD_WEBHOOK_URL` passed to Collect; new *Test alert delivery* workflow.
+- Security rules for `alertRules` (shape-validated owner writes), `alerts` (ack/dismiss only), `collectorState` (hidden) with emulator tests.
+
+### Fixed
+- Relative ages no longer show "+<1m" for timestamps a few seconds ahead of a stale clock.
+
+
 ## [0.3.0] — 2026-11-20 — Phase 3: Indicator & Warning Engine
 
 ### Added

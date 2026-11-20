@@ -3,7 +3,8 @@ import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../../shared/domain/types.ts';
 import { COLLECTIONS, SNAPSHOT_DOC_ID, type DashboardSnapshot } from '../../shared/domain/snapshot.ts';
 import type { IndicatorTransition } from '../../shared/domain/indicators/types.ts';
-import type { CollectorStore } from './types.ts';
+import type { AlertRecord } from '../../shared/domain/alerts/types.ts';
+import type { AlertingState, CollectorStore } from './types.ts';
 
 /**
  * Firestore-backed store using the Admin SDK.
@@ -90,6 +91,40 @@ export class FirestoreStore implements CollectorStore {
       }
       await batch.commit();
     }
+  }
+  async listAlertRules() {
+    const snap = await this.db.collection(COLLECTIONS.alertRules).limit(200).get();
+    return snap.docs.map((d) => ({ ...d.data(), id: d.id }));
+  }
+  async filterNewAlertIds(ids: string[]) {
+    const fresh = new Set<string>();
+    for (let i = 0; i < ids.length; i += 100) {
+      const refs = ids.slice(i, i + 100).map((id) => this.db.collection(COLLECTIONS.alerts).doc(id));
+      if (!refs.length) continue;
+      (await this.db.getAll(...refs)).forEach((s) => !s.exists && fresh.add(s.id));
+    }
+    return fresh;
+  }
+  async putAlerts(alerts: AlertRecord[]) {
+    for (let i = 0; i < alerts.length; i += 400) {
+      const batch = this.db.batch();
+      for (const a of alerts.slice(i, i + 400)) batch.create(this.db.collection(COLLECTIONS.alerts).doc(a.id), a);
+      await batch.commit();
+    }
+  }
+  async updateAlertDelivery(ids: string[], delivery: AlertRecord['delivery']) {
+    for (let i = 0; i < ids.length; i += 400) {
+      const batch = this.db.batch();
+      for (const id of ids.slice(i, i + 400)) batch.update(this.db.collection(COLLECTIONS.alerts).doc(id), { delivery });
+      await batch.commit();
+    }
+  }
+  async getAlertingState() {
+    const snap = await this.db.collection(COLLECTIONS.collectorState).doc('alerting').get();
+    return snap.exists ? (snap.data() as AlertingState) : null;
+  }
+  async putAlertingState(s: AlertingState) {
+    await this.db.collection(COLLECTIONS.collectorState).doc('alerting').set(s);
   }
   async putSnapshot(s: DashboardSnapshot) {
     await this.db.collection(COLLECTIONS.snapshots).doc(SNAPSHOT_DOC_ID).set(s);

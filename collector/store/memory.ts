@@ -1,7 +1,8 @@
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../../shared/domain/types.ts';
 import type { DashboardSnapshot } from '../../shared/domain/snapshot.ts';
 import type { IndicatorTransition } from '../../shared/domain/indicators/types.ts';
-import type { CollectorStore } from './types.ts';
+import type { AlertRecord } from '../../shared/domain/alerts/types.ts';
+import type { AlertingState, CollectorStore } from './types.ts';
 
 
 /** In-memory store for tests and --dry-run. Deep-copies on write like a real database. */
@@ -12,6 +13,9 @@ export class MemoryStore implements CollectorStore {
   readonly runs: CollectionRun[] = [];
   snapshot: DashboardSnapshot | null = null;
   readonly transitions: IndicatorTransition[] = [];
+  readonly alertRules = new Map<string, unknown>();
+  readonly alerts = new Map<string, AlertRecord>();
+  alertingState: AlertingState | null = null;
 
   async getSourceState<S>(id: string) {
     return (this.sourceState.has(id) ? structuredClone(this.sourceState.get(id)) : null) as S | null;
@@ -52,5 +56,29 @@ export class MemoryStore implements CollectorStore {
   }
   async putIndicatorTransitions(t: IndicatorTransition[]) {
     this.transitions.push(...structuredClone(t));
+  }
+  async listAlertRules() {
+    return [...this.alertRules.values()].map((r) => structuredClone(r));
+  }
+  async filterNewAlertIds(ids: string[]) {
+    return new Set(ids.filter((id) => !this.alerts.has(id)));
+  }
+  async putAlerts(alerts: AlertRecord[]) {
+    for (const a of alerts) {
+      if (this.alerts.has(a.id)) throw new Error(`alert ${a.id} already exists`);
+      this.alerts.set(a.id, structuredClone(a));
+    }
+  }
+  async updateAlertDelivery(ids: string[], delivery: AlertRecord['delivery']) {
+    for (const id of ids) {
+      const a = this.alerts.get(id);
+      if (a) a.delivery = structuredClone(delivery);
+    }
+  }
+  async getAlertingState() {
+    return this.alertingState ? structuredClone(this.alertingState) : null;
+  }
+  async putAlertingState(s: AlertingState) {
+    this.alertingState = structuredClone(s);
   }
 }

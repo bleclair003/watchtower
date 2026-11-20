@@ -211,4 +211,7 @@ export interface CollectionRun {
   recordsRejected: number;
   duplicatesSuppressed: number;
   errors: { sourceId: string; message: string }[];
+  /** Phase 4: alerts created and Discord notifications sent during this run. */
+  alertsCreated?: number;
+  notificationsSent?: number;
 }

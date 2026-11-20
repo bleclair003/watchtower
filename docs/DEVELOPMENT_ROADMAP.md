@@ -71,11 +71,16 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
 - [x] Manual evaluation: `--evaluate-only` CLI and in-browser preview
 - [ ] Operator editing of indicators (with Phase 4 rule builder)
 
-## Phase 4 — Alerting
-- [ ] Alert rules (graphical builder → declarative JSON)
-- [ ] Alert creation, history, acknowledgement, cooldowns, dedupe
-- [ ] Discord webhook (secret in Actions)
-- [ ] Rule test mode
+## Phase 4 — Alerting ✅ (verified on emulators; Discord pending operator webhook)
+- [x] Alert rules: graphical builder (rows + JSON mode) → declarative JSON, three edge-based trigger kinds
+- [x] First-look semantics for newly created rules (fire once on existing state)
+- [x] Alert creation with deterministic ids (no repeats for unchanged inputs), write-before-notify
+- [x] Inbox with acknowledge / dismiss, severity filter, delivery status; open-alert counter in top bar
+- [x] Per-rule cooldowns and batched (one message per rule per run) Discord notifications
+- [x] Discord webhook via Actions secret; URL validation, mention/markdown neutralization, 429 handling, no secret logging
+- [x] Rule test mode (browser preview; nothing created or sent) + "Test alert delivery" workflow
+- [x] Security rules: validated rule shape, alerts read-only except ack/dismiss; collector state hidden
+- [ ] **Operator:** create Discord webhook, add `DISCORD_WEBHOOK_URL` secret, run *Test alert delivery*
 
 ## Phase 5 — Dossiers
 - [ ] Incident model, linking, timelines, analyst notes, verification classes

@@ -31,6 +31,7 @@ export const COMMAND_HELP: CommandSpec[] = [
   { syntax: 'CLEAR', description: 'Reset all dashboard filters' },
   { syntax: 'STATUS', description: 'Open system diagnostics' },
   { syntax: 'INDICATORS', description: 'Open the Indicator & Warning Engine' },
+  { syntax: 'ALERTS', description: 'Open the Alert Center' },
   { syntax: 'SOURCES', description: 'Open the source directory' },
   { syntax: 'SETTINGS', description: 'Open operator settings' },
   { syntax: 'GOC', description: 'Return to Global Operations Center' },
@@ -39,6 +40,7 @@ export const COMMAND_HELP: CommandSpec[] = [
 const NAV: Record<string, string> = {
   STATUS: '/diagnostics',
   INDICATORS: '/indicators',
+  ALERTS: '/alerts',
   IWE: '/indicators',
   DIAGNOSTICS: '/diagnostics',
   SOURCES: '/sources',
@@ -76,7 +78,6 @@ export function parseCommand(input: string): Command {
   if (verb === 'HELP' || verb === '?') return { kind: 'help' };
   if (verb === 'CLEAR' || verb === 'RESET') return { kind: 'clear' };
   if (NAV[verb] && !arg) return { kind: 'navigate', to: NAV[verb] };
-  if (verb === 'ALERTS') return { kind: 'error', message: 'ALERT SYSTEM NOT YET DEPLOYED (PHASE 4)' };
   if (verb === 'SITREP') return { kind: 'error', message: 'SITREP GENERATOR NOT YET DEPLOYED (PHASE 6)' };
 
   if (verb === 'MAP') {
@@ -111,6 +112,7 @@ export function suggestCommands(input: string): string[] {
     'CLEAR',
     'STATUS',
     'INDICATORS',
+    'ALERTS',
     'SOURCES',
     'SETTINGS',
     'GOC',

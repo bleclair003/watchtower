@@ -1,0 +1,74 @@
+import type { Condition } from '../indicators/conditions.ts';
+import type { IndicatorState } from '../indicators/types.ts';
+
+/**
+ * Alerting domain model (Phase 4).
+ *
+ * Alert levels are WATCHTOWER application classifications — not official
+ * government warning levels.
+ */
+export const ALERT_SEVERITIES = ['INFORMATION', 'ADVISORY', 'WARNING', 'CRITICAL'] as const;
+export type AlertSeverity = (typeof ALERT_SEVERITIES)[number];
+
+/**
+ * What makes a rule fire. Every trigger is edge-based, so an unchanged input
+ * can never fire twice:
+ *  - event:     a NEWLY COLLECTED event matches the condition (each event fires once)
+ *  - indicator: an indicator TRANSITIONS INTO one of the listed states
+ *  - rai:       a region's RAI CROSSES the threshold upward
+ */
+export type AlertTrigger =
+  | { kind: 'event'; match: Condition }
+  | { kind: 'indicator'; indicatorIds: string[]; states: IndicatorState[] }
+  | { kind: 'rai'; regionId: string; atLeast: number };
+
+export interface AlertRule {
+  id: string;
+  name: string;
+  enabled: boolean;
+  severity: AlertSeverity;
+  trigger: AlertTrigger;
+  notify: { discord: boolean };
+  /** After a Discord notification for this rule, further notifications are suppressed for this long. Alerts are still recorded. */
+  cooldownMinutes: number;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type DeliveryStatus =
+  | 'sent'
+  | 'failed'
+  | 'suppressed-cooldown'
+  | 'not-requested'
+  | 'not-configured'
+  | 'pending';
+
+export interface AlertRecord {
+  /** Deterministic: hash(ruleId, dedupeKey). Re-evaluating the same input yields the same id. */
+  id: string;
+  ruleId: string;
+  ruleName: string;
+  ruleVersion: number;
+  severity: AlertSeverity;
+  title: string;
+  body: string;
+  regionIds: string[];
+  /** Primary link for the alert (original source for event alerts). Empty when none. */
+  url: string;
+  evidenceEventIds: string[];
+  /** What produced it: the event id, indicator transition, or RAI crossing. */
+  dedupeKey: string;
+  createdAt: string;
+  acknowledged: boolean;
+  acknowledgedAt: string | null;
+  dismissed: boolean;
+  dismissedAt: string | null;
+  delivery: { discord: DeliveryStatus; at: string | null; error: string | null };
+}
+
+export interface AlertRuleProblem {
+  ruleId: string;
+  ruleName: string;
+  problems: string[];
+}

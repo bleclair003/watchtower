@@ -4,6 +4,7 @@ import { backendMode } from '../config/firebase';
 import { createRepository, PermissionDeniedError, type DataMode, type IntelRepository } from '../data/repository';
 import { readStorage, writeStorage } from '../lib/storage';
 import type { IndicatorEvaluation, RegionScore, ScoreHistoryPoint } from '@shared/domain/indicators/types';
+import type { AlertRuleProblem } from '@shared/domain/alerts/types';
 
 /** Max events kept in the dashboard working set (the snapshot is already bounded). */
 export const DASHBOARD_EVENT_LIMIT = 500;
@@ -22,6 +23,9 @@ interface DataState {
   indicatorEvaluations: IndicatorEvaluation[];
   regionScores: RegionScore[];
   scoreHistory: ScoreHistoryPoint[];
+  alertRuleProblems: AlertRuleProblem[];
+  activeAlertRules: number | null;
+  discordConfigured: boolean | null;
   loading: boolean;
   error: string | null;
   accessDenied: boolean;
@@ -45,6 +49,9 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
     indicatorEvaluations: [] as IndicatorEvaluation[],
     regionScores: [] as RegionScore[],
     scoreHistory: [] as ScoreHistoryPoint[],
+    alertRuleProblems: [] as AlertRuleProblem[],
+    activeAlertRules: null as number | null,
+    discordConfigured: null as boolean | null,
     loadedAt: null as string | null,
     readsThisSession: null as number | null,
   });
@@ -72,6 +79,9 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
         indicatorEvaluations: d.indicatorEvaluations,
         regionScores: d.regionScores,
         scoreHistory: d.scoreHistory,
+        alertRuleProblems: d.alertRuleProblems,
+        activeAlertRules: d.activeAlertRules,
+        discordConfigured: d.discordConfigured,
         loadedAt: new Date().toISOString(),
         readsThisSession: repo.readsThisSession(),
       });

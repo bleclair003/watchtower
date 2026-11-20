@@ -31,7 +31,8 @@ Phase 0 is complete, and Phase 1 is complete on a clearly labelled **demonstrati
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System design, folder layout, Task A review & risks |
 | [SOURCE_REGISTRY.md](SOURCE_REGISTRY.md) | Source feasibility matrix |
 | [DATA_MODEL.md](DATA_MODEL.md) | Entities, Firestore collections, indexes, retention |
-| [INDICATOR_ENGINE.md](INDICATOR_ENGINE.md) | IWE and RAI design (Phase 3) |
+| [INDICATOR_ENGINE.md](INDICATOR_ENGINE.md) | Indicator & Warning Engine and RAI |
+| [ALERTING.md](ALERTING.md) | Alert rules, delivery, Discord, cooldowns |
 | [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) | Tokens, typography, symbols, effects |
 | [TESTING.md](TESTING.md) | Test commands and coverage |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | $0 hosting path, quotas, setup checklist, secrets |

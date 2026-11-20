@@ -27,7 +27,7 @@ export class FirestoreRepository implements IntelRepository {
     }
     if (!snap.exists()) {
       // Database reachable but the collector has never completed a run.
-      return { events: [], sourceStatus: [], lastRun: null, generatedAt: null, totalEventsStored: 0, indicatorEvaluations: [], regionScores: [], scoreHistory: [] };
+      return { events: [], sourceStatus: [], lastRun: null, generatedAt: null, totalEventsStored: 0, indicatorEvaluations: [], regionScores: [], scoreHistory: [], alertRuleProblems: [], activeAlertRules: null, discordConfigured: null };
     }
     const s = snap.data() as DashboardSnapshot;
     return {
@@ -40,6 +40,10 @@ export class FirestoreRepository implements IntelRepository {
       indicatorEvaluations: s.indicatorEvaluations ?? [],
       regionScores: s.regionScores ?? [],
       scoreHistory: s.scoreHistory ?? [],
+      // Absent before Phase 4.
+      alertRuleProblems: s.alertRuleProblems ?? [],
+      activeAlertRules: s.activeAlertRules ?? null,
+      discordConfigured: s.discordConfigured ?? null,
     };
   }
 
