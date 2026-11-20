@@ -16,6 +16,7 @@ import { runAlerting } from './alerts/alerting.ts';
 import type { SourceAdapter } from './adapters/types.ts';
 import type { CollectorStore } from './store/types.ts';
 import { politeFetch, type FetchOptions } from './lib/http.ts';
+import { redactSecrets } from './lib/secrets.ts';
 import { validateEvent } from './lib/validate.ts';
 import { truncate } from './lib/text.ts';
 
@@ -52,7 +53,7 @@ export interface SourceRunReport {
 /** Strip anything that might be sensitive or huge from an error before persisting it. */
 function sanitizeError(err: unknown): string {
   const msg = err instanceof Error ? err.message : String(err);
-  return truncate(msg.replace(/https?:\/\/[^\s]*[?&](key|token|sig)=[^\s&]*/gi, '[redacted-url]'), 300);
+  return truncate(redactSecrets(msg).replace(/https?:\/\/[^\s]*[?&](key|token|sig)=[^\s&]*/gi, '[redacted-url]'), 300);
 }
 
 /**
@@ -103,7 +104,7 @@ export async function runCollection(
       const result = await adapter.collect({
         now: now(),
         state,
-        fetch: (url, validators) => politeFetch(url, { ...opts.fetchOptions, validators }),
+        fetch: (url, validators, headers) => politeFetch(url, { ...opts.fetchOptions, validators, extraHeaders: headers }),
       });
       report.itemsSeen = result.itemsSeen;
       report.notModified = result.notModified;

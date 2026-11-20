@@ -28,6 +28,8 @@ export class HttpError extends Error {
 
 export interface FetchOptions {
   validators?: Validators;
+  /** Extra request headers (e.g. Authorization for free-key APIs). Never logged. */
+  extraHeaders?: Record<string, string>;
   timeoutMs?: number;
   retries?: number;
   maxBytes?: number;
@@ -41,6 +43,7 @@ const defaultSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 export async function politeFetch(url: string, opts: FetchOptions = {}): Promise<FetchResult> {
   const {
     validators,
+    extraHeaders,
     timeoutMs = 30_000,
     retries = 2,
     maxBytes = 8 * 1024 * 1024,
@@ -52,6 +55,7 @@ export async function politeFetch(url: string, opts: FetchOptions = {}): Promise
     'User-Agent': USER_AGENT,
     Accept: 'application/rss+xml, application/atom+xml, application/xml, application/json;q=0.9, text/xml;q=0.8, */*;q=0.1',
   };
+  if (extraHeaders) for (const [k, v] of Object.entries(extraHeaders)) headers[k] = v;
   if (validators?.etag) headers['If-None-Match'] = validators.etag;
   if (validators?.lastModified) headers['If-Modified-Since'] = validators.lastModified;
 

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0] — 2026-11-21 — Free-key sources
+
+### Added
+- NASA FIRMS adapter: new satellite fire clusters (novelty filter removes gas flares and continuing fires).
+- Cloudflare Radar adapter: analyst-annotated internet outages with an attributed cause.
+- Catalog v4 (48 indicators): attributed shutdown or military-action outage per region; experimental new-fire-cluster volume.
+- Secret registry: API keys come only from the environment and are redacted from errors and logs. Sources without a key are skipped as NOT CONFIGURED.
+
+### Rejected
+- ACLED: no API on personal accounts; the EULA excludes this kind of dashboard use.
+
+
 ## [0.8.0] — 2026-11-20 — Source expansion
 
 ### Added

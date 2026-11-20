@@ -39,6 +39,17 @@ Machine-readable version: [`shared/domain/sources.ts`](../shared/domain/sources.
 - **Topic classifier** ([`collector/lib/topic.ts`](../collector/lib/topic.ts)): keyword lists checked in priority order: cyber, military, maritime, aviation, unrest, disaster, diplomatic, economic. A headline with no keyword is filed as **General news**. The matched keyword is stored in `metadata.topicTerm`. Figurative "coup" was a false positive, so only literal phrases ("military coup", "coup attempt") count.
 - **Tool:** `node collector/inspect.ts <source-id>…` prints how each live item would be tagged, and writes nothing.
 
+## v0.9.0 free-key sources — built; active once a key is set
+
+These sources skip as `NOT CONFIGURED` (not failed) until their secret exists. Keys are read only from environment variables, and are registered for redaction from every error and log line. The tests use synthetic responses built to the documented formats.
+
+| Source | Endpoint | Key | What WATCHTOWER keeps | Caveats |
+|---|---|---|---|---|
+| NASA FIRMS (VIIRS NOAA-20 NRT) | `/api/area/csv/[MAP_KEY]/VIIRS_NOAA20_NRT/[bbox]/[days]`, one request per geographic watch area | `FIRMS_MAP_KEY`: free, by email at <https://firms.modaps.eosdis.nasa.gov/api/map_key/> | **New** fire clusters only: ≥ 3 nominal/high-confidence detections in a 0.25° cell after 7 days with none. Point = strongest real detection | Most fires are agricultural, wildfire or gas flares; a fire is not evidence of an attack. The CSV is parsed by column name, and an unexpected layout fails loudly. |
+| Cloudflare Radar Outage Center | `GET /client/v4/radar/annotations/outages?dateRange=7d` | `CLOUDFLARE_RADAR_TOKEN`: free account, API token with **User Details: Read** | Every annotated outage, with Cloudflare's cause and type; a shutdown counts as unrest, military action as military | Analyst-reviewed, so it lags IODA. CC BY-NC 4.0. Rate limits are not documented. |
+
+**ACLED: rejected (2026-11-20).** Personal email addresses get the Open tier, which has no API. The Research tier needs an institutional address and gets lagged event data. The EULA (1 Nov 2026) says making data available through your own dashboard is not a sufficient use, and restricts direct access to event-level data.
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |

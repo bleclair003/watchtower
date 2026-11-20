@@ -117,5 +117,7 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
 - [x] Catalog v3: FCDO updates, connectivity drops, Korea non-earthquake seismic events, experimental media volume
 - [x] Feed detail shows how location and topic were derived (TXT-GEO tag)
 - [ ] GDELT (retry from an Actions runner), ReliefWeb (needs an approved appname), NGA MSI (503), UKMTO, MARAD
-- [ ] Free-key sources: NASA FIRMS fire detections (strike/fire activity), ACLED (account), Cloudflare Radar (token)
+- [x] Free-key sources built (v0.9.0): NASA FIRMS new fire clusters, Cloudflare Radar attributed outages; catalog v4 (48)
+- [ ] Configure `FIRMS_MAP_KEY` and `CLOUDFLARE_RADAR_TOKEN`, then verify both live
+- [x] ACLED evaluated and rejected (no API on personal accounts; EULA excludes dashboard use)
 - [ ] Cross-source corroboration: mark a media report `corroborated` when an independent source reports the same country and topic

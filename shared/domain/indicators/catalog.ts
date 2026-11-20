@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 3;
+export const CATALOG_VERSION = 4;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -267,6 +267,75 @@ const expansionIndicators: IndicatorDefinition[] = [
   },
 ];
 
+const FIRMS = 'nasa-firms';
+const RADAR = 'cloudflare-radar-outages';
+
+/** Free-key sources (v0.9). They report NO DATA until the key is configured. */
+const freeKeyIndicators: IndicatorDefinition[] = ADVISORY_REGIONS.flatMap((r): IndicatorDefinition[] => [
+  {
+    id: `${r.id}.outage-attributed`,
+    name: `${r.shortCode} shutdown or conflict-related outage`,
+    description: `Cloudflare Radar attributed an internet outage in a ${r.name} country to a government-directed shutdown or military action within 7 days.`,
+    family: 'information-environment',
+    regionId: r.id,
+    requiredSourceIds: [RADAR],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: RADAR },
+        { field: 'regionIds', op: 'contains', value: r.id },
+        { field: 'metadata.outageCause', op: 'in', value: ['GOVERNMENT_DIRECTED', 'MILITARY_ACTION'] },
+      ],
+    },
+    windowHours: 168,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 1 },
+    baseline: null,
+    weight: 3,
+    severity: 'high',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale:
+      'A deliberate shutdown or an outage caused by fighting is a direct sign of unrest or military activity. The cause is Cloudflare analysts’ assessment, published after review, so it lags the outage itself.',
+  },
+  {
+    id: `${r.id}.thermal-clusters`,
+    name: `${r.shortCode} new satellite fire clusters`,
+    description: `New clusters of NASA FIRMS fire detections in the ${r.name} watch area within 24 hours, compared with the 28-day baseline.`,
+    family: 'experimental',
+    regionId: r.id,
+    requiredSourceIds: [FIRMS],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: FIRMS },
+        { field: 'regionIds', op: 'contains', value: r.id },
+      ],
+    },
+    windowHours: 24,
+    elevated: { countAtLeast: 5 },
+    triggered: { countAtLeast: 12 },
+    baseline: { days: 28, triggerRatio: 3, elevatedRatio: 2 },
+    weight: 0,
+    severity: 'low',
+    experimental: true,
+    enabled: true,
+    configVersion: 1,
+    rationale:
+      'Satellite fire detections have been used to track strikes and shelling, but most fires are agricultural, wildfires or industrial. Unvalidated and strongly seasonal, so it never affects the RAI.',
+    research: {
+      hypothesis: 'A burst of NEW fire clusters (cells with no fire for 7 days) in a watch area, above its baseline, accompanies strikes, shelling or sabotage.',
+      dataAvailability: 'Available once FIRMS_MAP_KEY is configured: VIIRS NOAA-20 near-real-time detections, collected hourly.',
+      baselinePeriod: '28 days of collection; harvest-season burning needs a full year to model properly.',
+      expectedRelationship: 'Coincident with kinetic activity in front-line areas; little lead time.',
+      historicalExamples: 'Open-source analysts have used FIRMS to map front-line fires in Ukraine since 2022. None in WATCHTOWER data yet.',
+      confounders: 'Agricultural burning seasons, wildfires, gas flares (largely removed by the novelty filter), cloud cover hiding fires.',
+      falsePositives: 'Expected to be frequent in spring and late summer.',
+      retrospectiveResults: 'Insufficient history. Re-run in Signal Lab once 90+ days are collected.',
+      evidenceQuality: 'weak',
+    },
+  },
+]);
+
 const experimentalIndicators: IndicatorDefinition[] = [
   {
     id: 'experimental.pentagon-pizza',
@@ -335,6 +404,7 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...advisoryIndicators,
   ...cyberIndicators,
   ...expansionIndicators,
+  ...freeKeyIndicators,
   ...experimentalIndicators,
 ];
 

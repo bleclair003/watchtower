@@ -14,7 +14,7 @@ export interface AdapterContext<S> {
   /** Persisted per-source state from the previous run, or null on first run. */
   state: S | null;
   /** Polite fetch bound to the collector's HTTP policy. */
-  fetch: (url: string, validators?: Validators) => Promise<FetchResult>;
+  fetch: (url: string, validators?: Validators, headers?: Record<string, string>) => Promise<FetchResult>;
 }
 
 export interface AdapterResult<S> {
@@ -33,6 +33,8 @@ export interface AdapterResult<S> {
 export interface SourceAdapter<S = unknown> {
   /** Must match an id in shared/domain/sources.ts. */
   readonly sourceId: string;
+  /** Environment variables (API keys) the adapter needs. Without them the source is NOT CONFIGURED, not failed. */
+  readonly requiredEnv?: string[];
   collect(ctx: AdapterContext<S>): Promise<AdapterResult<S>>;
 }
 

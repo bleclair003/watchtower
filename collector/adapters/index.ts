@@ -6,6 +6,8 @@ import { fcdoTravelAdvice } from './fcdoTravelAdvice.ts';
 import { usgsEarthquakes } from './usgsEarthquakes.ts';
 import { gdacs } from './gdacs.ts';
 import { iodaOutages } from './ioda.ts';
+import { firms } from './firms.ts';
+import { cloudflareRadarOutages } from './cloudflareRadar.ts';
 import { aljazeera, bbcWorld, iaeaNews, ukMod, unNews, warGovNews } from './news.ts';
 
 /** Active adapters. Adding a source = write an adapter + register it here. */
@@ -23,4 +25,7 @@ export const ADAPTERS: SourceAdapter<never>[] = [
   unNews as SourceAdapter<never>,
   bbcWorld as SourceAdapter<never>,
   aljazeera as SourceAdapter<never>,
+  // Free-key sources: active only when their key is set.
+  firms as SourceAdapter<never>,
+  cloudflareRadarOutages as SourceAdapter<never>,
 ];

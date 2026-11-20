@@ -108,6 +108,15 @@ If you add a new external host (a new map style, for example), add it to the CSP
 
 Hosting stays within the Spark free tier: 10 GB storage and 360 MB/day transfer. A full first load is about 1.1 MB gzipped, and assets are cached for a year.
 
+## 4b. Free-key sources (optional)
+
+| Secret | How to get it | Enables |
+|---|---|---|
+| `FIRMS_MAP_KEY` | <https://firms.modaps.eosdis.nasa.gov/api/map_key/>: enter your email; the key arrives by email | NASA FIRMS new fire clusters |
+| `CLOUDFLARE_RADAR_TOKEN` | Free Cloudflare account → My Profile → API Tokens → Create Token → Custom token → permission **User → User Details → Read** | Cloudflare Radar attributed outages |
+
+Add each one under GitHub → repository → Settings → Secrets and variables → Actions → New repository secret. The next Collect run picks it up. Without it, the source logs `SKIP … not configured`.
+
 ## 5. Secrets policy
 
 - Firebase **web** config is public by design; security comes from rules + the owner claim.

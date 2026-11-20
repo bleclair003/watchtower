@@ -33,8 +33,12 @@ async function main(): Promise<number> {
   });
 
   const wanted = values.sources?.split(',').map((s) => s.trim()).filter(Boolean);
-  const adapters = wanted ? ADAPTERS.filter((a) => wanted.includes(a.sourceId)) : ADAPTERS;
-  if (wanted && adapters.length !== wanted.length) {
+  const requested = wanted ? ADAPTERS.filter((a) => wanted.includes(a.sourceId)) : ADAPTERS;
+  // Free-key sources without their key are NOT CONFIGURED: skipped, never reported as failures.
+  const configured = (a: (typeof ADAPTERS)[number]) => (a.requiredEnv ?? []).every((v) => !!process.env[v]?.trim());
+  const adapters = requested.filter(configured);
+  for (const a of requested.filter((x) => !configured(x))) console.log(`SKIP ${a.sourceId.padEnd(26)} not configured (set ${a.requiredEnv!.join(', ')})`);
+  if (wanted && requested.length !== wanted.length) {
     const known = ADAPTERS.map((a) => a.sourceId).join(', ');
     console.error(`Unknown source in --sources. Available: ${known}`);
     return 1;
@@ -67,7 +71,7 @@ async function main(): Promise<number> {
   const { run, reports, snapshot } = await runCollection(evaluateOnly ? [] : adapters, store, {
     trigger,
     mode: evaluateOnly ? 'evaluate-only' : 'collect',
-    trackedSourceIds: ADAPTERS.map((a) => a.sourceId),
+    trackedSourceIds: ADAPTERS.filter(configured).map((a) => a.sourceId),
     discordWebhookUrl,
     appUrl: process.env.WATCHTOWER_APP_URL?.trim() || undefined,
     log: (m) => console.log(m),
