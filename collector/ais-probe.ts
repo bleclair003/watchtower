@@ -25,6 +25,18 @@ interface Box {
 const boxes = new Map<string, Box>(CHOKEPOINTS.map((c) => [c.id, { messages: 0, types: {}, ships: new Set(), moving: new Set() }]));
 let total = 0;
 let raw = 0;
+const cells = new Map<string, number>();
+const broad = new Map<string, number>();
+const BROAD: [string, [[number, number], [number, number]]][] = [
+  ['Persian Gulf + Gulf of Oman', [[22, 47], [31, 60]]],
+  ['Red Sea + Gulf of Aden', [[11, 32], [30, 52]]],
+  ['Eastern Mediterranean', [[30, 26], [38, 37]]],
+  ['Black Sea + Turkish Straits', [[40, 26], [47, 42]]],
+  ['Taiwan + SE China coast', [[20, 115], [28, 125]]],
+  ['Korea + Japan Sea', [[33, 124], [43, 135]]],
+  ['South China Sea', [[3, 105], [21, 121]]],
+  ['Baltic', [[53, 9], [66, 31]]],
+];
 let confirmed: unknown = null;
 const started = Date.now();
 let firstAt: number | null = null;
@@ -57,6 +69,9 @@ ws.onmessage = (ev) => {
   firstAt ??= Date.now();
   const m = msg.MetaData;
   if (!m || typeof m.latitude !== 'number' || typeof m.longitude !== 'number') return;
+  const cell = `${Math.floor(m.latitude / 10) * 10},${Math.floor(m.longitude / 10) * 10}`;
+  cells.set(cell, (cells.get(cell) ?? 0) + 1);
+  for (const [name, [[s, w], [n, e]]] of BROAD) if (m.latitude >= s && m.latitude <= n && m.longitude >= w && m.longitude <= e) broad.set(name, (broad.get(name) ?? 0) + 1);
   const c = chokepointAt(m.latitude, m.longitude);
   if (!c) return;
   const b = boxes.get(c.id)!;
@@ -79,5 +94,7 @@ setTimeout(() => {
     const b = boxes.get(c.id)!;
     console.log(`  ${c.name.padEnd(18)} ${String(b.messages).padStart(5)} msgs · ${String(b.ships.size).padStart(4)} ships · ${String(b.moving.size).padStart(4)} moving (≥1 kn) · ${JSON.stringify(b.types)}`);
   }
+  console.log('Top 10-degree cells (lat,lon: msgs):', [...cells].sort((a, b) => b[1] - a[1]).slice(0, 15).map(([k, v]) => `${k}: ${v}`).join(' | '));
+  console.log('Broad areas:', BROAD.map(([n]) => `${n}: ${broad.get(n) ?? 0}`).join(' | '));
   setTimeout(() => process.exit(0), 500);
 }, seconds * 1000);
