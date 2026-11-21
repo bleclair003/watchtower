@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { componentOf, type Branch, type Installation } from '@shared/domain/installations';
+import { componentOf, operationOf, type Branch, type Installation, type Operation, type WorldInstallation } from '@shared/domain/installations';
 import '../../lib/maplibreSetup';
-import { Map as MLMap, NavigationControl, Popup, type GeoJSONSource, type StyleSpecification } from 'maplibre-gl';
+import { Map as MLMap, NavigationControl, Popup, type GeoJSONSource, type MapLayerMouseEvent, type StyleSpecification } from 'maplibre-gl';
 import { EVENT_CATEGORIES, type IntelligenceEvent } from '@shared/domain/types';
 import { WATCH_REGIONS, getRegion } from '@shared/domain/regions';
 import { CATEGORY_STYLES } from '../../config/categories';
@@ -18,11 +18,13 @@ export interface WorldMapProps {
   showRegions: boolean;
   /** Increment to fly back to the global view. */
   globalViewNonce: number;
-  /** Military installations layer (optional). */
+  /** Military installations layer (optional): DoD sites (US) and worldwide sites (Wikidata). */
   installations?: Installation[];
+  worldInstallations?: WorldInstallation[];
   showInstallations?: boolean;
+  /** Selection key: `dod:<name>` or `wd:<Wikidata id>`. */
   selectedInstallation?: string | null;
-  onSelectInstallation?: (name: string | null) => void;
+  onSelectInstallation?: (key: string | null) => void;
 }
 
 const GLOBAL_VIEW = { center: [35, 22] as [number, number], zoom: 1.35 };
@@ -31,6 +33,9 @@ const INFO = '#69c6d5';
 const LOAD_TIMEOUT_MS = 20_000;
 /** Branch colours: no red or amber (reserved for severity). Branch is also named in the hover and card. */
 export const BRANCH_COLOR: Record<Branch, string> = { army: '#9ccc65', navy: '#69c6d5', 'air-force': '#b3a6ff', marines: '#e8a0c8', other: '#c8c8c8' };
+/** Worldwide sites are drawn as rings (DoD sites are solid), coloured by who operates them. */
+export const OPERATION_COLOR: Record<Operation, string> = { 'us-abroad': '#69c6d5', foreign: '#e8a0c8', national: '#9aa5a0' };
+export const OPERATION_LABEL: Record<Operation, string> = { 'us-abroad': 'US-operated abroad', foreign: 'Foreign-operated', national: 'National / not recorded' };
 
 /** Rasterize each category's SVG path into a map icon so map and legend match. */
 function registerCategoryIcons(map: MLMap) {
@@ -209,17 +214,46 @@ export function WorldMap(props: WorldMapProps) {
           paint: {
             'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 1.6, 4, 3, 8, 5.5],
             'circle-color': ['match', ['get', 'branch'], 'army', BRANCH_COLOR.army, 'navy', BRANCH_COLOR.navy, 'air-force', BRANCH_COLOR['air-force'], 'marines', BRANCH_COLOR.marines, BRANCH_COLOR.other],
-            'circle-opacity': ['case', ['get', 'active'], 0.85, 0.35],
+            'circle-opacity': ['interpolate', ['linear'], ['zoom'], 1, ['case', ['get', 'active'], 0.55, 0.2], 4, ['case', ['get', 'active'], 0.85, 0.35]],
             'circle-stroke-color': '#050a08',
             'circle-stroke-width': 0.6,
+          },
+        });
+        m.addSource('installations-world', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({
+          id: 'installations-world',
+          type: 'circle',
+          source: 'installations-world',
+          paint: {
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 1.8, 4, 3.2, 8, 5.5],
+            'circle-color': 'rgba(0,0,0,0)',
+            'circle-stroke-color': ['match', ['get', 'op'], 'us-abroad', OPERATION_COLOR['us-abroad'], 'foreign', OPERATION_COLOR.foreign, OPERATION_COLOR.national],
+            'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 1, 0.9, 6, 1.6],
+            // Faint when zoomed out (thousands of sites), clear from regional zoom.
+            'circle-stroke-opacity': ['interpolate', ['linear'], ['zoom'], 1, 0.45, 4, 0.9],
           },
         });
         m.addLayer({
           id: 'installation-selected',
           type: 'circle',
           source: 'installations',
-          filter: ['==', ['get', 'name'], '__none__'],
+          filter: ['==', ['get', 'key'], '__none__'],
           paint: { 'circle-radius': 9, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': INFO, 'circle-stroke-width': 1.6 },
+        });
+        m.addLayer({
+          id: 'installation-world-selected',
+          type: 'circle',
+          source: 'installations-world',
+          filter: ['==', ['get', 'key'], '__none__'],
+          paint: { 'circle-radius': 9, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': INFO, 'circle-stroke-width': 1.6 },
+        });
+        m.addLayer({
+          id: 'installation-world-labels',
+          type: 'symbol',
+          source: 'installations-world',
+          minzoom: 6,
+          layout: { 'text-field': ['get', 'name'], 'text-font': font, 'text-size': 10, 'text-offset': [0, 1.1], 'text-anchor': 'top', 'text-optional': true },
+          paint: { 'text-color': '#80a992', 'text-halo-color': '#050a08', 'text-halo-width': 1.2 },
         });
         m.addLayer({
           id: 'installation-labels',
@@ -275,7 +309,7 @@ export function WorldMap(props: WorldMapProps) {
           m.getCanvas().style.cursor = '';
           hover.remove();
         });
-        m.on('mousemove', 'installations', (e) => {
+        const showBaseHover = (e: MapLayerMouseEvent) => {
           const f = e.features?.[0];
           if (!f || m.queryRenderedFeatures(e.point, { layers: ['events'] }).length) return;
           m.getCanvas().style.cursor = 'pointer';
@@ -289,11 +323,14 @@ export function WorldMap(props: WorldMapProps) {
           title.textContent = p.name;
           el.append(kind, title);
           hover.setLngLat((f.geometry as GeoJSON.Point).coordinates as [number, number]).setDOMContent(el).addTo(m);
-        });
-        m.on('mouseleave', 'installations', () => {
-          m.getCanvas().style.cursor = '';
-          hover.remove();
-        });
+        };
+        for (const layer of ['installations', 'installations-world']) {
+          m.on('mousemove', layer, showBaseHover);
+          m.on('mouseleave', layer, () => {
+            m.getCanvas().style.cursor = '';
+            hover.remove();
+          });
+        }
         for (const layer of ['clusters', 'region-fill']) {
           m.on('mouseenter', layer, () => (m.getCanvas().style.cursor = 'pointer'));
           m.on('mouseleave', layer, () => (m.getCanvas().style.cursor = ''));
@@ -306,10 +343,10 @@ export function WorldMap(props: WorldMapProps) {
             return;
           }
           const bases = m.getLayer('installations') && m.getLayoutProperty('installations', 'visibility') !== 'none'
-            ? m.queryRenderedFeatures([[e.point.x - 4, e.point.y - 4], [e.point.x + 4, e.point.y + 4]], { layers: ['installations'] })
+            ? m.queryRenderedFeatures([[e.point.x - 4, e.point.y - 4], [e.point.x + 4, e.point.y + 4]], { layers: ['installations', 'installations-world'] })
             : [];
           if (bases[0] && cb.current.onSelectInstallation) {
-            cb.current.onSelectInstallation(String(bases[0].properties.name));
+            cb.current.onSelectInstallation(String(bases[0].properties.key));
             return;
           }
           const clusters = m.queryRenderedFeatures(e.point, { layers: ['clusters'] });
@@ -374,7 +411,7 @@ export function WorldMap(props: WorldMapProps) {
     m.flyTo({ ...GLOBAL_VIEW, duration: 700 });
   }, [ready, globalViewNonce]);
 
-  const { installations, showInstallations, selectedInstallation } = props;
+  const { installations, worldInstallations, showInstallations, selectedInstallation } = props;
   useEffect(() => {
     const m = mapRef.current;
     if (!ready || !m) return;
@@ -385,7 +422,7 @@ export function WorldMap(props: WorldMapProps) {
         return {
           type: 'Feature' as const,
           geometry: { type: 'Point' as const, coordinates: [i.lon, i.lat] },
-          properties: { name: i.name, branch: c.branch, label: c.label, active: i.status === 'act' },
+          properties: { key: `dod:${i.name}`, name: i.name, branch: c.branch, label: c.label, active: i.status === 'act' },
         };
       }),
     });
@@ -394,15 +431,36 @@ export function WorldMap(props: WorldMapProps) {
   useEffect(() => {
     const m = mapRef.current;
     if (!ready || !m) return;
-    for (const id of ['installations', 'installation-labels', 'installation-selected']) m.setLayoutProperty(id, 'visibility', showInstallations ? 'visible' : 'none');
+    (m.getSource('installations-world') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (worldInstallations ?? []).map((w) => {
+        const op = operationOf(w);
+        return {
+          type: 'Feature' as const,
+          geometry: { type: 'Point' as const, coordinates: [w.lo, w.la] },
+          properties: { key: `wd:${w.q}`, name: w.n, op, label: `${OPERATION_LABEL[op]} · ${w.k[0] ?? 'installation'}` },
+        };
+      }),
+    });
+  }, [ready, worldInstallations]);
+
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    for (const id of ['installations', 'installation-labels', 'installation-selected', 'installations-world', 'installation-world-selected', 'installation-world-labels']) {
+      m.setLayoutProperty(id, 'visibility', showInstallations ? 'visible' : 'none');
+    }
   }, [ready, showInstallations]);
 
   useEffect(() => {
     const m = mapRef.current;
     if (!ready || !m) return;
-    m.setFilter('installation-selected', ['==', ['get', 'name'], selectedInstallation ?? '__none__']);
-    const inst = installations?.find((i) => i.name === selectedInstallation);
-    if (inst) m.easeTo({ center: [inst.lon, inst.lat], zoom: Math.max(m.getZoom(), 6), duration: 600 });
+    m.setFilter('installation-selected', ['==', ['get', 'key'], selectedInstallation ?? '__none__']);
+    m.setFilter('installation-world-selected', ['==', ['get', 'key'], selectedInstallation ?? '__none__']);
+    const dod = installations?.find((i) => `dod:${i.name}` === selectedInstallation);
+    const world = worldInstallations?.find((w) => `wd:${w.q}` === selectedInstallation);
+    const at: [number, number] | null = dod ? [dod.lon, dod.lat] : world ? [world.lo, world.la] : null;
+    if (at) m.easeTo({ center: at, zoom: Math.max(m.getZoom(), 6), duration: 600 });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to selection changes
   }, [ready, selectedInstallation]);
 

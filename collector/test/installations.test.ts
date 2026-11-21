@@ -2,10 +2,11 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import type { IntelligenceEvent } from '../../shared/domain/types.ts';
-import { COMPONENTS, STATUS_LABEL, distanceKm, installationAliases, relatedRecords, type InstallationDataset } from '../../shared/domain/installations.ts';
+import { COMPONENTS, STATUS_LABEL, distanceKm, dodRef, installationAliases, operationOf, relatedRecords, worldRef, type InstallationDataset, type WorldDataset } from '../../shared/domain/installations.ts';
+import { isCrimea } from '../geo/countries.ts';
 
 const data = JSON.parse(readFileSync(new URL('../../public/data/installations-us.json', import.meta.url), 'utf8')) as InstallationDataset;
-const find = (name: string) => data.installations.find((i) => i.name === name)!;
+const find = (name: string) => dodRef(data.installations.find((i) => i.name === name)!);
 
 describe('installations dataset (DoD MIRTA points)', () => {
   it('records its source and licence, and every point is plausible', () => {
@@ -74,5 +75,46 @@ describe('related records', () => {
 
   it('computes great-circle distance', () => {
     expect(Math.round(distanceKm(38.8719, -77.0563, 36.9463, -76.3135))).toBe(224); // Pentagon → Norfolk: 223.8 km (independent haversine)
+  });
+});
+
+describe('worldwide installations (Wikidata)', () => {
+  const world = JSON.parse(readFileSync(new URL('../../public/data/installations-world.json', import.meta.url), 'utf8')) as WorldDataset;
+  const w = (name: string) => world.installations.find((i) => i.n === name)!;
+
+  it('records source and licence, excludes the US, and every point is valid', () => {
+    expect(world.licence).toMatch(/CC0/);
+    expect(world.count).toBe(world.installations.length);
+    expect(world.count).toBeGreaterThan(2000);
+    expect(world.installations.some((i) => i.c === 'US')).toBe(false);
+    for (const i of world.installations) {
+      expect(Math.abs(i.la)).toBeLessThanOrEqual(90);
+      expect(Math.abs(i.lo)).toBeLessThanOrEqual(180);
+      expect(i.n).not.toMatch(/^Q\d+$/);
+    }
+    expect(new Set(world.installations.map((i) => i.q)).size).toBe(world.count);
+  });
+
+  it('classifies who operates a site relative to its host', () => {
+    expect(operationOf(w('Ramstein Air Base'))).toBe('us-abroad');
+    expect(operationOf(w('Kadena Air Base'))).toBe('us-abroad');
+    expect(operationOf(w('Khmeimim'))).toBe('foreign');
+    expect(operationOf({ q: 'x', n: 'x', la: 0, lo: 0, c: 'FR', o: ['French Air and Space Force'], oc: ['FR'], k: [], w: null })).toBe('national');
+    expect(operationOf({ q: 'x', n: 'x', la: 0, lo: 0, c: '', o: [], oc: ['RU'], k: [], w: null })).toBe('national');
+  });
+
+  it('applies the Crimea rule', () => {
+    const crimea = world.installations.filter((i) => isCrimea(i.la, i.lo));
+    expect(crimea.length).toBeGreaterThan(0);
+    expect(crimea.some((i) => i.c === 'RU')).toBe(false);
+  });
+
+  it('matches short names only in records about the host country', () => {
+    const ramstein = worldRef(w('Ramstein Air Base'));
+    const rec = (title: string, countryCodes: string[]) =>
+      ({ id: title, contentHash: title, dataOrigin: 'live', sourceId: 'bbc-world', sourceName: 'BBC', sourceClass: 'media', sourceUrl: 'https://example.org/', title, category: 'military', regionIds: [], countryCodes, publishedAt: '2026-11-20T10:00:00Z', occurredAt: null, collectedAt: '2026-11-20T10:00:00Z', credibility: 'single-source', verificationStatus: 'unreviewed', locationPrecision: 'country' }) as IntelligenceEvent;
+    expect(relatedRecords(ramstein, [rec('Protest outside Ramstein over drone strikes', ['DE'])])[0].reason).toBe('names "Ramstein"');
+    expect(relatedRecords(ramstein, [rec('Ramstein band plays in Seoul', ['KR'])])).toEqual([]);
+    expect(relatedRecords(ramstein, [rec('Ramstein Air Base on alert', ['KR'])])[0].reason).toBe('names "Ramstein Air Base"');
   });
 });

@@ -16,7 +16,7 @@ import { Tag } from '../components/ui/Tag';
 import { SeriesChart } from '../components/charts/SeriesChart';
 import { WorldMap } from '../components/map/WorldMap';
 import { FeedItem } from '../components/goc/FeedItem';
-import { useInstallations } from '../data/useInstallations';
+import { useBases } from '../data/useInstallations';
 import { InstallationCard } from '../components/map/InstallationCard';
 
 const MAX_ENTRIES = 60;
@@ -29,9 +29,8 @@ export default function RegionPage() {
   const now = useNow(60_000).getTime();
   const [selected, setSelected] = useState<string | null>(null);
   const [selectedBase, setSelectedBase] = useState<string | null>(null);
-  // Installations data covers the US only for now.
-  const bases = useInstallations(id === 'united-states');
-  const baseInfo = bases.data?.installations.find((i) => i.name === selectedBase) ?? null;
+  // DoD data for the US region; worldwide (Wikidata) data for the other geographic regions.
+  const bases = useBases(id === 'united-states', id !== 'united-states' && id !== 'global-cyber', selectedBase);
 
   useEffect(() => {
     document.title = `WATCHTOWER // ${region ? region.shortCode : 'REGION'}`;
@@ -162,17 +161,16 @@ export default function RegionPage() {
               showGraticule
               showRegions
               globalViewNonce={0}
-              installations={bases.data?.installations}
-              showInstallations={id === 'united-states'}
+              installations={bases.us.data?.installations}
+              worldInstallations={bases.world.data?.installations}
+              showInstallations
               selectedInstallation={selectedBase}
               onSelectInstallation={setSelectedBase}
             />
           ) : (
             <p className="p-2 text-2xs text-wt-fg-dim">This watch is not geographic, so there is no map.</p>
           )}
-          {baseInfo && bases.data && (
-            <InstallationCard installation={baseInfo} dataset={bases.data} events={data.events} now={now} onClose={() => setSelectedBase(null)} />
-          )}
+          {bases.selected && <InstallationCard selected={bases.selected} events={data.events} now={now} onClose={() => setSelectedBase(null)} />}
         </Panel>
 
         <Panel title={`Indicators (${indicators.length})`} designator="R4" bodyClassName="max-h-[380px] overflow-y-auto">

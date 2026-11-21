@@ -1,4 +1,4 @@
-import { BRANCH_COLOR } from './WorldMap';
+import { BRANCH_COLOR, OPERATION_COLOR, OPERATION_LABEL } from './WorldMap';
 import { useState } from 'react';
 import { EVENT_CATEGORIES } from '@shared/domain/types';
 import { CATEGORY_STYLES } from '../../config/categories';
@@ -10,12 +10,13 @@ interface Props {
   unlocated: number;
   /** Installations shown on the map (omit when the layer is off). */
   installations?: number;
+  worldInstallations?: number;
 }
 
 const BRANCH_LABEL = { army: 'Army', navy: 'Navy', 'air-force': 'Air Force', marines: 'Marines', other: 'Other DoD' } as const;
 
 /** Collapsible legend explaining symbols and location-precision handling. */
-export function MapLegend({ plotted, areaLevel, unlocated, installations }: Props) {
+export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations }: Props) {
   const [open, setOpen] = useState(true);
   return (
     <div className="pointer-events-auto absolute bottom-2 left-2 z-10 max-w-[230px] border border-wt-line-strong bg-wt-panel/95 text-2xs">
@@ -64,6 +65,22 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations }: Prop
                   </li>
                 ))}
               </ul>
+              {worldInstallations !== undefined && (
+                <>
+                  <div className="flex justify-between pt-1">
+                    <span title="Wikidata, community-maintained">Worldwide (Wikidata)</span>
+                    <span className="text-wt-fg tabular-nums">{worldInstallations}</span>
+                  </div>
+                  <ul>
+                    {(['us-abroad', 'foreign', 'national'] as const).map((o) => (
+                      <li key={o} className="flex items-center gap-1">
+                        <span className="size-2 rounded-full border-[1.5px]" style={{ borderColor: OPERATION_COLOR[o] }} aria-hidden />
+                        {OPERATION_LABEL[o]}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </div>
           )}
         </div>

@@ -128,7 +128,7 @@ Everything is built from the records the dashboard already loaded (the newest ~7
 
 ## Military installations (v0.14.0)
 
-**BASES** on the GOC map (saved per device) shows **831 US military installations**, coloured by branch: Army, Navy, Air Force (incl. Space Force), Marine Corps, other DoD. Inactive sites (caretaker, excess, closed) are faded. Names appear from zoom level 6. The USA region page shows the same layer.
+**BASES** on the GOC map (saved per device) shows **831 US military installations** (solid dots) and **2,775 worldwide** (rings, see below). US sites are coloured by branch: Army, Navy, Air Force (incl. Space Force), Marine Corps, other DoD. Inactive sites (caretaker, excess, closed) are faded. All markers fade when zoomed out. Names appear from zoom level 6. Region pages show the layer for their region.
 
 - **Data:** DoD *Military Installations, Ranges, and Training Areas (MIRTA) – Points*, a National Geospatial Data Asset, published on ArcGIS Online by Esri's federal data team. Data currency 2024; CC BY 4.0, credit the Department of Defense.
   - [`scripts/build-installations.ts`](../scripts/build-installations.ts) downloads it into `public/data/installations-us.json`, recording the source, licence and retrieval time.
@@ -144,8 +144,16 @@ Everything is built from the records the dashboard already loaded (the newest ~7
   - **Short name** ("Beale" for Beale Air Force Base): counts only in US-tagged records. One-word short names must be Capitalised or ALL CAPS, and common words, surnames and big-city names are excluded ("Clear", "Hill", "March", "Hawaii", "Philadelphia" …).
   - **2023/2025 renames** match both ways (Fort Bragg / Fort Liberty, Fort Hood / Fort Cavazos …).
   - Checked against real FAA data: restrictions over Beale AFB, Grand Forks AFB and Naval Station Norfolk attach to the right installation.
+- **Worldwide (v0.15.0): 2,775 current installations outside the US** from **Wikidata** (CC0), built by [`scripts/build-installations-world.ts`](../scripts/build-installations-world.ts) into `public/data/installations-world.json`.
+  - **Drawn as rings,** coloured by who operates the site relative to its host: **US-operated abroad** (Ramstein, Kadena, Diego Garcia …), **foreign-operated** (Khmeimim and Tartus by Russia …), and **national / not recorded**.
+  - **Included:** air bases, military and naval bases, military installations, RAF stations, Canadian Forces bases, radar, missile and listening stations, forward and main operating bases. Barracks, outposts and cantonments are left out, since they are mostly historical. Items with a dissolution date are left out.
+  - **US sites come only from DoD,** so Wikidata's US entries are skipped.
+  - **Crimea** is assigned to UA, as elsewhere.
+  - **The card shows:** type, host country, operators (from Wikidata; **may include former operators**), Wikipedia, Wikidata and OpenStreetMap links, and records that name the site or lie within 50 km.
+  - **Short names count only in records about the host country** ("Ramstein" in a German record). The full name counts anywhere.
 - **Limits:**
-  - US only so far. MIRTA has no overseas sites, and worldwide installations need another source.
+  - **Wikidata is community-maintained:** coordinates and operators are not official, and coverage is uneven (343 UK sites, few in Africa). Some notable sites are missing under these classes: Camp Lemonnier, China's Djibouti base, the South China Sea island bases.
+  - **Operator countries** come from each operator's own Wikidata country, which can mislead (a US command headquartered in Germany is recorded as German).
   - Map markers are not keyboard-focusable: the card and the region page carry the same information.
 
 ## Cost

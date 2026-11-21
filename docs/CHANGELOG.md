@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.15.0] — 2026-11-21 — Military installations worldwide
+
+### Added
+- 2,775 current military installations outside the US from Wikidata (CC0), drawn as rings coloured by who operates them: US-operated abroad (94 sites, e.g. Ramstein, Kadena), other foreign-operated (e.g. Russia at Khmeimim and Tartus), national or not recorded. On the GOC map and the region pages.
+- Installation card for worldwide sites: type, host country, operators (may include former), Wikipedia/Wikidata/OpenStreetMap links, related records.
+- `scripts/build-installations-world.ts` (one query per class; the endpoint times out on a single query).
+
+### Changed
+- Installation markers fade when zoomed out. Short-name matching now uses the host country (was US-only), and knows international base names ("Air Base", "RAF").
+
+
 ## [0.14.0] — 2026-11-21 — Military installations (United States)
 
 ### Added
