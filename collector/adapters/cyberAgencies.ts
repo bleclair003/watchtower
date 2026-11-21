@@ -138,13 +138,14 @@ export interface EpssState {
 export const firstEpss: SourceAdapter<EpssState> = {
   sourceId: EPSS_SOURCE_ID,
   async collect(ctx: AdapterContext<EpssState>): Promise<AdapterResult<EpssState>> {
-    if (ctx.state && ctx.now - Date.parse(ctx.state.lastFetchedAt) < EPSS_EVERY_HOURS * 3_600_000) {
+    if (ctx.state && Object.keys(ctx.state.scores).length && ctx.now - Date.parse(ctx.state.lastFetchedAt) < EPSS_EVERY_HOURS * 3_600_000) {
       return { events: [], rejected: [], itemsSeen: 0, notModified: true, state: ctx.state };
     }
     const kev = ctx.peerState ? await ctx.peerState<CisaKevState>('cisa-kev') : null;
     const cves = [...new Set((kev?.recent ?? []).map((k) => k.cve))].slice(0, 100);
     const nowIso = new Date(ctx.now).toISOString();
-    if (!cves.length) return { events: [], rejected: [], itemsSeen: 0, notModified: false, state: { lastFetchedAt: nowIso, scores: {} } };
+    // Nothing to score yet (the KEV list arrives on its next read): try again next run.
+    if (!cves.length) return { events: [], rejected: [], itemsSeen: 0, notModified: false, state: { lastFetchedAt: new Date(0).toISOString(), scores: ctx.state?.scores ?? {} } };
     const res = await ctx.fetch(`https://api.first.org/data/v1/epss?cve=${cves.join(',')}`, undefined, { Accept: 'application/json' });
     if (res.kind !== 'ok') throw new Error(`EPSS: unexpected ${res.status}`);
     const body = JSON.parse(res.body) as { data?: { cve?: unknown; epss?: unknown; percentile?: unknown }[] };

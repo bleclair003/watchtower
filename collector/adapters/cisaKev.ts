@@ -53,7 +53,8 @@ export const cisaKev: SourceAdapter<CisaKevState> = {
 
   async collect(ctx: AdapterContext<CisaKevState>): Promise<AdapterResult<CisaKevState>> {
     const def = getSource(SOURCE_ID)!;
-    const res = await ctx.fetch(def.endpoint!, ctx.state?.validators);
+    // Without the 30-day list (state from before v0.51.0), read the whole catalog once instead of asking 'modified?'.
+    const res = await ctx.fetch(def.endpoint!, ctx.state?.recent ? ctx.state.validators : undefined);
     if (res.kind === 'not-modified') return { events: [], rejected: [], itemsSeen: 0, notModified: true, state: ctx.state! };
 
     let doc: { catalogVersion?: unknown; vulnerabilities?: unknown };

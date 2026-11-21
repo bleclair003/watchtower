@@ -87,3 +87,21 @@ describe('agency feeds', () => {
     expect((await firstEpss.collect({ now: NOW + 3_600_000, state: r.state!, fetch: async () => ok('') })).notModified).toBe(true);
   });
 });
+
+describe('upgrades from earlier state', () => {
+  it('reads the whole KEV catalog once when the 30-day list is missing, and EPSS retries when there is nothing to score', async () => {
+    const { cisaKev } = await import('../adapters/cisaKev.ts');
+    let validators: unknown = 'unset';
+    await cisaKev.collect({
+      now: NOW,
+      state: { validators: { etag: '"x"' }, catalogVersion: '1', firstRunAt: iso(NOW) },
+      fetch: async (_u, v) => {
+        validators = v;
+        return { kind: 'not-modified', status: 304 } as FetchResult;
+      },
+    });
+    expect(validators).toBeUndefined();
+    const empty = await firstEpss.collect({ now: NOW, state: null, peerState: (async () => null) as never, fetch: async () => ok('') });
+    expect(Date.parse(empty.state!.lastFetchedAt)).toBe(0);
+  });
+});

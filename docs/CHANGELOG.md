@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.51.1] — 2026-11-22
+
+### Fixed
+- The KEV collector now reads the whole catalog once when its 30-day list is missing (the first run after v0.51.0 got "not modified" and left the CYBER table empty), and EPSS retries on the next run when there was nothing to score.
+
+
 ## [0.51.0] — 2026-11-22 — CYBER page (Phase 20)
 
 ### Added
