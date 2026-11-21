@@ -735,6 +735,26 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     priority: 'P2',
     feasibility: { checkedAt: '2026-11-21T10:55:00Z', result: 'reachable', note: 'RSS HTTP 200, 100 items.' },
   },
+  {
+    id: 'dod-contracts',
+    name: 'Contracts (daily announcements of awards of $7.5 million or more)',
+    organization: 'U.S. Department of War (Department of Defense)',
+    website: 'https://www.war.gov/News/Contracts/',
+    endpoint: 'https://www.war.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=400&Site=945&max=10',
+    method: 'page-parse',
+    sourceClass: 'official',
+    defaultCategory: 'military',
+    coverage: 'Every DoD contract award of $7.5 million or more, each business day (~11 a day)',
+    authentication: 'None',
+    freeAccess: 'Free',
+    expectedUpdateFrequency: 'Each business day around 17:00 US Eastern',
+    pollIntervalMinutes: 30,
+    reliabilityNotes:
+      'The RSS item only links to the day\u2019s page, which is parsed per paragraph (service heading, contractor, amount, purpose, Foreign Military Sales customers). Only notable awards are recorded: $1 billion or more, munitions of $100 million or more, and FMS to watch-region partners. Amounts of IDIQ and not-to-exceed awards are ceilings, labelled as such. defense.gov serves identical content.',
+    termsNotes: 'U.S. government work; public domain.',
+    priority: 'P2',
+    feasibility: { checkedAt: '2026-11-21T11:10:00Z', result: 'reachable', note: 'RSS HTTP 200 (ETag); day pages 200 (~140 KB). 10 days: 92 awards, 8 notable.' },
+  },
   // ------------------------------------------------------------ research ---
   {
     id: 'centcom-releases',

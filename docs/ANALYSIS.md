@@ -242,6 +242,14 @@ Security Council meetings, resolutions and failed drafts, in the feed and on reg
 - **Indicator:** *US embassy drawdown* (30 days, weight 3): one of the strongest official signals that a government expects danger.
 - **Limits:** advisories are reissued after the decision, sometimes days later; embassy security alerts would be faster, but the embassy sites refuse scripted requests.
 
+## DoD contract awards (v0.24.0)
+
+- **Source:** the Department's daily contract announcements ([`collector/adapters/dodContracts.ts`](../collector/adapters/dodContracts.ts)), every award of $7.5 million or more.
+- **Parsing per award:** service heading, contractor, amount (the awarded, maximum or not-to-exceed figure), purpose ("for …"), contract number, munitions keywords, and Foreign Military Sales customers named in the text.
+- **Records:** only $1 billion or more, munitions of $100 million or more, and FMS to a watch-region partner. FMS records belong to the partner's region; the rest to the United States region.
+- **Ceilings:** IDIQ, multiple-award, "maximum" and not-to-exceed figures are ceilings, not money spent, and the title says so.
+- **Indicators (experimental):** munitions awards (US) and arms-sale awards per region. Procurement is slow and lumpy, so neither affects the RAI.
+
 ## Cost
 
 | Feature | Firestore reads |

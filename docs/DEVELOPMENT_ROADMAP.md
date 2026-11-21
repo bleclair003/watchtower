@@ -191,7 +191,7 @@ Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at
 
 ### C. US domestic and military
 8. **DoD contract awards** (daily announcements)
-   - [ ] Parse awards; flag munitions, missiles and large awards (amount threshold)
+   - [x] Parse awards; flag munitions, missiles, large awards and FMS to watch-region partners — v0.24.0
 9. **Federal Register** (free API, no key)
    - [ ] Executive orders, export controls (BIS), national emergency declarations, defence notices
 10. **Congress** (congress.gov API, free key)

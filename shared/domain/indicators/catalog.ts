@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 13;
+export const CATALOG_VERSION = 14;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -954,6 +954,83 @@ const embassyIndicators: IndicatorDefinition[] = STATE_DEPT_REGIONS.map(
   }),
 );
 
+const DOD_CONTRACTS = 'dod-contracts';
+
+const CONTRACT_RESEARCH = {
+  dataAvailability: 'DoD daily contract announcements, collected since 2026-11-21 (notable awards only).',
+  baselinePeriod: '28 days of collection.',
+  confounders: 'Fiscal-year timing (awards bunch in September and after budgets pass), multi-year contracts, ceilings that are never fully spent.',
+  falsePositives: 'Routine production lots and sustainment contracts.',
+  retrospectiveResults: 'Insufficient history.',
+  evidenceQuality: 'none' as const,
+};
+
+/** Phase 13 item 8: DoD contract awards (experimental: procurement is a slow, lumpy signal). */
+const contractIndicators: IndicatorDefinition[] = [
+  {
+    id: 'united-states.munitions-contracts',
+    name: 'USA munitions and missile contract awards',
+    description: 'DoD awards of $100 million or more for missiles, munitions or interceptors within 7 days, compared with the 28-day baseline.',
+    family: 'experimental',
+    regionId: 'united-states',
+    requiredSourceIds: [DOD_CONTRACTS],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: DOD_CONTRACTS },
+        { field: 'metadata.munitions', op: 'eq', value: true },
+      ],
+    },
+    windowHours: 168,
+    elevated: { countAtLeast: 2 },
+    triggered: { countAtLeast: 4 },
+    baseline: { days: 28, triggerRatio: 3, elevatedRatio: 2 },
+    weight: 0,
+    severity: 'low',
+    experimental: true,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'A burst of munitions and interceptor buys can reflect replenishment after use or preparation for conflict. Procurement is slow and lumpy, so it never affects the RAI.',
+    research: {
+      hypothesis: 'More large munitions awards than usual follow or precede periods of high expenditure (strikes, air defence).',
+      expectedRelationship: 'Lagging: awards follow expenditure by months.',
+      historicalExamples: 'None in WATCHTOWER data yet.',
+      ...CONTRACT_RESEARCH,
+    },
+  },
+  ...STATE_DEPT_REGIONS.map(
+    (r): IndicatorDefinition => ({
+      id: `${r.id}.fms-contracts`,
+      name: `${r.shortCode} US arms-sale contract awards`,
+      description: `DoD contract awards involving Foreign Military Sales to ${r.name} countries within 30 days.`,
+      family: 'experimental',
+      regionId: r.id,
+      requiredSourceIds: [DOD_CONTRACTS],
+      match: {
+        all: [
+          { field: 'sourceId', op: 'eq', value: DOD_CONTRACTS },
+          { field: 'regionIds', op: 'contains', value: r.id },
+        ],
+      },
+      windowHours: 720,
+      elevated: { countAtLeast: 1 },
+      triggered: { countAtLeast: 3 },
+      baseline: null,
+      weight: 0,
+      severity: 'low',
+      experimental: true,
+      enabled: true,
+      configVersion: 1,
+      rationale: 'Contracts that deliver US weapons to partners in a watch region show where arms are flowing. Most are long-planned, so this is context, not warning.',
+      research: {
+        hypothesis: 'Arms-sale contracts to a region rise ahead of and during periods of tension.',
+        expectedRelationship: 'Lagging and policy-driven.',
+        historicalExamples: 'None in WATCHTOWER data yet.',
+        ...CONTRACT_RESEARCH,
+      },
+    }),
+  ),
+];
+
 export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...advisoryIndicators,
   ...cyberIndicators,
@@ -970,6 +1047,7 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...unscIndicators,
   ...missileIndicators,
   ...embassyIndicators,
+  ...contractIndicators,
 ];
 
 export function getIndicator(id: string): IndicatorDefinition | undefined {

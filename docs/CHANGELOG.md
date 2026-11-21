@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.24.0] — 2026-11-21 — DoD contract awards
+
+### Added
+- Source 34, **DoD daily contract announcements** (war.gov; every award of $7.5 million or more, about 11 a business day). The RSS is read every run with a conditional request; each new day's page once.
+- Each award is parsed for service, contractor (or "N companies (multiple-award)"), amount, purpose, contract number, munitions, and Foreign Military Sales customers. Amounts of IDIQ, "maximum" and not-to-exceed awards are labelled **ceiling**.
+- Only notable awards become records: **$1 billion or more**, **munitions of $100 million or more**, and **any FMS award to a watch-region partner** (tagged to the partner's region). In 10 real days: 92 awards, 6 records.
+- Catalog v14 (124 indicators), experimental: **munitions and missile contract awards** (US) and **US arms-sale contract awards** per foreign region.
+
+### Fixed during testing (real data)
+- "Missile Range instrument" ships were counted as munitions; multiple-award ceilings were not labelled; "for fiscal 2027 … production" was taken as the purpose.
+
+
 ## [0.23.0] — 2026-11-21 — US embassy drawdowns
 
 ### Added

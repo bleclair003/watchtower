@@ -151,6 +151,12 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 - Read from the State Department travel advisories already collected: ordered / authorized departure and suspended embassy operations, recorded when they change.
 - **Not available:** US embassy websites and their security-alert RSS feeds (*.usembassy.gov) answer every scripted request with CloudFront 403, curl included.
 
+## v0.24.0 DoD contract awards — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| war.gov Contracts RSS + daily pages | official | Notable awards only: $1B+, munitions $100M+, FMS to watch-region partners; amounts labelled as ceilings where they are |
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |
