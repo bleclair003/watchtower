@@ -202,6 +202,14 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 |---|---|
 | adsb-military | Also records US airborne command posts (E-6B; E-4B by serial) and government VIP transports (special-air-mission callsigns SAM, SPAR, VENUS, EXEC, AF1/AF2), with `metadata.aircraftRole`. Seen live on 2026-11-21: three C-37 Gulfstreams as SAM928, SAM208 and SPAR81. |
 
+## v0.37.0 Prediction markets — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| Polymarket Gamma API (`/events?tag_slug=geopolitics`) | aggregator (betting odds) | Up to 40 watch-region questions: Yes price, 24 h and 7 d change, volume, end date, 14-day 6-hourly history; a record on a 15-point move in 24 h |
+| Kalshi | rejected | Developer agreement forbids storing API data except for your own trading |
+| Metaculus | deferred | API requires an account token |
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |

@@ -30,6 +30,7 @@ import { AIRCRAFT_SOURCE_ID, type MilitaryAircraftState } from './adapters/milit
 import { FLEET_SOURCE_ID, type FleetState } from './adapters/usniFleet.ts';
 import { PORTWATCH_SOURCE_ID, type PortwatchState } from './adapters/portwatch.ts';
 import { UNHCR_SOURCE_ID, type UnhcrState } from './adapters/unhcr.ts';
+import { MARKETS_SOURCE_ID, type PolymarketState } from './adapters/polymarket.ts';
 import { AIS_SOURCE_ID, type AisSanctionedState } from './adapters/aisSanctioned.ts';
 
 /** Sources fetched at once. One slot can be held for ~25 s by the AIS listening window. */
@@ -321,6 +322,14 @@ export async function runCollection(
       log(`DSP  displacement figures not added to the snapshot: ${sanitizeError(err)}`);
     }
   }
+  if (tracked.includes(MARKETS_SOURCE_ID)) {
+    try {
+      const pm = await store.getSourceState<PolymarketState>(MARKETS_SOURCE_ID);
+      if (pm?.latest) snapshot.predictionMarkets = pm.latest;
+    } catch (err) {
+      log(`PM   market odds not added to the snapshot: ${sanitizeError(err)}`);
+    }
+  }
 
   // Meters and monitors (Phase 14): computed over everything loaded, written in the final writes.
   let meters: MetersSnapshot | null = null;
@@ -345,6 +354,7 @@ export async function runCollection(
       chokepoints: snapshot.chokepoints ?? null,
       sanctionedShips: snapshot.sanctionedShips ?? null,
       displacement: snapshot.displacement ?? null,
+      predictionMarkets: snapshot.predictionMarkets ?? null,
       upcomingLaunches: launches?.upcoming ?? [],
       previous: previousMeters,
     });

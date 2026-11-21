@@ -7,6 +7,7 @@ import type { ChokepointSnapshot } from './chokepoints.ts';
 import type { SanctionedShipsSnapshot } from './sanctionedShips.ts';
 import type { DisplacementSnapshot } from './displacement.ts';
 import type { BaseActivitySnapshot } from './baseActivity.ts';
+import type { PredictionMarketsSnapshot } from './predictionMarkets.ts';
 
 /**
  * Precomputed dashboard payload, written by the collector to
@@ -61,6 +62,8 @@ export interface DashboardSnapshot {
   displacement?: DisplacementSnapshot;
   /** Records naming or near each installation this week, against its usual weekly level. */
   baseActivity?: BaseActivitySnapshot;
+  /** Prediction-market odds on watch-region questions (Polymarket). */
+  predictionMarkets?: PredictionMarketsSnapshot;
 }
 
 /** Firestore collection names — single source of truth for app and collector. */

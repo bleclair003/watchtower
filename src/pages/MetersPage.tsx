@@ -8,6 +8,7 @@ import { useNow } from '../hooks/useNow';
 import { Panel } from '../components/ui/Panel';
 import { Tag } from '../components/ui/Tag';
 import { MeterCard, cellLabel, levelTone } from '../components/meters/MeterCard';
+import { MarketsPanel } from '../components/meters/MarketsPanel';
 import { formatUtc } from '../lib/time';
 import { safeExternalUrl } from '../lib/sanitize';
 
@@ -23,11 +24,11 @@ const REGION_COLUMNS: [MeterKind, string, string][] = [
   ['corroboration', 'CORROB', 'Share of stories corroborated'],
   ['visibility', 'VISIB', 'Share of the region’s sources online'],
 ];
-const TOPIC_ORDER: MeterKind[] = ['naval', 'maritime', 'sanctions', 'arms', 'washington', 'strategic', 'homeland', 'after-hours', 'cyber'];
+const TOPIC_ORDER: MeterKind[] = ['naval', 'maritime', 'sanctions', 'arms', 'washington', 'strategic', 'homeland', 'after-hours', 'markets', 'cyber'];
 const DISCLAIMER = 'Meters describe activity in the sources WATCHTOWER monitors. None is a probability of conflict, attack or any other event.';
 
 export default function MetersPage() {
-  const { meters, mode } = useData();
+  const { meters, mode, predictionMarkets } = useData();
   const now = useNow(60_000).getTime();
   const [params, setParams] = useSearchParams();
   const selectedId = params.get('m');
@@ -132,6 +133,8 @@ export default function MetersPage() {
               ))}
             </ul>
           </Panel>
+
+          <MarketsPanel data={predictionMarkets} now={now} />
 
           <Panel title="Days since" designator="M3">
             <ul className="grid grid-cols-2 gap-px bg-wt-line sm:grid-cols-3 lg:grid-cols-5">

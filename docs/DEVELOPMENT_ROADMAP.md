@@ -282,8 +282,8 @@ Free sources and analysis of data already collected. Each new outside source is 
 
 ### A. New free signals
 1. **Prediction markets and forecasters**
-   - [ ] Check terms and API access: Polymarket, Kalshi (read-only market data), Metaculus (may need a free token)
-   - [ ] Track odds on hand-picked geopolitical questions next to the meters; flag sharp moves; label as betting odds or crowd forecasts, not WATCHTOWER's view
+   - [x] Check terms and API access: Polymarket (API allowed, website scraping forbidden), Kalshi (rejected: no storing), Metaculus (needs a token; deferred) — v0.37.0
+   - [x] Track odds on watch-region geopolitical questions next to the meters; flag sharp moves; label as betting odds, not WATCHTOWER's view — v0.37.0
 2. **Infrastructure proximity alerts**
    - [ ] Load free static datasets (power plants incl. nuclear, refineries, dams, major ports) with their licences and dates
    - [ ] Flag fire clusters, outages and strike reports near them (e.g. within 10 km of a nuclear plant); show on the map and in the meters

@@ -895,6 +895,27 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     priority: 'P2',
     feasibility: { checkedAt: '2026-11-21T13:50:00Z', result: 'reachable', note: 'API HTTP 200, no key; 2026 figures published.' },
   },
+  {
+    id: 'polymarket',
+    name: 'Prediction-market odds (geopolitics)',
+    organization: 'Polymarket (Gamma API)',
+    website: 'https://polymarket.com',
+    endpoint: 'https://gamma-api.polymarket.com/events',
+    method: 'api',
+    sourceClass: 'aggregator',
+    defaultCategory: 'economic',
+    coverage: 'Active geopolitics markets that name a watch region, with real trading (event volume $100k+, market $25k+); one market per event, up to 40',
+    authentication: 'None',
+    freeAccess: 'Free (public, documented API)',
+    expectedUpdateFrequency: 'Continuous; read about once an hour',
+    pollIntervalMinutes: 60,
+    reliabilityNotes:
+      'Betting odds, not WATCHTOWER’s assessment: prices move on rumours and on a few large bets, and markets can misread events. The US region is never assigned from a market (US actions abroad are not domestic). A record is made when a market moves 15 points or more in 24 hours.',
+    termsNotes:
+      'Read only through the public Gamma API. Polymarket’s Terms of Use forbid scraping the website with robots or crawlers, and restrict API data for professional trading firms and market-data resellers; WATCHTOWER is neither and does not redistribute the data. Kalshi was not used: its developer agreement forbids storing API data except for your own trading. Metaculus now requires an account token.',
+    priority: 'P2',
+    feasibility: { checkedAt: '2026-11-21T14:20:00Z', result: 'reachable', note: 'Gamma API HTTP 200, no key; 36 watch-region markets selected.' },
+  },
   // ------------------------------------------------------------ research ---
   {
     id: 'centcom-releases',

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.37.0] — 2026-11-21 — Prediction markets (Phase 15 item 1)
+
+### Added
+- Source **polymarket**: odds on geopolitics questions that name a watch region, read about hourly through Polymarket's public, documented Gamma API (no key). Only traded questions (event volume $100k+, market $25k+), one open market per event, up to 40; the US region is never assigned from a market. 36 questions at release (Israel–Iran ceasefire, China–Taiwan, Strait of Hormuz traffic, NATO–Russia, Russia–Ukraine ceasefire, Iranian leadership…).
+- A record when a market moves 15 points or more in 24 hours (feeds "What changed", alerts and the watchlist).
+- **Prediction markets** meter (largest 24-hour move; in the lead/lag lab) and a **Prediction markets** panel on the METERS page and on region pages (odds, 24-hour change, 14-day line, link to the market). Every view says these are betting odds, not WATCHTOWER's assessment.
+
+### Checked before building
+- Polymarket: Terms of Use forbid scraping the website with robots and restrict API data for professional trading firms and market-data resellers; WATCHTOWER uses only the API and is neither.
+- Kalshi: not used — its developer agreement forbids storing API data except for your own trading on Kalshi.
+- Metaculus: not used for now — its API now requires an account token.
+
+
 ## [0.36.0] — 2026-11-21 — Pentagon after-hours index
 
 ### Added

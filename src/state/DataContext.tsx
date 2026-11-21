@@ -5,6 +5,7 @@ import type { SanctionedShipsSnapshot } from '@shared/domain/sanctionedShips';
 import type { DisplacementSnapshot } from '@shared/domain/displacement';
 import type { BaseActivitySnapshot } from '@shared/domain/baseActivity';
 import type { MetersSnapshot } from '@shared/domain/meters/types';
+import type { PredictionMarketsSnapshot } from '@shared/domain/predictionMarkets';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '@shared/domain/types';
 import { backendMode } from '../config/firebase';
@@ -40,6 +41,7 @@ interface DataState {
   displacement: DisplacementSnapshot | null;
   baseActivity: BaseActivitySnapshot | null;
   meters: MetersSnapshot | null;
+  predictionMarkets: PredictionMarketsSnapshot | null;
   loading: boolean;
   error: string | null;
   accessDenied: boolean;
@@ -73,6 +75,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
     displacement: null as DisplacementSnapshot | null,
     baseActivity: null as BaseActivitySnapshot | null,
     meters: null as MetersSnapshot | null,
+    predictionMarkets: null as PredictionMarketsSnapshot | null,
     loadedAt: null as string | null,
     readsThisSession: null as number | null,
   });
@@ -110,6 +113,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
         displacement: d.displacement,
         baseActivity: d.baseActivity,
         meters: d.meters,
+        predictionMarkets: d.predictionMarkets,
         loadedAt: new Date().toISOString(),
         readsThisSession: repo.readsThisSession(),
       });

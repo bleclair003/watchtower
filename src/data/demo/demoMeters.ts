@@ -21,6 +21,7 @@ export function buildDemoMeters(now: number, events: IntelligenceEvent[], data: 
     chokepoints: data.chokepoints,
     sanctionedShips: data.sanctionedShips,
     displacement: data.displacement,
+    predictionMarkets: data.predictionMarkets,
     upcomingLaunches: [
       { name: '[SIMULATED] Demo launcher | Classified payload', net: new Date(now + 3 * 86_400_000).toISOString(), provider: 'Demo Space Force', country: null, status: 'Go for Launch', url: null },
     ],
