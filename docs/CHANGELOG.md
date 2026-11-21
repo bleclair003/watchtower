@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.47.1] — 2026-11-21 — Snapshot size guard covers map layers
+
+### Fixed
+- The snapshot was trimmed to 900 kB **before** the map layers (aircraft, fleet, chokepoints, sanctioned ships, power outages …) were attached, so the stored document had grown to about 933 kB against Firestore's 1 MiB limit. It is now trimmed again just before it is written (oldest records left out first, logged as `SNAP`), so a large layer can no longer push it over.
+- Power-outage county outlines are capped at about 40 kB in the snapshot (largest outages first), so a big storm stays within budget.
+
+
 ## [0.47.0] — 2026-11-21 — Power outages (Phase 16)
 
 ### Added

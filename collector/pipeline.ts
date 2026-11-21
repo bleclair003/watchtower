@@ -422,6 +422,9 @@ export async function runCollection(
   snapshot.lastRun = run;
   const tWrite = clock();
   await store.putRun(run);
+  // Layers were attached after the first trim in buildSnapshot: trim again so the document still fits.
+  const trimmed = fitSnapshot(snapshot);
+  if (trimmed > 0) log(`SNAP ${trimmed} oldest record(s) left out of the snapshot to stay under ${SNAPSHOT_MAX_BYTES.toLocaleString('en-US')} bytes (map layers included)`);
   await store.putSnapshot(snapshot);
   if (meters && meterHistory) {
     try {
@@ -446,6 +449,18 @@ export function snapshotLookbackHours(catalog: IndicatorDefinition[]): number {
  * from day buckets (~46 reads, no cap); this cap only applies outside the bucket window.
  */
 export const EVENT_QUERY_LIMIT = 20_000;
+/**
+ * Drops the oldest records (10% at a time) until the serialized snapshot is under SNAPSHOT_MAX_BYTES
+ * (Firestore caps a document at 1 MiB). Returns how many records were left out.
+ */
+export function fitSnapshot(snapshot: DashboardSnapshot): number {
+  const before = snapshot.events.length;
+  while (Buffer.byteLength(JSON.stringify(snapshot)) > SNAPSHOT_MAX_BYTES && snapshot.events.length > 0) {
+    snapshot.events = snapshot.events.slice(0, Math.floor(snapshot.events.length * 0.9));
+  }
+  return before - snapshot.events.length;
+}
+
 /** Collector-only long meter history (packed, one point per 3 hours, 120 days). */
 export const METER_HISTORY_KEY = 'meterHistory';
 /** Collector-only daily counts on holidays per usual-level series, kept 3 years (like-for-like baselines). */
@@ -557,15 +572,12 @@ export async function buildSnapshot(
     log(`INF  infrastructure check failed: ${sanitizeError(err)}`);
   }
 
-  let events = [...loaded]
+  const events = [...loaded]
     .sort((a, b) => eventTime(b).localeCompare(eventTime(a)))
     .slice(0, SNAPSHOT_MAX_EVENTS)
     .map((e) => (e.summary && e.summary.length > SNAPSHOT_SUMMARY_CHARS ? { ...e, summary: `${e.summary.slice(0, SNAPSHOT_SUMMARY_CHARS - 1)}…` } : e));
   snapshot.events = events;
-  while (Buffer.byteLength(JSON.stringify(snapshot)) > SNAPSHOT_MAX_BYTES && events.length > 0) {
-    events = events.slice(0, Math.floor(events.length * 0.9));
-    snapshot.events = events;
-  }
+  fitSnapshot(snapshot);
   return {
     snapshot,
     loaded,

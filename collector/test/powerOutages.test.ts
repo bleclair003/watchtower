@@ -120,3 +120,17 @@ describe('power-outage meter', () => {
     expect(stale.components.at(-1)?.value).toBe('no recent reading');
   });
 });
+
+describe('snapshot size guard', () => {
+  it('drops the oldest records until the snapshot (layers included) fits', async () => {
+    const { fitSnapshot } = await import('../pipeline.ts');
+    const { SNAPSHOT_MAX_BYTES } = await import('../../shared/domain/snapshot.ts');
+    const big = 'x'.repeat(2_000);
+    const events = Array.from({ length: 600 }, (_, i) => ev(`r${i}`, i, { summary: big }));
+    const snap = { events, powerOutages: { counties: [{ path: 'y'.repeat(100_000) }] } } as never as Parameters<typeof fitSnapshot>[0];
+    const dropped = fitSnapshot(snap);
+    expect(dropped).toBeGreaterThan(0);
+    expect(Buffer.byteLength(JSON.stringify(snap))).toBeLessThanOrEqual(SNAPSHOT_MAX_BYTES);
+    expect(snap.events[0].title).toBe('r0'); // newest kept
+  });
+});

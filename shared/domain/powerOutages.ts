@@ -51,6 +51,8 @@ export interface PowerOutageSnapshot {
 /** Counties drawn on the map. */
 export const MAP_MIN_COUNTY_OUT = 50;
 export const MAP_MAX_COUNTIES = 60;
+/** Total size of the packed county outlines kept in the snapshot (largest outages first). */
+export const MAP_MAX_PATH_CHARS = 40_000;
 /** A state record (feed, alerts, archive) when a state reaches one of these customer-out counts. */
 export const STATE_RECORD_STEPS = [25_000, 100_000, 250_000, 500_000, 1_000_000];
 /** US meter: largest state outage for LOW, GUARDED, ELEVATED, HIGH. */

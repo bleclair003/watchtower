@@ -2,6 +2,7 @@ import type { IntelligenceEvent } from '../../shared/domain/types.ts';
 import { US_STATE_NAMES } from '../../shared/domain/geo/usPlaces.ts';
 import {
   MAP_MAX_COUNTIES,
+  MAP_MAX_PATH_CHARS,
   MAP_MIN_COUNTY_OUT,
   ODIN_PAGE,
   STATE_RECORD_STEPS,
@@ -80,6 +81,9 @@ export function buildOutageSnapshot(rows: OdinMapRow[], status: OdinStatusRow[],
     .sort((a, b) => b.out - a.out)
     .slice(0, MAP_MAX_COUNTIES)
     .map(({ rings: _rings, ...c }) => c);
+  // Keep the snapshot small during big events: stop adding outlines past the size budget.
+  let chars = 0;
+  const kept = mapped.filter((c) => (chars += c.path.length) <= MAP_MAX_PATH_CHARS);
   const reporting = status.filter((u) => u.hasError !== true);
   return {
     fetchedAt: nowIso,
@@ -87,7 +91,7 @@ export function buildOutageSnapshot(rows: OdinMapRow[], status: OdinStatusRow[],
     utilitiesWithOutages: reporting.filter((u) => num(u.totalOutages) > 0).length,
     totalOut: stateList.reduce((a, s) => a + s.out, 0),
     states: stateList,
-    counties: mapped,
+    counties: kept,
   };
 }
 
