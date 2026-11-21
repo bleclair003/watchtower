@@ -11,6 +11,8 @@ import type { AircraftSnapshot } from '@shared/domain/aircraft';
 import { buildDemoAircraft } from './demo/demoAircraft';
 import type { FleetSnapshot } from '@shared/domain/fleet';
 import { buildDemoFleet } from './demo/demoFleet';
+import type { ChokepointSnapshot } from '@shared/domain/chokepoints';
+import { buildDemoChokepoints } from './demo/demoChokepoints';
 
 /**
  * Data access boundary for the UI.
@@ -38,6 +40,8 @@ export interface DashboardData {
   aircraft: AircraftSnapshot | null;
   /** Latest USNI News fleet tracker, or null. */
   fleet: FleetSnapshot | null;
+  /** Chokepoint transits (IMF PortWatch), or null. */
+  chokepoints: ChokepointSnapshot | null;
 }
 
 export interface IntelRepository {
@@ -77,6 +81,7 @@ export class DemoRepository implements IntelRepository {
       discordConfigured: null,
       aircraft: buildDemoAircraft(now),
       fleet: buildDemoFleet(now),
+      chokepoints: buildDemoChokepoints(now),
       events: this.events,
       // No collector has ever run in demo mode, so every source is honestly NOT_CONFIGURED.
       sourceStatus: SOURCE_REGISTRY.map((s) => ({

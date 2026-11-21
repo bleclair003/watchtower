@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 7;
+export const CATALOG_VERSION = 8;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -658,6 +658,64 @@ const fleetIndicators: IndicatorDefinition[] = ADVISORY_REGIONS.filter((r) => FL
   }),
 );
 
+const PORTWATCH = 'imf-portwatch-chokepoints';
+/** Watch regions with a chokepoint (shared/domain/chokepoints.ts). */
+const CHOKEPOINT_REGIONS: Record<string, string> = { 'middle-east': 'Strait of Hormuz', 'red-sea': 'Bab el-Mandeb', 'eastern-europe': 'Bosporus', 'taiwan-strait': 'Taiwan Strait' };
+
+/** Phase 13: chokepoint traffic (IMF PortWatch). Records repeat weekly while a disruption lasts. */
+const chokepointIndicators: IndicatorDefinition[] = ADVISORY_REGIONS.filter((r) => r.id in CHOKEPOINT_REGIONS).flatMap((r): IndicatorDefinition[] => {
+  const cp = CHOKEPOINT_REGIONS[r.id];
+  const base = (statuses: string[]) => ({
+    all: [
+      { field: 'sourceId' as const, op: 'eq' as const, value: PORTWATCH },
+      { field: 'regionIds' as const, op: 'contains' as const, value: r.id },
+      { field: 'metadata.status' as const, op: 'in' as const, value: statuses },
+    ],
+  });
+  return [
+    {
+      id: `${r.id}.chokepoint-reduced`,
+      name: `${r.shortCode} ${cp} traffic reduced`,
+      description: `Ship transits through the ${cp} averaged under 70% of the 2025 daily average over 7 days (IMF PortWatch), reported within 8 days.`,
+      family: 'maritime',
+      regionId: r.id,
+      requiredSourceIds: [PORTWATCH],
+      match: base(['reduced', 'severe']),
+      windowHours: 8 * 24,
+      elevated: { countAtLeast: 1 },
+      triggered: { countAtLeast: 2 },
+      baseline: null,
+      weight: 1,
+      severity: 'medium',
+      experimental: false,
+      enabled: true,
+      configVersion: 1,
+      rationale:
+        'Falling traffic through a strategic strait reflects risk, threats or restrictions that shipping companies act on with real money. Data runs about 6 days behind, so this confirms rather than warns.',
+    },
+    {
+      id: `${r.id}.chokepoint-severe`,
+      name: `${r.shortCode} ${cp} traffic severely reduced or falling fast`,
+      description: `Ship transits through the ${cp} under 40% of the 2025 average, or 40% below the previous four weeks, over 7 days (IMF PortWatch), reported within 8 days.`,
+      family: 'maritime',
+      regionId: r.id,
+      requiredSourceIds: [PORTWATCH],
+      match: base(['severe', 'sudden-drop']),
+      windowHours: 8 * 24,
+      elevated: { countAtLeast: 1 },
+      triggered: { countAtLeast: 1 },
+      baseline: null,
+      weight: 3,
+      severity: 'high',
+      experimental: false,
+      enabled: true,
+      configVersion: 1,
+      rationale:
+        'A collapse or sudden fall in transits marks a blockade, attacks on shipping or a closure. Two to three days of AIS-dark traffic can lower counts too, so read the PortWatch page before drawing conclusions.',
+    },
+  ];
+});
+
 export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...advisoryIndicators,
   ...cyberIndicators,
@@ -668,6 +726,7 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...experimentalIndicators,
   ...aircraftIndicators,
   ...fleetIndicators,
+  ...chokepointIndicators,
 ];
 
 export function getIndicator(id: string): IndicatorDefinition | undefined {

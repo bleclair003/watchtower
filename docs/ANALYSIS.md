@@ -182,6 +182,19 @@ Everything is built from the records the dashboard already loaded (the newest ~7
 - **First run (2026-11-21):** the Nov. 16 tracker showed three carriers in the Arabian Sea (George Washington, George H.W. Bush, Theodore Roosevelt). Theodore Roosevelt had moved there from the Philippine Sea, so the Middle East indicator is ELEVATED.
 - **Limits:** weekly and up to a week old; approximate by area; some weeks missing from the feeds (Nov. 2 and Nov. 9 on 2026-11-21); submarines and most auxiliaries are not listed. A ship is listed under the section USNI puts it in, which can be a port it has just left.
 
+## Chokepoint traffic (v0.18.0)
+
+**STRAITS** on the GOC map shows daily ship transits through six chokepoints from **IMF PortWatch**: Hormuz, Bab el-Mandeb, Suez, Bosporus, Taiwan Strait and Malacca.
+
+- **Status** ([`shared/domain/chokepoints.ts`](../shared/domain/chokepoints.ts)) from the mean of the last 7 days:
+  - **Severely reduced:** under 40% of the 2025 daily average.
+  - **Reduced:** under 70% of the 2025 average.
+  - **Sudden drop:** 40% below the previous four weeks (when not already severe).
+  - The 2025 average is the long-term reference, because a lasting disruption (Hormuz since August 2026) makes the recent past look normal. It was already lowered for Suez and Bab el-Mandeb by the Red Sea crisis.
+- **Records:** one per disrupted chokepoint per ISO week, so a lasting disruption keeps its indicator active, and one when it returns to normal.
+- **Indicators:** *traffic reduced* (weight 1; 2 weekly records = triggered) and *severely reduced or falling fast* (weight 3; triggered at once) for the four chokepoints inside watch regions. Suez and Malacca are shown but belong to no watch region.
+- **Limits:** about 6 days behind; ships with AIS switched off are not counted; counts cover cargo and tanker ships only. Use is subject to the IMF terms decision in the source registry.
+
 ## Cost
 
 | Feature | Firestore reads |

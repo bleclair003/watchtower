@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.18.0] — 2026-11-21 — Chokepoint traffic (IMF PortWatch)
+
+### Added
+- Source 27, **IMF PortWatch daily chokepoint transits** for the Strait of Hormuz, Bab el-Mandeb, Suez Canal, Bosporus, Taiwan Strait and Malacca Strait. One small query a day; the 2025 averages and chokepoint points monthly.
+- Status per chokepoint from the last 7 days: **reduced** (under 70% of the 2025 average), **severely reduced** (under 40%), or **sudden drop** (40% below the previous four weeks).
+- **STRAITS** map layer on the GOC: a diamond per chokepoint coloured by status and labelled with the change. The card has a 90-day trend against the 2025 average, with hover for daily counts.
+- Records weekly while a chokepoint is disrupted, and once when it returns to normal.
+- Catalog v8 (84 indicators): **chokepoint traffic reduced** (weight 1) and **severely reduced or falling fast** (weight 3) for the Middle East (Hormuz), Red Sea (Bab el-Mandeb), Eastern Europe (Bosporus) and Taiwan Strait.
+- First run (2026-11-21): Hormuz severely reduced (2.3 ships a day vs 85.5 in 2025, −97%), Bosporus reduced (48.6 vs 92.4, −47%).
+
+### Decided
+- aisstream.io was evaluated with a real key and rejected: no coverage at any of the five chokepoints (see the source registry). The probe was removed.
+- IMF terms prohibit automated bulk download without permission. The owner chose to use PortWatch anyway, with a minimal footprint and attribution; recorded in the source registry.
+
+
 ## [0.17.1] — 2026-11-21 — Aircraft regions by country and open water
 
 ### Fixed (found on live data)

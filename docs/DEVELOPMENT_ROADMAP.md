@@ -164,10 +164,10 @@ Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at
 2. **US Navy fleet positions** (USNI News Fleet Tracker, weekly)
    - [x] Parse carrier and amphibious group positions from the weekly article; approximate areas only, markers at named-area reference points (v0.17.0)
    - [x] FLEET map layer and indicator: carrier or big-deck arrives in a watch region (v0.17.0)
-3. **Ship traffic at chokepoints** (aisstream.io, free key)
-   - [ ] Sign-up and terms check (user creates the key; stored as an Actions secret)
-   - [ ] Short listen window per run (budget-checked); transit counts for Hormuz, Bab el-Mandeb, Taiwan Strait, Bosporus, Suez
-   - [ ] Indicator: transit count drops against the baseline
+3. **Ship traffic at chokepoints** (IMF PortWatch; aisstream.io rejected)
+   - [x] aisstream.io key and coverage probe: no coverage at any chokepoint, rejected
+   - [x] IMF PortWatch daily transits for Hormuz, Bab el-Mandeb, Suez, Bosporus, Taiwan Strait, Malacca (owner accepted the terms risk) — v0.18.0
+   - [x] Indicators: traffic reduced / severely reduced or falling fast, against the 2025 average and the previous four weeks
 
 ### B. Escalation and pressure signals
 4. **Sanctions** (OFAC SDN and recent actions, EU consolidated list, UK sanctions list)

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Anchor, Grid3x3, Plane, Shield, Square } from 'lucide-react';
+import { Anchor, Grid3x3, Plane, Shield, Ship, Square } from 'lucide-react';
 import { useBases } from '../data/useInstallations';
 import { ALL_OPERATORS, operatedBy, operatorCounts } from '@shared/domain/installations';
 import { countryName } from '../lib/regionSummary';
 import { InstallationCard } from '../components/map/InstallationCard';
 import { AircraftCard } from '../components/map/AircraftCard';
 import { FleetCard } from '../components/map/FleetCard';
+import { ChokepointCard } from '../components/map/ChokepointCard';
 import { FLEET_STALE_DAYS, isBigDeck } from '@shared/domain/fleet';
 import { AIRCRAFT_PROVIDERS, AIRCRAFT_STALE_MINUTES } from '@shared/domain/aircraft';
 import { getRegion } from '@shared/domain/regions';
@@ -27,7 +28,7 @@ import { Panel } from '../components/ui/Panel';
 export default function GlobalOperationsPage() {
   // Re-evaluate time windows once a minute; the clock in the top bar ticks separately.
   const now = useNow(60_000).getTime();
-  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet } = useData();
+  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints } = useData();
   const { filters, setFilters, resetFilters, selectedEventId, selectEvent, globalViewNonce } = useDashboard();
   const { settings, update } = useSettings();
 
@@ -72,11 +73,15 @@ export default function GlobalOperationsPage() {
   const fleetStale = fleet ? now - Date.parse(`${fleet.asOf}T12:00:00Z`) > FLEET_STALE_DAYS * 86_400_000 : false;
   const shownFleet = settings.fleet && fleet ? fleet.areas : undefined;
   const selectedArea = selectedFleetArea ? shownFleet?.find((a) => a.name === selectedFleetArea) : undefined;
-  // One map card at a time: selecting a base, aircraft or fleet area clears the others.
-  const selectOnly = (kind: 'base' | 'air' | 'fleet', key: string | null) => {
+  const [selectedStrait, setSelectedStrait] = useState<string | null>(null);
+  const shownStraits = settings.chokepoints && chokepoints ? chokepoints.items : undefined;
+  const selectedStraitItem = selectedStrait ? shownStraits?.find((c) => c.id === selectedStrait) : undefined;
+  // One map card at a time: selecting a base, aircraft, fleet area or chokepoint clears the others.
+  const selectOnly = (kind: 'base' | 'air' | 'fleet' | 'strait', key: string | null) => {
     setSelectedBase(kind === 'base' ? key : null);
     setSelectedAircraft(kind === 'air' ? key : null);
     setSelectedFleetArea(kind === 'fleet' ? key : null);
+    setSelectedStrait(kind === 'strait' ? key : null);
   };
   // Region report counts ignore off-topic news (sport, entertainment …) whatever the feed toggle says.
   const relevantEvents = useMemo(() => events.filter((e) => !isOffTopic(e)), [events]);
@@ -159,6 +164,17 @@ export default function GlobalOperationsPage() {
               >
                 <Anchor size={10} aria-hidden /> FLEET
               </button>
+              <button
+                className={toggleBtn(settings.chokepoints)}
+                aria-pressed={settings.chokepoints}
+                title="Ship traffic through six straits and canals (IMF PortWatch, daily, about 6 days behind)"
+                onClick={() => {
+                  update({ chokepoints: !settings.chokepoints });
+                  setSelectedStrait(null);
+                }}
+              >
+                <Ship size={10} aria-hidden /> STRAITS
+              </button>
               {settings.installations && operatorOptions.length > 0 && (
                 <select
                   aria-label="Show bases operated by"
@@ -200,6 +216,10 @@ export default function GlobalOperationsPage() {
               showFleet={settings.fleet}
               selectedFleetArea={selectedArea ? selectedFleetArea : null}
               onSelectFleetArea={(name) => selectOnly('fleet', name)}
+              chokepoints={shownStraits}
+              showChokepoints={settings.chokepoints}
+              selectedChokepoint={selectedStraitItem ? selectedStrait : null}
+              onSelectChokepoint={(id) => selectOnly('strait', id)}
             />
           <MapLegend
             plotted={projection.points.features.length}
@@ -225,9 +245,10 @@ export default function GlobalOperationsPage() {
                 : undefined
             }
           />
-          {selectedArea && fleet && <FleetCard area={selectedArea} snapshot={fleet} now={now} onClose={() => setSelectedFleetArea(null)} />}
-          {!selectedArea && selectedPlane && aircraft && <AircraftCard aircraft={selectedPlane} snapshot={aircraft} now={now} onClose={() => setSelectedAircraft(null)} />}
-          {!selectedArea && !selectedPlane && bases.selected && <InstallationCard selected={bases.selected} events={events} now={now} onClose={() => setSelectedBase(null)} />}
+          {selectedStraitItem && chokepoints && <ChokepointCard item={selectedStraitItem} snapshot={chokepoints} now={now} onClose={() => setSelectedStrait(null)} />}
+          {!selectedStraitItem && selectedArea && fleet && <FleetCard area={selectedArea} snapshot={fleet} now={now} onClose={() => setSelectedFleetArea(null)} />}
+          {!selectedStraitItem && !selectedArea && selectedPlane && aircraft && <AircraftCard aircraft={selectedPlane} snapshot={aircraft} now={now} onClose={() => setSelectedAircraft(null)} />}
+          {!selectedStraitItem && !selectedArea && !selectedPlane && bases.selected && <InstallationCard selected={bases.selected} events={events} now={now} onClose={() => setSelectedBase(null)} />}
           {bases.error && settings.installations && <p className="absolute top-2 right-2 z-10 bg-wt-panel/95 px-2 py-1 text-2xs text-wt-warn">{bases.error}</p>}
         </Panel>
 

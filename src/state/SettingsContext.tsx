@@ -20,6 +20,8 @@ export interface OperatorSettings {
   aircraft: boolean;
   /** US Navy fleet (USNI tracker) layer on the map. */
   fleet: boolean;
+  /** Chokepoint traffic (IMF PortWatch) on the map. */
+  chokepoints: boolean;
 }
 
 export const DEFAULT_SETTINGS: OperatorSettings = {
@@ -32,6 +34,7 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   installationsOperator: 'ALL',
   aircraft: true,
   fleet: true,
+  chokepoints: true,
 };
 
 const KEY = 'wt.settings.v1';

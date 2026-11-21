@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AIRCRAFT_CLASS_LABEL, aircraftLabel, aircraftTypeName, type AircraftClass, type AircraftPosition } from '@shared/domain/aircraft';
 import { isBigDeck, type FleetArea } from '@shared/domain/fleet';
+import type { ChokepointReading } from '@shared/domain/chokepoints';
 import { componentOf, operationOf, type Branch, type Installation, type Operation, type WorldInstallation } from '@shared/domain/installations';
 import '../../lib/maplibreSetup';
 import { Map as MLMap, NavigationControl, Popup, type GeoJSONSource, type MapLayerMouseEvent, type StyleSpecification } from 'maplibre-gl';
@@ -39,6 +40,11 @@ export interface WorldMapProps {
   /** Selected fleet area (name). */
   selectedFleetArea?: string | null;
   onSelectFleetArea?: (name: string | null) => void;
+  /** Chokepoint transit status (IMF PortWatch), optional. */
+  chokepoints?: ChokepointReading[];
+  showChokepoints?: boolean;
+  selectedChokepoint?: string | null;
+  onSelectChokepoint?: (id: string | null) => void;
 }
 
 const GLOBAL_VIEW = { center: [35, 22] as [number, number], zoom: 1.35 };
@@ -60,6 +66,9 @@ export const AIRCRAFT_COLOR: Record<AircraftClass, string> = {
   helicopter: '#c8c8c8',
   other: '#8a958f',
 };
+/** Chokepoint status colours: amber and red are severity here, which is what they are reserved for. */
+export const CHOKEPOINT_COLOR = { normal: '#80a992', reduced: '#ffc857', severe: '#ff5555', 'sudden-drop': '#ff5555', 'insufficient-data': '#5f6b66' } as const;
+
 /** Fleet areas: brighter where a carrier or big-deck amphib is listed. */
 export const FLEET_COLOR = { bigDeck: '#69c6d5', other: '#80a992' } as const;
 /** Ship silhouette in a 20x20 box (hull and island), for the map icon and legend. */
@@ -355,6 +364,27 @@ export function WorldMap(props: WorldMapProps) {
           },
         });
 
+        // Chokepoints (IMF PortWatch): a diamond coloured by traffic status, labelled with the change.
+        m.addSource('chokepoints', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({
+          id: 'chokepoints',
+          type: 'symbol',
+          source: 'chokepoints',
+          layout: {
+            'text-field': ['concat', '◆ ', ['get', 'label']],
+            'text-font': font,
+            'text-size': 10,
+            'text-anchor': 'left',
+            'text-offset': [-0.45, 0],
+            'text-allow-overlap': true,
+          },
+          paint: {
+            'text-color': ['match', ['get', 'status'], 'reduced', CHOKEPOINT_COLOR.reduced, 'severe', CHOKEPOINT_COLOR.severe, 'sudden-drop', CHOKEPOINT_COLOR['sudden-drop'], 'insufficient-data', CHOKEPOINT_COLOR['insufficient-data'], CHOKEPOINT_COLOR.normal],
+            'text-halo-color': '#050a08',
+            'text-halo-width': 1.4,
+          },
+        });
+
         // Military aircraft (ADS-B): above installations, below event markers.
         m.addSource('aircraft', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
         m.addLayer({
@@ -478,6 +508,8 @@ export function WorldMap(props: WorldMapProps) {
           m.getCanvas().style.cursor = '';
           hover.remove();
         });
+        m.on('mouseenter', 'chokepoints', () => (m.getCanvas().style.cursor = 'pointer'));
+        m.on('mouseleave', 'chokepoints', () => (m.getCanvas().style.cursor = ''));
         m.on('mouseenter', 'fleet', () => (m.getCanvas().style.cursor = 'pointer'));
         m.on('mouseleave', 'fleet', () => (m.getCanvas().style.cursor = ''));
         for (const layer of ['clusters', 'region-fill']) {
@@ -496,6 +528,13 @@ export function WorldMap(props: WorldMapProps) {
             : [];
           if (planes[0] && cb.current.onSelectAircraft) {
             cb.current.onSelectAircraft(String(planes[0].properties.hex));
+            return;
+          }
+          const straits = m.getLayoutProperty('chokepoints', 'visibility') !== 'none'
+            ? m.queryRenderedFeatures([[e.point.x - 6, e.point.y - 6], [e.point.x + 6, e.point.y + 6]], { layers: ['chokepoints'] })
+            : [];
+          if (straits[0] && cb.current.onSelectChokepoint) {
+            cb.current.onSelectChokepoint(String(straits[0].properties.id));
             return;
           }
           const ships = m.getLayoutProperty('fleet', 'visibility') !== 'none'
@@ -626,6 +665,30 @@ export function WorldMap(props: WorldMapProps) {
     if (at) m.easeTo({ center: at, zoom: Math.max(m.getZoom(), 6), duration: 600 });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to selection changes
   }, [ready, selectedInstallation]);
+
+  const { chokepoints, showChokepoints, selectedChokepoint } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    (m.getSource('chokepoints') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (chokepoints ?? []).map((c) => {
+        const change = c.mean7 !== null && c.ref2025 ? Math.round((c.mean7 / c.ref2025.total - 1) * 100) : null;
+        const word = c.status === 'severe' ? ' SEVERE' : c.status === 'reduced' ? ' REDUCED' : c.status === 'sudden-drop' ? ' DROP' : '';
+        return {
+          type: 'Feature' as const,
+          geometry: { type: 'Point' as const, coordinates: [c.lon, c.lat] },
+          properties: { id: c.id, status: c.status, label: `${c.name}${word}${change === null ? '' : ` ${change > 0 ? '+' : change < 0 ? '−' : ''}${Math.abs(change)}%`}${c.id === selectedChokepoint ? ' ◂' : ''}` },
+        };
+      }),
+    });
+  }, [ready, chokepoints, selectedChokepoint]);
+
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    m.setLayoutProperty('chokepoints', 'visibility', showChokepoints ? 'visible' : 'none');
+  }, [ready, showChokepoints]);
 
   const { fleetAreas, showFleet, selectedFleetArea } = props;
   useEffect(() => {

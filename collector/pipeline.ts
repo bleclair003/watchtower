@@ -22,6 +22,7 @@ import { validateEvent } from './lib/validate.ts';
 import { truncate } from './lib/text.ts';
 import { AIRCRAFT_SOURCE_ID, type MilitaryAircraftState } from './adapters/militaryAircraft.ts';
 import { FLEET_SOURCE_ID, type FleetState } from './adapters/usniFleet.ts';
+import { PORTWATCH_SOURCE_ID, type PortwatchState } from './adapters/portwatch.ts';
 
 export interface PipelineOptions {
   trigger: CollectionRun['trigger'];
@@ -239,6 +240,14 @@ export async function runCollection(
       if (fleet?.latest) snapshot.fleet = fleet.latest;
     } catch (err) {
       log(`FLT  fleet positions not added to the snapshot: ${sanitizeError(err)}`);
+    }
+  }
+  if (tracked.includes(PORTWATCH_SOURCE_ID)) {
+    try {
+      const pw = await store.getSourceState<PortwatchState>(PORTWATCH_SOURCE_ID);
+      if (pw?.latest) snapshot.chokepoints = pw.latest;
+    } catch (err) {
+      log(`CHK  chokepoint data not added to the snapshot: ${sanitizeError(err)}`);
     }
   }
 

@@ -106,6 +106,14 @@ test('military aircraft layer: simulated in demo mode, labelled, and can be hidd
   await expect(page.getByText(/Aircraft \(ADS-B\)/)).toHaveCount(0);
 });
 
+test('chokepoint layer: toggle is on by default and can be hidden', async ({ page }) => {
+  await openModule(page, '/', 'GOC');
+  const straits = page.getByRole('button', { name: 'STRAITS', exact: true });
+  await expect(straits).toHaveAttribute('aria-pressed', 'true');
+  await straits.click();
+  await expect(straits).toHaveAttribute('aria-pressed', 'false');
+});
+
 test('US Navy fleet layer: simulated in demo mode, dated, and can be hidden', async ({ page }) => {
   await openModule(page, '/', 'GOC');
   const fleet = page.getByRole('button', { name: 'FLEET', exact: true });

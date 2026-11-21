@@ -12,6 +12,7 @@ import { airForceNews, aljazeera, bbcWorld, defenseNews, iaeaNews, marinesNews, 
 import { dhsNtas, faaTfr, femaDeclarations, nwsAlerts } from './usDomestic.ts';
 import { militaryAircraft } from './militaryAircraft.ts';
 import { usniFleetTracker } from './usniFleet.ts';
+import { portwatchChokepoints } from './portwatch.ts';
 
 /** Active adapters. Adding a source = write an adapter + register it here. */
 export const ADAPTERS: SourceAdapter<never>[] = [
@@ -41,6 +42,7 @@ export const ADAPTERS: SourceAdapter<never>[] = [
   // Phase 13
   militaryAircraft as SourceAdapter<never>,
   usniFleetTracker as SourceAdapter<never>,
+  portwatchChokepoints as SourceAdapter<never>,
   // Free-key sources: active only when their key is set.
   firms as SourceAdapter<never>,
   cloudflareRadarOutages as SourceAdapter<never>,

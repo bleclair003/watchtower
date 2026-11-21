@@ -96,6 +96,16 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 - **Feeds:** the fleet-tracker category feed is cached for weeks (its newest item was Oct. 26 on 2026-11-21), so WATCHTOWER reads the main feed, and the category feed only once for history. Article pages refuse scripted access (HTTP 403); the RSS carries the full text. Checked at most every 3 hours.
 - **Terms:** copyright USNI News. WATCHTOWER keeps only facts (ship, hull number, area, date) and a link, never article text. robots.txt content signals: search=yes, ai-train=no, use=reference. WATCHTOWER runs no AI model on it.
 
+## v0.18.0 Chokepoint traffic (IMF PortWatch) — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| IMF PortWatch daily chokepoint transits (public ArcGIS service) | scientific | 120 days of daily transits (all ships, tankers) for six chokepoints, the 2025 daily averages and PortWatch's chokepoint points. Records weekly while a chokepoint is disrupted |
+
+- **Terms:** attribution "Source: International Monetary Fund, PortWatch" on every record and card. The IMF "prohibits bulk download of information by automated technology without explicit permission". **The owner chose (2026-11-21) to use it without asking**, with a minimal footprint: one small query a day, six chokepoints, private dashboard only. If the IMF objects or blocks access, the source goes DEGRADED and nothing else is affected.
+- **Lag:** about 6 days (latest day 2026-11-15 on 2026-11-21).
+- **Rejected: aisstream.io.** A 60-second worldwide probe with a real key (2026-11-21) returned 4,200 messages, almost all from north-west Europe and North American coasts, and none from any of the five chokepoints, the Persian Gulf, the Red Sea or around Taiwan.
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |

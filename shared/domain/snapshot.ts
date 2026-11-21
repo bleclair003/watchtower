@@ -3,6 +3,7 @@ import type { IndicatorEvaluation, RegionScore, ScoreHistoryPoint } from './indi
 import type { AlertRuleProblem } from './alerts/types.ts';
 import type { AircraftSnapshot } from './aircraft.ts';
 import type { FleetSnapshot } from './fleet.ts';
+import type { ChokepointSnapshot } from './chokepoints.ts';
 
 /**
  * Precomputed dashboard payload, written by the collector to
@@ -47,6 +48,8 @@ export interface DashboardSnapshot {
   aircraft?: AircraftSnapshot;
   /** Latest USNI News Fleet and Marine Tracker (weekly), parsed into areas and ships. */
   fleet?: FleetSnapshot;
+  /** Daily chokepoint transits (IMF PortWatch), with status. */
+  chokepoints?: ChokepointSnapshot;
 }
 
 /** Firestore collection names — single source of truth for app and collector. */
