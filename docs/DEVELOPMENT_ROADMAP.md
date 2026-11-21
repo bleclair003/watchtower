@@ -150,3 +150,65 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
 - [ ] Fill notable gaps (Camp Lemonnier, Djibouti, South China Sea island bases) via Wikidata edits or a second source
 - [ ] Installation boundaries (MIRTA polygons) on selection
 
+
+## Phase 13 — More signals (planned 2026-11-21)
+Every source is checked on real responses first (licence, rate limits, terms). A source that fails is recorded here as blocked and left out. Each item ships with tests, docs, a changelog entry and a production check.
+Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at 30-minute collection). Measure each new source's run time and keep the monthly total under 1,900.
+
+### A. Military movement
+1. **Military aircraft** (adsb.lol / airplanes.live military endpoints, no key)
+   - [ ] Verify the endpoints, terms and rate limits; choose a primary and a fallback
+   - [ ] Snapshot every collection run; count by type (tanker, surveillance, bomber, transport) per watch region; store aggregates, not tracks
+   - [ ] AIRCRAFT map layer with type colours and a click card; limits stated (snapshot, transponders off)
+   - [ ] Indicators: tanker/surveillance surge per region against a 14-day baseline
+2. **US Navy fleet positions** (USNI News Fleet Tracker, weekly)
+   - [ ] Parse carrier and amphibious group positions from the weekly article; approximate areas only, no invented coordinates
+   - [ ] FLEET map layer and indicator: carrier group arrives in a watch region
+3. **Ship traffic at chokepoints** (aisstream.io, free key)
+   - [ ] Sign-up and terms check (user creates the key; stored as an Actions secret)
+   - [ ] Short listen window per run (budget-checked); transit counts for Hormuz, Bab el-Mandeb, Taiwan Strait, Bosporus, Suez
+   - [ ] Indicator: transit count drops against the baseline
+
+### B. Escalation and pressure signals
+4. **Sanctions** (OFAC SDN and recent actions, EU consolidated list, UK sanctions list)
+   - [ ] Daily diff of each list: new designations by country and programme
+   - [ ] Indicator: new sanctions designations targeting a watch-region country
+5. **UN Security Council** (meetings programme, press releases, resolutions)
+   - [ ] Emergency and unscheduled meetings, vetoes, adopted resolutions
+   - [ ] Indicators: emergency session on a watch-region country; veto cast
+6. **Missile and nuclear tests**
+   - [ ] CNS North Korea missile test database (check access) plus official test notices
+   - [ ] Indicator: missile or nuclear test reported
+7. **Embassy alerts and ordered departures**
+   - [ ] Per-embassy US security alerts for watch-region countries (find feeds that work)
+   - [ ] Indicator: ordered or authorised departure
+
+### C. US domestic and military
+8. **DoD contract awards** (daily announcements)
+   - [ ] Parse awards; flag munitions, missiles and large awards (amount threshold)
+9. **Federal Register** (free API, no key)
+   - [ ] Executive orders, export controls (BIS), national emergency declarations, defence notices
+10. **Congress** (congress.gov API, free key)
+   - [ ] War-powers resolutions, NDAA steps, defence and intelligence hearings
+
+### D. Context layers
+11. **Satellite imagery** (NASA GIBS daily tiles, no key)
+   - [ ] IMAGERY map layer you switch on, with date and product shown; check the CSP and attribution
+12. **Military satellite launches** (Launch Library 2)
+   - [ ] Upcoming and recent launches, with military payloads flagged
+13. **Disease outbreaks** (WHO Disease Outbreak News)
+   - [ ] Adapter and tagging; indicator for an outbreak in a watch-region country
+14. **Economic stress** (free FX and oil price data)
+   - [ ] Daily currency moves for watch-region countries; Brent/WTI
+   - [ ] Indicators: sharp currency drop; oil price spike
+15. **Refugee flows** (UNHCR API)
+   - [ ] Displacement figures per country on region pages (slow-moving: context, not alerts)
+
+### E. Analysis on existing data
+16. **What changed** (no new source)
+   - [ ] Per-region diff against 24 hours ago: new indicators, RAI changes, new stories, new official warnings
+   - [ ] On the region pages, the GOC and the daily brief
+17. **Activity near bases**
+   - [ ] Records near or naming each base this week against its usual level; flag unusual activity on the map and the card
+18. **Watchlist**
+   - [ ] Your own list of people, units, bases or terms; matching records are highlighted and can trigger alerts (stored per user, Firestore rules updated)
