@@ -11,7 +11,7 @@ npm run test:e2e    # Playwright: builds in demo mode, serves with the productio
 
 Locally the E2E suite uses the installed Microsoft Edge (`channel: 'msedge'`); CI installs Playwright's Chromium.
 
-## Current coverage (198 unit/component + 11 rules + 58 end-to-end tests, all passing)
+## Current coverage (204 unit/component + 11 rules + 58 end-to-end tests, all passing)
 
 | File | Covers |
 |---|---|

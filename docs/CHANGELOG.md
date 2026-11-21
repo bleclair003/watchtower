@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.0] — 2026-11-21 — Daily brief
+
+### Added
+- Daily brief to Discord: RAI and 24 h change, active indicators, notable official warnings, top stories (multi-source first, opinion and off-topic excluded), collector health. Sent once a day at/after 11:00 UTC, with retries; deterministic and source-linked.
+- Collect workflow: `send_brief` option for a manual test send; dashboard URL for links in Discord messages.
+- Dry runs print the brief.
+
+
 ## [0.10.2] — 2026-11-21 — Relevant topics only
 
 ### Changed

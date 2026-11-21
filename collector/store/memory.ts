@@ -33,6 +33,13 @@ export class MemoryStore implements CollectorStore {
   async filterNewEventIds(ids: string[]) {
     return new Set(ids.filter((id) => !this.events.has(id)));
   }
+  readonly collectorState = new Map<string, unknown>();
+  async getCollectorState<T>(key: string) {
+    return (this.collectorState.has(key) ? structuredClone(this.collectorState.get(key)) : null) as T | null;
+  }
+  async putCollectorState(key: string, value: unknown) {
+    this.collectorState.set(key, structuredClone(value));
+  }
   async putEvents(events: IntelligenceEvent[]) {
     for (const e of events) this.events.set(e.id, structuredClone(e));
   }

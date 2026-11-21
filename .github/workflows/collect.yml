@@ -22,6 +22,10 @@ on:
         type: choice
         options: [manual, schedule]
         default: manual
+      send_brief:
+        description: Send the daily brief to Discord now (test)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -55,6 +59,11 @@ jobs:
           WATCHTOWER_PROJECT_ID: ${{ vars.WATCHTOWER_PROJECT_ID }}
           COLLECTOR_TRIGGER: ${{ github.event_name == 'schedule' && 'schedule' || inputs.trigger || 'manual' }}
           METADATA_SERVER_DETECTION: none
+          # Public dashboard URL, used for links in Discord messages.
+          WATCHTOWER_APP_URL: https://watchtower-b9b2a.web.app
+          # Daily brief: first run at/after this UTC hour sends it. FORCE sends now (manual test).
+          BRIEF_HOUR_UTC: '11'
+          FORCE_DAILY_BRIEF: ${{ inputs.send_brief && '1' || '' }}
           # Optional: alert notifications. Unset → alerts are still recorded in the app.
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           # Optional free-key sources. Unset → the source is skipped as NOT CONFIGURED.

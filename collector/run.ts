@@ -74,6 +74,10 @@ async function main(): Promise<number> {
     trackedSourceIds: ADAPTERS.filter(configured).map((a) => a.sourceId),
     discordWebhookUrl,
     appUrl: process.env.WATCHTOWER_APP_URL?.trim() || undefined,
+    brief: {
+      hourUtc: Number.isInteger(Number(process.env.BRIEF_HOUR_UTC)) && process.env.BRIEF_HOUR_UTC?.trim() ? Number(process.env.BRIEF_HOUR_UTC) : undefined,
+      force: process.env.FORCE_DAILY_BRIEF === '1',
+    },
     log: (m) => console.log(m),
   });
 
@@ -81,6 +85,11 @@ async function main(): Promise<number> {
     `Run ${run.id}: fetched ${run.recordsFetched} · imported ${run.recordsImported} · duplicates ${run.duplicatesSuppressed} · rejected ${run.recordsRejected} · alerts ${run.alertsCreated ?? 0} · notified ${run.notificationsSent ?? 0} · errors ${run.errors.length}`,
   );
   console.log(`Snapshot: ${snapshot.events.length} events, ${Buffer.byteLength(JSON.stringify(snapshot))} bytes`);
+  if (values['dry-run']) {
+    const { buildBrief } = await import('../shared/domain/brief/brief.ts');
+    const { briefToText } = await import('./brief/dailyBrief.ts');
+    console.log(`\n${briefToText(buildBrief(snapshot, Date.now()))}\n`);
+  }
   if ('readCount' in store) {
     const fs = store as unknown as { readCount: number; cacheInfo: string };
     console.log(`Firestore: ~${fs.readCount} document reads this run (${fs.cacheInfo || 'no event cache used'})`);

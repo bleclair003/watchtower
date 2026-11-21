@@ -215,4 +215,6 @@ export interface CollectionRun {
   /** Phase 4: alerts created and Discord notifications sent during this run. */
   alertsCreated?: number;
   notificationsSent?: number;
+  /** Phase 10: whether this run sent the daily brief. */
+  briefSent?: boolean;
 }

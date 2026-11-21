@@ -17,6 +17,7 @@ import type { SourceAdapter } from './adapters/types.ts';
 import type { CollectorStore } from './store/types.ts';
 import { politeFetch, type FetchOptions } from './lib/http.ts';
 import { redactSecrets } from './lib/secrets.ts';
+import { runDailyBrief } from './brief/dailyBrief.ts';
 import { validateEvent } from './lib/validate.ts';
 import { truncate } from './lib/text.ts';
 
@@ -33,6 +34,8 @@ export interface PipelineOptions {
   appUrl?: string;
   /** Injected for tests (Discord delivery). */
   alertFetch?: typeof fetch;
+  /** Daily brief: UTC hour of the first send, and force-send for manual tests. */
+  brief?: { hourUtc?: number; force?: boolean };
   now?: () => number;
   fetchOptions?: Omit<FetchOptions, 'validators'>;
   log?: (msg: string) => void;
@@ -218,6 +221,27 @@ export async function runCollection(
     log(`ALRT FAILED: ${sanitizeError(err)}`);
   }
   snapshot.discordConfigured = Boolean(opts.discordWebhookUrl);
+
+  // Daily brief: once a day, after the snapshot is complete, so it reflects this run.
+  // Only when the caller configures it (the collector CLI always does; unit tests opt in).
+  if (opts.mode !== 'evaluate-only' && opts.brief) {
+    try {
+      const r = await runDailyBrief(store, snapshot, {
+        now: now(),
+        webhookUrl: opts.discordWebhookUrl ?? null,
+        appUrl: opts.appUrl,
+        hourUtc: opts.brief?.hourUtc,
+        force: opts.brief?.force,
+        fetchImpl: opts.alertFetch,
+        log,
+      });
+      run.briefSent = r.sent;
+      if (!r.sent && r.error) run.errors.push({ sourceId: 'daily-brief', message: sanitizeError(r.error) });
+    } catch (err) {
+      run.errors.push({ sourceId: 'daily-brief', message: sanitizeError(err) });
+      log(`BRIEF FAILED: ${sanitizeError(err)}`);
+    }
+  }
 
   run.finishedAt = new Date(now()).toISOString();
   snapshot.lastRun = run;

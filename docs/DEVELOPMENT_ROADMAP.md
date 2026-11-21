@@ -130,8 +130,8 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
    - [x] Feed shows one entry per story with its sources; toggle back to all items
    - [x] Tests on real headlines; checked on real collected data (emulator) — v0.10.0
 2. **Daily brief to Discord** — morning summary: RAI changes, triggered indicators, new official warnings, top stories, links
-   - [ ] Brief builder (deterministic, from the SITREP generator)
-   - [ ] Scheduled delivery (once a day) through the existing webhook, with cooldown and failure logging
+   - [x] Brief builder (deterministic, from the dashboard snapshot; reuses stories and relevance) — v0.11.0
+   - [x] Scheduled delivery (once a day at/after 11:00 UTC) through the existing webhook, with retries and failure logging
 3. **Region pages** — one page per watch region
    - [ ] RAI history, active indicators, latest stories, region map (fires, quakes, outages), countries
 

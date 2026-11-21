@@ -214,6 +214,14 @@ export class FirestoreStore implements CollectorStore {
       await batch.commit();
     }
   }
+  async getCollectorState<T>(key: string) {
+    const snap = await this.db.collection(COLLECTIONS.collectorState).doc(key).get();
+    this.readCount++;
+    return snap.exists ? (snap.data() as T) : null;
+  }
+  async putCollectorState(key: string, value: unknown) {
+    await this.db.collection(COLLECTIONS.collectorState).doc(key).set(value as Record<string, unknown>);
+  }
   async getAlertingState() {
     const snap = await this.db.collection(COLLECTIONS.collectorState).doc('alerting').get();
     this.readCount++;

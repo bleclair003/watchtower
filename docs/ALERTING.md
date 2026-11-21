@@ -81,3 +81,21 @@ In the browser:
 - Email or browser push notifications (planned later; see the PDD §10.2).
 - Rules combining several triggers. Today, use one rule per trigger, or a single event condition with ALL/ANY logic.
 - Editing the indicator catalog from the UI.
+
+## Daily brief (v0.11.0)
+
+Once a day, the first collection at or after **11:00 UTC** (`BRIEF_HOUR_UTC` in `collect.yml`; 6 am US Eastern) posts a brief to the Discord webhook. Code: [`shared/domain/brief/brief.ts`](../shared/domain/brief/brief.ts) (content) and [`collector/brief/dailyBrief.ts`](../collector/brief/dailyBrief.ts) (delivery).
+
+| Section | What goes in it |
+|---|---|
+| Regional Activity Index | Every region's score and band, with the change against ~24 h ago (or "no 24 h comparison") |
+| Active indicators | TRIGGERED and ELEVATED non-experimental indicators |
+| Official warnings (24 h) | State Dept level changes, GDACS orange/red, Cloudflare outages attributed to a shutdown or military action, unusual seismic events (non-earthquake, or M6.5+), non-routine CISA advisories, ransomware-linked KEV, and a UK travel-advice summary for watch regions |
+| Top stories (24 h) | Stories first (official, then multi-publisher), then single reports tied to a watch region, ranked conflict and crisis first. Off-topic news and opinion columns excluded |
+| Collector health | Sources that are not ONLINE, and errors from the last run |
+
+- **Deterministic.** Built from the dashboard snapshot only, with no extra reads and no generated prose. Empty sections say so. Items link to their sources, and the footer links to the dashboard and SITREP.
+- **Once a day.** State is kept in `collectorState/dailyBrief`. A failed delivery is retried on the next runs, up to 3 attempts a day. Failures go into the run's errors.
+- **Test send:** Actions → Collect → Run workflow → tick **send_brief**.
+- Mentions and Discord markdown in source text are neutralised. The message stays within Discord's limits (10 embeds, 6,000 characters).
+

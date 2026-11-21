@@ -20,6 +20,9 @@ export interface CollectorStore {
   /** Returns the subset of ids NOT already stored. */
   filterNewEventIds(ids: string[]): Promise<Set<string>>;
   putEvents(events: IntelligenceEvent[]): Promise<void>;
+  /** Collector-private bookkeeping documents (collectorState/{key}). */
+  getCollectorState<T>(key: string): Promise<T | null>;
+  putCollectorState(key: string, value: unknown): Promise<void>;
   /** Stored events by id (missing ids are omitted). Used only for revisable sources. */
   getEvents(ids: string[]): Promise<IntelligenceEvent[]>;
   /** Overwrites existing events (revisions of revisable sources). */
