@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 15;
+export const CATALOG_VERSION = 16;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -1097,6 +1097,72 @@ const fedregIndicators: IndicatorDefinition[] = STATE_DEPT_REGIONS.flatMap((r): 
   },
 ]);
 
+const CONGRESS = 'congress';
+
+/** Phase 13 item 10: Congress on war powers, arms sales and security hearings. */
+const congressIndicators: IndicatorDefinition[] = STATE_DEPT_REGIONS.flatMap((r): IndicatorDefinition[] => [
+  {
+    id: `${r.id}.congress-war-powers`,
+    name: `${r.shortCode} Congress war-powers action`,
+    description: `A war-powers or use-of-force resolution naming a ${r.name} country introduced, moved or voted on in Congress within 30 days.`,
+    family: 'official-activity',
+    regionId: r.id,
+    requiredSourceIds: [CONGRESS],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: CONGRESS },
+        { field: 'regionIds', op: 'contains', value: r.id },
+        { field: 'metadata.congressKind', op: 'eq', value: 'war-powers' },
+      ],
+    },
+    windowHours: 720,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 2 },
+    baseline: null,
+    weight: 2,
+    severity: 'medium',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'Members of Congress file war-powers resolutions when US forces are in, or close to, hostilities; repeated filings and floor votes show a live dispute over military action.',
+  },
+  {
+    id: `${r.id}.congress-attention`,
+    name: `${r.shortCode} Congress security attention`,
+    description: `Congressional security actions (war powers, arms-sale disapprovals, security hearings) naming ${r.name} countries within 14 days.`,
+    family: 'experimental',
+    regionId: r.id,
+    requiredSourceIds: [CONGRESS],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: CONGRESS },
+        { field: 'regionIds', op: 'contains', value: r.id },
+      ],
+    },
+    windowHours: 336,
+    elevated: { countAtLeast: 2 },
+    triggered: { countAtLeast: 4 },
+    baseline: null,
+    weight: 0,
+    severity: 'low',
+    experimental: true,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'Clusters of congressional actions on a region show political attention; untested, so it never affects the RAI.',
+    research: {
+      hypothesis: 'Congressional activity on a region rises with US military involvement there.',
+      dataAvailability: 'Congress.gov API, collected since the key was configured (30 days back-filled).',
+      baselinePeriod: 'None yet.',
+      expectedRelationship: 'Coincident or lagging.',
+      historicalExamples: 'Iran war-powers resolutions in 2026 (S.J.Res. 118, 172, 191, 200).',
+      confounders: 'Session calendar and recesses; symbolic resolutions.',
+      falsePositives: 'Measures that name a country in passing.',
+      retrospectiveResults: 'Insufficient history.',
+      evidenceQuality: 'none',
+    },
+  },
+]);
+
 export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...advisoryIndicators,
   ...cyberIndicators,
@@ -1115,6 +1181,7 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...embassyIndicators,
   ...contractIndicators,
   ...fedregIndicators,
+  ...congressIndicators,
 ];
 
 export function getIndicator(id: string): IndicatorDefinition | undefined {

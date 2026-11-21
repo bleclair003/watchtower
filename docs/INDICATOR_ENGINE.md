@@ -40,7 +40,7 @@ For each indicator, at time `now`:
 - **Fields:** an allow-list (`CONDITION_FIELDS`) of event properties and selected `metadata.*` keys. Lookups are own-property only, so inherited names such as `constructor` are rejected; this is tested.
 - `validateCondition()` and `validateCatalog()` reject malformed definitions, and the catalog is validated in CI.
 
-## Catalog v15 (136 indicators)
+## Catalog v16 (148 indicators)
 
 | Region | Indicator | Window | Elevated / Triggered | Baseline | Weight · Severity |
 |---|---|---|---|---|---|
@@ -77,6 +77,8 @@ For each indicator, at time `now`:
 | each of 6 foreign geographic regions, experimental (v14) | DoD awards involving Foreign Military Sales to the region | 30 d | 1 / 3 | — | 0 · never in the RAI |
 | each of 6 foreign geographic regions (v15) | New US national emergency naming the region (Federal Register) | 30 d | 1 / 1 | — | 2 · high |
 | each of 6 foreign geographic regions, experimental (v15) | US executive actions naming the region | 14 d | 2 / 4 | — | 0 · never in the RAI |
+| each of 6 foreign geographic regions (v16) | War-powers / use-of-force resolution naming the region (Congress) | 30 d | 1 / 2 | — | 2 · medium |
+| each of 6 foreign geographic regions, experimental (v16) | Congressional security actions naming the region | 14 d | 2 / 4 | — | 0 · never in the RAI |
 | Experimental | State Dept advisory tempo (global) | 72 h | 6 / 12 | 28 d | 0 |
 | Experimental | Pentagon Pizza Index | — | — | — | 0 · always NO DATA |
 

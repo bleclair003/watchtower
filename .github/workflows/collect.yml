@@ -79,5 +79,6 @@ jobs:
           FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}
           CLOUDFLARE_RADAR_TOKEN: ${{ secrets.CLOUDFLARE_RADAR_TOKEN }}
           AISSTREAM_API_KEY: ${{ secrets.AISSTREAM_API_KEY }}
+          CONGRESS_API_KEY: ${{ secrets.CONGRESS_API_KEY }}
         # Exit 2 (a source failed) fails the job so GitHub notifies the repository owner.
         run: node collector/run.ts

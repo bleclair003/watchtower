@@ -195,7 +195,7 @@ Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at
 9. **Federal Register** (free API, no key)
    - [x] Executive orders and presidential actions, new national emergencies, BIS export controls, State terrorist designations — v0.25.0
 10. **Congress** (congress.gov API, free key)
-   - [ ] War-powers resolutions, NDAA steps, defence and intelligence hearings
+   - [x] War-powers resolutions, arms-sale disapprovals, NDAA steps, security hearings — v0.26.0 (needs CONGRESS_API_KEY)
 
 ### D. Context layers
 11. **Satellite imagery** (NASA GIBS daily tiles, no key)

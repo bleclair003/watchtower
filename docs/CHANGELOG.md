@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.26.0] — 2026-11-21 — Congress
+
+### Added
+- Source 36, **Congress.gov** (free api.data.gov key, `CONGRESS_API_KEY` secret, sent in a header): war-powers and use-of-force resolutions, arms-sale and nuclear-cooperation disapprovals, NDAA actions, and hearings of the armed services, intelligence, foreign affairs/relations and homeland security committees. Every 2 hours; one record per measure and latest action (introduction, committee step, floor vote); 30 days back-filled.
+- Catalog v16 (148 indicators): **Congress war-powers action** (weight 2) and **Congress security attention** (experimental) for the six foreign regions.
+- Skipped as NOT CONFIGURED until the key is set.
+
+
 ## [0.25.0] — 2026-11-21 — Federal Register
 
 ### Added

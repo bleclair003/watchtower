@@ -258,6 +258,15 @@ Security Council meetings, resolutions and failed drafts, in the feed and on reg
 - **Countries** come from the title and abstract; documents on public inspection before their publication date are dated today, not in the future.
 - **Indicators:** a new national emergency naming a region (high), and an experimental count of executive actions per region.
 
+## Congress (v0.26.0)
+
+- **Source:** the Congress.gov API ([`collector/adapters/congress.ts`](../collector/adapters/congress.ts)), with a free key.
+- **Measures recorded:** war-powers resolutions ("removal of United States Armed Forces from hostilities …"), use-of-force authorizations, disapprovals of arms sales and of civilian nuclear-cooperation agreements, and the annual defense authorization (NDAA). One record per measure and latest action, so an introduction, a committee step and a floor vote are separate records; floor votes are marked.
+- **Hearings:** armed services, intelligence, foreign affairs/relations and homeland security committees only.
+- **Countries** from the measure or hearing title (e.g. "the Islamic Republic of Iran" → Iran).
+- **Indicators:** war-powers action on a region (2 in 30 days = triggered), and experimental congressional attention.
+- **Example (2026):** four Senate resolutions to remove US forces from hostilities with Iran; discharge motions failed 47–53 and 47–48.
+
 ## Cost
 
 | Feature | Firestore reads |

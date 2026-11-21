@@ -19,6 +19,7 @@ import { unSecurityCouncil } from './unsc.ts';
 import { yonhapDprkLaunches } from './yonhapDprk.ts';
 import { dodContracts } from './dodContracts.ts';
 import { federalRegister } from './federalRegister.ts';
+import { congress } from './congress.ts';
 
 /** Active adapters. Adding a source = write an adapter + register it here. */
 export const ADAPTERS: SourceAdapter<never>[] = [
@@ -59,6 +60,7 @@ export const ADAPTERS: SourceAdapter<never>[] = [
   // Free-key sources: active only when their key is set.
   firms as SourceAdapter<never>,
   cloudflareRadarOutages as SourceAdapter<never>,
+  congress as SourceAdapter<never>,
   // Last: it awaits the AIS window that listened while the sources above were collected.
   aisSanctionedShips as SourceAdapter<never>,
 ];

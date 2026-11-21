@@ -775,6 +775,26 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     priority: 'P2',
     feasibility: { checkedAt: '2026-11-21T11:40:00Z', result: 'reachable', note: 'API HTTP 200 in 0.2–0.4 s.' },
   },
+  {
+    id: 'congress',
+    name: 'Bills, resolutions and committee meetings',
+    organization: 'US Congress (Library of Congress, Congress.gov API)',
+    website: 'https://www.congress.gov/',
+    endpoint: 'https://api.congress.gov/v3',
+    method: 'api',
+    sourceClass: 'official',
+    defaultCategory: 'official',
+    coverage: 'War-powers and use-of-force resolutions, arms-sale and nuclear-cooperation disapprovals, NDAA actions; hearings of the armed services, intelligence, foreign affairs/relations and homeland security committees',
+    authentication: 'Free api.data.gov key, stored as the CONGRESS_API_KEY secret and sent in the X-Api-Key header',
+    freeAccess: 'Free; 5,000 requests an hour per key',
+    expectedUpdateFrequency: 'Actions appear within a day; read every 2 hours',
+    pollIntervalMinutes: 120,
+    reliabilityNotes:
+      'Probe 2026-11-21 (public demo key, 10 requests/hour): four Senate resolutions in 2026 to remove US forces from hostilities with Iran (discharge motions failed 47-53 and 47-48), and disapprovals of arms sales to Israel and Saudi Arabia. The API has no keyword search, so recently updated joint resolutions and bills are read and filtered by title. Committee meetings need one request each; up to 12 new ones per run.',
+    termsNotes: 'US government data; public domain.',
+    priority: 'P2',
+    feasibility: { checkedAt: '2026-11-21T12:00:00Z', result: 'reachable', note: 'HTTP 200 with the demo key; needs a free key for regular collection.' },
+  },
   // ------------------------------------------------------------ research ---
   {
     id: 'centcom-releases',

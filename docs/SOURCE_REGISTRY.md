@@ -163,6 +163,14 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 |---|---|---|
 | Federal Register API (`/api/v1/documents.json`) | official | Security-related presidential documents, new/terminated national emergencies, BIS export-control rules, State terrorist designations and revocations |
 
+## v0.26.0 Congress — implemented ✅ (needs the free key)
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| Congress.gov API v3 (`CONGRESS_API_KEY`) | official | Recently updated joint resolutions and bills filtered by title (war powers, AUMF, arms-sale and nuclear-cooperation disapprovals, NDAA); hearings of security committees (up to 12 new meeting details per run) |
+
+- The API has no keyword search; the key goes in the `X-Api-Key` header, never the URL.
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |

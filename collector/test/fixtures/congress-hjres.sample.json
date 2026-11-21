@@ -1,0 +1,334 @@
+{
+    "bills": [
+        {
+            "congress": 119,
+            "introducedDate": "2025-09-11",
+            "latestAction": {
+                "actionDate": "2025-09-11",
+                "text": "Referred to the House Committee on the Judiciary."
+            },
+            "number": "121",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Proposing an amendment to the Constitution of the United States relating to contributions and expenditures intended to affect elections.",
+            "type": "HJRES",
+            "updateDate": "2026-11-20",
+            "updateDateIncludingText": "2026-11-20",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/121?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2026-09-16",
+            "latestAction": {
+                "actionDate": "2026-09-16",
+                "text": "Referred to the House Committee on Foreign Affairs."
+            },
+            "number": "217",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Disapproving the proposed civilian nuclear cooperation agreement between the United States and Saudi Arabia submitted to the Congress on September 14, 2026.",
+            "type": "HJRES",
+            "updateDate": "2026-11-18",
+            "updateDateIncludingText": "2026-11-18",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/217?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2026-11-17",
+            "latestAction": {
+                "actionDate": "2026-11-17",
+                "text": "Referred to the House Committee on the Judiciary."
+            },
+            "number": "222",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Proposing an amendment to the Constitution of the United States to prohibit any person who has citizenship of a country other than the United States from serving as a Representative or Senator in Congress.",
+            "type": "HJRES",
+            "updateDate": "2026-11-18",
+            "updateDateIncludingText": "2026-11-18",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/222?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2026-11-02",
+            "latestAction": {
+                "actionDate": "2026-11-02",
+                "text": "Referred to the House Committee on the Judiciary."
+            },
+            "number": "221",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Proposing an amendment to the Constitution of the United States giving Congress power to regulate campaign contributions for Federal elections.",
+            "type": "HJRES",
+            "updateDate": "2026-11-12",
+            "updateDateIncludingText": "2026-11-12",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/221?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2026-05-21",
+            "latestAction": {
+                "actionDate": "2026-05-21",
+                "text": "Referred to the House Committee on Education and Workforce."
+            },
+            "number": "189",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Providing for congressional disapproval under chapter 8 of title 5, United States Code, of the rule submitted by the Department of Education relating to \"Reimagining and Improving Student Education-Federal Student Loan Program Final Regulations\".",
+            "type": "HJRES",
+            "updateDate": "2026-11-11",
+            "updateDateIncludingText": "2026-11-11",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/189?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2025-02-27",
+            "latestAction": {
+                "actionDate": "2025-02-27",
+                "text": "Referred to the Committee on Veterans' Affairs, and in addition to the Committee on Armed Services, for a period to be subsequently determined by the Speaker, in each case for consideration of such provisions as fall within the jurisdiction of the committee concerned."
+            },
+            "number": "63",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Redesignating the Robert E. Lee Memorial as the \"Arlington House National Historic Site\".",
+            "type": "HJRES",
+            "updateDate": "2026-11-11",
+            "updateDateIncludingText": "2026-11-11",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/63?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2025-09-17",
+            "latestAction": {
+                "actionDate": "2025-09-17",
+                "text": "Referred to the House Committee on the Judiciary."
+            },
+            "number": "122",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Proposing an amendment to the Constitution of the United States relating to the authority of Congress and the States to regulate contributions and expenditures intended to affect elections and to enact public financing systems for political campaigns.",
+            "type": "HJRES",
+            "updateDate": "2026-11-06",
+            "updateDateIncludingText": "2026-11-06",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/122?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2025-01-03",
+            "latestAction": {
+                "actionDate": "2025-01-03",
+                "text": "Referred to the House Committee on the Judiciary."
+            },
+            "number": "9",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Proposing an amendment to the Constitution of the United States prohibiting the United States Government from increasing its debt except for a specific purpose by law adopted by three-fourths of the membership of each House of Congress.",
+            "type": "HJRES",
+            "updateDate": "2026-11-05",
+            "updateDateIncludingText": "2026-11-05",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/9?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2025-01-03",
+            "latestAction": {
+                "actionDate": "2025-01-03",
+                "text": "Referred to the House Committee on the Judiciary."
+            },
+            "number": "8",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Proposing an amendment to the Constitution of the United States to provide certain line item veto authority to the President.",
+            "type": "HJRES",
+            "updateDate": "2026-11-05",
+            "updateDateIncludingText": "2026-11-05",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/8?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2025-03-24",
+            "latestAction": {
+                "actionDate": "2025-03-27",
+                "text": "Sponsor introductory remarks on measure. (CR H1328-1329)"
+            },
+            "number": "79",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Providing for congressional disapproval under chapter 8 of title 5, United States Code, of the rule submitted by the Environmental Protection Agency relating to \"Review of Final Rule Reclassification of Major Sources as Area Sources Under Section 112 of the Clean Air Act\".",
+            "type": "HJRES",
+            "updateDate": "2026-11-05",
+            "updateDateIncludingText": "2026-11-05",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/79?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2025-01-03",
+            "latestAction": {
+                "actionDate": "2025-01-03",
+                "text": "Referred to the House Committee on the Judiciary."
+            },
+            "number": "6",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Proposing an amendment to the Constitution of the United States to provide for balanced budgets for the Government.",
+            "type": "HJRES",
+            "updateDate": "2026-11-05",
+            "updateDateIncludingText": "2026-11-05",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/6?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2025-01-03",
+            "latestAction": {
+                "actionDate": "2025-01-03",
+                "text": "Referred to the House Committee on the Judiciary."
+            },
+            "number": "2",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Proposing a balanced budget amendment to the Constitution of the United States.",
+            "type": "HJRES",
+            "updateDate": "2026-11-05",
+            "updateDateIncludingText": "2026-11-05",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/2?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2025-01-13",
+            "latestAction": {
+                "actionDate": "2025-01-13",
+                "text": "Referred to the House Committee on the Judiciary."
+            },
+            "number": "17",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Proposing a balanced budget amendment to the Constitution of the United States.",
+            "type": "HJRES",
+            "updateDate": "2026-11-05",
+            "updateDateIncludingText": "2026-11-05",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/17?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2025-01-09",
+            "latestAction": {
+                "actionDate": "2025-01-09",
+                "text": "Referred to the House Committee on Energy and Commerce."
+            },
+            "number": "15",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Providing for congressional disapproval under chapter 8 of title 5, United States Code, of the rule submitted by the Department of Energy relating to \"Energy Conservation Program: Energy Conservation Standards for Commercial Water Heating Equipment\".",
+            "type": "HJRES",
+            "updateDate": "2026-11-05",
+            "updateDateIncludingText": "2026-11-05",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/15?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2025-08-15",
+            "latestAction": {
+                "actionDate": "2025-08-15",
+                "text": "Referred to the House Committee on the Judiciary."
+            },
+            "number": "112",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Proposing an amendment to the Constitution of the United States related to the public debt.",
+            "type": "HJRES",
+            "updateDate": "2026-11-05",
+            "updateDateIncludingText": "2026-11-05",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/112?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2025-07-23",
+            "latestAction": {
+                "actionDate": "2025-07-23",
+                "text": "Referred to the House Committee on the Judiciary."
+            },
+            "number": "110",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Proposing a balanced budget amendment to the Constitution of the United States.",
+            "type": "HJRES",
+            "updateDate": "2026-11-05",
+            "updateDateIncludingText": "2026-11-05",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/110?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2025-02-04",
+            "latestAction": {
+                "actionDate": "2025-03-14",
+                "text": "Became Public Law No: 119-2."
+            },
+            "number": "35",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Providing for congressional disapproval under chapter 8 of title 5, United States Code, of the rule submitted by the Environmental Protection Agency relating to \"Waste Emissions Charge for Petroleum and Natural Gas Systems: Procedures for Facilitating Compliance, Including Netting and Exemptions\".",
+            "type": "HJRES",
+            "updateDate": "2026-11-05",
+            "updateDateIncludingText": "2026-11-05",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/35?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2025-01-22",
+            "latestAction": {
+                "actionDate": "2025-01-22",
+                "text": "Referred to the House Committee on Energy and Commerce."
+            },
+            "number": "26",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Providing for congressional disapproval under chapter 8 of title 5, United States Code, of the rule submitted by the Environmental Protection Agency relating to \"Greenhouse Gas Emissions Standards for Heavy-Duty Vehicles-Phase 3\".",
+            "type": "HJRES",
+            "updateDate": "2026-11-05",
+            "updateDateIncludingText": "2026-11-05",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/26?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2025-01-03",
+            "latestAction": {
+                "actionDate": "2025-01-03",
+                "text": "Referred to the House Committee on the Judiciary."
+            },
+            "number": "3",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Proposing an amendment to the Constitution of the United States relative to balancing the budget.",
+            "type": "HJRES",
+            "updateDate": "2026-11-05",
+            "updateDateIncludingText": "2026-11-05",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/3?format=json"
+        },
+        {
+            "congress": 119,
+            "introducedDate": "2025-01-22",
+            "latestAction": {
+                "actionDate": "2025-01-22",
+                "text": "Referred to the House Committee on the Judiciary."
+            },
+            "number": "28",
+            "originChamber": "House",
+            "originChamberCode": "H",
+            "title": "Proposing an amendment to the Constitution of the United States to require that the Supreme Court of the United States be composed of nine justices.",
+            "type": "HJRES",
+            "updateDate": "2026-11-05",
+            "updateDateIncludingText": "2026-11-05",
+            "url": "https://api.congress.gov/v3/bill/119/hjres/28?format=json"
+        }
+    ],
+    "pagination": {
+        "count": 222,
+        "next": "https://api.congress.gov/v3/bill/119/hjres?sort=updateDate desc&offset=20&limit=20&format=json"
+    },
+    "request": {
+        "billType": "hjres",
+        "congress": "119",
+        "contentType": "application/json",
+        "format": "json"
+    }
+}
