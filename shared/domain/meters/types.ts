@@ -1,4 +1,5 @@
 import type { SpeedReport } from '../speed.ts';
+import type { TrackRecordReport } from '../trackRecord.ts';
 /**
  * Phase 14: meters and monitors. Each meter is a deterministic reading over data WATCHTOWER already
  * collects. It shows its evidence, the date its data is from, and whether its usual level (baseline)
@@ -134,5 +135,7 @@ export interface MetersSnapshot {
   leadLag: LeadLagResult | null;
   /** Who's first: outlets within shared stories; sensors and official sources against the news (30 days). */
   speed?: SpeedReport | null;
+  /** How often each source's leading reports were carried by another publisher (30 days). */
+  trackRecord?: TrackRecordReport | null;
   simulated?: boolean;
 }

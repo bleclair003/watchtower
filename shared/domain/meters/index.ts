@@ -25,6 +25,7 @@ import { languageTemperature } from './languageTemp.ts';
 import { actorsMeter } from './actorsMeter.ts';
 import { coverageMeter } from './coverageMeter.ts';
 import { whoIsFirst } from '../speed.ts';
+import { trackRecord } from '../trackRecord.ts';
 import { daysSince, upcomingCalendar } from './clocks.ts';
 import { appendShort, pointFor } from './history.ts';
 import { BASELINE_DAYS, DAY } from './util.ts';
@@ -83,5 +84,6 @@ export function computeMeters(input: MeterInput, leadLag: LeadLagResult | null =
     history: appendShort(input.previous?.history ?? [], pointFor(meters, input.regionScores, nowIso)),
     leadLag: leadLag ?? input.previous?.leadLag ?? null,
     speed: whoIsFirst(input.events, input.now),
+    trackRecord: trackRecord(input.events, input.now, input.historyStart),
   };
 }

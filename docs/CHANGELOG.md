@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.43.0] — 2026-11-21 — Source track record (Phase 15 item 7)
+
+### Added
+- **Source track record** panel on the METERS page (30 days, recomputed each run): for each news and official source, its leading reports (no other publisher had the story in the 48 hours before), how many another publisher carried within 48 hours, the same for strike and attack headlines, the median hours until pickup, and reports still pending (under 48 hours old).
+- Matching is the story grouping or 3+ shared content words — stricter than the coverage-gap check — and reports published before collection began are not judged.
+- The panel states plainly that a low rate is not a finding of error: exclusives, regional focus, official releases nobody re-reports and uncollected outlets all lower it.
+
+### Changed
+- Generic words (war, end, government, president, minister…) no longer count toward matching headlines, for both coverage gaps and the track record: an IRGC drone headline had matched an unrelated US funding headline through "end" and "war".
+
+### Checked against the real records of 2026-11-21 (judged as if three days later)
+BBC 5 of 19 leading reports carried by others, Military Times 2 of 7, NPR 1 of 5, UN 1 of 5, Al Jazeera 0 of 21. Al Jazeera's shared stories had been carried by the BBC first (so its versions were following, not leading); its leading reports covered Gulf, African and Israeli-politics stories the other collected outlets did not carry.
+
+
 ## [0.42.0] — 2026-11-21 — Who's first (Phase 15 item 6)
 
 ### Added

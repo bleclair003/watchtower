@@ -300,7 +300,7 @@ Free sources and analysis of data already collected. Each new outside source is 
 6. **Who's first**
    - [x] Per kind of event, which source reports first (sensor, official, media) and by how many hours — v0.42.0
 7. **Source track record**
-   - [ ] Per source, how often a single-publisher report is later corroborated by others
+   - [x] Per source, how often a single-publisher report is later corroborated by others — v0.43.0
 8. **Missing regulars**
    - [ ] Alert when a source that normally posts daily goes quiet, per source
 

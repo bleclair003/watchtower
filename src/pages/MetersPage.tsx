@@ -11,6 +11,7 @@ import { MeterCard, cellLabel, levelTone } from '../components/meters/MeterCard'
 import { MarketsPanel } from '../components/meters/MarketsPanel';
 import { ActorsPanel } from '../components/meters/ActorsPanel';
 import { SpeedPanel } from '../components/meters/SpeedPanel';
+import { TrackRecordPanel } from '../components/meters/TrackRecordPanel';
 import { formatUtc } from '../lib/time';
 import { safeExternalUrl } from '../lib/sanitize';
 
@@ -145,6 +146,8 @@ export default function MetersPage() {
           <ActorsPanel data={actors} now={now} />
 
           <SpeedPanel report={meters.speed} />
+
+          <TrackRecordPanel report={meters.trackRecord} />
 
           <Panel title="Days since" designator="M3">
             <ul className="grid grid-cols-2 gap-px bg-wt-line sm:grid-cols-3 lg:grid-cols-5">

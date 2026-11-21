@@ -51,7 +51,7 @@ export interface Coverage {
 
 const at = (e: IntelligenceEvent) => Date.parse(e.publishedAt ?? e.collectedAt);
 
-const STOP = new Set('a an the and or but as at by for from in into of on onto over to with after before amid against during under about says said say how why what when where who will would could can may is are was were be been has have had its his her their this that these those it he she they we you new more most first last up down out no not two three four five six seven eight nine ten dozens hundreds report reports news live latest day days week year years'.split(' '));
+const STOP = new Set('a an the and or but as at by for from in into of on onto over to with after before amid against during under about says said say how why what when where who will would could can may is are was were be been has have had its his her their this that these those it he she they we you new more most first last up down out no not two three four five six seven eight nine ten dozens hundreds report reports news live latest day days week year years war end ends government people world country state president minister official officials leader leaders amid efforts remain calls call amid against despite top us uk'.split(' '));
 /** Lower-cased, de-pluralised content words: a crude stem so "missiles" meets "missile" and "hits" meets "hit". */
 export function stems(title: string): Set<string> {
   return new Set(
