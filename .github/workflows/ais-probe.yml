@@ -1,0 +1,28 @@
+# One-off: measures what aisstream.io delivers in the areas where it has receivers, using the
+# AISSTREAM_API_KEY repository secret. Prints counts only.
+name: AIS probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      seconds:
+        description: Seconds to listen (5-150)
+        default: '120'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Probe
+        env:
+          AISSTREAM_API_KEY: ${{ secrets.AISSTREAM_API_KEY }}
+          LISTEN_SECONDS: ${{ inputs.seconds }}
+        run: node collector/ais-probe.ts "$LISTEN_SECONDS"
