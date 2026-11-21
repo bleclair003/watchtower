@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import type { FetchResult } from '../lib/http.ts';
-import { euSanctions, ofacSdn, parseEuList, parseOfacSdn, parseUkList, sanctionsEvents, ukSanctions } from '../adapters/sanctions.ts';
+import { euSanctions, ofacSdn, parseEuList, parseOfacSdn, parseUkList, sanctionsEvents, stateIds, stateVessels, ukSanctions } from '../adapters/sanctions.ts';
 import { programCountry, sanctionsCountry, targetCountry, type Designee } from '../../shared/domain/sanctions.ts';
 import { validateEvent } from '../lib/validate.ts';
 import { INDICATOR_CATALOG, validateCatalog } from '../../shared/domain/indicators/catalog.ts';
@@ -102,7 +102,11 @@ describe('adapters', () => {
     expect(before.length).toBeLessThan(full.length);
     const first = await run(ofacSdn, before, null);
     expect(first.events).toEqual([]);
-    expect(first.state.vessels.some((v) => v.mmsi)).toBe(true);
+    expect(stateVessels(first.state).some((v) => v.mmsi)).toBe(true);
+    // Stored as single strings: Firestore refuses documents with ~20,000 indexed array elements.
+    expect(typeof first.state.idsPacked).toBe('string');
+    expect(first.state.ids).toBeUndefined();
+    expect(stateIds(first.state).length).toBeGreaterThan(1000);
     const second = await run(ofacSdn, full, first.state, NOW + 3_600_000);
     expect(second.events.map((e) => e.title)).toEqual(['OFAC sanctions: 1 new designation targeting Cuba — 1 entity (2026-11-20)']);
   });
@@ -123,7 +127,7 @@ describe('adapters', () => {
     const russia = r.events.find((e) => e.countryCodes[0] === 'RU' && e.metadata?.designatedOn === '2026-11-12')!;
     expect(russia.title).toBe('UK sanctions: 20 new designations targeting Russia — 11 vessels, 9 entities (2026-11-12)');
     expect(russia.regionIds).toEqual(['eastern-europe']);
-    expect(r.state.vessels.filter((v) => v.list === 'uk').length).toBeGreaterThanOrEqual(11);
+    expect(stateVessels(r.state).filter((v) => v.list === 'uk').length).toBeGreaterThanOrEqual(11);
   });
 });
 

@@ -186,14 +186,30 @@ export function sanctionsEvents(list: SanctionsListId, day: string, added: Desig
 // ------------------------------------------------------------------ adapter ---
 
 export interface SanctionsState {
-  /** ids on the list at the last successful read. */
-  ids: string[];
+  /**
+   * Ids on the list at the last successful read, joined with newlines. One string, not an array:
+   * Firestore indexes every array element and refuses documents with too many index entries
+   * (the OFAC list has ~20,000 ids).
+   */
+  idsPacked?: string;
+  /** Sanctioned vessels with identifiers, as JSON (same reason), for matching ship positions (item 4b). */
+  vesselsJson?: string;
   publishedOn: string | null;
   lastFetchedAt: string;
   validators?: Validators;
-  /** Sanctioned vessels with identifiers, for matching ship positions (Phase 13, item 4b). */
-  vessels: SanctionedVessel[];
+  /** v0.19.0 first-run form (arrays); still read. */
+  ids?: string[];
+  vessels?: SanctionedVessel[];
 }
+
+const ID_SEP = '|';
+export const stateIds = (s: SanctionsState): string[] => (s.idsPacked !== undefined ? (s.idsPacked ? s.idsPacked.split(ID_SEP) : []) : (s.ids ?? []));
+export const stateVessels = (s: SanctionsState): SanctionedVessel[] => (s.vesselsJson ? (JSON.parse(s.vesselsJson) as SanctionedVessel[]) : (s.vessels ?? []));
+const packState = (ids: string[], vessels: SanctionedVessel[], rest: Pick<SanctionsState, 'publishedOn' | 'lastFetchedAt' | 'validators'>): SanctionsState => ({
+  idsPacked: ids.join(ID_SEP),
+  vesselsJson: JSON.stringify(vessels),
+  ...rest,
+});
 
 interface ListConfig {
   list: SanctionsListId;
@@ -219,16 +235,17 @@ function makeAdapter(cfg: ListConfig): SourceAdapter<SanctionsState> {
       }
       const res = await ctx.fetch(cfg.url, prev?.validators, undefined, cfg.limits);
       if (res.kind === 'not-modified') {
-        return { events: [], rejected: [], itemsSeen: 0, notModified: true, state: { ...prev!, lastFetchedAt: nowIso } };
+        return { events: [], rejected: [], itemsSeen: 0, notModified: true, state: packState(stateIds(prev!), stateVessels(prev!), { publishedOn: prev!.publishedOn, lastFetchedAt: nowIso, validators: prev!.validators }) };
       }
       const parsed = cfg.parse(res.body);
       const today = nowIso.slice(0, 10);
       let added: Designee[];
       if (prev) {
-        const before = new Set(prev.ids);
+        const prevIds = stateIds(prev);
+        const before = new Set(prevIds);
         added = parsed.designees.filter((d) => !before.has(d.id));
         // A sudden flood of "new" ids means the list's ids changed, not a sanctions wave.
-        if (added.length > Math.max(500, prev.ids.length * 0.2)) throw new Error(`${def.short}: ${added.length} new ids at once; refusing (id scheme change?)`);
+        if (added.length > Math.max(500, prevIds.length * 0.2)) throw new Error(`${def.short}: ${added.length} new ids at once; refusing (id scheme change?)`);
       } else {
         const since = new Date(ctx.now - SANCTIONS_BACKFILL_DAYS * 86_400_000).toISOString().slice(0, 10);
         added = parsed.designees.filter((d) => d.designatedOn && d.designatedOn >= since);
@@ -248,7 +265,7 @@ function makeAdapter(cfg: ListConfig): SourceAdapter<SanctionsState> {
         rejected: [],
         itemsSeen: parsed.designees.length,
         notModified: false,
-        state: { ids: parsed.designees.map((d) => d.id), publishedOn: parsed.publishedOn, lastFetchedAt: nowIso, validators: res.validators, vessels },
+        state: packState(parsed.designees.map((d) => d.id), vessels, { publishedOn: parsed.publishedOn, lastFetchedAt: nowIso, validators: res.validators }),
       };
     },
   };
