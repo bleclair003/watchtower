@@ -68,18 +68,37 @@ describe('military aircraft records', () => {
     return { fetchedAt: new Date(NOW).toISOString(), provider: 'adsb.lol', totalMarked: p.totalMarked, aircraft: p.aircraft };
   };
 
-  it('records notable aircraft inside watch areas, once per aircraft, area and day', () => {
+  it('records notable aircraft over watch countries or open water, once per aircraft, area and day', () => {
     const events = aircraftEvents(snap(body), NOW);
-    // RCH341 (C-17) over Slovakia lies in the Eastern Europe watch area, R215 (C-295) near Manila in
-    // the South China Sea area. US airlift (several C-17s) is not recorded.
-    expect(events.map((e) => [e.regionIds[0], e.metadata?.callsign])).toEqual([['eastern-europe', 'RCH341'], ['south-china-sea', 'R215']]);
+    // R215 (C-295) near Manila is over a watch country (PH). RCH341 (C-17) over Slovakia is inside the
+    // Eastern Europe box but over a non-watch country, so it is not recorded. US airlift is not recorded.
+    expect(events.map((e) => [e.regionIds[0], e.metadata?.callsign])).toEqual([['south-china-sea', 'R215']]);
     const e = events[0];
     expect(validateEvent(e, NOW)).toBeNull();
-    expect(e).toMatchObject({ sourceId: AIRCRAFT_SOURCE_ID, category: 'military', locationPrecision: 'exact', sourceUrl: 'https://globe.adsb.lol/?icao=ae146c' });
-    expect(e.title).toBe('Military airlift aircraft seen: C-17 Globemaster III RCH341 — EASTEUR watch area');
+    expect(e).toMatchObject({ sourceId: AIRCRAFT_SOURCE_ID, category: 'military', locationPrecision: 'exact', countryCodes: ['PH'], sourceUrl: 'https://globe.adsb.lol/?icao=758725' });
+    expect(e.title).toBe('Military airlift aircraft seen: C-295 R215 — SCS watch area');
     expect(e.summary).toMatch(/Only aircraft that broadcast are seen/);
     expect(aircraftEvents(snap(body), NOW + 3_600_000)[0].id).toBe(e.id);
     expect(aircraftEvents(snap(body), NOW + 86_400_000)[0].id).not.toBe(e.id);
+  });
+
+  it('uses watch countries and open water, not the whole watch box', () => {
+    const cases: [string, number, number, string[]][] = [
+      ['AUSTRIA', 48.04, 16.59, []], // the real IAM4613 position: Eastern Europe box, but Austria
+      ['HUNGARY', 47.5, 19.0, []],
+      ['POLAND', 50.0, 21.0, ['eastern-europe']],
+      ['BLKSEA', 43.8, 32.0, ['eastern-europe']], // open water (Black Sea, inside the box)
+      ['KALININ', 54.7, 20.5, ['eastern-europe']], // Russia, inside the box
+      ['SIBERIA', 55.0, 90.0, []], // Russia, outside the box
+      ['HARGEISA', 10.6, 44.0, ['red-sea']], // Somaliland (inland, inside the box) counts with Somalia
+      ['SINAI', 29.5, 33.8, []], // Egypt
+      ['ALASKA', 64.8, -147.7, ['united-states']], // Fairbanks: US borders, outside the contiguous-US box
+    ];
+    const extra = cases.map(([f, la, lo], i) => raw({ hex: `ae0${(0xa0 + i).toString(16)}0`.slice(0, 6), flight: f, lat: la, lon: lo }));
+    const events = aircraftEvents(snap(withExtra(...extra)), NOW);
+    for (const [f, , , regions] of cases) {
+      expect([f, events.filter((e) => e.metadata?.callsign === f).map((e) => e.regionIds[0])]).toEqual([f, regions]);
+    }
   });
 
   it('records tankers over the US and over open water in a watch box', () => {
@@ -103,7 +122,7 @@ describe('military aircraft adapter', () => {
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(r.state.latest.provider).toBe('adsb.fi');
     expect(r.state.latest.aircraft.length).toBeGreaterThan(30);
-    expect(r.events[0].sourceUrl).toBe('https://globe.adsb.fi/?icao=ae146c');
+    expect(r.events[0].sourceUrl).toBe('https://globe.adsb.fi/?icao=758725');
   });
 
   it('fails when every provider fails', async () => {

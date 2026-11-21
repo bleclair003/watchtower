@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.17.1] — 2026-11-21 — Aircraft regions by country and open water
+
+### Fixed (found on live data)
+- Aircraft records were assigned to a watch region whenever the position fell inside the region's box, and the boxes also cover neighbouring countries: an Italian C-27J over Slovakia was recorded as Eastern Europe. An aircraft now counts for a region only when it is over one of the region's countries, or over open water inside the box. Over any other country it is not recorded.
+- Borders for every non-watch country added (`collector/geo/other-countries.json`, Natural Earth 1:50m, public domain, built by `scripts/build-other-countries.ts`). Somaliland counts with Somalia.
+- The one stored record affected was corrected in place by `scripts/retag-aircraft.ts`, with a note; nothing was deleted.
+
+### Limits
+- Over US coastal waters an aircraft does not count for the United States region (US borders only).
+
+
 ## [0.17.0] — 2026-11-21 — US Navy fleet (USNI News)
 
 ### Added

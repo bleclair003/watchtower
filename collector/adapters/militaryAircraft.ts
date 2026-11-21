@@ -11,7 +11,7 @@ import {
   type AircraftProvider,
   type AircraftSnapshot,
 } from '../../shared/domain/aircraft.ts';
-import { regionsForExactPoint, watchCountryAt } from '../geo/countries.ts';
+import { regionsForSeaOrWatchCountry } from '../geo/countries.ts';
 import { contentHash } from '../lib/hash.ts';
 import { LIMITS, truncate } from '../lib/text.ts';
 import type { AdapterContext, AdapterResult, SourceAdapter } from './types.ts';
@@ -104,9 +104,10 @@ export function aircraftEvents(snapshot: AircraftSnapshot, nowMs: number): Intel
   const events: IntelligenceEvent[] = [];
   for (const a of snapshot.aircraft) {
     if (!NOTABLE_AIRCRAFT_CLASSES.includes(a.cls)) continue;
-    const regionIds = regionsForExactPoint(a.la, a.lo).filter((r) => !(SKIP_CLASSES_BY_REGION[r] ?? []).includes(a.cls));
+    const where = regionsForSeaOrWatchCountry(a.la, a.lo);
+    const regionIds = where.regionIds.filter((r) => !(SKIP_CLASSES_BY_REGION[r] ?? []).includes(a.cls));
     if (!regionIds.length) continue;
-    const country = watchCountryAt(a.la, a.lo);
+    const country = where.country;
     const seenAt = new Date(Date.parse(snapshot.fetchedAt) - a.age * 1000).toISOString();
     const typeName = aircraftTypeName(a.t) ?? a.t ?? 'unknown type';
     const label = aircraftLabel(a);
@@ -155,7 +156,7 @@ export function aircraftEvents(snapshot: AircraftSnapshot, nowMs: number): Intel
           provider: provider.id,
           licence: provider.licence,
           geoBasis: 'source-coordinates (ADS-B position broadcast by the aircraft)',
-          regionBasis: regionId === 'united-states' ? 'US borders' : 'watch-area box',
+          regionBasis: where.basis === 'open-water' ? 'open water inside the watch-area box' : 'over a watch-region country (Natural Earth borders)',
         },
       });
     }

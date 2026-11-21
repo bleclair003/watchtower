@@ -1,4 +1,4 @@
-import { regionsForPoint } from '../../shared/domain/regions.ts';
+import { regionsForCountry, regionsForPoint } from '../../shared/domain/regions.ts';
 import { readFileSync } from 'node:fs';
 
 /**
@@ -78,4 +78,63 @@ export function regionsForExactPoint(lat: number, lon: number): string[] {
   regions.delete('united-states');
   if (rawCountryAt(lat, lon) === 'US') regions.add('united-states');
   return [...regions];
+}
+
+// --------------------------------------------------------------- other countries ---
+// Every non-watch country (Natural Earth 1:50m, 0.01°), loaded on first use. Only used to tell
+// "over open water" from "over a country outside the watch list".
+interface Part {
+  code: string;
+  polygon: Polygon;
+  bbox: [number, number, number, number];
+}
+let OTHER: Part[] | null = null;
+function otherIndex(): Part[] {
+  if (OTHER) return OTHER;
+  const other = JSON.parse(readFileSync(new URL('./other-countries.json', import.meta.url), 'utf8')) as { countries: Record<string, Polygon[]> };
+  OTHER = Object.entries(other.countries).flatMap(([code, polygons]) =>
+    polygons.map((polygon) => {
+      let w = 180, s = 90, e = -180, n = -90;
+      for (const [x, y] of polygon[0]) {
+        w = Math.min(w, x); e = Math.max(e, x); s = Math.min(s, y); n = Math.max(n, y);
+      }
+      return { code, polygon, bbox: [w, s, e, n] as [number, number, number, number] };
+    }),
+  );
+  return OTHER;
+}
+
+/** Code of the non-watch country containing the point (X-<ADM0_A3> where there is no ISO code), or null. */
+export function otherCountryAt(lat: number, lon: number): string | null {
+  for (const p of otherIndex()) {
+    const [w, s, e, n] = p.bbox;
+    if (lon < w || lon > e || lat < s || lat > n) continue;
+    if (inPolygon(lon, lat, p.polygon)) return p.code;
+  }
+  return null;
+}
+
+/**
+ * Somaliland has no ISO code in Natural Earth. For watch-area purposes (Gulf of Aden coast)
+ * it counts with Somalia, which is how WATCHTOWER's sources report it.
+ */
+const WATCH_EQUIVALENT: Record<string, string> = { 'X-SOL': 'SO' };
+
+/**
+ * Watch regions for a point in the air or at sea (aircraft, ships). Stricter than the
+ * watch-area boxes, which also cover neighbouring countries:
+ *   - over a watch country: that country's regions (inside the region's box; the US by borders);
+ *   - over open water inside a watch box: that box's region;
+ *   - over any other country: none.
+ */
+export function regionsForSeaOrWatchCountry(lat: number, lon: number): { regionIds: string[]; country: string | null; basis: 'watch-country' | 'open-water' | 'other-country' } {
+  const inBox = regionsForPoint(lat, lon);
+  const watch = watchCountryAt(lat, lon) ?? WATCH_EQUIVALENT[otherCountryAt(lat, lon) ?? ''] ?? null;
+  if (watch) {
+    const regionIds = regionsForCountry(watch).filter((r) => r === 'united-states' || inBox.includes(r));
+    return { regionIds, country: watch, basis: 'watch-country' };
+  }
+  const other = otherCountryAt(lat, lon);
+  if (other) return { regionIds: [], country: other, basis: 'other-country' };
+  return { regionIds: inBox.filter((r) => r !== 'united-states'), country: null, basis: 'open-water' };
 }
