@@ -68,7 +68,7 @@ export function IntelFeed(props: Props) {
             <button
               aria-pressed={props.filters.showOffTopic}
               onClick={() => props.onFiltersChange({ showOffTopic: !props.filters.showOffTopic })}
-              title="News items about sport, entertainment, arts, science or lifestyle. Hidden by default; nothing is deleted."
+              title="News items whose headline has no relevant topic (security, politics, rights, humanitarian, economy, disasters): sport, celebrity, local crime, lifestyle … Hidden by default; nothing is deleted."
               className={`border px-1.5 ${props.filters.showOffTopic ? 'border-wt-warn text-wt-warn' : 'border-wt-line-strong text-wt-fg-muted hover:text-wt-fg'}`}
             >
               OFF-TOPIC {props.filters.showOffTopic ? 'SHOWN' : 'HIDDEN'} ({offTopicCount})

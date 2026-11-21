@@ -1,75 +1,130 @@
 import type { EventCategory, IntelligenceEvent } from './types.ts';
 
 /**
- * Relevance of general-news items to WATCHTOWER's purpose (geopolitics, security, disasters).
+ * Relevance of news items to WATCHTOWER's purpose.
  *
- * News feeds mix in sport, entertainment, celebrity, arts, science and lifestyle pieces.
- * Those are marked OFF-TOPIC and hidden by default (never deleted; a toggle shows them).
+ * A NEWS item (sourceClass 'media') is shown only when its headline is about a relevant topic:
+ * security and conflict, diplomacy, politics and government, elections, law and rights at
+ * national or international level, migration and humanitarian crises, disasters and health
+ * emergencies, energy, trade and the macro-economy. Everything else (sport, entertainment,
+ * celebrity, lifestyle, local crime, company news …) is OFF-TOPIC: hidden by default, never
+ * deleted, and shown with its reason when the feed toggle is on.
  *
  * Rules, in order:
- *  1. Only media items can be off-topic. Official and structured sources are always relevant.
- *  2. Anything classified military, diplomatic, unrest, disaster, cyber, maritime or aviation is
- *     always relevant, whatever its other words.
- *  2b. Anything tagged to a watch region, or whose headline has a security word (assassinate,
- *     attack, kill, spy, bomb, war …), is always relevant. Found on live data: "Denmark accuses
- *     Russia of plotting to assassinate US-Ukrainian rapper" was hidden for "rapper" without this.
- *  3. The outlet's own section says sport (/sport/, /sports/) → off-topic.
- *  4. The headline contains an off-topic keyword → off-topic. The keyword is reported.
- * Keyword matching misses some items (a celebrity named without a keyword) and can, rarely,
- * hide a relevant one; the toggle shows everything, with the reason on each hidden item.
+ *  1. Official and structured sources are always relevant (they are chosen for relevance).
+ *  2. A news item already classified military, diplomatic, unrest, disaster, cyber, maritime,
+ *     aviation or economic is relevant.
+ *  3. Otherwise it is relevant only if its headline contains a relevant-topic word (listed below);
+ *     the matched word is reported.
+ *  4. Anything else is off-topic. The outlet's own sport section, or a sport/entertainment word,
+ *     is reported as the reason when present; otherwise "no relevant topic in the headline".
+ *
+ * Watch regions do NOT decide relevance: world news outside the watch regions is kept when the
+ * topic is relevant. Keyword matching can miss a relevant item worded unusually; the toggle
+ * shows everything.
  */
 
-const ALWAYS_RELEVANT: EventCategory[] = ['military', 'diplomatic', 'unrest', 'disaster', 'cyber', 'maritime', 'aviation'];
+const RELEVANT_CATEGORIES: EventCategory[] = ['military', 'diplomatic', 'unrest', 'disaster', 'cyber', 'maritime', 'aviation', 'economic'];
 
-const OFF_TOPIC_TERMS: [string, string[]][] = [
+const RELEVANT_TOPICS: [string, string[]][] = [
   [
-    'sport',
+    'security',
     [
-      'football', 'soccer', 'premier league', 'champions league', 'relegation', 'world cup', 'cricket', 'tennis', 'wimbledon',
-      'olympic', 'olympics', 'golf', 'rugby', 'nba', 'nfl', 'formula 1', 'formula one', 'grand prix', 'boxing', 'ufc', 'marathon',
-      'striker', 'goalkeeper', 'transfer window', 'man united', 'manchester united', 'liverpool fc', 'arsenal', 'chelsea fc',
+      'assassinate', 'assassinated', 'assassination', 'attack', 'attacks', 'attacked', 'kill', 'kills', 'killed', 'killing',
+      'murder', 'murdered', 'massacre', 'plot', 'plotting', 'spy', 'spying', 'espionage', 'bomb', 'bombing', 'explosion', 'shooting',
+      'war', 'conflict', 'terror', 'terrorist', 'terrorism', 'extremist', 'militia', 'rebel', 'rebels', 'insurgent', 'hostage',
+      'kidnapped', 'abducted', 'besieged', 'siege', 'armed', 'weapons', 'nuclear', 'intelligence', 'cartel', 'gang', 'gangs',
+      // Combat verbs. Found on live data: "Russia targets Kyiv crossings days after Ukraine hits Crimean Bridge" was missed.
+      'target', 'targets', 'targeted', 'targeting', 'hits', 'strike', 'strikes', 'struck', 'raid', 'raids', 'shelling', 'shelled',
+      'invasion', 'invade', 'offensive', 'frontline', 'front line', 'ceasefire', 'truce', 'troops', 'soldiers', 'army', 'military',
+      'missile', 'missiles', 'drone', 'drones', 'airstrike', 'airstrikes', 'navy', 'warship', 'sabotage', 'occupied', 'occupation',
     ],
   ],
   [
-    'entertainment',
+    'heads of state',
     [
-      'film', 'films', 'movie', 'movies', 'actor', 'actress', 'singer', 'rapper', 'album', 'oscar', 'oscars', 'grammy', 'grammys',
-      'celebrity', 'celebrities', 'nepo baby', 'box office', 'netflix', 'hollywood', 'bollywood', 'tv series', 'reality show', 'pop star',
+      'putin', 'zelensky', 'zelenskyy', 'trump', 'xi jinping', 'xi', 'netanyahu', 'khamenei', 'erdogan', 'erdoğan', 'modi',
+      'kim jong un', 'lukashenko', 'macron', 'starmer', 'merz', 'guterres', 'sharif', 'lai ching-te', 'pezeshkian',
     ],
   ],
-  ['arts', ['painting', 'auction', 'museum', 'art gallery', 'artwork', 'fashion', 'designer']],
-  ['science', ['spacecraft', 'space mission', 'asteroid', 'comet', 'telescope', 'planet', 'dinosaur', 'fossil', 'astronaut']],
-  ['lifestyle', ['recipe', 'diet', 'pets', 'pet', 'sodas', 'cola', 'restaurant', 'chef', 'wellness']],
-  ['health', ['cancer', 'tumour', 'tumours', 'tumor', 'tumors', 'dementia', 'obesity']],
+  [
+    'politics',
+    [
+      'election', 'elections', 'vote', 'voters', 'referendum', 'president', 'presidential', 'prime minister', 'pm', 'parliament',
+      'congress', 'senate', 'government', 'minister', 'ministry', 'cabinet', 'opposition', 'regime', 'coalition', 'leader',
+      'leaders', 'party', 'midterm', 'midterms', 'impeachment', 'policy', 'brexit', 'eu', 'nato', 'un', 'g7', 'g20', 'kremlin',
+      'white house', 'state department', 'foreign', 'sovereignty', 'annex', 'annexation', 'independence',
+    ],
+  ],
+  [
+    'law and rights',
+    [
+      'genocide', 'war crimes', 'human rights', 'rights', 'icc', 'icj', 'tribunal', 'top court', 'supreme court', 'constitution',
+      'crackdown', 'censorship', 'detained', 'detention', 'political prisoner', 'death sentence', 'sentenced to death', 'executions',
+      'persecution', 'religious', 'minority', 'shia', 'sunni', 'separatist',
+    ],
+  ],
+  [
+    'humanitarian',
+    [
+      'refugee', 'refugees', 'migrant', 'migrants', 'migration', 'asylum', 'border', 'borders', 'displaced', 'humanitarian', 'aid',
+      'famine', 'hunger', 'starvation', 'ebola', 'cholera', 'outbreak', 'epidemic', 'pandemic', 'crisis',
+    ],
+  ],
+  [
+    'economy',
+    [
+      'economy', 'economic', 'inflation', 'recession', 'tariff', 'tariffs', 'trade', 'exports', 'imports', 'sanctions', 'oil',
+      'gas', 'energy', 'pipeline', 'currency', 'central bank', 'interest rates', 'debt', 'imf', 'world bank', 'markets', 'credit rating',
+      'supply chain', 'chips', 'semiconductor', 'data centres', 'data centers',
+    ],
+  ],
+  ['disaster', ['earthquake', 'flood', 'floods', 'wildfire', 'cyclone', 'typhoon', 'hurricane', 'tsunami', 'drought', 'disaster', 'fire']],
 ];
 
-const SECURITY_WORDS = [
-  'assassinate', 'assassinated', 'assassination', 'attack', 'attacks', 'attacked', 'kill', 'kills', 'killed', 'killing',
-  'murder', 'murdered', 'plot', 'plotting', 'spy', 'spying', 'espionage', 'bomb', 'bombing', 'explosion', 'shooting', 'shot',
-  'war', 'terror', 'terrorist', 'terrorism', 'hostage', 'kidnapped', 'sanctions', 'coup', 'troops', 'missile', 'drone',
+const OFF_TOPIC_HINTS: [string, string[]][] = [
+  ['sport', ['football', 'soccer', 'premier league', 'champions league', 'relegation', 'cricket', 'tennis', 'wimbledon', 'olympic', 'olympics', 'golf', 'rugby', 'nba', 'nfl', 'grand prix']],
+  ['entertainment', ['film', 'movie', 'actor', 'actress', 'singer', 'album', 'oscars', 'grammys', 'celebrity', 'nepo baby', 'netflix', 'hollywood']],
+  ['arts', ['painting', 'auction', 'museum', 'artwork', 'fashion']],
+  ['lifestyle', ['recipe', 'diet', 'pets', 'sodas', 'cola', 'restaurant']],
+  ['science', ['spacecraft', 'asteroid', 'telescope', 'planet', 'dinosaur', 'fossil']],
 ];
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const COMPILED = OFF_TOPIC_TERMS.flatMap(([kind, words]) =>
-  words.map((w) => ({ kind, w, re: new RegExp(`(?<![\\p{L}\\p{N}])${escape(w)}(?![\\p{L}\\p{N}])`, 'iu') })),
-);
+const word = (w: string) => new RegExp(`(?<![\\p{L}\\p{N}])${escape(w)}(?![\\p{L}\\p{N}])`, 'iu');
+// "PM", "EU", "UN" are matched case-sensitively so "un-" or "eu" inside words never count.
+const UPPER_ONLY = new Set(['pm', 'eu', 'un', 'g7', 'g20', 'imf', 'icc', 'icj', 'nato', 'nba', 'nfl']);
+const compile = (table: [string, string[]][]) =>
+  table.flatMap(([kind, words]) =>
+    words.map((w) => ({
+      kind,
+      w,
+      re: UPPER_ONLY.has(w) ? new RegExp(`(?<![\\p{L}\\p{N}])${escape(w.toUpperCase())}(?![\\p{L}\\p{N}])`, 'u') : word(w),
+    })),
+  );
+const RELEVANT = compile(RELEVANT_TOPICS);
+const HINTS = compile(OFF_TOPIC_HINTS);
 
-const SECURITY_RE = new RegExp(`(?<![\\p{L}\\p{N}])(${SECURITY_WORDS.map(escape).join('|')})(?![\\p{L}\\p{N}])`, 'iu');
+type RelevanceInput = Pick<IntelligenceEvent, 'sourceClass' | 'category' | 'sourceUrl' | 'title'>;
+
+/** The relevant topic word that keeps a news item, or null. */
+export function relevantTopic(e: RelevanceInput): string | null {
+  if (e.sourceClass !== 'media') return 'official or structured source';
+  if (RELEVANT_CATEGORIES.includes(e.category)) return `${e.category} topic`;
+  const hit = RELEVANT.find((c) => c.re.test(e.title));
+  return hit ? `${hit.kind}: "${hit.w}"` : null;
+}
 
 /** Why an item is off-topic, or null if it is relevant. Pure and deterministic. */
-export function offTopicReason(e: Pick<IntelligenceEvent, 'sourceClass' | 'category' | 'sourceUrl' | 'title' | 'regionIds'>): string | null {
-  if (e.sourceClass !== 'media') return null;
-  if (ALWAYS_RELEVANT.includes(e.category)) return null;
-  if (e.regionIds.length > 0) return null;
-  if (SECURITY_RE.test(e.title)) return null;
+export function offTopicReason(e: RelevanceInput): string | null {
+  if (relevantTopic(e)) return null;
   try {
-    const path = new URL(e.sourceUrl).pathname;
-    if (/^\/sports?\//.test(path)) return 'Filed under sport by the outlet';
+    if (/^\/sports?\//.test(new URL(e.sourceUrl).pathname)) return 'Filed under sport by the outlet';
   } catch {
-    // no usable URL: fall through to keywords
+    // no usable URL
   }
-  const hit = COMPILED.find((c) => c.re.test(e.title));
-  return hit ? `${hit.kind[0].toUpperCase()}${hit.kind.slice(1)} keyword in headline: "${hit.w}"` : null;
+  const hint = HINTS.find((c) => c.re.test(e.title));
+  return hint ? `${hint.kind[0].toUpperCase()}${hint.kind.slice(1)} ("${hint.w}"); no relevant topic in the headline` : 'No relevant topic in the headline';
 }
 
 export const isOffTopic = (e: IntelligenceEvent) => offTopicReason(e) !== null;

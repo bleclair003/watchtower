@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.10.2] — 2026-11-21 — Relevant topics only
+
+### Changed
+- News items are now shown only when their headline is about a relevant topic: security, politics, law and rights, humanitarian, economy and energy, disasters. Previously only sport, entertainment and similar pieces were hidden. Watch regions do not decide relevance. 17 of 78 live news items were hidden on the first check.
+
+
 ## [0.10.1] — 2026-11-21 — Off-topic news hidden
 
 ### Added

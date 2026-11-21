@@ -91,22 +91,26 @@ Each story shows its reports, their publishers and the shared words that grouped
 - Related coverage of one ongoing situation can be grouped. For example, two BBC pieces on Israeli West Bank settlements shared "settlers/settlements".
 - Reports that describe the same event in entirely different words stay separate.
 
-## Off-topic news (v0.10.1)
+## Relevant topics only (v0.10.2)
 
-BBC and Al Jazeera feeds include sport, entertainment, arts, science and lifestyle pieces. These are marked **OFF-TOPIC** and hidden by default in the feed, the map, the region report counts and SITREP. They are never deleted: **OFF-TOPIC HIDDEN (n)** in the feed header shows them, each tagged with the reason. Code: [`shared/domain/relevance.ts`](../shared/domain/relevance.ts).
+News items (BBC, Al Jazeera) are shown only when the headline is about a **relevant topic**. Everything else is marked **OFF-TOPIC** and hidden by default in the feed, the map, the region report counts and SITREP. Nothing is deleted: **OFF-TOPIC HIDDEN (n)** in the feed header shows those items, each with its reason. Code: [`shared/domain/relevance.ts`](../shared/domain/relevance.ts).
 
-- **Only media items** can be off-topic. Official and structured sources never are.
-- **Never hidden:**
-  - anything classified military, diplomatic, unrest, disaster, cyber, maritime or aviation;
-  - anything tagged to a watch region;
-  - any headline with a security word (assassinate, attack, kill, spy, bomb, war…).
-- **Hidden:**
-  - items the outlet files under sport (`/sport/`, `/sports/`);
-  - headlines with an off-topic keyword: sport, entertainment, arts, science/space, lifestyle, consumer health.
+| Kept when the headline is about | Examples of words |
+|---|---|
+| Security and conflict | attack, killed, plot, spy, missile, troops, targets, hits, ceasefire, siege |
+| Politics and government | election, president, parliament, minister, opposition, EU, UN, NATO, heads of state by name |
+| Law and rights | genocide, human rights, detained, crackdown, top court |
+| Humanitarian | refugees, migrants, border, famine, aid, outbreak |
+| Economy and energy | tariffs, sanctions, oil, gas, inflation, markets, chips |
+| Disasters | earthquake, flood, wildfire, cyclone |
 
-Checked on live data on 2026-11-21: 6 of 78 media items hidden (football, tennis, celebrity, an art sale, pets, soft drinks). The safeguards were added after a first version hid "Denmark accuses Russia of plotting to assassinate US-Ukrainian rapper" because of "rapper".
+- News already classified military, diplomatic, unrest, disaster, cyber, maritime, aviation or economic is always kept.
+- Official and structured sources are always kept.
+- Watch regions do **not** decide relevance: world news outside them is kept when the topic is relevant.
 
-**Limits:** keywords miss items with no tell-tale word (a celebrity court case, a domestic crime). Those stay visible as general news.
+Checked on live data on 2026-11-21: 17 of 78 news items hidden (sport, celebrity, an art sale, lifestyle, local crime and court cases, company news). The combat verbs were added after "Russia targets Kyiv crossings days after Ukraine hits Crimean Bridge" was first missed.
+
+**Limits:** a relevant story worded without any listed word is hidden. The toggle shows it, and the word can be added to the list.
 
 ## Cost
 
