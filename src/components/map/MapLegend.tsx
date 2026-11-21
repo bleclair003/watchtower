@@ -20,12 +20,14 @@ interface Props {
   fleet?: { bigDecks: number; ships: number; asOf: string; stale: boolean; simulated: boolean };
   /** Sanctioned vessels layer (omit when off). */
   sanctioned?: { count: number; listenedMinutesAgo: number; shipsHeard: number; simulated: boolean };
+  /** Satellite imagery shown (omit when off). */
+  imagery?: { label: string; date: string; note: string };
 }
 
 const BRANCH_LABEL = { army: 'Army', navy: 'Navy', 'air-force': 'Air Force', marines: 'Marines', other: 'Other DoD' } as const;
 
 /** Collapsible legend explaining symbols and location-precision handling. */
-export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, operatorFilter, aircraft, fleet, sanctioned }: Props) {
+export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
   const [open, setOpen] = useState(true);
   return (
     <div className="pointer-events-auto absolute bottom-2 left-2 z-10 max-w-[230px] border border-wt-line-strong bg-wt-panel/95 text-2xs">
@@ -112,6 +114,14 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+          {imagery && (
+            <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
+              <p className="text-wt-fg">
+                {imagery.label} · {imagery.date}
+              </p>
+              <p className="text-wt-fg-dim">{imagery.note} NASA EOSDIS GIBS.</p>
             </div>
           )}
           {sanctioned && (

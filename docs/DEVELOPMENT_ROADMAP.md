@@ -199,7 +199,7 @@ Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at
 
 ### D. Context layers
 11. **Satellite imagery** (NASA GIBS daily tiles, no key)
-   - [ ] IMAGERY map layer you switch on, with date and product shown; check the CSP and attribution
+   - [x] IMAGERY map layer you switch on (true colour, night lights, 2016 baseline), with date and product shown; CSP and attribution — v0.27.0
 12. **Military satellite launches** (Launch Library 2)
    - [ ] Upcoming and recent launches, with military payloads flagged
 13. **Disease outbreaks** (WHO Disease Outbreak News)

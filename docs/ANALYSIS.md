@@ -267,6 +267,13 @@ Security Council meetings, resolutions and failed drafts, in the feed and on reg
 - **Indicators:** war-powers action on a region (2 in 30 days = triggered), and experimental congressional attention.
 - **Example (2026):** four Senate resolutions to remove US forces from hostilities with Iran; discharge motions failed 47–53 and 47–48.
 
+## Satellite imagery (v0.27.0)
+
+- **IMAGERY** on the GOC map shows NASA GIBS daily mosaics ([`src/lib/imagery.ts`](../src/lib/imagery.ts)) under the labels and every overlay, so records, bases, aircraft and ships stay on top.
+- **Products:** true colour (VIIRS NOAA-20, MODIS Terra) and night lights (VIIRS NOAA-20) for any day; Black Marble 2016 as the night-lights baseline.
+- **Use:** look at an area named in a record (smoke plumes, burn scars, a city's lights going out). Compare night lights with the 2016 baseline and with the days before; moonlight, clouds and daytime parts of the pass change brightness.
+- **Limits:** resolution is hundreds of metres, so buildings and vehicles are not visible; clouds hide the ground; it is a picture to look at, not an automatic detector.
+
 ## Cost
 
 | Feature | Firestore reads |

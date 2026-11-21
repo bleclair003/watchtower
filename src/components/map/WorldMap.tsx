@@ -3,6 +3,7 @@ import { AIRCRAFT_CLASS_LABEL, aircraftLabel, aircraftTypeName, type AircraftCla
 import { isBigDeck, type FleetArea } from '@shared/domain/fleet';
 import type { ChokepointReading } from '@shared/domain/chokepoints';
 import type { SanctionedShipSighting } from '@shared/domain/sanctionedShips';
+import { IMAGERY_ATTRIBUTION } from '../../lib/imagery';
 import { componentOf, operationOf, type Branch, type Installation, type Operation, type WorldInstallation } from '@shared/domain/installations';
 import '../../lib/maplibreSetup';
 import { Map as MLMap, NavigationControl, Popup, type GeoJSONSource, type MapLayerMouseEvent, type StyleSpecification } from 'maplibre-gl';
@@ -52,6 +53,8 @@ export interface WorldMapProps {
   /** Selected vessel key (IMO, or mmsi:<n>). */
   selectedSanctionedShip?: string | null;
   onSelectSanctionedShip?: (key: string | null) => void;
+  /** Satellite imagery under the overlays (NASA GIBS), or null for none. */
+  imagery?: { tiles: string; maxzoom: number } | null;
 }
 
 const GLOBAL_VIEW = { center: [35, 22] as [number, number], zoom: 1.35 };
@@ -720,6 +723,19 @@ export function WorldMap(props: WorldMapProps) {
     if (at) m.easeTo({ center: at, zoom: Math.max(m.getZoom(), 6), duration: 600 });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to selection changes
   }, [ready, selectedInstallation]);
+
+  const { imagery } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    if (m.getLayer('imagery')) m.removeLayer('imagery');
+    if (m.getSource('imagery')) m.removeSource('imagery');
+    if (!imagery) return;
+    m.addSource('imagery', { type: 'raster', tiles: [imagery.tiles], tileSize: 256, maxzoom: imagery.maxzoom, attribution: IMAGERY_ATTRIBUTION });
+    // Under the basemap's labels and every WATCHTOWER overlay: insert before the first symbol layer.
+    const firstSymbol = m.getStyle().layers.find((l) => l.type === 'symbol')?.id;
+    m.addLayer({ id: 'imagery', type: 'raster', source: 'imagery', paint: { 'raster-opacity': 0.92, 'raster-fade-duration': 150 } }, firstSymbol);
+  }, [ready, imagery]);
 
   const { sanctionedShips, showSanctionedShips, selectedSanctionedShip } = props;
   useEffect(() => {

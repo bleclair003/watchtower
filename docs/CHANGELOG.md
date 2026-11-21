@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.27.0] — 2026-11-21 — Satellite imagery
+
+### Added
+- **IMAGERY** control on the GOC map (off by default): NASA GIBS daily global mosaics under the map labels and all WATCHTOWER overlays.
+  - True colour, VIIRS NOAA-20 (~375 m) and MODIS Terra (~250 m), any day; defaults to yesterday, since today's mosaic is still being filled in.
+  - Night lights, VIIRS NOAA-20 day/night band, any day; and the **Black Marble 2016** baseline of normal night lights for comparison.
+- The legend names the product and day, with its limits (clouds, swath gaps, moonlight), and credits NASA EOSDIS GIBS.
+- Security policy: `gibs.earthdata.nasa.gov` allowed for images and tile requests.
+
+### Notes
+- Suomi-NPP products are no longer served (404 on 2026-11-21); NOAA-20 is used. Imagery is loaded by the browser only when turned on; the collector does not use it.
+
+
 ## [0.26.0] — 2026-11-21 — Congress
 
 ### Added

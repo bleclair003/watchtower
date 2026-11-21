@@ -27,7 +27,7 @@
         "headers": [
           {
             "key": "Content-Security-Policy",
-            "value": "default-src 'self'; script-src 'self' https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tiles.openfreemap.org https://*.googleusercontent.com; font-src 'self'; connect-src 'self' https://tiles.openfreemap.org https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com; frame-src https://watchtower-b9b2a.firebaseapp.com https://accounts.google.com; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+            "value": "default-src 'self'; script-src 'self' https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tiles.openfreemap.org https://gibs.earthdata.nasa.gov https://*.googleusercontent.com; font-src 'self'; connect-src 'self' https://tiles.openfreemap.org https://gibs.earthdata.nasa.gov https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com; frame-src https://watchtower-b9b2a.firebaseapp.com https://accounts.google.com; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
           },
           {
             "key": "Strict-Transport-Security",

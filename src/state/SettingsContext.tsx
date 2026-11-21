@@ -24,6 +24,10 @@ export interface OperatorSettings {
   chokepoints: boolean;
   /** Sanctioned vessels (AIS, Baltic and North Sea) on the map. */
   sanctionedShips: boolean;
+  /** Satellite imagery product on the GOC map ('off', 'viirs', 'modis', 'night', 'night-2016'). */
+  imagery: string;
+  /** Imagery day (YYYY-MM-DD); empty = yesterday. */
+  imageryDate: string;
 }
 
 export const DEFAULT_SETTINGS: OperatorSettings = {
@@ -38,6 +42,8 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   fleet: true,
   chokepoints: true,
   sanctionedShips: true,
+  imagery: 'off',
+  imageryDate: '',
 };
 
 const KEY = 'wt.settings.v1';

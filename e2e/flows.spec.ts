@@ -116,6 +116,21 @@ test('sanctioned vessels layer: simulated in demo mode and can be hidden', async
   await expect(page.getByText(/Sanctioned vessels \(48 h\)/)).toHaveCount(0);
 });
 
+test('satellite imagery: off by default, product and date selectable, credited', async ({ page }) => {
+  await openModule(page, '/', 'GOC');
+  const select = page.getByRole('combobox', { name: 'Satellite imagery' });
+  await expect(select).toHaveValue('off');
+  await expect(page.getByLabel('Imagery date')).toHaveCount(0);
+  await select.selectOption('viirs');
+  await expect(page.getByLabel('Imagery date')).toBeVisible();
+  await expect(page.getByText(/True colour · VIIRS NOAA-20 · \d{4}-\d{2}-\d{2}/)).toBeVisible();
+  await expect(page.getByText(/NASA EOSDIS GIBS/)).toBeVisible();
+  await select.selectOption('night-2016');
+  await expect(page.getByLabel('Imagery date')).toHaveCount(0); // fixed-date baseline
+  await expect(page.getByText(/Black Marble 2016 · 2016-01-01/)).toBeVisible();
+  await select.selectOption('off');
+});
+
 test('chokepoint layer: toggle is on by default and can be hidden', async ({ page }) => {
   await openModule(page, '/', 'GOC');
   const straits = page.getByRole('button', { name: 'STRAITS', exact: true });

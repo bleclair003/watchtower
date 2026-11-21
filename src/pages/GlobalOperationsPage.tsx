@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Anchor, Ban, Grid3x3, Plane, Shield, Ship, Square } from 'lucide-react';
+import { Anchor, Ban, Grid3x3, Plane, Satellite, Shield, Ship, Square } from 'lucide-react';
 import { useBases } from '../data/useInstallations';
 import { ALL_OPERATORS, operatedBy, operatorCounts } from '@shared/domain/installations';
 import { countryName } from '../lib/regionSummary';
@@ -9,6 +9,7 @@ import { FleetCard } from '../components/map/FleetCard';
 import { ChokepointCard } from '../components/map/ChokepointCard';
 import { SanctionedShipCard } from '../components/map/SanctionedShipCard';
 import { sightingKey } from '../components/map/WorldMap';
+import { IMAGERY, defaultImageryDate, imageryTiles, type ImageryId } from '../lib/imagery';
 import { FLEET_STALE_DAYS, isBigDeck } from '@shared/domain/fleet';
 import { AIRCRAFT_PROVIDERS, AIRCRAFT_STALE_MINUTES } from '@shared/domain/aircraft';
 import { getRegion } from '@shared/domain/regions';
@@ -78,6 +79,10 @@ export default function GlobalOperationsPage() {
   const [selectedStrait, setSelectedStrait] = useState<string | null>(null);
   const shownStraits = settings.chokepoints && chokepoints ? chokepoints.items : undefined;
   const selectedStraitItem = selectedStrait ? shownStraits?.find((c) => c.id === selectedStrait) : undefined;
+  // Satellite imagery: off by default; the day defaults to yesterday (today is still being filled in).
+  const imageryId = (settings.imagery in IMAGERY ? settings.imagery : 'off') as ImageryId;
+  const imageryDay = settings.imageryDate || defaultImageryDate(now);
+  const imagery = useMemo(() => (imageryId === 'off' ? null : imageryTiles(imageryId, imageryDay)), [imageryId, imageryDay]);
   const [selectedListed, setSelectedListed] = useState<string | null>(null);
   const shownListed = settings.sanctionedShips && sanctionedShips ? sanctionedShips.sightings : undefined;
   const selectedListedShip = selectedListed ? shownListed?.find((s) => sightingKey(s) === selectedListed) : undefined;
@@ -192,6 +197,33 @@ export default function GlobalOperationsPage() {
               >
                 <Ban size={10} aria-hidden /> SANCTIONED
               </button>
+              <label className={`${toggleBtn(imageryId !== 'off')} cursor-pointer`} title="Satellite imagery under the map overlays (NASA GIBS)">
+                <Satellite size={10} aria-hidden />
+                <select
+                  aria-label="Satellite imagery"
+                  value={imageryId}
+                  onChange={(e) => update({ imagery: e.target.value })}
+                  className="bg-transparent text-2xs outline-none"
+                >
+                  <option value="off">IMAGERY OFF</option>
+                  {Object.entries(IMAGERY).map(([id, p]) => (
+                    <option key={id} value={id}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {imageryId !== 'off' && !IMAGERY[imageryId as Exclude<ImageryId, 'off'>].fixedDate && (
+                <input
+                  type="date"
+                  aria-label="Imagery date"
+                  value={imageryDay}
+                  min="2018-01-05"
+                  max={new Date(now).toISOString().slice(0, 10)}
+                  onChange={(e) => update({ imageryDate: e.target.value })}
+                  className="h-5 border border-wt-line-strong bg-wt-bg px-1 text-2xs text-wt-fg"
+                />
+              )}
               {settings.installations && operatorOptions.length > 0 && (
                 <select
                   aria-label="Show bases operated by"
@@ -241,6 +273,7 @@ export default function GlobalOperationsPage() {
               showSanctionedShips={settings.sanctionedShips}
               selectedSanctionedShip={selectedListedShip ? selectedListed : null}
               onSelectSanctionedShip={(key) => selectOnly('listed', key)}
+              imagery={imagery}
             />
           <MapLegend
             plotted={projection.points.features.length}
@@ -254,6 +287,7 @@ export default function GlobalOperationsPage() {
                 ? { count: aircraft.aircraft.length, ageMinutes: aircraftAgeMin, stale: aircraftStale, provider: AIRCRAFT_PROVIDERS[aircraft.provider].name, simulated: !!aircraft.simulated }
                 : undefined
             }
+            imagery={imagery && imageryId !== 'off' ? { label: IMAGERY[imageryId as Exclude<ImageryId, 'off'>].label, date: imagery.date, note: IMAGERY[imageryId as Exclude<ImageryId, 'off'>].note } : undefined}
             sanctioned={
               settings.sanctionedShips && sanctionedShips
                 ? {
