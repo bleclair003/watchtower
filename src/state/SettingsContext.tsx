@@ -16,6 +16,8 @@ export interface OperatorSettings {
   installations: boolean;
   /** Only bases operated by this country (ISO alpha-2), or 'ALL'. */
   installationsOperator: string;
+  /** Military aircraft (ADS-B) layer on the map. */
+  aircraft: boolean;
 }
 
 export const DEFAULT_SETTINGS: OperatorSettings = {
@@ -26,6 +28,7 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   regionOutlines: true,
   installations: true,
   installationsOperator: 'ALL',
+  aircraft: true,
 };
 
 const KEY = 'wt.settings.v1';

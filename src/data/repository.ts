@@ -7,6 +7,8 @@ import { INDICATOR_CATALOG } from '@shared/domain/indicators/catalog';
 import { evaluateAll } from '@shared/domain/indicators/evaluate';
 import { computeAllRegionScores } from '@shared/domain/indicators/rai';
 import type { AlertRuleProblem } from '@shared/domain/alerts/types';
+import type { AircraftSnapshot } from '@shared/domain/aircraft';
+import { buildDemoAircraft } from './demo/demoAircraft';
 
 /**
  * Data access boundary for the UI.
@@ -30,6 +32,8 @@ export interface DashboardData {
   alertRuleProblems: AlertRuleProblem[];
   activeAlertRules: number | null;
   discordConfigured: boolean | null;
+  /** Latest military aircraft positions (ADS-B), or null. */
+  aircraft: AircraftSnapshot | null;
 }
 
 export interface IntelRepository {
@@ -67,6 +71,7 @@ export class DemoRepository implements IntelRepository {
       alertRuleProblems: [],
       activeAlertRules: null,
       discordConfigured: null,
+      aircraft: buildDemoAircraft(now),
       events: this.events,
       // No collector has ever run in demo mode, so every source is honestly NOT_CONFIGURED.
       sourceStatus: SOURCE_REGISTRY.map((s) => ({

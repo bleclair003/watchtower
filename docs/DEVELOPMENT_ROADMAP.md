@@ -157,10 +157,10 @@ Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at
 
 ### A. Military movement
 1. **Military aircraft** (adsb.lol / airplanes.live military endpoints, no key)
-   - [ ] Verify the endpoints, terms and rate limits; choose a primary and a fallback
-   - [ ] Snapshot every collection run; count by type (tanker, surveillance, bomber, transport) per watch region; store aggregates, not tracks
-   - [ ] AIRCRAFT map layer with type colours and a click card; limits stated (snapshot, transponders off)
-   - [ ] Indicators: tanker/surveillance surge per region against a 14-day baseline
+   - [x] Verify the endpoints, terms and rate limits: adsb.lol primary (ODbL), adsb.fi fallback; airplanes.live needs contact first
+   - [x] Snapshot every collection run; one record per notable aircraft, area and day (tanker, surveillance, bomber, airlift); positions only, no stored tracks
+   - [x] AIR map layer with class colours and a click card; limits stated (snapshot, transponders off) — v0.16.0
+   - [x] Indicators: tanker/surveillance/bomber and airlift activity per region against a 14-day baseline (experimental)
 2. **US Navy fleet positions** (USNI News Fleet Tracker, weekly)
    - [ ] Parse carrier and amphibious group positions from the weekly article; approximate areas only, no invented coordinates
    - [ ] FLEET map layer and indicator: carrier group arrives in a watch region

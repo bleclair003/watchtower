@@ -157,6 +157,20 @@ Everything is built from the records the dashboard already loaded (the newest ~7
   - **Operator countries** come from each operator's own Wikidata country, which can mislead (a US command headquartered in Germany is recorded as German).
   - Map markers are not keyboard-focusable: the card and the region page carry the same information.
 
+## Military aircraft (v0.16.0)
+
+**AIR** on the GOC map (saved per device) shows military aircraft seen on ADS-B at the last collection run.
+
+- **Data:** the adsb.lol military feed (ODbL 1.0), or adsb.fi if adsb.lol fails. Volunteer receivers pick up what aircraft broadcast; the network flags aircraft as military from its own community database. That flag includes government VIP aircraft.
+- **Snapshot, not live:** positions come from the last run (every 30 minutes) and are stored in the dashboard snapshot, so the layer costs no extra reads. Positions older than 90 minutes are not drawn, and the legend says so.
+- **Classes** come from the ICAO type code: tanker, surveillance/command, bomber, airlift, fighter, helicopter, other ([`shared/domain/aircraft.ts`](../shared/domain/aircraft.ts)). KC-46, KC-10, A330 MRTT and E-4B use airliner type codes, so they cannot be told apart from VIP or transport jets and show as **other**.
+- **Records:** a tanker, surveillance/command aircraft, bomber or airlift aircraft inside a watch area becomes one record per aircraft, area and day, at its first position that day. Over the sea, a record has a watch area but no country. Airlift over the US is routine and is not recorded.
+- **Indicators (experimental, weight 0):** tanker/surveillance/bomber activity in each region, and airlift activity outside the US, against a 14-day baseline. Fixed thresholds apply until 14 days are collected.
+- **Limits:**
+  - **Only aircraft that broadcast are seen.** Many military flights fly with transponders off or send no position. Absence of aircraft is not absence of activity.
+  - **Coverage is uneven:** dense over Europe and the US, thin over the Gulf, Red Sea, Taiwan Strait and Korea.
+  - **Typical volume is small:** about 40 to 90 aircraft with a position worldwide at any moment.
+
 ## Cost
 
 | Feature | Firestore reads |

@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 5;
+export const CATALOG_VERSION = 6;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -540,6 +540,89 @@ const experimentalIndicators: IndicatorDefinition[] = [
   },
 ];
 
+const AIR = 'adsb-military';
+
+const AIR_RESEARCH = {
+  dataAvailability: 'Collected every 30 minutes from the adsb.lol military feed since 2026-11-21. Only aircraft that broadcast ADS-B are seen.',
+  baselinePeriod: '14 days of collection. Until then the fixed thresholds apply.',
+  confounders: 'Receiver coverage (sparse over the Gulf, Red Sea and Taiwan Strait), exercises, routine training and deployments, weekdays vs weekends, transponder policy changes.',
+  falsePositives: 'Likely: exercises and scheduled rotations look the same as a surge.',
+  retrospectiveResults: 'Insufficient history. Re-run in Signal Lab once 90+ days are collected.',
+  evidenceQuality: 'none' as const,
+};
+
+/** Phase 13: military aircraft on ADS-B. Experimental (weight 0) until backtested. */
+const aircraftIndicators: IndicatorDefinition[] = ADVISORY_REGIONS.flatMap((r): IndicatorDefinition[] => [
+  {
+    id: `${r.id}.strategic-air`,
+    name: `${r.shortCode} tanker, surveillance and bomber activity`,
+    description: `Tankers, surveillance or command aircraft and bombers seen on ADS-B in the ${r.name} watch area within 24 hours (each aircraft once a day), compared with the 14-day baseline.`,
+    family: 'experimental',
+    regionId: r.id,
+    requiredSourceIds: [AIR],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: AIR },
+        { field: 'regionIds', op: 'contains', value: r.id },
+        { field: 'metadata.aircraftClass', op: 'in', value: ['tanker', 'isr', 'bomber'] },
+      ],
+    },
+    windowHours: 24,
+    elevated: { countAtLeast: 3 },
+    triggered: { countAtLeast: 6 },
+    baseline: { days: 14, triggerRatio: 3, elevatedRatio: 2 },
+    weight: 0,
+    severity: 'low',
+    experimental: true,
+    enabled: true,
+    configVersion: 1,
+    rationale:
+      'Tankers and surveillance aircraft gather before and during air operations, and their tracks are routinely followed by open-source analysts. Thresholds are initial guesses; most military flights are not visible on ADS-B, so this can only show activity that chooses to be seen.',
+    research: {
+      hypothesis: 'More tankers, surveillance aircraft and bombers than usual in a watch area accompany or precede air operations and crises.',
+      expectedRelationship: 'A surge would precede or coincide with strikes, exercises or crisis deployments visible in other indicators.',
+      historicalExamples: 'None in WATCHTOWER data yet (collection started 2026-11-21).',
+      ...AIR_RESEARCH,
+    },
+  },
+  ...(r.id === US
+    ? []
+    : ([
+        {
+          id: `${r.id}.airlift`,
+          name: `${r.shortCode} military airlift activity`,
+          description: `Military transport aircraft (C-17, C-5, A400M, Il-76, C-130 and similar) seen on ADS-B in the ${r.name} watch area within 24 hours (each aircraft once a day), compared with the 14-day baseline.`,
+          family: 'experimental' as const,
+          regionId: r.id,
+          requiredSourceIds: [AIR],
+          match: {
+            all: [
+              { field: 'sourceId', op: 'eq' as const, value: AIR },
+              { field: 'regionIds', op: 'contains' as const, value: r.id },
+              { field: 'metadata.aircraftClass', op: 'eq' as const, value: 'airlift' },
+            ],
+          },
+          windowHours: 24,
+          elevated: { countAtLeast: 4 },
+          triggered: { countAtLeast: 8 },
+          baseline: { days: 14, triggerRatio: 3, elevatedRatio: 2 },
+          weight: 0,
+          severity: 'low' as const,
+          experimental: true,
+          enabled: true,
+          configVersion: 1,
+          rationale:
+            'An airlift surge (equipment, munitions, evacuation) is a classic sign of a deployment or crisis. Airlift is also routine logistics, so only a rise against the baseline matters. Not used for the US, where airlift is constant.',
+          research: {
+            hypothesis: 'More military transport flights than usual into a watch area accompany deployments, resupply and evacuations.',
+            expectedRelationship: 'A surge would precede or coincide with deployments or evacuations reported by other sources.',
+            historicalExamples: 'None in WATCHTOWER data yet (collection started 2026-11-21).',
+            ...AIR_RESEARCH,
+          },
+        },
+      ] satisfies IndicatorDefinition[])),
+]);
+
 export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...advisoryIndicators,
   ...cyberIndicators,
@@ -548,6 +631,7 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...freeKeyIndicators.filter((d) => d.id !== `${US}.thermal-clusters`),
   ...usIndicators,
   ...experimentalIndicators,
+  ...aircraftIndicators,
 ];
 
 export function getIndicator(id: string): IndicatorDefinition | undefined {

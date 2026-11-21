@@ -17,6 +17,7 @@ const OPTIONS: { key: BooleanSetting; label: string; help: string }[] = [
   { key: 'graticule', label: 'MAP GRID', help: '30° latitude/longitude graticule.' },
   { key: 'regionOutlines', label: 'WATCH-AREA OUTLINES', help: 'Dashed watch-region boxes and area-level counts on the map.' },
   { key: 'installations', label: 'MILITARY INSTALLATIONS', help: 'DoD sites in the US and Wikidata sites worldwide on the map. Filter by operating country from the GOC map header.' },
+  { key: 'aircraft', label: 'MILITARY AIRCRAFT', help: 'Military aircraft seen on ADS-B (adsb.lol) at the last collection run, on the GOC map. Only aircraft that broadcast are shown.' },
 ];
 
 export default function SettingsPage() {

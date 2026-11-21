@@ -96,6 +96,16 @@ test('military installations layer: toggle and data file with its licence', asyn
   await expect(page.getByRole('combobox', { name: 'Show bases operated by' })).toHaveCount(0);
 });
 
+test('military aircraft layer: simulated in demo mode, labelled, and can be hidden', async ({ page }) => {
+  await openModule(page, '/', 'GOC');
+  const air = page.getByRole('button', { name: 'AIR', exact: true });
+  await expect(air).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText(/Aircraft \(ADS-B\) · SIMULATED/)).toBeVisible();
+  await air.click();
+  await expect(air).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByText(/Aircraft \(ADS-B\)/)).toHaveCount(0);
+});
+
 test('military installations: filter by operating country', async ({ page }) => {
   await openModule(page, '/', 'GOC');
   const select = page.getByRole('combobox', { name: 'Show bases operated by' });

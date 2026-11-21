@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Grid3x3, Shield, Square } from 'lucide-react';
+import { Grid3x3, Plane, Shield, Square } from 'lucide-react';
 import { useBases } from '../data/useInstallations';
 import { ALL_OPERATORS, operatedBy, operatorCounts } from '@shared/domain/installations';
 import { countryName } from '../lib/regionSummary';
 import { InstallationCard } from '../components/map/InstallationCard';
+import { AircraftCard } from '../components/map/AircraftCard';
+import { AIRCRAFT_PROVIDERS, AIRCRAFT_STALE_MINUTES } from '@shared/domain/aircraft';
 import { getRegion } from '@shared/domain/regions';
 import { getIndicator } from '@shared/domain/indicators/catalog';
 import { applyFilters } from '../lib/filters';
@@ -23,7 +25,7 @@ import { Panel } from '../components/ui/Panel';
 export default function GlobalOperationsPage() {
   // Re-evaluate time windows once a minute; the clock in the top bar ticks separately.
   const now = useNow(60_000).getTime();
-  const { events, regionScores, scoreHistory, indicatorEvaluations, mode } = useData();
+  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft } = useData();
   const { filters, setFilters, resetFilters, selectedEventId, selectEvent, globalViewNonce } = useDashboard();
   const { settings, update } = useSettings();
 
@@ -57,6 +59,12 @@ export default function GlobalOperationsPage() {
     const visible = selectedBase.startsWith('dod:') ? (shownUs ?? []).some((i) => `dod:${i.name}` === selectedBase) : (shownWorld ?? []).some((w) => `wd:${w.q}` === selectedBase);
     if (!visible) setSelectedBase(null);
   }, [selectedBase, shownUs, shownWorld]);
+  // Aircraft: a snapshot from the last collection run; not drawn once it is out of date.
+  const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null);
+  const aircraftAgeMin = aircraft ? Math.max(0, Math.round((now - Date.parse(aircraft.fetchedAt)) / 60_000)) : 0;
+  const aircraftStale = aircraftAgeMin > AIRCRAFT_STALE_MINUTES;
+  const shownAircraft = settings.aircraft && aircraft && !aircraftStale ? aircraft.aircraft : undefined;
+  const selectedPlane = selectedAircraft ? shownAircraft?.find((a) => a.hex === selectedAircraft) : undefined;
   // Region report counts ignore off-topic news (sport, entertainment …) whatever the feed toggle says.
   const relevantEvents = useMemo(() => events.filter((e) => !isOffTopic(e)), [events]);
   const projection = useMemo(() => projectEvents(filtered), [filtered]);
@@ -116,6 +124,17 @@ export default function GlobalOperationsPage() {
               >
                 <Shield size={10} aria-hidden /> BASES
               </button>
+              <button
+                className={toggleBtn(settings.aircraft)}
+                aria-pressed={settings.aircraft}
+                title="Military aircraft (ADS-B, adsb.lol) at the last collection run"
+                onClick={() => {
+                  update({ aircraft: !settings.aircraft });
+                  setSelectedAircraft(null);
+                }}
+              >
+                <Plane size={10} aria-hidden /> AIR
+              </button>
               {settings.installations && operatorOptions.length > 0 && (
                 <select
                   aria-label="Show bases operated by"
@@ -148,7 +167,17 @@ export default function GlobalOperationsPage() {
               worldInstallations={shownWorld}
               showInstallations={settings.installations}
               selectedInstallation={selectedBase}
-              onSelectInstallation={setSelectedBase}
+              onSelectInstallation={(key) => {
+                setSelectedBase(key);
+                if (key) setSelectedAircraft(null);
+              }}
+              aircraft={shownAircraft}
+              showAircraft={settings.aircraft}
+              selectedAircraft={selectedPlane ? selectedAircraft : null}
+              onSelectAircraft={(hex) => {
+                setSelectedAircraft(hex);
+                if (hex) setSelectedBase(null);
+              }}
             />
           <MapLegend
             plotted={projection.points.features.length}
@@ -157,8 +186,14 @@ export default function GlobalOperationsPage() {
             installations={settings.installations ? shownUs?.length : undefined}
             worldInstallations={settings.installations ? shownWorld?.length : undefined}
             operatorFilter={settings.installations && operator !== ALL_OPERATORS ? countryName(operator) : undefined}
+            aircraft={
+              settings.aircraft && aircraft
+                ? { count: aircraft.aircraft.length, ageMinutes: aircraftAgeMin, stale: aircraftStale, provider: AIRCRAFT_PROVIDERS[aircraft.provider].name, simulated: !!aircraft.simulated }
+                : undefined
+            }
           />
-          {bases.selected && <InstallationCard selected={bases.selected} events={events} now={now} onClose={() => setSelectedBase(null)} />}
+          {selectedPlane && aircraft && <AircraftCard aircraft={selectedPlane} snapshot={aircraft} now={now} onClose={() => setSelectedAircraft(null)} />}
+          {!selectedPlane && bases.selected && <InstallationCard selected={bases.selected} events={events} now={now} onClose={() => setSelectedBase(null)} />}
           {bases.error && settings.installations && <p className="absolute top-2 right-2 z-10 bg-wt-panel/95 px-2 py-1 text-2xs text-wt-warn">{bases.error}</p>}
         </Panel>
 

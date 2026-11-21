@@ -77,6 +77,16 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 
 **Not available (2026-11-21):** army.mil RSS (403); Navy and National Guard RSS (empty); Stars and Stripes (404); NORAD and NORTHCOM (feed site ids unknown, and their sites refuse scripted page loads). FIRMS fire detections are not collected for the US: agricultural burning and wildfire would swamp a military-focused watch.
 
+## v0.16.0 Military aircraft (ADS-B) — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| adsb.lol `/v2/mil` (fallback adsb.fi `/v2/mil`) | aggregator | Every run: positions of aircraft the network flags as military (airborne, position under 2 minutes old) for the map. Records: tankers, surveillance/command, bombers and airlift inside watch areas, once per aircraft, area and day |
+
+- **Terms:** adsb.lol data is ODbL 1.0 (credit adsb.lol); 500 requests a day without a key, and WATCHTOWER uses 48. adsb.fi is personal, non-commercial use and must be cited with a link; it is only a fallback.
+- **Not used:** airplanes.live (asks API users to contact them first, HTTP 403 without).
+- **Probe 2026-11-21 08:22 UTC:** adsb.lol 76 aircraft flagged military, 40 with a position; adsb.fi 89 and 44.
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |

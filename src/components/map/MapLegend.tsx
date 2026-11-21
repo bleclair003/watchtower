@@ -1,4 +1,5 @@
-import { BRANCH_COLOR, OPERATION_COLOR, OPERATION_LABEL } from './WorldMap';
+import { AIRCRAFT_COLOR, AIRCRAFT_PATH, BRANCH_COLOR, OPERATION_COLOR, OPERATION_LABEL } from './WorldMap';
+import { AIRCRAFT_CLASSES, AIRCRAFT_CLASS_LABEL } from '@shared/domain/aircraft';
 import { useState } from 'react';
 import { EVENT_CATEGORIES } from '@shared/domain/types';
 import { CATEGORY_STYLES } from '../../config/categories';
@@ -13,12 +14,14 @@ interface Props {
   worldInstallations?: number;
   /** Name of the operating country the bases are filtered to, if any. */
   operatorFilter?: string;
+  /** Aircraft layer: count shown, snapshot age, provider (omit when the layer is off). */
+  aircraft?: { count: number; ageMinutes: number; stale: boolean; provider: string; simulated: boolean };
 }
 
 const BRANCH_LABEL = { army: 'Army', navy: 'Navy', 'air-force': 'Air Force', marines: 'Marines', other: 'Other DoD' } as const;
 
 /** Collapsible legend explaining symbols and location-precision handling. */
-export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, operatorFilter }: Props) {
+export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, operatorFilter, aircraft }: Props) {
   const [open, setOpen] = useState(true);
   return (
     <div className="pointer-events-auto absolute bottom-2 left-2 z-10 max-w-[230px] border border-wt-line-strong bg-wt-panel/95 text-2xs">
@@ -84,6 +87,31 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
                   </ul>
                 </>
               )}
+            </div>
+          )}
+          {aircraft && (
+            <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
+              <div className="flex justify-between">
+                <span title="Aircraft flagged military that broadcast ADS-B, at the last collection run">Aircraft (ADS-B){aircraft.simulated ? ' · SIMULATED' : ''}</span>
+                <span className="text-wt-fg tabular-nums">{aircraft.stale ? 0 : aircraft.count}</span>
+              </div>
+              {aircraft.stale ? (
+                <p className="text-wt-warn">Positions out of date ({aircraft.ageMinutes} min old): not shown.</p>
+              ) : (
+                <p className="text-wt-fg-dim">
+                  Snapshot {aircraft.ageMinutes} min ago · {aircraft.provider}
+                </p>
+              )}
+              <ul className="grid grid-cols-2 gap-x-2">
+                {AIRCRAFT_CLASSES.map((c) => (
+                  <li key={c} className="flex items-center gap-1">
+                    <svg viewBox="0 0 20 20" className="size-2.5 shrink-0" aria-hidden>
+                      <path d={AIRCRAFT_PATH} fill={AIRCRAFT_COLOR[c]} />
+                    </svg>
+                    {AIRCRAFT_CLASS_LABEL[c].split(' / ')[0]}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>

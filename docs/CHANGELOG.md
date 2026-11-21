@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.16.0] — 2026-11-21 — Military aircraft (ADS-B)
+
+### Added
+- Source 25, **military aircraft on ADS-B** (adsb.lol, ODbL; falls back to adsb.fi). Each collection run takes a snapshot of every aircraft the network flags as military, about 40 to 90 with a position worldwide.
+- **AIR** map layer on the GOC: plane icons pointing along their track, coloured by class (tanker, surveillance/command, bomber, airlift, fighter, helicopter, other). Callsigns from regional zoom. A card shows callsign, type, altitude, speed, position age and a link to the live track. Positions older than 90 minutes are not drawn.
+- Records for tankers, surveillance/command aircraft, bombers and airlift inside the watch areas: one per aircraft, area and day. Airlift is not recorded for the US, where it is constant.
+- Catalog v6 (70 indicators), all experimental (weight 0): tanker/surveillance/bomber activity per region, and airlift activity per region except the US, each against a 14-day baseline.
+
+### Limits
+- Only aircraft that broadcast ADS-B are seen; many military flights do not. Coverage is thin over the Gulf, Red Sea and Taiwan Strait.
+- KC-46, KC-10, A330 MRTT and E-4B share airliner type codes, so they show as "other".
+
+
 ## [0.15.1] — 2026-11-21 — Filter bases by operating country
 
 ### Added

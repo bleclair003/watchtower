@@ -20,6 +20,7 @@ import { redactSecrets } from './lib/secrets.ts';
 import { runDailyBrief } from './brief/dailyBrief.ts';
 import { validateEvent } from './lib/validate.ts';
 import { truncate } from './lib/text.ts';
+import { AIRCRAFT_SOURCE_ID, type MilitaryAircraftState } from './adapters/militaryAircraft.ts';
 
 export interface PipelineOptions {
   trigger: CollectionRun['trigger'];
@@ -221,6 +222,16 @@ export async function runCollection(
     log(`ALRT FAILED: ${sanitizeError(err)}`);
   }
   snapshot.discordConfigured = Boolean(opts.discordWebhookUrl);
+
+  // Latest aircraft positions for the map (kept by the adapter in its source state).
+  if (tracked.includes(AIRCRAFT_SOURCE_ID)) {
+    try {
+      const air = await store.getSourceState<MilitaryAircraftState>(AIRCRAFT_SOURCE_ID);
+      if (air?.latest) snapshot.aircraft = air.latest;
+    } catch (err) {
+      log(`AIR  positions not added to the snapshot: ${sanitizeError(err)}`);
+    }
+  }
 
   // Daily brief: once a day, after the snapshot is complete, so it reflects this run.
   // Only when the caller configures it (the collector CLI always does; unit tests opt in).

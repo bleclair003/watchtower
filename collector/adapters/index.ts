@@ -10,6 +10,7 @@ import { firms } from './firms.ts';
 import { cloudflareRadarOutages } from './cloudflareRadar.ts';
 import { airForceNews, aljazeera, bbcWorld, defenseNews, iaeaNews, marinesNews, militaryTimes, nprNational, ukMod, unNews, warGovNews } from './news.ts';
 import { dhsNtas, faaTfr, femaDeclarations, nwsAlerts } from './usDomestic.ts';
+import { militaryAircraft } from './militaryAircraft.ts';
 
 /** Active adapters. Adding a source = write an adapter + register it here. */
 export const ADAPTERS: SourceAdapter<never>[] = [
@@ -36,6 +37,8 @@ export const ADAPTERS: SourceAdapter<never>[] = [
   militaryTimes as SourceAdapter<never>,
   defenseNews as SourceAdapter<never>,
   nprNational as SourceAdapter<never>,
+  // Phase 13
+  militaryAircraft as SourceAdapter<never>,
   // Free-key sources: active only when their key is set.
   firms as SourceAdapter<never>,
   cloudflareRadarOutages as SourceAdapter<never>,

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { AIRCRAFT_CLASS_LABEL, aircraftLabel, aircraftTypeName, type AircraftClass, type AircraftPosition } from '@shared/domain/aircraft';
 import { componentOf, operationOf, type Branch, type Installation, type Operation, type WorldInstallation } from '@shared/domain/installations';
 import '../../lib/maplibreSetup';
 import { Map as MLMap, NavigationControl, Popup, type GeoJSONSource, type MapLayerMouseEvent, type StyleSpecification } from 'maplibre-gl';
@@ -25,6 +26,12 @@ export interface WorldMapProps {
   /** Selection key: `dod:<name>` or `wd:<Wikidata id>`. */
   selectedInstallation?: string | null;
   onSelectInstallation?: (key: string | null) => void;
+  /** Military aircraft positions (ADS-B), optional. */
+  aircraft?: AircraftPosition[];
+  showAircraft?: boolean;
+  /** Selected aircraft (ICAO hex). */
+  selectedAircraft?: string | null;
+  onSelectAircraft?: (hex: string | null) => void;
 }
 
 const GLOBAL_VIEW = { center: [35, 22] as [number, number], zoom: 1.35 };
@@ -36,6 +43,33 @@ export const BRANCH_COLOR: Record<Branch, string> = { army: '#9ccc65', navy: '#6
 /** Worldwide sites are drawn as rings (DoD sites are solid), coloured by who operates them. */
 export const OPERATION_COLOR: Record<Operation, string> = { 'us-abroad': '#69c6d5', foreign: '#e8a0c8', national: '#9aa5a0' };
 export const OPERATION_LABEL: Record<Operation, string> = { 'us-abroad': 'US-operated abroad', foreign: 'Foreign-operated', national: 'National / not recorded' };
+/** Aircraft are plane icons pointing along their track, coloured by class (no red or amber: reserved for severity). */
+export const AIRCRAFT_COLOR: Record<AircraftClass, string> = {
+  tanker: '#69c6d5',
+  isr: '#b3a6ff',
+  bomber: '#e8a0c8',
+  airlift: '#9ccc65',
+  fighter: '#f2f2f2',
+  helicopter: '#c8c8c8',
+  other: '#8a958f',
+};
+/** Plane outline in a 20x20 box, pointing north (map icon and legend). */
+export const AIRCRAFT_PATH = 'M10 1.5 L11.4 7.5 L18.5 11.5 L18.5 13 L11.4 11 L11 16 L13.5 17.8 L13.5 18.8 L10 18 L6.5 18.8 L6.5 17.8 L9 16 L8.6 11 L1.5 13 L1.5 11.5 L8.6 7.5 Z';
+
+/** A plane-shaped SDF icon, tinted per class with icon-color. */
+function registerAircraftIcon(map: MLMap) {
+  if (map.hasImage('aircraft')) return;
+  const px = 2;
+  const size = 20 * px;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  ctx.scale(px, px);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill(new Path2D(AIRCRAFT_PATH));
+  map.addImage('aircraft', ctx.getImageData(0, 0, size, size), { pixelRatio: px, sdf: true });
+}
 
 /** Rasterize each category's SVG path into a map icon so map and legend match. */
 function registerCategoryIcons(map: MLMap) {
@@ -126,6 +160,7 @@ export function WorldMap(props: WorldMapProps) {
         loaded = true;
         window.clearTimeout(watchdog);
         registerCategoryIcons(m);
+        registerAircraftIcon(m);
 
         m.addSource('graticule', { type: 'geojson', data: graticule(30) });
         m.addLayer({
@@ -264,6 +299,43 @@ export function WorldMap(props: WorldMapProps) {
           paint: { 'text-color': '#80a992', 'text-halo-color': '#050a08', 'text-halo-width': 1.2 },
         });
 
+        // Military aircraft (ADS-B): above installations, below event markers.
+        m.addSource('aircraft', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({
+          id: 'aircraft-selected',
+          type: 'circle',
+          source: 'aircraft',
+          filter: ['==', ['get', 'hex'], '__none__'],
+          paint: { 'circle-radius': 11, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': INFO, 'circle-stroke-width': 1.6 },
+        });
+        m.addLayer({
+          id: 'aircraft',
+          type: 'symbol',
+          source: 'aircraft',
+          layout: {
+            'icon-image': 'aircraft',
+            'icon-size': ['interpolate', ['linear'], ['zoom'], 1, 0.7, 5, 0.85, 9, 1],
+            'icon-rotate': ['get', 'trk'],
+            'icon-rotation-alignment': 'map',
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': true,
+            'text-field': ['step', ['zoom'], '', 4, ['get', 'label']],
+            'text-font': font,
+            'text-size': 10,
+            'text-offset': [0, 1.2],
+            'text-anchor': 'top',
+            'text-optional': true,
+          },
+          paint: {
+            'icon-color': ['match', ['get', 'cls'], 'tanker', AIRCRAFT_COLOR.tanker, 'isr', AIRCRAFT_COLOR.isr, 'bomber', AIRCRAFT_COLOR.bomber, 'airlift', AIRCRAFT_COLOR.airlift, 'fighter', AIRCRAFT_COLOR.fighter, 'helicopter', AIRCRAFT_COLOR.helicopter, AIRCRAFT_COLOR.other],
+            'icon-halo-color': '#050a08',
+            'icon-halo-width': 1,
+            'text-color': '#a8d8b8',
+            'text-halo-color': '#050a08',
+            'text-halo-width': 1.2,
+          },
+        });
+
         m.addLayer({
           id: 'event-selected',
           type: 'circle',
@@ -331,6 +403,25 @@ export function WorldMap(props: WorldMapProps) {
             hover.remove();
           });
         }
+        m.on('mousemove', 'aircraft', (e) => {
+          const f = e.features?.[0];
+          if (!f || m.queryRenderedFeatures(e.point, { layers: ['events'] }).length) return;
+          m.getCanvas().style.cursor = 'pointer';
+          const p = f.properties as { label: string; cls: AircraftClass; type: string };
+          const el = document.createElement('div');
+          const kind = document.createElement('div');
+          kind.className = 'text-[10px] tracking-widest text-wt-fg-dim';
+          kind.textContent = `MILITARY AIRCRAFT · ${AIRCRAFT_CLASS_LABEL[p.cls]?.toUpperCase() ?? ''}`;
+          const title = document.createElement('div');
+          title.className = 'text-xs';
+          title.textContent = `${p.label}${p.type ? ` · ${p.type}` : ''}`;
+          el.append(kind, title);
+          hover.setLngLat((f.geometry as GeoJSON.Point).coordinates as [number, number]).setDOMContent(el).addTo(m);
+        });
+        m.on('mouseleave', 'aircraft', () => {
+          m.getCanvas().style.cursor = '';
+          hover.remove();
+        });
         for (const layer of ['clusters', 'region-fill']) {
           m.on('mouseenter', layer, () => (m.getCanvas().style.cursor = 'pointer'));
           m.on('mouseleave', layer, () => (m.getCanvas().style.cursor = ''));
@@ -340,6 +431,13 @@ export function WorldMap(props: WorldMapProps) {
           const pts = m.queryRenderedFeatures(e.point, { layers: ['events'] });
           if (pts[0]) {
             cb.current.onSelectEvent(String(pts[0].properties.id));
+            return;
+          }
+          const planes = m.getLayoutProperty('aircraft', 'visibility') !== 'none'
+            ? m.queryRenderedFeatures([[e.point.x - 6, e.point.y - 6], [e.point.x + 6, e.point.y + 6]], { layers: ['aircraft'] })
+            : [];
+          if (planes[0] && cb.current.onSelectAircraft) {
+            cb.current.onSelectAircraft(String(planes[0].properties.hex));
             return;
           }
           const bases = m.getLayer('installations') && m.getLayoutProperty('installations', 'visibility') !== 'none'
@@ -463,6 +561,35 @@ export function WorldMap(props: WorldMapProps) {
     if (at) m.easeTo({ center: at, zoom: Math.max(m.getZoom(), 6), duration: 600 });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to selection changes
   }, [ready, selectedInstallation]);
+
+  const { aircraft, showAircraft, selectedAircraft } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    (m.getSource('aircraft') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (aircraft ?? []).map((a) => ({
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: [a.lo, a.la] },
+        properties: { hex: a.hex, cls: a.cls, trk: a.trk ?? 0, label: aircraftLabel(a), type: aircraftTypeName(a.t) ?? a.t ?? '' },
+      })),
+    });
+  }, [ready, aircraft]);
+
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    for (const id of ['aircraft', 'aircraft-selected']) m.setLayoutProperty(id, 'visibility', showAircraft ? 'visible' : 'none');
+  }, [ready, showAircraft]);
+
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    m.setFilter('aircraft-selected', ['==', ['get', 'hex'], selectedAircraft ?? '__none__']);
+    const a = aircraft?.find((x) => x.hex === selectedAircraft);
+    if (a) m.easeTo({ center: [a.lo, a.la], zoom: Math.max(m.getZoom(), 5), duration: 600 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to selection changes
+  }, [ready, selectedAircraft]);
 
   useEffect(() => {
     const m = mapRef.current;

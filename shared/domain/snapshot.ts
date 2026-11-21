@@ -1,6 +1,7 @@
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from './types.ts';
 import type { IndicatorEvaluation, RegionScore, ScoreHistoryPoint } from './indicators/types.ts';
 import type { AlertRuleProblem } from './alerts/types.ts';
+import type { AircraftSnapshot } from './aircraft.ts';
 
 /**
  * Precomputed dashboard payload, written by the collector to
@@ -40,6 +41,9 @@ export interface DashboardSnapshot {
   activeAlertRules?: number;
   /** Whether a Discord webhook was configured for the last run. */
   discordConfigured?: boolean;
+  // --- Phase 13 ---
+  /** Latest military aircraft positions (ADS-B), from the last successful fetch. */
+  aircraft?: AircraftSnapshot;
 }
 
 /** Firestore collection names — single source of truth for app and collector. */

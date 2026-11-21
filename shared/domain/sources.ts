@@ -553,6 +553,27 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     priority: 'P2',
     feasibility: { checkedAt: PROBE_2, result: 'reachable', note: 'API documented; needs a token. Not yet run live.' },
   },
+  // ------------------------------------------------------------ Phase 13 ---
+  {
+    id: 'adsb-military',
+    name: 'Military aircraft (ADS-B)',
+    organization: 'adsb.lol (fallback: adsb.fi)',
+    website: 'https://adsb.lol',
+    endpoint: 'https://api.adsb.lol/v2/mil',
+    method: 'api',
+    sourceClass: 'aggregator',
+    defaultCategory: 'military',
+    coverage: 'Worldwide where volunteer receivers are; aircraft the network flags as military',
+    authentication: 'None',
+    freeAccess: 'Free; adsb.lol allows 500 requests a day without a key (WATCHTOWER uses 48)',
+    expectedUpdateFrequency: 'Live; WATCHTOWER takes a snapshot every collection run',
+    pollIntervalMinutes: 30,
+    reliabilityNotes:
+      'Probe 2026-11-21 08:22 UTC: 76 aircraft flagged military, 40 with a position (adsb.fi: 89 and 44). Only aircraft that broadcast ADS-B are seen; many military flights fly with transponders off or only Mode S. The military flag comes from a community database and includes government VIP aircraft. Tankers such as KC-46 and A330 MRTT share airliner type codes and are classed "other". airplanes.live requires contacting them first and is not used.',
+    termsNotes: 'adsb.lol: ODbL 1.0, credit adsb.lol. adsb.fi (fallback only): personal, non-commercial use; cite adsb.fi with a link.',
+    priority: 'P2',
+    feasibility: { checkedAt: '2026-11-21T08:22:00Z', result: 'reachable', note: 'adsb.lol HTTP 200 with x-ratelimit-limit 500/day; adsb.fi HTTP 200; airplanes.live 403.' },
+  },
   // ------------------------------------------------------------ research ---
   {
     id: 'centcom-releases',
