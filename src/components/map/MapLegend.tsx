@@ -71,7 +71,7 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
             <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
               {operatorFilter && <p className="text-wt-info">Operated by {operatorFilter} only</p>}
               <div className="flex justify-between">
-                <span>Installations (DoD, US)</span>
+                <span title="Bases are drawn as dots and rings">● Bases: DoD, US</span>
                 <span className="text-wt-fg tabular-nums">{installations}</span>
               </div>
               <ul className="grid grid-cols-2 gap-x-2">
@@ -108,21 +108,21 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
           {infrastructure && (
             <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
               <div className="flex justify-between">
-                <span>Infrastructure{infrastructure.simulated ? ' · SIMULATED' : ''}</span>
+                <span title="Infrastructure is drawn as squares">■ Infrastructure{infrastructure.simulated ? ' · SIMULATED' : ''}</span>
                 <span className="text-wt-fg tabular-nums">{infrastructure.all ?? 'flagged only'}</span>
               </div>
               {infrastructure.all !== null && (
                 <ul className="grid grid-cols-2 gap-x-2">
                   {INFRA_TYPES.map((t) => (
                     <li key={t} className="flex items-center gap-1">
-                      <span className="size-2 rounded-full" style={{ background: INFRA_COLOR[t] }} aria-hidden />
+                      <span className="size-2 rounded-[1px]" style={{ background: INFRA_COLOR[t] }} aria-hidden />
                       {INFRA_LABEL[t].replace(' (500 MW+)', '')}
                     </li>
                   ))}
                 </ul>
               )}
               <div className="flex items-center gap-1" title="A new fire cluster or military record nearby, or a record naming the site, in 72 hours">
-                <span className="size-2.5 rounded-full border-[1.8px]" style={{ borderColor: '#ff5555' }} aria-hidden />
+                <span className="size-2.5 rounded-[1px] border-[1.8px]" style={{ borderColor: '#ff5555' }} aria-hidden />
                 <span>Records near or naming it (72 h)</span>
                 <span className="ml-auto text-wt-fg tabular-nums">{infrastructure.flagged}</span>
               </div>

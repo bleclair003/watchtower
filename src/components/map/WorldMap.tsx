@@ -120,6 +120,11 @@ function registerAircraftIcon(map: MLMap) {
   ctx.clearRect(0, 0, 20, 20);
   ctx.fill(new Path2D(SHIP_PATH));
   map.addImage('ship', ctx.getImageData(0, 0, size, size), { pixelRatio: px, sdf: true });
+  if (map.hasImage('infra-square')) return;
+  // Infrastructure is drawn as squares so it never reads as a base (bases are dots and rings).
+  ctx.clearRect(0, 0, 20, 20);
+  ctx.fillRect(3, 3, 14, 14);
+  map.addImage('infra-square', ctx.getImageData(0, 0, size, size), { pixelRatio: px, sdf: true });
 }
 
 /** Rasterize each category's SVG path into a map icon so map and legend match. */
@@ -420,31 +425,41 @@ export function WorldMap(props: WorldMapProps) {
           },
         });
 
-        // Critical infrastructure: small squares-ish dots by type; flagged sites ringed red with their name.
+        // Critical infrastructure: squares coloured by type (bases are dots); flagged sites larger, outlined red, named.
         m.addSource('infrastructure', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
         m.addLayer({
           id: 'infrastructure',
-          type: 'circle',
+          type: 'symbol',
           source: 'infrastructure',
-          layout: { visibility: 'none' },
+          layout: {
+            visibility: 'none',
+            'icon-image': 'infra-square',
+            'icon-size': ['interpolate', ['linear'], ['zoom'], 1, 0.28, 5, 0.48, 9, 0.8],
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': true,
+          },
           paint: {
-            'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 1.6, 5, 3, 9, 5],
-            'circle-color': ['match', ['get', 'type'], 'nuclear', INFRA_COLOR.nuclear, 'power', INFRA_COLOR.power, 'refinery', INFRA_COLOR.refinery, 'dam', INFRA_COLOR.dam, INFRA_COLOR.port],
-            'circle-opacity': 0.85,
-            'circle-stroke-color': '#050a08',
-            'circle-stroke-width': 0.6,
+            'icon-color': ['match', ['get', 'type'], 'nuclear', INFRA_COLOR.nuclear, 'power', INFRA_COLOR.power, 'refinery', INFRA_COLOR.refinery, 'dam', INFRA_COLOR.dam, INFRA_COLOR.port],
+            'icon-opacity': 0.9,
+            'icon-halo-color': '#050a08',
+            'icon-halo-width': 0.8,
           },
         });
         m.addSource('infrastructure-flagged', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
         m.addLayer({
           id: 'infrastructure-flagged',
-          type: 'circle',
+          type: 'symbol',
           source: 'infrastructure-flagged',
+          layout: {
+            'icon-image': 'infra-square',
+            'icon-size': ['interpolate', ['linear'], ['zoom'], 1, 0.75, 6, 1.15],
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': true,
+          },
           paint: {
-            'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 5, 6, 9],
-            'circle-color': ['match', ['get', 'type'], 'nuclear', INFRA_COLOR.nuclear, 'power', INFRA_COLOR.power, 'refinery', INFRA_COLOR.refinery, 'dam', INFRA_COLOR.dam, INFRA_COLOR.port],
-            'circle-stroke-color': '#ff5555',
-            'circle-stroke-width': ['case', ['get', 'selected'], 2.6, 1.8],
+            'icon-color': ['match', ['get', 'type'], 'nuclear', INFRA_COLOR.nuclear, 'power', INFRA_COLOR.power, 'refinery', INFRA_COLOR.refinery, 'dam', INFRA_COLOR.dam, INFRA_COLOR.port],
+            'icon-halo-color': '#ff5555',
+            'icon-halo-width': ['case', ['get', 'selected'], 3, 2],
           },
         });
         m.addLayer({

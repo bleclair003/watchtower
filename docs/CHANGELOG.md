@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.46.1] — 2026-11-21 — Infrastructure drawn as squares
+
+### Changed
+- Critical infrastructure is now drawn as **squares** (coloured by type), so it no longer looks like the bases layer (dots for US installations, rings worldwide). Flagged sites are larger squares outlined in red. The legend shows the same shapes and labels the two sections "● Bases" and "■ Infrastructure".
+
+
 ## [0.46.0] — 2026-11-21 — Like-for-like comparisons (Phase 15 item 12)
 
 ### Changed
