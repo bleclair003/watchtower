@@ -298,7 +298,7 @@ Free sources and analysis of data already collected. Each new outside source is 
 
 ### C. How the sources behave
 6. **Who's first**
-   - [ ] Per kind of event, which source reports first (sensor, official, media) and by how many hours
+   - [x] Per kind of event, which source reports first (sensor, official, media) and by how many hours — v0.42.0
 7. **Source track record**
    - [ ] Per source, how often a single-publisher report is later corroborated by others
 8. **Missing regulars**

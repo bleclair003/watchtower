@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.42.0] — 2026-11-21 — Who's first (Phase 15 item 6)
+
+### Added
+- **Who's first** panel on the METERS page (30 days, recomputed each run):
+  - **News outlets**: in every story carried by two or more publishers, who published first, how often each outlet was first, and its median delay in hours when it was not.
+  - **Sensors and official sources against the news**: earthquakes (USGS M5.5+), internet outages (Cloudflare, IODA), disaster alerts (GDACS orange/red) and UK travel-advice updates in hours; DPRK launches (Yonhap), WHO outbreak reports, sanctions designations and US advisory changes in whole days, because those sources give a date or a fixed hour rather than the real time. Each record is paired with the first news report of the same kind about the same country within 48 hours.
+
+### Changed
+- **Story grouping is much faster**: each headline's topic and place words are now computed once per run instead of for every comparison (the gazetteer scan made grouping grow with the square of the input). 3,210 headlines now group in under a second; 214 took about a second before. This also speeds up "What changed", corroboration and coverage gaps.
+
+### Limits
+- Feed publication times, collected every 30 minutes: differences under an hour are noise. Pairs are matched by kind of event and country, so some will be coincidences.
+
+
 ## [0.41.0] — 2026-11-21 — Coverage gaps (Phase 15 item 5)
 
 ### Added

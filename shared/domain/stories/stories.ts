@@ -114,18 +114,26 @@ export function buildStories(events: IntelligenceEvent[]): Story[] {
   const candidates = events.filter((e) => STORY_SOURCES.has(e.sourceId)).sort((a, b) => timeOf(a) - timeOf(b) || a.id.localeCompare(b.id));
   const building: Building[] = [];
   const windowMs = WINDOW_HOURS * 3_600_000;
+  // Words are computed once per report: the gazetteer scan behind placeStems is the expensive part,
+  // and recomputing it for every comparison made grouping grow with the square of the input.
+  const termsCache = new Map<IntelligenceEvent, Map<string, string>>();
+  const placesCache = new Map<IntelligenceEvent, Set<string>>();
+  const termsOf = (x: IntelligenceEvent) => termsCache.get(x) ?? (termsCache.set(x, storyTerms(x.title)), termsCache.get(x)!);
+  const placesOf = (x: IntelligenceEvent) => placesCache.get(x) ?? (placesCache.set(x, placeStems(x.title)), placesCache.get(x)!);
+  // Stories whose latest report is older than the window can never grow again (input is in time order).
+  let open: Building[] = [];
 
   for (const e of candidates) {
-    const terms = storyTerms(e.title);
-    const places = placeStems(e.title);
+    const terms = termsOf(e);
+    const places = placesOf(e);
+    open = open.filter((b) => timeOf(e) - timeOf(b.members[b.members.length - 1]) <= windowMs);
     let best: { b: Building; shared: string[] } | null = null;
-    for (const b of building) {
-      if (timeOf(e) - timeOf(b.members[b.members.length - 1]) > windowMs) continue;
+    for (const b of open) {
       if (!b.members.every((m) => countriesCompatible(m, e))) continue;
       // Compare with the first report and the latest one, so a story can evolve without chaining far.
-      const viaSeed = match(b.seedTerms, terms, new Set([...places, ...placeStems(b.seed.title)]));
+      const viaSeed = match(b.seedTerms, terms, new Set([...places, ...placesOf(b.seed)]));
       const latest = b.members[b.members.length - 1];
-      const viaLatest = latest === b.seed ? null : match(storyTerms(latest.title), terms, new Set([...places, ...placeStems(latest.title)]));
+      const viaLatest = latest === b.seed ? null : match(termsOf(latest), terms, new Set([...places, ...placesOf(latest)]));
       const shared = viaSeed ?? viaLatest;
       if (shared && (!best || shared.length > best.shared.length)) best = { b, shared };
     }
@@ -133,7 +141,9 @@ export function buildStories(events: IntelligenceEvent[]): Story[] {
       best.b.members.push(e);
       for (const s of best.shared) if (!best.b.shared.has(s)) best.b.shared.set(s, terms.get(s) ?? s);
     } else {
-      building.push({ seed: e, seedTerms: terms, members: [e], shared: new Map() });
+      const nb: Building = { seed: e, seedTerms: terms, members: [e], shared: new Map() };
+      building.push(nb);
+      open.push(nb);
     }
   }
 

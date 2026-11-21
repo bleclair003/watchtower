@@ -10,6 +10,7 @@ import { Tag } from '../components/ui/Tag';
 import { MeterCard, cellLabel, levelTone } from '../components/meters/MeterCard';
 import { MarketsPanel } from '../components/meters/MarketsPanel';
 import { ActorsPanel } from '../components/meters/ActorsPanel';
+import { SpeedPanel } from '../components/meters/SpeedPanel';
 import { formatUtc } from '../lib/time';
 import { safeExternalUrl } from '../lib/sanitize';
 
@@ -142,6 +143,8 @@ export default function MetersPage() {
           <MarketsPanel data={predictionMarkets} now={now} />
 
           <ActorsPanel data={actors} now={now} />
+
+          <SpeedPanel report={meters.speed} />
 
           <Panel title="Days since" designator="M3">
             <ul className="grid grid-cols-2 gap-px bg-wt-line sm:grid-cols-3 lg:grid-cols-5">
