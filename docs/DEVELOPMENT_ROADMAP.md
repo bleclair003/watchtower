@@ -205,8 +205,8 @@ Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at
 13. **Disease outbreaks** (WHO Disease Outbreak News)
    - [x] Adapter and tagging; indicator for an outbreak in a watch-region country — v0.29.0
 14. **Economic stress** (free FX and oil price data)
-   - [ ] Daily currency moves for watch-region countries; Brent/WTI
-   - [ ] Indicators: sharp currency drop; oil price spike
+   - [x] Daily currency moves for watch-region countries; Brent/WTI — v0.30.0
+   - [x] Indicators: sharp currency drop; oil price spike — v0.30.0
 15. **Refugee flows** (UNHCR API)
    - [ ] Displacement figures per country on region pages (slow-moving: context, not alerts)
 

@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 18;
+export const CATALOG_VERSION = 19;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -1273,6 +1273,75 @@ const outbreakIndicators: IndicatorDefinition[] = ADVISORY_REGIONS.map(
   }),
 );
 
+const FX = 'fx-rates';
+const OIL = 'oil-prices';
+
+/** Phase 13 item 14: a watch-region currency losing value fast against the dollar. */
+const currencyIndicators: IndicatorDefinition[] = ADVISORY_REGIONS.map(
+  (r): IndicatorDefinition => ({
+    id: `${r.id}.currency-stress`,
+    name: `${r.shortCode} currency stress`,
+    description: `A ${r.name} currency lost 5% against the dollar in a week or 10% in a month (2% for pegged currencies).`,
+    family: 'official-activity',
+    regionId: r.id,
+    requiredSourceIds: [FX],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: FX },
+        { field: 'regionIds', op: 'contains', value: r.id },
+      ],
+    },
+    windowHours: 168,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 2 },
+    baseline: null,
+    weight: 1,
+    severity: 'medium',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'Capital flight and a run on the currency often precede or follow a security shock; a pegged currency moving at all signals strain. Rates are daily reference rates, not intraday.',
+  }),
+);
+
+const oilIndicators: IndicatorDefinition[] = [
+  {
+    id: 'experimental.oil-spike',
+    name: 'Oil price spike',
+    description: 'Brent or WTI rose 10% in a week or 20% in a month (EIA spot prices).',
+    family: 'experimental',
+    regionId: 'global',
+    requiredSourceIds: [OIL],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: OIL },
+        { field: 'metadata.direction', op: 'eq', value: 'up' },
+      ],
+    },
+    windowHours: 168,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 2 },
+    baseline: null,
+    weight: 0,
+    severity: 'low',
+    experimental: true,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'Markets price supply risk (Gulf, Red Sea, Russia) quickly, but oil also moves on demand, OPEC decisions and the dollar; context only. EIA prices are 3–4 days late.',
+    research: {
+      hypothesis: 'A sharp rise in Brent or WTI reflects traders pricing a supply threat (Gulf, Strait of Hormuz, Red Sea, Russian exports) before or during escalation.',
+      dataAvailability: 'Available once CONGRESS_API_KEY is set: EIA daily spot prices, 50 days fetched every 6 hours.',
+      baselinePeriod: 'Fixed thresholds (10% in 7 days, 20% in 30 days); no learned baseline.',
+      expectedRelationship: 'Coincident with escalation in producing regions; a lead is possible when markets react to threats before action.',
+      historicalExamples: 'Brent spiked after the 2019 Abqaiq attack and the 2022 invasion of Ukraine. In collected data, Brent fell 22% between mid-October and mid-November 2026 (a move down, not counted).',
+      confounders: 'OPEC+ quota decisions, demand shocks, US inventory reports, the dollar, refinery outages, hurricanes.',
+      falsePositives: 'Expected: many spikes have no security cause.',
+      retrospectiveResults: 'Insufficient history. Re-run in Signal Lab once 90+ days are collected.',
+      evidenceQuality: 'weak',
+    },
+  },
+];
+
 export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...advisoryIndicators,
   ...cyberIndicators,
@@ -1294,6 +1363,8 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...congressIndicators,
   ...launchIndicators,
   ...outbreakIndicators,
+  ...currencyIndicators,
+  ...oilIndicators,
 ];
 
 export function getIndicator(id: string): IndicatorDefinition | undefined {

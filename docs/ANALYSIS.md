@@ -288,6 +288,12 @@ Security Council meetings, resolutions and failed drafts, in the feed and on reg
 - **Indicator:** a report naming a watch-region country (one = elevated, two in 30 days = triggered).
 - **Limits:** WHO reports after national notification, often days or weeks after the first cases; countries that do not report do not appear.
 
+## Economic stress (v0.30.0)
+
+- **Currencies** ([`collector/adapters/economy.ts`](../collector/adapters/economy.ts)): 28 watch-region currencies against the dollar, compared with 7 and 30 days earlier. A record when a floating currency loses 5% in a week or 10% in a month; pegged currencies (Gulf states, Jordan, Djibouti, Eritrea, Brunei) 2%. EUR (Baltics) and KPW (official rate only) are left out.
+- **Oil:** Brent and WTI spot prices from the EIA; a record on a 10% move in a week or 20% in a month, either way. The experimental spike indicator counts rises only.
+- **Limits:** daily reference rates, not intraday. For the Iranian rial and the Syrian and Lebanese pounds the source does not say whether its rate is official or market, so the level is indicative and the change is the signal. EIA prices are 3–4 days late. Oil moves for many non-security reasons.
+
 ## Cost
 
 | Feature | Firestore reads |

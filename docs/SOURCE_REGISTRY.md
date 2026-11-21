@@ -183,6 +183,13 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 |---|---|---|
 | WHO DON API (`/api/news/diseaseoutbreaknews`, selected fields) | official | Title, summary, DON id, date; countries from the title; high-consequence pathogen flag |
 
+## v0.30.0 Economic stress — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| fawazahmed0/exchange-api (CC0; jsDelivr, pages.dev fallback) | aggregator | Daily rate per watch currency vs USD; 7- and 30-day change; a record only past the threshold |
+| EIA API v2 petroleum spot prices (api.data.gov key in header) | official | Brent and WTI daily prices; a record only on a 10% / 20% move |
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |

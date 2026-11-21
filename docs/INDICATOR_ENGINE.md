@@ -40,7 +40,7 @@ For each indicator, at time `now`:
 - **Fields:** an allow-list (`CONDITION_FIELDS`) of event properties and selected `metadata.*` keys. Lookups are own-property only, so inherited names such as `constructor` are rejected; this is tested.
 - `validateCondition()` and `validateCatalog()` reject malformed definitions, and the catalog is validated in CI.
 
-## Catalog v18 (158 indicators)
+## Catalog v19 (166 indicators)
 
 | Region | Indicator | Window | Elevated / Triggered | Baseline | Weight · Severity |
 |---|---|---|---|---|---|
@@ -83,6 +83,8 @@ For each indicator, at time `now`:
 | Middle East (v17) | Iranian orbital launch attempt | 30 d | 1 / 2 | — | 1 · medium |
 | Global, experimental (v17) | Military and classified launches worldwide | 14 d | 6 / 10 | 28 d, ×1.5 / ×2 | 0 · never in the RAI |
 | each of 7 geographic regions (v18) | WHO Disease Outbreak News report naming a region country | 30 d | 1 / 2 | — | 1 · medium |
+| each of 7 geographic regions (v19) | Watch-region currency lost 5% / 7 d or 10% / 30 d (pegged 2%) | 7 d | 1 / 2 | — | 1 · medium |
+| Experimental (v19) | Oil price spike: Brent or WTI up 10% / 7 d or 20% / 30 d | 7 d | 1 / 2 | — | 0 · low |
 | Experimental | State Dept advisory tempo (global) | 72 h | 6 / 12 | 28 d | 0 |
 | Experimental | Pentagon Pizza Index | — | — | — | 0 · always NO DATA |
 

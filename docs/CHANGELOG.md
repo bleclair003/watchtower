@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.30.0] — 2026-11-21 — Economic stress: currencies and oil
+
+### Added
+- Source 39, **exchange rates** (fawazahmed0/exchange-api, CC0): 28 watch-region currencies against the dollar, every 6 hours, compared with 7 and 30 days earlier. A record when a floating currency loses 5% in a week or 10% in a month, or a pegged one 2%; one per currency per week. jsDelivr with the Cloudflare Pages mirror as fallback.
+- Source 40, **EIA crude oil spot prices** (Brent, WTI), using the existing api.data.gov key (CONGRESS_API_KEY) in a header. A record on a 10% move in 7 days or 20% in 30 days.
+- Catalog v19 (166 indicators): **currency stress** for the seven geographic regions (weight 1) and an experimental **oil price spike** (rises only; weight 0).
+- Condition field `metadata.direction`.
+
+### Real data at release
+- No watch currency crossed a threshold (largest: shekel 3.9% weaker in 7 days, rial 5.6% in 30 days).
+- Brent $92.94 on Nov. 17, down 22% in 30 days (recorded; not counted by the spike indicator).
+
+
 ## [0.29.0] — 2026-11-21 — WHO outbreak reports
 
 ### Added

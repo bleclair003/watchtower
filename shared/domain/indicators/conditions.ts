@@ -44,6 +44,7 @@ export const CONDITION_FIELDS = {
   'metadata.fedregKind': (e: IntelligenceEvent) => e.metadata?.fedregKind,
   'metadata.congressKind': (e: IntelligenceEvent) => e.metadata?.congressKind,
   'metadata.floorVote': (e: IntelligenceEvent) => e.metadata?.floorVote,
+  'metadata.direction': (e: IntelligenceEvent) => e.metadata?.direction,
 } as const;
 
 export type ConditionField = keyof typeof CONDITION_FIELDS;
