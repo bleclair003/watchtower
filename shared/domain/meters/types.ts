@@ -29,6 +29,7 @@ export type MeterKind =
   | 'cyber'
   | 'after-hours'
   | 'markets'
+  | 'infrastructure'
   | 'corroboration'
   | 'visibility';
 

@@ -2,6 +2,8 @@ import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../shared/d
 import { getSource } from '../shared/domain/sources.ts';
 import { computeBaseActivity } from '../shared/domain/baseActivity.ts';
 import { loadBases } from './lib/bases.ts';
+import { loadInfrastructure } from './lib/infrastructure.ts';
+import { computeInfrastructure } from '../shared/domain/infraProximity.ts';
 import { computeMeters } from '../shared/domain/meters/index.ts';
 import type { MetersSnapshot } from '../shared/domain/meters/types.ts';
 import { appendLong, leadLag, type HistoryPoint } from '../shared/domain/meters/history.ts';
@@ -355,6 +357,7 @@ export async function runCollection(
       sanctionedShips: snapshot.sanctionedShips ?? null,
       displacement: snapshot.displacement ?? null,
       predictionMarkets: snapshot.predictionMarkets ?? null,
+      infrastructure: snapshot.infrastructure ?? null,
       upcomingLaunches: launches?.upcoming ?? [],
       previous: previousMeters,
     });
@@ -488,6 +491,15 @@ export async function buildSnapshot(
     log(`BAS  ${b.items.length} installation(s) with records this week · ${b.items.filter((i) => i.unusual).length} unusual · ${b.historyDays} d history${b.flagsActive ? '' : ' (flags start at 21 d)'}`);
   } catch (err) {
     log(`BAS  base activity not computed: ${sanitizeError(err)}`);
+  }
+
+  // Critical infrastructure near or named in records (72 h).
+  try {
+    const infra = computeInfrastructure(loadInfrastructure(), loaded, now);
+    snapshot.infrastructure = infra;
+    log(`INF  ${infra.flagged.length} of ${infra.sitesChecked} infrastructure sites with records near or naming them (72 h)`);
+  } catch (err) {
+    log(`INF  infrastructure check failed: ${sanitizeError(err)}`);
   }
 
   let events = [...loaded]

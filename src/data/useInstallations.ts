@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { InstallationDataset, WorldDataset } from '@shared/domain/installations';
+import type { InfraDataset } from '@shared/domain/infrastructure';
 import type { SelectedSite } from '../components/map/InstallationCard';
 
 const cache = new Map<string, Promise<unknown>>();
 
 /** Loads a static same-origin data file once per session. */
-function useStatic<T>(path: string, enabled: boolean): { data: T | null; error: string | null } {
+function useStatic<T>(path: string, enabled: boolean, label = 'Installations layer'): { data: T | null; error: string | null } {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -24,7 +25,7 @@ function useStatic<T>(path: string, enabled: boolean): { data: T | null; error: 
       (d) => live && setData(d),
       (e: Error) => {
         cache.delete(path);
-        if (live) setError(`Installations layer unavailable: ${e.message}`);
+        if (live) setError(`${label} unavailable: ${e.message}`);
       },
     );
     return () => {
@@ -33,6 +34,9 @@ function useStatic<T>(path: string, enabled: boolean): { data: T | null; error: 
   }, [path, enabled]);
   return { data, error };
 }
+
+/** Critical infrastructure in watch-region countries (WRI + Wikidata, ~30 KB compressed). */
+export const useInfrastructure = (enabled: boolean) => useStatic<InfraDataset>('/data/infrastructure.json', enabled, 'Infrastructure layer');
 
 /** US sites (DoD MIRTA, ~30 KB compressed). */
 export const useInstallations = (enabled: boolean) => useStatic<InstallationDataset>('/data/installations-us.json', enabled);

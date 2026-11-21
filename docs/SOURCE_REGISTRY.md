@@ -210,6 +210,15 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 | Kalshi | rejected | Developer agreement forbids storing API data except for your own trading |
 | Metaculus | deferred | API requires an account token |
 
+## v0.38.0 Critical infrastructure (static datasets)
+
+| Dataset | Licence | What WATCHTOWER keeps |
+|---|---|---|
+| WRI Global Power Plant Database v1.3.0 | CC BY 4.0 (credit: World Resources Institute), data to 2021 | Plants of 500 MW+ and all nuclear plants in watch-region countries: name, fuel, capacity, coordinates |
+| Wikidata (SPARQL, one query per class) | CC0 | Nuclear plants and oil refineries; dams and ports with an English Wikipedia article: name, coordinates, article |
+
+Rebuild with `node scripts/build-infrastructure.ts`. On 2026-11-21 the endpoint timed out (504) on queries that joined country codes or filtered dissolved items server-side; those steps now run in the script.
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |

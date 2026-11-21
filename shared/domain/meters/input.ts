@@ -6,6 +6,7 @@ import type { ChokepointSnapshot } from '../chokepoints.ts';
 import type { SanctionedShipsSnapshot } from '../sanctionedShips.ts';
 import type { DisplacementSnapshot } from '../displacement.ts';
 import type { PredictionMarketsSnapshot } from '../predictionMarkets.ts';
+import type { InfrastructureSnapshot } from '../infrastructure.ts';
 import type { MetersSnapshot } from './types.ts';
 
 export interface UpcomingLaunch {
@@ -33,6 +34,7 @@ export interface MeterInput {
   sanctionedShips?: SanctionedShipsSnapshot | null;
   displacement?: DisplacementSnapshot | null;
   predictionMarkets?: PredictionMarketsSnapshot | null;
+  infrastructure?: InfrastructureSnapshot | null;
   upcomingLaunches?: UpcomingLaunch[];
   /** The previous meters snapshot (counters and history carry over). */
   previous?: MetersSnapshot | null;

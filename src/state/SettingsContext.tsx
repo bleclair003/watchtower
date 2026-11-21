@@ -24,6 +24,8 @@ export interface OperatorSettings {
   chokepoints: boolean;
   /** Sanctioned vessels (AIS, Baltic and North Sea) on the map. */
   sanctionedShips: boolean;
+  /** All critical-infrastructure sites on the map (flagged sites are always shown). */
+  infrastructure: boolean;
   /** Satellite imagery product on the GOC map ('off', 'viirs', 'modis', 'night', 'night-2016'). */
   imagery: string;
   /** Imagery day (YYYY-MM-DD); empty = yesterday. */
@@ -42,6 +44,7 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   fleet: true,
   chokepoints: true,
   sanctionedShips: true,
+  infrastructure: false,
   imagery: 'off',
   imageryDate: '',
 };

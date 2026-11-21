@@ -285,8 +285,8 @@ Free sources and analysis of data already collected. Each new outside source is 
    - [x] Check terms and API access: Polymarket (API allowed, website scraping forbidden), Kalshi (rejected: no storing), Metaculus (needs a token; deferred) — v0.37.0
    - [x] Track odds on watch-region geopolitical questions next to the meters; flag sharp moves; label as betting odds, not WATCHTOWER's view — v0.37.0
 2. **Infrastructure proximity alerts**
-   - [ ] Load free static datasets (power plants incl. nuclear, refineries, dams, major ports) with their licences and dates
-   - [ ] Flag fire clusters, outages and strike reports near them (e.g. within 10 km of a nuclear plant); show on the map and in the meters
+   - [x] Load free static datasets (power plants incl. nuclear, refineries, dams, major ports) with their licences and dates — v0.38.0 (WRI + Wikidata, 941 sites)
+   - [x] Flag fire clusters, military records and strike reports near or naming them (10 km for nuclear, 5 km others); show on the map and in the meters — v0.38.0 (outages are country-level, so they cannot be placed near a site)
 
 ### B. Language and narrative (fixed rules, no paid AI)
 3. **Language temperature**

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Anchor, Ban, Grid3x3, Plane, Satellite, Shield, Ship, Square } from 'lucide-react';
-import { useBases } from '../data/useInstallations';
+import { Anchor, Ban, Factory, Grid3x3, Plane, Satellite, Shield, Ship, Square } from 'lucide-react';
+import { useBases, useInfrastructure } from '../data/useInstallations';
+import { InfraCard } from '../components/map/InfraCard';
 import { ALL_OPERATORS, operatedBy, operatorCounts } from '@shared/domain/installations';
 import { countryName } from '../lib/regionSummary';
 import { InstallationCard } from '../components/map/InstallationCard';
@@ -31,7 +32,7 @@ import { Panel } from '../components/ui/Panel';
 export default function GlobalOperationsPage() {
   // Re-evaluate time windows once a minute; the clock in the top bar ticks separately.
   const now = useNow(60_000).getTime();
-  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips, baseActivity } = useData();
+  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips, baseActivity, infrastructure } = useData();
   const unusualBases = useMemo(() => (baseActivity?.items ?? []).filter((i) => i.unusual).map((i) => i.key), [baseActivity]);
   const { filters, setFilters, resetFilters, selectedEventId, selectEvent, globalViewNonce } = useDashboard();
   const { settings, update } = useSettings();
@@ -87,8 +88,15 @@ export default function GlobalOperationsPage() {
   const [selectedListed, setSelectedListed] = useState<string | null>(null);
   const shownListed = settings.sanctionedShips && sanctionedShips ? sanctionedShips.sightings : undefined;
   const selectedListedShip = selectedListed ? shownListed?.find((s) => sightingKey(s) === selectedListed) : undefined;
-  // One map card at a time: selecting a base, aircraft, fleet area, chokepoint or vessel clears the others.
-  const selectOnly = (kind: 'base' | 'air' | 'fleet' | 'strait' | 'listed', key: string | null) => {
+  // Infrastructure: flagged sites always; all sites when INFRA is on (static file loaded on demand).
+  const infraData = useInfrastructure(settings.infrastructure);
+  const [selectedInfra, setSelectedInfra] = useState<string | null>(null);
+  const flaggedInfra = infrastructure?.flagged ?? [];
+  const selectedInfraSite = selectedInfra ? (infraData.data?.sites.find((s) => s.id === selectedInfra) ?? null) : null;
+  const selectedInfraFlag = selectedInfra ? (flaggedInfra.find((f) => f.id === selectedInfra) ?? null) : null;
+  // One map card at a time: selecting a base, aircraft, fleet area, chokepoint, vessel or site clears the others.
+  const selectOnly = (kind: 'base' | 'air' | 'fleet' | 'strait' | 'listed' | 'infra', key: string | null) => {
+    setSelectedInfra(kind === 'infra' ? key : null);
     setSelectedListed(kind === 'listed' ? key : null);
     setSelectedBase(kind === 'base' ? key : null);
     setSelectedAircraft(kind === 'air' ? key : null);
@@ -199,6 +207,17 @@ export default function GlobalOperationsPage() {
               >
                 <Ban size={10} aria-hidden /> SANCTIONED
               </button>
+              <button
+                className={toggleBtn(settings.infrastructure)}
+                aria-pressed={settings.infrastructure}
+                title="Power plants, nuclear sites, refineries, dams and ports (WRI, Wikidata). Sites with records near or naming them are always shown, ringed red."
+                onClick={() => {
+                  update({ infrastructure: !settings.infrastructure });
+                  if (selectedInfra && !selectedInfraFlag) setSelectedInfra(null);
+                }}
+              >
+                <Factory size={10} aria-hidden /> INFRA
+              </button>
               <label className={`${toggleBtn(imageryId !== 'off')} cursor-pointer`} title="Satellite imagery under the map overlays (NASA GIBS)">
                 <Satellite size={10} aria-hidden />
                 <select
@@ -277,6 +296,11 @@ export default function GlobalOperationsPage() {
               selectedSanctionedShip={selectedListedShip ? selectedListed : null}
               onSelectSanctionedShip={(key) => selectOnly('listed', key)}
               imagery={imagery}
+              infraSites={settings.infrastructure ? infraData.data?.sites : undefined}
+              showInfrastructure={settings.infrastructure}
+              flaggedInfra={flaggedInfra}
+              selectedInfra={selectedInfra}
+              onSelectInfra={(id) => selectOnly('infra', id)}
             />
           <MapLegend
             plotted={projection.points.features.length}
@@ -285,6 +309,7 @@ export default function GlobalOperationsPage() {
             installations={settings.installations ? shownUs?.length : undefined}
             worldInstallations={settings.installations ? shownWorld?.length : undefined}
             unusualBases={baseActivity?.flagsActive ? unusualBases.length : null}
+            infrastructure={settings.infrastructure || flaggedInfra.length ? { all: settings.infrastructure ? (infraData.data?.count ?? null) : null, flagged: flaggedInfra.length, simulated: !!infrastructure?.simulated } : undefined}
             operatorFilter={settings.installations && operator !== ALL_OPERATORS ? countryName(operator) : undefined}
             aircraft={
               settings.aircraft && aircraft
@@ -314,11 +339,12 @@ export default function GlobalOperationsPage() {
                 : undefined
             }
           />
-          {selectedListedShip && sanctionedShips && <SanctionedShipCard ship={selectedListedShip} snapshot={sanctionedShips} now={now} onClose={() => setSelectedListed(null)} />}
-          {!selectedListedShip && selectedStraitItem && chokepoints && <ChokepointCard item={selectedStraitItem} snapshot={chokepoints} now={now} onClose={() => setSelectedStrait(null)} />}
-          {!selectedListedShip && !selectedStraitItem && selectedArea && fleet && <FleetCard area={selectedArea} snapshot={fleet} now={now} onClose={() => setSelectedFleetArea(null)} />}
-          {!selectedListedShip && !selectedStraitItem && !selectedArea && selectedPlane && aircraft && <AircraftCard aircraft={selectedPlane} snapshot={aircraft} now={now} onClose={() => setSelectedAircraft(null)} />}
-          {!selectedListedShip && !selectedStraitItem && !selectedArea && !selectedPlane && bases.selected && <InstallationCard selected={bases.selected} events={events} now={now} onClose={() => setSelectedBase(null)} activity={baseActivity} />}
+          {(selectedInfraSite || selectedInfraFlag) && <InfraCard site={selectedInfraSite} flagged={selectedInfraFlag} dataset={infraData.data} now={now} onClose={() => setSelectedInfra(null)} />}
+          {!selectedInfra && selectedListedShip && sanctionedShips && <SanctionedShipCard ship={selectedListedShip} snapshot={sanctionedShips} now={now} onClose={() => setSelectedListed(null)} />}
+          {!selectedInfra && !selectedListedShip && selectedStraitItem && chokepoints && <ChokepointCard item={selectedStraitItem} snapshot={chokepoints} now={now} onClose={() => setSelectedStrait(null)} />}
+          {!selectedInfra && !selectedListedShip && !selectedStraitItem && selectedArea && fleet && <FleetCard area={selectedArea} snapshot={fleet} now={now} onClose={() => setSelectedFleetArea(null)} />}
+          {!selectedInfra && !selectedListedShip && !selectedStraitItem && !selectedArea && selectedPlane && aircraft && <AircraftCard aircraft={selectedPlane} snapshot={aircraft} now={now} onClose={() => setSelectedAircraft(null)} />}
+          {!selectedInfra && !selectedListedShip && !selectedStraitItem && !selectedArea && !selectedPlane && bases.selected && <InstallationCard selected={bases.selected} events={events} now={now} onClose={() => setSelectedBase(null)} activity={baseActivity} />}
           {bases.error && settings.installations && <p className="absolute top-2 right-2 z-10 bg-wt-panel/95 px-2 py-1 text-2xs text-wt-warn">{bases.error}</p>}
         </Panel>
 

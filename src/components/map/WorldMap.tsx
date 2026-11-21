@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AIRCRAFT_CLASS_LABEL, aircraftLabel, aircraftTypeName, type AircraftClass, type AircraftPosition } from '@shared/domain/aircraft';
 import { isBigDeck, type FleetArea } from '@shared/domain/fleet';
 import type { ChokepointReading } from '@shared/domain/chokepoints';
+import type { FlaggedSite, InfraSite, InfraType } from '@shared/domain/infrastructure';
 import type { SanctionedShipSighting } from '@shared/domain/sanctionedShips';
 import { IMAGERY_ATTRIBUTION } from '../../lib/imagery';
 import { componentOf, operationOf, type Branch, type Installation, type Operation, type WorldInstallation } from '@shared/domain/installations';
@@ -57,6 +58,12 @@ export interface WorldMapProps {
   onSelectSanctionedShip?: (key: string | null) => void;
   /** Satellite imagery under the overlays (NASA GIBS), or null for none. */
   imagery?: { tiles: string; maxzoom: number } | null;
+  /** All critical-infrastructure sites (drawn when showInfrastructure) and the flagged ones (always drawn). */
+  infraSites?: InfraSite[];
+  showInfrastructure?: boolean;
+  flaggedInfra?: FlaggedSite[];
+  selectedInfra?: string | null;
+  onSelectInfra?: (id: string | null) => void;
 }
 
 const GLOBAL_VIEW = { center: [35, 22] as [number, number], zoom: 1.35 };
@@ -78,6 +85,9 @@ export const AIRCRAFT_COLOR: Record<AircraftClass, string> = {
   helicopter: '#c8c8c8',
   other: '#8a958f',
 };
+/** Infrastructure types: no red or amber (reserved for severity; flagged sites get a red ring). */
+export const INFRA_COLOR: Record<InfraType, string> = { nuclear: '#d2a8ff', power: '#8fb3ff', refinery: '#e0c89a', dam: '#6fd3d0', port: '#b8c4bc' };
+
 /** Sanctioned vessels: pink, distinct from severity colours and from the fleet layer. */
 export const SANCTIONED_SHIP_COLOR = '#ff7ab6';
 export const sightingKey = (s: Pick<SanctionedShipSighting, 'imo' | 'mmsi'>) => s.imo ?? `mmsi:${s.mmsi}`;
@@ -410,6 +420,42 @@ export function WorldMap(props: WorldMapProps) {
           },
         });
 
+        // Critical infrastructure: small squares-ish dots by type; flagged sites ringed red with their name.
+        m.addSource('infrastructure', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({
+          id: 'infrastructure',
+          type: 'circle',
+          source: 'infrastructure',
+          layout: { visibility: 'none' },
+          paint: {
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 1.6, 5, 3, 9, 5],
+            'circle-color': ['match', ['get', 'type'], 'nuclear', INFRA_COLOR.nuclear, 'power', INFRA_COLOR.power, 'refinery', INFRA_COLOR.refinery, 'dam', INFRA_COLOR.dam, INFRA_COLOR.port],
+            'circle-opacity': 0.85,
+            'circle-stroke-color': '#050a08',
+            'circle-stroke-width': 0.6,
+          },
+        });
+        m.addSource('infrastructure-flagged', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({
+          id: 'infrastructure-flagged',
+          type: 'circle',
+          source: 'infrastructure-flagged',
+          paint: {
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 5, 6, 9],
+            'circle-color': ['match', ['get', 'type'], 'nuclear', INFRA_COLOR.nuclear, 'power', INFRA_COLOR.power, 'refinery', INFRA_COLOR.refinery, 'dam', INFRA_COLOR.dam, INFRA_COLOR.port],
+            'circle-stroke-color': '#ff5555',
+            'circle-stroke-width': ['case', ['get', 'selected'], 2.6, 1.8],
+          },
+        });
+        m.addLayer({
+          id: 'infrastructure-flagged-labels',
+          type: 'symbol',
+          source: 'infrastructure-flagged',
+          minzoom: 3,
+          layout: { 'text-field': ['get', 'name'], 'text-font': font, 'text-size': 10, 'text-offset': [0, 1.2], 'text-anchor': 'top', 'text-optional': true },
+          paint: { 'text-color': '#ffb0b0', 'text-halo-color': '#050a08', 'text-halo-width': 1.2 },
+        });
+
         // Sanctioned vessels (AIS): ship icons along their course.
         m.addSource('sanctioned-ships', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
         m.addLayer({
@@ -570,6 +616,10 @@ export function WorldMap(props: WorldMapProps) {
         });
         m.on('mouseenter', 'sanctioned-ships', () => (m.getCanvas().style.cursor = 'pointer'));
         m.on('mouseleave', 'sanctioned-ships', () => (m.getCanvas().style.cursor = ''));
+        for (const id of ['infrastructure', 'infrastructure-flagged']) {
+          m.on('mouseenter', id, () => (m.getCanvas().style.cursor = 'pointer'));
+          m.on('mouseleave', id, () => (m.getCanvas().style.cursor = ''));
+        }
         m.on('mouseenter', 'chokepoints', () => (m.getCanvas().style.cursor = 'pointer'));
         m.on('mouseleave', 'chokepoints', () => (m.getCanvas().style.cursor = ''));
         m.on('mouseenter', 'fleet', () => (m.getCanvas().style.cursor = 'pointer'));
@@ -597,6 +647,13 @@ export function WorldMap(props: WorldMapProps) {
             : [];
           if (listed[0] && cb.current.onSelectSanctionedShip) {
             cb.current.onSelectSanctionedShip(String(listed[0].properties.key));
+            return;
+          }
+          const infra = m.queryRenderedFeatures([[e.point.x - 6, e.point.y - 6], [e.point.x + 6, e.point.y + 6]], {
+            layers: m.getLayoutProperty('infrastructure', 'visibility') !== 'none' ? ['infrastructure-flagged', 'infrastructure'] : ['infrastructure-flagged'],
+          });
+          if (infra[0] && cb.current.onSelectInfra) {
+            cb.current.onSelectInfra(String(infra[0].properties.id));
             return;
           }
           const straits = m.getLayoutProperty('chokepoints', 'visibility') !== 'none'
@@ -784,6 +841,29 @@ export function WorldMap(props: WorldMapProps) {
     if (s) m.easeTo({ center: [s.lo, s.la], zoom: Math.max(m.getZoom(), 5), duration: 600 });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to selection changes
   }, [ready, selectedSanctionedShip]);
+
+  const { infraSites, showInfrastructure, flaggedInfra, selectedInfra } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    (m.getSource('infrastructure') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (infraSites ?? []).map((s) => ({ type: 'Feature' as const, geometry: { type: 'Point' as const, coordinates: [s.lo, s.la] }, properties: { id: s.id, type: s.t, name: s.n[0] } })),
+    });
+  }, [ready, infraSites]);
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    (m.getSource('infrastructure-flagged') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (flaggedInfra ?? []).map((f) => ({ type: 'Feature' as const, geometry: { type: 'Point' as const, coordinates: [f.lon, f.lat] }, properties: { id: f.id, type: f.type, name: f.name, selected: f.id === selectedInfra } })),
+    });
+  }, [ready, flaggedInfra, selectedInfra]);
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    m.setLayoutProperty('infrastructure', 'visibility', showInfrastructure ? 'visible' : 'none');
+  }, [ready, showInfrastructure]);
 
   const { chokepoints, showChokepoints, selectedChokepoint } = props;
   useEffect(() => {

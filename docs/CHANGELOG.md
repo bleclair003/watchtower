@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.38.0] — 2026-11-21 — Infrastructure proximity (Phase 15 item 2)
+
+### Added
+- **Critical infrastructure dataset** (`public/data/infrastructure.json`, built by `scripts/build-infrastructure.ts`): 941 sites in the watch-region countries — 40 nuclear plants, 458 power plants of 500 MW+, 38 oil refineries, 191 dams, 214 ports.
+  - WRI Global Power Plant Database v1.3.0 (CC BY 4.0, data to 2021): plants of 500 MW+ and all nuclear plants.
+  - Wikidata (CC0): all nuclear plants and oil refineries; dams and ports with an English Wikipedia article. Wikidata nuclear plants within 5 km of a WRI plant are merged (e.g. Zaporizhzhia / Zaporozhye); Barakah (UAE) comes from Wikidata. Crimea follows the internationally recognised border.
+- **Proximity check** (collector, every run, about 0.1 s): records in 72 hours that are near a site — a new fire cluster or an exactly located military record within 10 km of a nuclear plant or 5 km of others (aircraft positions excluded) — or that name it with its type ("Zaporizhzhia nuclear plant", "Port of Odesa"; bare place names never count).
+- **Map:** INFRA toggle (off by default) shows all sites by type; flagged sites are always shown, ringed red and labelled. Click any site for a card (fuel and capacity, sources and licences, Wikipedia/OpenStreetMap, matching records).
+- **Infrastructure proximity** meter per region (METERS grid column INFRA; region strips; lead/lag lab).
+
+### Limits
+- Wikidata misses some major sites (Abqaiq, Kharg Island terminal, Tuapse and Abadan refineries); WRI data stops in 2021 and may include closed plants.
+- A fire near an industrial site can be routine (flares, field burning); new-cluster filtering removes standing flares only.
+
+
 ## [0.37.0] — 2026-11-21 — Prediction markets (Phase 15 item 1)
 
 ### Added

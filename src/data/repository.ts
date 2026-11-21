@@ -23,6 +23,8 @@ import type { MetersSnapshot } from '@shared/domain/meters/types';
 import { buildDemoMeters } from './demo/demoMeters';
 import type { PredictionMarketsSnapshot } from '@shared/domain/predictionMarkets';
 import { buildDemoMarkets } from './demo/demoMarkets';
+import type { InfrastructureSnapshot } from '@shared/domain/infrastructure';
+import { buildDemoInfrastructure } from './demo/demoInfrastructure';
 
 /**
  * Data access boundary for the UI.
@@ -62,6 +64,8 @@ export interface DashboardData {
   meters: MetersSnapshot | null;
   /** Prediction-market odds (Polymarket), or null. */
   predictionMarkets: PredictionMarketsSnapshot | null;
+  /** Infrastructure with records near or naming it (72 h), or null. */
+  infrastructure: InfrastructureSnapshot | null;
 }
 
 export interface IntelRepository {
@@ -106,6 +110,7 @@ export class DemoRepository implements IntelRepository {
       displacement: buildDemoDisplacement(now),
       baseActivity: buildDemoBaseActivity(now),
       predictionMarkets: buildDemoMarkets(now),
+      infrastructure: buildDemoInfrastructure(now),
       events: this.events,
       // No collector has ever run in demo mode, so every source is honestly NOT_CONFIGURED.
       sourceStatus: SOURCE_REGISTRY.map((s) => ({

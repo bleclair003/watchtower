@@ -1,4 +1,5 @@
-import { AIRCRAFT_COLOR, AIRCRAFT_PATH, FLEET_COLOR, SANCTIONED_SHIP_COLOR, SHIP_PATH, BRANCH_COLOR, OPERATION_COLOR, OPERATION_LABEL } from './WorldMap';
+import { INFRA_LABEL, INFRA_TYPES } from '@shared/domain/infrastructure';
+import { AIRCRAFT_COLOR, AIRCRAFT_PATH, FLEET_COLOR, INFRA_COLOR, SANCTIONED_SHIP_COLOR, SHIP_PATH, BRANCH_COLOR, OPERATION_COLOR, OPERATION_LABEL } from './WorldMap';
 import { AIRCRAFT_CLASSES, AIRCRAFT_CLASS_LABEL } from '@shared/domain/aircraft';
 import { useState } from 'react';
 import { EVENT_CATEGORIES } from '@shared/domain/types';
@@ -14,6 +15,8 @@ interface Props {
   worldInstallations?: number;
   /** Installations flagged for unusual activity this week (null = flags not active yet). */
   unusualBases?: number | null;
+  /** Infrastructure layer: all sites shown (count, or null when only flagged ones), flagged count. */
+  infrastructure?: { all: number | null; flagged: number; simulated: boolean };
   /** Name of the operating country the bases are filtered to, if any. */
   operatorFilter?: string;
   /** Aircraft layer: count shown, snapshot age, provider (omit when the layer is off). */
@@ -29,7 +32,7 @@ interface Props {
 const BRANCH_LABEL = { army: 'Army', navy: 'Navy', 'air-force': 'Air Force', marines: 'Marines', other: 'Other DoD' } as const;
 
 /** Collapsible legend explaining symbols and location-precision handling. */
-export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
+export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, infrastructure, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
   const [open, setOpen] = useState(true);
   return (
     <div className="pointer-events-auto absolute bottom-2 left-2 z-10 max-w-[230px] border border-wt-line-strong bg-wt-panel/95 text-2xs">
@@ -99,6 +102,29 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
                 <span className="size-2.5 rounded-full border-[1.8px]" style={{ borderColor: '#e8b04a' }} aria-hidden />
                 <span>Unusual activity this week</span>
                 <span className="ml-auto text-wt-fg tabular-nums">{unusualBases === null || unusualBases === undefined ? 'building baseline' : unusualBases}</span>
+              </div>
+            </div>
+          )}
+          {infrastructure && (
+            <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
+              <div className="flex justify-between">
+                <span>Infrastructure{infrastructure.simulated ? ' · SIMULATED' : ''}</span>
+                <span className="text-wt-fg tabular-nums">{infrastructure.all ?? 'flagged only'}</span>
+              </div>
+              {infrastructure.all !== null && (
+                <ul className="grid grid-cols-2 gap-x-2">
+                  {INFRA_TYPES.map((t) => (
+                    <li key={t} className="flex items-center gap-1">
+                      <span className="size-2 rounded-full" style={{ background: INFRA_COLOR[t] }} aria-hidden />
+                      {INFRA_LABEL[t].replace(' (500 MW+)', '')}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="flex items-center gap-1" title="A new fire cluster or military record nearby, or a record naming the site, in 72 hours">
+                <span className="size-2.5 rounded-full border-[1.8px]" style={{ borderColor: '#ff5555' }} aria-hidden />
+                <span>Records near or naming it (72 h)</span>
+                <span className="ml-auto text-wt-fg tabular-nums">{infrastructure.flagged}</span>
               </div>
             </div>
           )}

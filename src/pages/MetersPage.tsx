@@ -21,6 +21,7 @@ const REGION_COLUMNS: [MeterKind, string, string][] = [
   ['blackout', 'BLACKOUT', 'Information blackout'],
   ['economic', 'ECON', 'Economic stress'],
   ['humanitarian', 'HUMAN', 'Humanitarian strain'],
+  ['infrastructure', 'INFRA', 'Records near or naming power plants, nuclear sites, refineries, dams and ports'],
   ['corroboration', 'CORROB', 'Share of stories corroborated'],
   ['visibility', 'VISIB', 'Share of the region’s sources online'],
 ];

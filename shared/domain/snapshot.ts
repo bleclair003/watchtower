@@ -8,6 +8,7 @@ import type { SanctionedShipsSnapshot } from './sanctionedShips.ts';
 import type { DisplacementSnapshot } from './displacement.ts';
 import type { BaseActivitySnapshot } from './baseActivity.ts';
 import type { PredictionMarketsSnapshot } from './predictionMarkets.ts';
+import type { InfrastructureSnapshot } from './infrastructure.ts';
 
 /**
  * Precomputed dashboard payload, written by the collector to
@@ -64,6 +65,8 @@ export interface DashboardSnapshot {
   baseActivity?: BaseActivitySnapshot;
   /** Prediction-market odds on watch-region questions (Polymarket). */
   predictionMarkets?: PredictionMarketsSnapshot;
+  /** Critical infrastructure with records near or naming it in the last 72 hours. */
+  infrastructure?: InfrastructureSnapshot;
 }
 
 /** Firestore collection names — single source of truth for app and collector. */

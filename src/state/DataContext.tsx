@@ -6,6 +6,7 @@ import type { DisplacementSnapshot } from '@shared/domain/displacement';
 import type { BaseActivitySnapshot } from '@shared/domain/baseActivity';
 import type { MetersSnapshot } from '@shared/domain/meters/types';
 import type { PredictionMarketsSnapshot } from '@shared/domain/predictionMarkets';
+import type { InfrastructureSnapshot } from '@shared/domain/infrastructure';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '@shared/domain/types';
 import { backendMode } from '../config/firebase';
@@ -42,6 +43,7 @@ interface DataState {
   baseActivity: BaseActivitySnapshot | null;
   meters: MetersSnapshot | null;
   predictionMarkets: PredictionMarketsSnapshot | null;
+  infrastructure: InfrastructureSnapshot | null;
   loading: boolean;
   error: string | null;
   accessDenied: boolean;
@@ -76,6 +78,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
     baseActivity: null as BaseActivitySnapshot | null,
     meters: null as MetersSnapshot | null,
     predictionMarkets: null as PredictionMarketsSnapshot | null,
+    infrastructure: null as InfrastructureSnapshot | null,
     loadedAt: null as string | null,
     readsThisSession: null as number | null,
   });
@@ -114,6 +117,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
         baseActivity: d.baseActivity,
         meters: d.meters,
         predictionMarkets: d.predictionMarkets,
+        infrastructure: d.infrastructure,
         loadedAt: new Date().toISOString(),
         readsThisSession: repo.readsThisSession(),
       });

@@ -20,6 +20,7 @@ import {
 import { corroboration, visibility } from './quality.ts';
 import { afterHours } from './afterHours.ts';
 import { marketOdds } from './markets.ts';
+import { infrastructureMeter } from './infrastructure.ts';
 import { daysSince, upcomingCalendar } from './clocks.ts';
 import { appendShort, pointFor } from './history.ts';
 import { BASELINE_DAYS, DAY } from './util.ts';
@@ -48,6 +49,7 @@ export function allMeters(input: MeterInput): Meter[] {
     ...GEO_REGIONS.map((r) => informationBlackout(input, r)),
     ...ABROAD.map((r) => economicStress(input, r)),
     ...GEO_REGIONS.map((r) => humanitarianStrain(input, r)),
+    ...GEO_REGIONS.map((r) => infrastructureMeter(input, r)),
     homelandBoard(input),
     afterHours(input),
     marketOdds(input),
