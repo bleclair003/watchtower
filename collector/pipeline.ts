@@ -25,8 +25,27 @@ import { FLEET_SOURCE_ID, type FleetState } from './adapters/usniFleet.ts';
 import { PORTWATCH_SOURCE_ID, type PortwatchState } from './adapters/portwatch.ts';
 import { AIS_SOURCE_ID, type AisSanctionedState } from './adapters/aisSanctioned.ts';
 
+/** Sources fetched at once. One slot can be held for ~25 s by the AIS listening window. */
+export const SOURCE_CONCURRENCY = 5;
+
+/** Runs `fn` over `items` with at most `limit` in flight; results keep the input order. */
+export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out = new Array<R>(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const i = next++;
+      out[i] = await fn(items[i]);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, worker));
+  return out;
+}
+
 export interface PipelineOptions {
   trigger: CollectionRun['trigger'];
+  /** Sources fetched concurrently (default SOURCE_CONCURRENCY). */
+  sourceConcurrency?: number;
   /** Sources whose status appears in the snapshot (defaults to the adapters run). */
   trackedSourceIds?: string[];
   /** Indicator catalog to evaluate (defaults to the built-in catalog). */
@@ -101,19 +120,15 @@ export async function runCollection(
   const phases: [string, number][] = [];
   const tAdapters = clock();
 
-  for (const adapter of adapters) {
-    const tAdapter = clock();
-    const def = getSource(adapter.sourceId);
-    const report: SourceRunReport = {
-      sourceId: adapter.sourceId, ok: false, notModified: false, itemsSeen: 0,
-      candidates: 0, imported: 0, duplicates: 0, rejected: 0, error: null,
-    };
+  // Phase 1 (concurrent): each source fetches and parses. Sources are on different hosts and
+  // spend their time waiting on the network, so several run at once. Nothing is written here.
+  const collectOne = async (adapter: SourceAdapter<never>) => {
+    const t = clock();
     const attemptAt = new Date(now()).toISOString();
     const prevStatus: SourceStatus = (await store.getSourceStatus(adapter.sourceId)) ?? {
       sourceId: adapter.sourceId, health: 'NOT_CONFIGURED', lastAttemptAt: null, lastSuccessAt: null,
       lastNewItemAt: null, consecutiveFailures: 0, parseErrors: 0, lastError: null,
     };
-
     try {
       const state = await store.getSourceState<never>(adapter.sourceId);
       const result = await adapter.collect({
@@ -122,6 +137,25 @@ export async function runCollection(
         fetch: (url, validators, headers, limits) => politeFetch(url, { ...opts.fetchOptions, validators, extraHeaders: headers, ...limits }),
         peerState: <T,>(id: string) => store.getSourceState<T>(id),
       });
+      return { attemptAt, prevStatus, result, error: null as unknown, ms: clock() - t };
+    } catch (error) {
+      return { attemptAt, prevStatus, result: null, error, ms: clock() - t };
+    }
+  };
+  const collected = await mapLimit(adapters, opts.sourceConcurrency ?? SOURCE_CONCURRENCY, collectOne);
+
+  // Phase 2 (in order): validate, de-duplicate and write, one source at a time, as before.
+  for (const [i, adapter] of adapters.entries()) {
+    const { attemptAt, prevStatus, result: collectedResult, error: collectError, ms } = collected[i];
+    const def = getSource(adapter.sourceId);
+    const report: SourceRunReport = {
+      sourceId: adapter.sourceId, ok: false, notModified: false, itemsSeen: 0,
+      candidates: 0, imported: 0, duplicates: 0, rejected: 0, error: null,
+    };
+
+    try {
+      if (!collectedResult) throw collectError;
+      const result = collectedResult;
       report.itemsSeen = result.itemsSeen;
       report.notModified = result.notModified;
 
@@ -199,7 +233,7 @@ export async function runCollection(
         (report.ok
           ? `${report.notModified ? '304 not modified' : `${report.itemsSeen} seen`} · ${report.imported} new · ${report.duplicates} dup${report.revised ? ` · ${report.revised} revised` : ''} · ${report.rejected} rejected`
           : report.error) +
-        ` · ${secs(clock() - tAdapter)}`,
+        ` · ${secs(ms)}`,
     );
   }
   phases.push(['sources', clock() - tAdapters]);
