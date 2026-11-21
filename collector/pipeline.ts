@@ -38,6 +38,7 @@ import { ODIN_SOURCE_ID, type OdinState } from './adapters/odin.ts';
 import { AIRPORT_STATUS_SOURCE_ID, NOTICES_SOURCE_ID, type AirportStatusState, type NoticesState } from './adapters/faa.ts';
 import type { TfrState } from './adapters/usDomestic.ts';
 import type { RadState } from './adapters/radiation.ts';
+import { DONKI_SOURCE_ID, SWPC_SOURCE_ID, type DonkiState, type SwpcState } from './adapters/spaceWeather.ts';
 import { NETWORK_SOURCE, clusterStations, type RadNetwork } from '../shared/domain/radiation.ts';
 import { UNHCR_SOURCE_ID, type UnhcrState } from './adapters/unhcr.ts';
 import { MARKETS_SOURCE_ID, type PolymarketState } from './adapters/polymarket.ts';
@@ -350,6 +351,31 @@ export async function runCollection(
   } catch (err) {
     log(`RAD  radiation not added to the snapshot: ${sanitizeError(err)}`);
   }
+  // Space weather (Phase 19): NOAA scales and messages (recent only) with NASA's CME arrivals.
+  try {
+    const [swpc, donki] = await Promise.all([
+      tracked.includes(SWPC_SOURCE_ID) ? store.getSourceState<SwpcState>(SWPC_SOURCE_ID) : null,
+      tracked.includes(DONKI_SOURCE_ID) ? store.getSourceState<DonkiState>(DONKI_SOURCE_ID) : null,
+    ]);
+    const gen = Date.parse(snapshot.generatedAt);
+    const sw = swpc && gen - Date.parse(swpc.lastFetchedAt) <= 6 * 3_600_000 ? swpc : null;
+    const nd = donki && gen - Date.parse(donki.lastFetchedAt) <= 24 * 3_600_000 ? donki : null;
+    if (sw || nd) {
+      snapshot.spaceWeather = {
+        fetchedAt: sw?.lastFetchedAt ?? nd!.lastFetchedAt,
+        now: sw?.now ?? null,
+        forecast: sw?.forecast ?? [],
+        kp: sw?.kp ?? null,
+        arrivals: (nd?.arrivals ?? []).filter((a) => Date.parse(a.arrival) >= gen - 12 * 3_600_000),
+        cmes7d: nd?.cmes7d ?? 0,
+        fastest7d: nd?.fastest7d ?? null,
+        storms: nd?.storms ?? [],
+        messages: sw?.messages ?? [],
+      };
+    }
+  } catch (err) {
+    log(`SWX  space weather not added to the snapshot: ${sanitizeError(err)}`);
+  }
   if (tracked.includes(AIS_SOURCE_ID)) {
     try {
       const ais = await store.getSourceState<AisSanctionedState>(AIS_SOURCE_ID);
@@ -405,6 +431,7 @@ export async function runCollection(
       airportStatus: snapshot.airportStatus ?? null,
       airspaceNotices: snapshot.airspaceNotices ?? null,
       radiation: snapshot.radiation ?? null,
+      spaceWeather: snapshot.spaceWeather ?? null,
       sanctionedShips: snapshot.sanctionedShips ?? null,
       displacement: snapshot.displacement ?? null,
       predictionMarkets: snapshot.predictionMarkets ?? null,

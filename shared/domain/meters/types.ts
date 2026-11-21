@@ -28,6 +28,7 @@ export type MeterKind =
   | 'power'
   | 'airspace'
   | 'radiation'
+  | 'space-weather'
   | 'economic'
   | 'humanitarian'
   | 'homeland'

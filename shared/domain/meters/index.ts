@@ -30,6 +30,7 @@ import { quietMeter } from './quietMeter.ts';
 import { powerOutageMeter } from './power.ts';
 import { airspaceMeter } from './airspace.ts';
 import { radiationMeter } from './radiationMeter.ts';
+import { spaceWeatherMeter } from './spaceWeatherMeter.ts';
 import { daysSince, upcomingCalendar } from './clocks.ts';
 import { appendShort, pointFor } from './history.ts';
 import { BASELINE_DAYS, DAY } from './util.ts';
@@ -68,6 +69,7 @@ export function allMeters(input: MeterInput): Meter[] {
     marketOdds(input),
     cyberWeather(input),
     radiationMeter(input),
+    spaceWeatherMeter(input),
     quietMeter(input),
     ...GEO_REGIONS.map((r) => corroboration(input, r)),
     ...GEO_REGIONS.map((r) => coverageMeter(input, r)),

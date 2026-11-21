@@ -65,7 +65,7 @@ export function daysSince(input: MeterInput): DaysSinceCounter[] {
 
 export const daysBetween = (fromIso: string, now: number) => Math.max(0, Math.floor((now - Date.parse(fromIso)) / DAY));
 
-/** Dated items ahead: scheduled military launches (Launch Library 2), security-committee hearings (Congress.gov) and curated known dates. 30 days. */
+/** Dated items ahead: scheduled military launches (Launch Library 2), security-committee hearings (Congress.gov), curated known dates and predicted CME arrivals (NASA DONKI). 30 days. */
 export function upcomingCalendar(input: MeterInput): CalendarItem[] {
   const { now } = input;
   const end = now + 30 * DAY;
@@ -83,8 +83,18 @@ export function upcomingCalendar(input: MeterInput): CalendarItem[] {
     source: 'Known dates (curated)',
     regionIds: d.regionIds,
   }));
+  const cmes: CalendarItem[] = (input.spaceWeather?.arrivals ?? [])
+    .filter((a) => Date.parse(a.arrival) > now - 12 * 3_600_000 && Date.parse(a.arrival) <= end)
+    .map((a) => ({
+      at: a.arrival,
+      title: `CME expected at Earth${a.glancing ? ' (glancing blow)' : ''}${a.kpHigh !== null ? `, model Kp up to ${a.kpHigh}` : ''} (±7 h)`,
+      kind: 'other' as const,
+      url: a.url,
+      source: 'NASA DONKI (WSA-Enlil)',
+      regionIds: [],
+    }));
   const seen = new Set<string>();
-  return [...launches, ...hearings, ...known]
+  return [...launches, ...hearings, ...known, ...cmes]
     .filter((c) => (seen.has(c.title + c.at) ? false : (seen.add(c.title + c.at), true)))
     .sort((a, b) => a.at.localeCompare(b.at))
     .slice(0, 40);

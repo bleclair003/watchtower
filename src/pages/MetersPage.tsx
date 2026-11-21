@@ -9,6 +9,7 @@ import { Panel } from '../components/ui/Panel';
 import { Tag } from '../components/ui/Tag';
 import { MeterCard, cellLabel, levelTone } from '../components/meters/MeterCard';
 import { MarketsPanel } from '../components/meters/MarketsPanel';
+import { SpaceWeatherPanel } from '../components/meters/SpaceWeatherPanel';
 import { ActorsPanel } from '../components/meters/ActorsPanel';
 import { SpeedPanel } from '../components/meters/SpeedPanel';
 import { TrackRecordPanel } from '../components/meters/TrackRecordPanel';
@@ -34,11 +35,11 @@ const REGION_COLUMNS: [MeterKind, string, string][] = [
   ['coverage', 'GAPS', 'Possible coverage gaps: stories reported by one side only'],
   ['visibility', 'VISIB', 'Share of the region’s sources online'],
 ];
-const TOPIC_ORDER: MeterKind[] = ['naval', 'maritime', 'sanctions', 'arms', 'washington', 'strategic', 'homeland', 'after-hours', 'markets', 'cyber', 'radiation', 'quiet'];
+const TOPIC_ORDER: MeterKind[] = ['naval', 'maritime', 'sanctions', 'arms', 'washington', 'strategic', 'homeland', 'after-hours', 'markets', 'cyber', 'radiation', 'space-weather', 'quiet'];
 const DISCLAIMER = 'Meters describe activity in the sources WATCHTOWER monitors. None is a probability of conflict, attack or any other event.';
 
 export default function MetersPage() {
-  const { meters, mode, predictionMarkets, actors } = useData();
+  const { meters, mode, predictionMarkets, actors, spaceWeather } = useData();
   const now = useNow(60_000).getTime();
   const [params, setParams] = useSearchParams();
   const selectedId = params.get('m');
@@ -145,6 +146,7 @@ export default function MetersPage() {
           </Panel>
 
           <MarketsPanel data={predictionMarkets} now={now} />
+          <SpaceWeatherPanel data={spaceWeather} now={now} />
 
           <ActorsPanel data={actors} now={now} />
 

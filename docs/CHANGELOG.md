@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.50.0] — 2026-11-21 — CME detector and space weather (Phase 19)
+
+### Added
+- **NASA DONKI** (source `nasa-donki`, every 2 hours, via api.nasa.gov with the existing api.data.gov key as a header): CME analyses and WSA-Enlil model runs from the last 14 days. A CME with a predicted Earth arrival becomes a record ("CME expected to reach Earth ~23/11 00:00 UTC (glancing blow), model Kp 2–4"); a revised arrival 6+ hours away is a new record. Observed geomagnetic storms are recorded with their G level.
+- **NOAA SWPC** (source `noaa-swpc`, every run): the official R/S/G scales now and for three days, the planetary K-index, and watches, warnings and alerts. Records for G2+, R3+ or S2+ messages, a K-index of 6+, or a watch naming a CME.
+- **Space weather meter** (METERS topic monitors): the highest of the current G scale (G1 LOW … G4+ HIGH), R3+/S2+ events, NOAA's three-day G forecast (one step lower) and any CME due at Earth within 72 hours (the G level of NASA's model Kp).
+- **Space weather panel** (METERS, M10): scales now, the three-day outlook, Kp, CMEs heading for Earth with model Kp and speed, and notable NOAA messages.
+- Predicted CME arrivals appear on the METERS 30-day calendar.
+
+### Limits
+- Arrival times are model predictions, usually within about ±7 hours; a CME's strength depends on its magnetic field, which is known only when it arrives.
+- Without the api.data.gov key the collector falls back to NASA's shared DEMO_KEY, which has a low hourly limit per IP address.
+
+
 ## [0.49.0] — 2026-11-21 — Radiation detection (Phase 18)
 
 ### Added

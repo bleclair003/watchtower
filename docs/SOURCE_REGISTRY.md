@@ -275,3 +275,10 @@ Rebuild with `node scripts/build-infrastructure.ts`. On 2026-11-21 the endpoint 
 | SaveEcoBot radiation API (Ukraine) | needs a key | Not used yet: CC BY 4.0, key via request form |
 | EURDEP (EU) | not used | 6,000+ stations incl. Ukraine, Belarus, Russia, but no public live API (only the map); the JRC open-data folder holds past events only |
 | Safecast | not used | CC0 but sparse in the watch regions, with bad timestamps in Ukraine data |
+
+## v0.50.0 Space weather — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| NASA DONKI (`api.nasa.gov/DONKI`: CMEAnalysis, WSAEnlilSimulations, GST) | US government, api.data.gov key | Latest model run per CME with predicted Earth arrival, model Kp and speed; CME count and fastest in 7 days; observed geomagnetic storms (14 days) |
+| NOAA SWPC (`services.swpc.noaa.gov/products`: noaa-scales, alerts, noaa-planetary-k-index) | US government, no key | R/S/G scales now and for 3 days, latest and 24-hour max Kp, notable messages (72 h) |

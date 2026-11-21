@@ -11,6 +11,7 @@ import type { ActorsSnapshot } from '../actors.ts';
 import type { PowerOutageSnapshot } from '../powerOutages.ts';
 import type { AirportStatusSnapshot, AirspaceNoticesSnapshot, TfrSnapshot } from '../faa.ts';
 import type { RadiationSnapshot } from '../radiation.ts';
+import type { SpaceWeatherSnapshot } from '../spaceWeather.ts';
 import type { MetersSnapshot } from './types.ts';
 import type { HolidayCounts } from './util.ts';
 
@@ -46,6 +47,7 @@ export interface MeterInput {
   airportStatus?: AirportStatusSnapshot | null;
   airspaceNotices?: AirspaceNoticesSnapshot | null;
   radiation?: RadiationSnapshot | null;
+  spaceWeather?: SpaceWeatherSnapshot | null;
   upcomingLaunches?: UpcomingLaunch[];
   /** Stored daily counts on earlier holidays, per series (collector state; like-for-like baselines). */
   holidayCounts?: HolidayCounts | null;

@@ -332,3 +332,10 @@ Free sources and analysis of data already collected. Each new outside source is 
    - [x] Germany (BfS ODL), Finland (STUK via FMI), US (16 EPA RadNet monitors), each station against its own usual level — v0.49.0
    - [x] Groups of raised stations as records, RAD map layer, radiation meter — v0.49.0
    - [ ] Ukraine's public stations via the SaveEcoBot radiation API — needs an access key (request form)
+
+## Phase 19 — CME detector and space weather (2026-11-21)
+
+1. **Space weather**
+   - [x] CMEs with predicted Earth arrival (NASA DONKI WSA-Enlil) and observed geomagnetic storms — v0.50.0
+   - [x] NOAA SWPC scales, three-day outlook, K-index and notable watches, warnings and alerts — v0.50.0
+   - [x] Space weather meter, panel and calendar arrivals — v0.50.0

@@ -12,6 +12,7 @@ import type { InfrastructureSnapshot } from './infrastructure.ts';
 import type { PowerOutageSnapshot } from './powerOutages.ts';
 import type { AirportStatusSnapshot, AirspaceNoticesSnapshot, TfrSnapshot } from './faa.ts';
 import type { RadiationSnapshot } from './radiation.ts';
+import type { SpaceWeatherSnapshot } from './spaceWeather.ts';
 import type { ActorsSnapshot } from './actors.ts';
 
 /**
@@ -81,6 +82,8 @@ export interface DashboardSnapshot {
   airspaceNotices?: AirspaceNoticesSnapshot;
   /** Radiation networks (Germany, Finland, US): summaries and stations above their usual level. */
   radiation?: RadiationSnapshot;
+  /** Space weather: NOAA scales, Kp, CMEs predicted to reach Earth (NASA DONKI), NOAA messages. */
+  spaceWeather?: SpaceWeatherSnapshot;
   /** Tracked people and groups, and new names in headlines. */
   actors?: ActorsSnapshot;
   /** Daily sources that have gone quiet while reachable (for the brief and Diagnostics). */

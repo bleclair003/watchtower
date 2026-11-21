@@ -24,6 +24,7 @@ export function buildDemoMeters(now: number, events: IntelligenceEvent[], data: 
     airportStatus: data.airportStatus,
     airspaceNotices: data.airspaceNotices,
     radiation: data.radiation,
+    spaceWeather: data.spaceWeather,
     sanctionedShips: data.sanctionedShips,
     displacement: data.displacement,
     predictionMarkets: data.predictionMarkets,
