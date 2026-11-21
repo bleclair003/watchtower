@@ -1,6 +1,8 @@
 import type { IntelligenceEvent } from '../types.ts';
 import type { Meter, MeterEvidence, MeterLevel } from './types.ts';
 import { LEVEL_LABEL } from './types.ts';
+import type { MeterInput } from './input.ts';
+import { holidayName } from '../holidays.ts';
 
 export const H = 3_600_000;
 export const DAY = 24 * H;
@@ -28,28 +30,132 @@ export function evidenceOf(events: IntelligenceEvent[], why?: (e: IntelligenceEv
 
 export interface Usual {
   current: number;
-  /** Mean count per window over earlier history, or null while building. */
+  /** Expected count for this window from earlier history, or null while building. */
   usual: number | null;
   /** current / max(usual, floor), or null while building. */
   ratio: number | null;
   status: 'ok' | 'building';
+  /** How the usual level was worked out (null while building). */
+  basis: UsualBasis | null;
 }
 
+export interface UsualBasis {
+  /** 'like-for-like': each day in the window against earlier days of the same kind; 'all-days': plain average. */
+  method: 'like-for-like' | 'all-days';
+  /** Holidays falling in the window. */
+  holidays: string[];
+  /** Plain-language explanation shown with the meter. */
+  text: string;
+}
+
+/** Daily counts on holidays, per series key: { key: { 'YYYY-MM-DD': count } }. Kept by the collector beyond the loaded window. */
+export type HolidayCounts = Record<string, Record<string, number>>;
+
+/** Like-for-like options: a series key lets holidays be compared with stored earlier holidays and records new ones. */
+export interface LikeForLike {
+  key?: string;
+  holidays?: HolidayCounts | null;
+  /** Receives complete holiday-day counts seen in loaded records (the collector stores them). */
+  sink?: HolidayCounts | null;
+}
+
+/** Earlier days of the same weekday needed before a weekday is compared like-for-like. */
+export const LIKE_MIN_WEEKDAYS = 3;
+/** Earlier holidays needed before holidays are compared with holidays. */
+export const LIKE_MIN_HOLIDAYS = 2;
+const WEEKDAY = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const dayOf = (t: number) => new Date(t).toISOString().slice(0, 10);
+const floorDay = (t: number) => Math.floor(t / DAY) * DAY;
+
 /**
- * Count in the last `windowHours` against the mean per window over the earlier part of history.
+ * Count in the last `windowHours` against the usual level for the same stretch of time.
  * Withheld (status 'building') until `minDays` of history exist.
+ *
+ * Like-for-like (Phase 15 item 12): every UTC day the window covers is given a kind — its weekday, or
+ * "holiday" (shared/domain/holidays.ts). The usual count for each kind is the mean over earlier whole
+ * days of that kind (holidays excluded from weekdays), and the expected count for the window is the
+ * sum of those means, weighted by how much of each day the window covers. Used once every kind in
+ * the window has enough earlier days (3 of each weekday; 2 holidays, which can come from the stored
+ * holiday counts); until then the plain average over all earlier windows is used and the basis says so.
  */
-export function usualLevel(events: IntelligenceEvent[], pred: (e: IntelligenceEvent) => boolean, now: number, windowHours: number, historyStart: number | null, minDays = BASELINE_DAYS, floor = 1): Usual {
+export function usualLevel(events: IntelligenceEvent[], pred: (e: IntelligenceEvent) => boolean, now: number, windowHours: number, historyStart: number | null, minDays = BASELINE_DAYS, floor = 1, like: LikeForLike = {}): Usual {
   const start = now - windowHours * H;
   const matching = events.filter(pred);
   const current = matching.filter((e) => at(e) >= start && at(e) <= now + H).length;
-  if (historyStart === null || now - historyStart < minDays * DAY) return { current, usual: null, ratio: null, status: 'building' };
-  const earlierSpan = start - historyStart;
-  const windows = earlierSpan / (windowHours * H);
-  if (windows < 1) return { current, usual: null, ratio: null, status: 'building' };
+
+  // Whole UTC days of loaded history, and their counts (also feeds the holiday store).
+  const firstFull = historyStart === null ? null : Math.ceil(historyStart / DAY) * DAY;
+  const daily = new Map<string, number>();
+  if (firstFull !== null) {
+    const end = floorDay(now);
+    for (const e of matching) {
+      const t = at(e);
+      if (t >= firstFull && t < end) daily.set(dayOf(t), (daily.get(dayOf(t)) ?? 0) + 1);
+    }
+    if (like.key && like.sink) {
+      for (let d = firstFull; d < end; d += DAY) {
+        const day = dayOf(d);
+        if (holidayName(day)) (like.sink[like.key] ??= {})[day] = daily.get(day) ?? 0;
+      }
+    }
+  }
+
+  // The window's days and their kinds.
+  const parts: { kind: string; fraction: number }[] = [];
+  const holidaysInWindow: string[] = [];
+  for (let d = floorDay(start); d < now; d += DAY) {
+    const fraction = (Math.min(d + DAY, now) - Math.max(d, start)) / DAY;
+    if (fraction <= 0) continue;
+    const name = holidayName(dayOf(d));
+    if (name && !holidaysInWindow.includes(name)) holidaysInWindow.push(name);
+    parts.push({ kind: name ? 'holiday' : WEEKDAY[new Date(d).getUTCDay()], fraction });
+  }
+
+  if (historyStart === null || firstFull === null || now - historyStart < minDays * DAY) return { current, usual: null, ratio: null, status: 'building', basis: null };
+  const windows = (start - historyStart) / (windowHours * H);
+  if (windows < 1) return { current, usual: null, ratio: null, status: 'building', basis: null };
+
+  // Samples per kind from whole days before the window.
+  const samples = new Map<string, number[]>();
+  const before = floorDay(start);
+  for (let d = firstFull; d < before; d += DAY) {
+    const day = dayOf(d);
+    const kind = holidayName(day) ? 'holiday' : WEEKDAY[new Date(d).getUTCDay()];
+    (samples.get(kind) ?? samples.set(kind, []).get(kind)!).push(daily.get(day) ?? 0);
+  }
+  const stored = like.key ? (like.holidays?.[like.key] ?? {}) : {};
+  for (const [day, n] of Object.entries(stored)) {
+    if (Date.parse(`${day}T00:00:00Z`) < before && (Date.parse(`${day}T00:00:00Z`) < firstFull)) (samples.get('holiday') ?? samples.set('holiday', []).get('holiday')!).push(n);
+  }
+  const kinds = [...new Set(parts.map((p) => p.kind))];
+  const enough = (k: string) => (samples.get(k)?.length ?? 0) >= (k === 'holiday' ? LIKE_MIN_HOLIDAYS : LIKE_MIN_WEEKDAYS);
+  const round = (n: number) => Math.round(n * 10) / 10;
+  const holidayText = holidaysInWindow.length ? holidaysInWindow.join(', ') : '';
+
+  if (kinds.every(enough)) {
+    const mean = (k: string) => samples.get(k)!.reduce((s, n) => s + n, 0) / samples.get(k)!.length;
+    const expected = parts.reduce((s, p) => s + p.fraction * mean(p.kind), 0);
+    const weekdays = kinds.filter((k) => k !== 'holiday');
+    const weeks = Math.min(...weekdays.map((k) => samples.get(k)!.length));
+    const text = [
+      weekdays.length ? `Usual level from the same weekdays (${weekdays.map((k) => k.slice(0, 3)).join(', ')}) over the last ${weeks}+ weeks` : null,
+      holidaysInWindow.length ? `${weekdays.length ? 'and' : 'Usual level from'} ${samples.get('holiday')!.length} earlier holidays (${holidayText} falls in this window)` : null,
+    ]
+      .filter(Boolean)
+      .join(' ');
+    return { current, usual: round(expected), ratio: round(current / Math.max(expected, floor)), status: 'ok', basis: { method: 'like-for-like', holidays: holidaysInWindow, text: `${text}.` } };
+  }
+
   const earlier = matching.filter((e) => at(e) >= historyStart && at(e) < start).length;
   const usual = earlier / windows;
-  return { current, usual: Math.round(usual * 10) / 10, ratio: Math.round((current / Math.max(usual, floor)) * 10) / 10, status: 'ok' };
+  const missingHoliday = holidaysInWindow.length > 0 && !enough('holiday');
+  const text = `Usual level is the plain average of all earlier days (same-weekday comparison needs ${LIKE_MIN_WEEKDAYS} earlier weeks)${missingHoliday ? `; ${holidayText} falls in this window and too few earlier holidays are recorded to compare with, so expect lower counts` : ''}.`;
+  return { current, usual: round(usual), ratio: round(current / Math.max(usual, floor)), status: 'ok', basis: { method: 'all-days', holidays: holidaysInWindow, text } };
+}
+
+/** usualLevel over the meter input, with like-for-like holiday storage under `key`. */
+export function usualFor(input: MeterInput, key: string, pred: (e: IntelligenceEvent) => boolean, windowHours: number, minDays = BASELINE_DAYS, floor = 1, historyStart: number | null = input.historyStart): Usual {
+  return usualLevel(input.events, pred, input.now, windowHours, historyStart, minDays, floor, { key, holidays: input.holidayCounts, sink: input.holidaySink });
 }
 
 /** Score → level with thresholds for LOW, GUARDED, ELEVATED and HIGH (below the first = QUIET). */

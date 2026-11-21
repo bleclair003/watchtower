@@ -9,6 +9,7 @@ import type { PredictionMarketsSnapshot } from '../predictionMarkets.ts';
 import type { InfrastructureSnapshot } from '../infrastructure.ts';
 import type { ActorsSnapshot } from '../actors.ts';
 import type { MetersSnapshot } from './types.ts';
+import type { HolidayCounts } from './util.ts';
 
 export interface UpcomingLaunch {
   name: string;
@@ -38,6 +39,10 @@ export interface MeterInput {
   infrastructure?: InfrastructureSnapshot | null;
   actors?: ActorsSnapshot | null;
   upcomingLaunches?: UpcomingLaunch[];
+  /** Stored daily counts on earlier holidays, per series (collector state; like-for-like baselines). */
+  holidayCounts?: HolidayCounts | null;
+  /** Filled while computing: holiday-day counts seen in the loaded records, for the collector to store. */
+  holidaySink?: HolidayCounts | null;
   /** The previous meters snapshot (counters and history carry over). */
   previous?: MetersSnapshot | null;
 }

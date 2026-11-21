@@ -7,6 +7,7 @@ import { computeInfrastructure } from '../shared/domain/infraProximity.ts';
 import { computeActors, packRegistry, unpackRegistry } from '../shared/domain/actorsTrack.ts';
 import { sourceCadence } from '../shared/domain/quietSources.ts';
 import { computeMeters } from '../shared/domain/meters/index.ts';
+import type { HolidayCounts } from '../shared/domain/meters/util.ts';
 import type { MetersSnapshot } from '../shared/domain/meters/types.ts';
 import { appendLong, leadLag, type HistoryPoint } from '../shared/domain/meters/history.ts';
 import { LAUNCHES_SOURCE_ID, type LaunchesState } from './adapters/launches.ts';
@@ -338,13 +339,17 @@ export async function runCollection(
   // Meters and monitors (Phase 14): computed over everything loaded, written in the final writes.
   let meters: MetersSnapshot | null = null;
   let meterHistory: HistoryPoint[] | null = null;
+  let holidayCounts: HolidayCounts | null = null;
   try {
     const t = now();
-    const [previousMeters, launches, longRaw] = await Promise.all([
+    const [previousMeters, launches, longRaw, holidayRaw] = await Promise.all([
       store.getMetersSnapshot(),
       tracked.includes(LAUNCHES_SOURCE_ID) ? store.getSourceState<LaunchesState>(LAUNCHES_SOURCE_ID) : Promise.resolve(null),
       store.getCollectorState<{ packed: string }>(METER_HISTORY_KEY),
+      store.getCollectorState<{ packed: string }>(HOLIDAY_COUNTS_KEY),
     ]);
+    const storedHolidays: HolidayCounts = holidayRaw ? (JSON.parse(holidayRaw.packed) as HolidayCounts) : {};
+    const holidaySink: HolidayCounts = {};
     const historyStart = loaded.reduce((m, e) => Math.min(m, Date.parse(e.collectedAt)), Infinity);
     meters = computeMeters({
       now: t,
@@ -363,7 +368,10 @@ export async function runCollection(
       actors: snapshot.actors ?? null,
       upcomingLaunches: launches?.upcoming ?? [],
       previous: previousMeters,
+      holidayCounts: storedHolidays,
+      holidaySink,
     });
+    holidayCounts = mergeHolidayCounts(storedHolidays, holidaySink, t);
     // Quiet daily sources, for the brief.
     snapshot.quietSources = sourceCadence(loaded, snapshot.sourceStatus, t, Number.isFinite(historyStart) ? historyStart : null)
       .filter((s) => s.quiet)
@@ -408,6 +416,7 @@ export async function runCollection(
     try {
       await store.putMetersSnapshot(meters);
       await store.putCollectorState(METER_HISTORY_KEY, { packed: JSON.stringify(meterHistory), updatedAt: run.finishedAt });
+      if (holidayCounts) await store.putCollectorState(HOLIDAY_COUNTS_KEY, { packed: JSON.stringify(holidayCounts), updatedAt: run.finishedAt });
     } catch (err) {
       log(`MTR  meters not written: ${sanitizeError(err)}`);
     }
@@ -428,6 +437,20 @@ export function snapshotLookbackHours(catalog: IndicatorDefinition[]): number {
 export const EVENT_QUERY_LIMIT = 20_000;
 /** Collector-only long meter history (packed, one point per 3 hours, 120 days). */
 export const METER_HISTORY_KEY = 'meterHistory';
+/** Collector-only daily counts on holidays per usual-level series, kept 3 years (like-for-like baselines). */
+export const HOLIDAY_COUNTS_KEY = 'holidayCounts';
+const HOLIDAY_KEEP_DAYS = 3 * 366;
+
+/** Stored holiday counts plus this run's (newer wins), dropping days older than three years. */
+export function mergeHolidayCounts(stored: HolidayCounts, fresh: HolidayCounts, now: number): HolidayCounts {
+  const cutoff = new Date(now - HOLIDAY_KEEP_DAYS * 86_400_000).toISOString().slice(0, 10);
+  const out: HolidayCounts = {};
+  for (const key of new Set([...Object.keys(stored), ...Object.keys(fresh)])) {
+    const days = Object.entries({ ...stored[key], ...fresh[key] }).filter(([d]) => d >= cutoff);
+    if (days.length) out[key] = Object.fromEntries(days.sort(([a], [b]) => a.localeCompare(b)));
+  }
+  return out;
+}
 /** Collector-only registry of every candidate name seen in headlines (for first-appearance flags). */
 export const NAME_REGISTRY_KEY = 'nameRegistry';
 

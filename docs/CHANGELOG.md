@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.46.0] — 2026-11-21 — Like-for-like comparisons (Phase 15 item 12)
+
+### Changed
+- **Usual levels compare like with like** (`usualLevel` in `shared/domain/meters/util.ts`): every UTC day a meter's window covers is matched with earlier whole days of the same kind — Saturdays with Saturdays, Mondays with Mondays, and holidays with holidays — and the expected count is the sum of those daily means, weighted by how much of each day the window covers. Holidays are left out of the weekday averages.
+- Used by buildup vs noise (news and posture), air surge, the reporting drop in information blackout, cyber's usual week and Pentagon after-hours. Each meter card now says which comparison it used.
+- **Holidays** (`shared/domain/holidays.ts`), computed by rule: US federal holidays on their actual date, Christmas Eve, Boxing Day, New Year's Eve, Good Friday and Easter Monday. Lunar-calendar holidays are not included.
+- Holiday counts are kept by the collector for three years (`collectorState/holidayCounts`), because a run loads only about 45 days of records — so next year's Thanksgiving can be compared with this year's.
+
+### Limits
+- Needs 3 earlier days of each weekday in the window (about mid-December 2026) and 2 earlier holidays (from about New Year 2027); until then the plain average of all earlier days is used and the card says so — with a warning when a holiday falls in the window.
+- Days are UTC days, so the first hours of a US holiday evening fall on the next UTC day.
+- Different holidays are pooled (Thanksgiving with Christmas); a quiet holiday is compared with quiet holidays in general, not the same holiday a year earlier, until years of history exist.
+
+
 ## [0.45.0] — 2026-11-21 — Known dates ahead (Phase 15 item 11)
 
 ### Added

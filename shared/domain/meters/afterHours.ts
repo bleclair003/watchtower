@@ -1,7 +1,7 @@
 import type { IntelligenceEvent } from '../types.ts';
 import type { MeterInput } from './input.ts';
 import type { Meter, MeterLevel } from './types.ts';
-import { BASELINE_DAYS, evidenceOf, levelFromScore, meta, meter, newest, plural, usualLevel, within } from './util.ts';
+import { BASELINE_DAYS, evidenceOf, levelFromScore, meta, meter, newest, plural, usualFor, within } from './util.ts';
 
 /**
  * Pentagon after-hours index — a stand-in for the "Pentagon pizza" idea (people working unusual
@@ -33,9 +33,9 @@ export const isNightDecisionFlight = (e: IntelligenceEvent) => isDecisionAircraf
 
 export function afterHours(input: MeterInput): Meter {
   const { now, events, historyStart } = input;
-  const posts = usualLevel(events, isNightDefenceRelease, now, 72, historyStart, BASELINE_DAYS, 1);
+  const posts = usualFor(input, 'night-posts', isNightDefenceRelease, 72, BASELINE_DAYS, 1);
   const flightsStart = historyStart === null ? null : Math.max(historyStart, ROLE_RECORDING_START);
-  const flights = usualLevel(events, isNightDecisionFlight, now, 72, flightsStart, BASELINE_DAYS, 1);
+  const flights = usualFor(input, 'night-flights', isNightDecisionFlight, 72, BASELINE_DAYS, 1, flightsStart);
   const recentPosts = events.filter((e) => isNightDefenceRelease(e) && within(e, now, 72));
   const recentFlights = events.filter((e) => isNightDecisionFlight(e) && within(e, now, 72));
   const command = events.filter((e) => isDecisionAircraft(e) && meta(e, 'aircraftRole') === 'command' && within(e, now, 72));
@@ -68,6 +68,7 @@ export function afterHours(input: MeterInput): Meter {
     evidence: evidenceOf([...recentFlights, ...recentPosts], (e) => (isDecisionAircraft(e) ? `${meta(e, 'aircraftRole')} flight at ${String(easternHour(when(e))).padStart(2, '0')}:00 ET` : `posted ${String(easternHour(when(e))).padStart(2, '0')}:00 ET`), 6),
     asOf: newest([...recentPosts, ...recentFlights]),
     baseline: ready ? 'ok' : 'building',
+    baselineBasis: posts.basis?.text ?? null,
     notes: [
       'A stand-in for the Pentagon pizza index: Google Maps popular-times data has no API and may not be scraped, so this measures night-time work through official publishing and government flights instead.',
       'Hypothesis, not evidence: news offices publish late for many reasons, and VIP flights follow travel schedules. Only aircraft that broadcast ADS-B are seen.',

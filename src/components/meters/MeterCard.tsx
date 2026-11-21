@@ -107,6 +107,7 @@ export function MeterCard({ meter: m, history, now, simulated }: { meter: Meter;
           </ul>
         </div>
       )}
+      {m.baselineBasis && <p className="text-wt-fg-muted">{m.baselineBasis}</p>}
       {m.notes.map((n) => (
         <p key={n} className="text-wt-fg-dim">
           {n}

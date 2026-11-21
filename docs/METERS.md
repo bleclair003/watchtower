@@ -13,6 +13,8 @@ Levels: QUIET · LOW · GUARDED · ELEVATED · HIGH; N/A when there is no data. 
 
 Meters that compare against a usual level (buildup vs noise, air surge, the reporting drop in information blackout, cyber's usual week) withhold the comparison until **14 days** of stored history exist (21 for cyber) and say BUILDING. Records began on 2026-11-20, so these switch on around **2026-12-04**.
 
+**Like for like (v0.46.0).** Each UTC day in a meter's window is compared with earlier whole days of the same kind: the same weekday, or a holiday (US federal holidays, Christmas Eve, Boxing Day, New Year's Eve, Good Friday, Easter Monday; `shared/domain/holidays.ts`). The usual count is the sum of those daily means weighted by how much of each day the window covers. It needs 3 earlier days of each weekday (about mid-December 2026) and 2 earlier holidays (stored for three years by the collector; about New Year 2027). Until then the plain average of all earlier days is used. Each meter card says which one applies, and warns when a holiday falls in the window without earlier holidays to compare with.
+
 ## The meters
 
 | # | Meter | Scope | What counts | Level |

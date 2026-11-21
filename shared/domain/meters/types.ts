@@ -79,6 +79,8 @@ export interface Meter {
   baseline: 'ok' | 'building' | 'none';
   /** Plain-language limits shown with the meter. */
   notes: string[];
+  /** How the usual level was worked out (like-for-like or plain average), when the meter uses one. */
+  baselineBasis?: string | null;
 }
 
 export interface DaysSinceCounter {

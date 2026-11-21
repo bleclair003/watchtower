@@ -30,7 +30,7 @@ import {
   isWhoReport,
 } from './signals.ts';
 import { bigDecksIn, displacementRises, stressedStraits } from './region.ts';
-import { DAY, H, evidenceOf, fmtUsd, inRegion, levelFromScore, meta, meter, newest, plural, usualLevel, within } from './util.ts';
+import { DAY, H, evidenceOf, fmtUsd, inRegion, levelFromScore, meta, meter, newest, plural, usualFor, within } from './util.ts';
 
 const short = (r: string) => getRegion(r)?.shortCode ?? r;
 const count = (events: IntelligenceEvent[], pred: (e: IntelligenceEvent) => boolean) => events.filter(pred).length;
@@ -42,9 +42,9 @@ const count = (events: IntelligenceEvent[], pred: (e: IntelligenceEvent) => bool
  * Tankers and airlift rising together is the classic sign of an operation being prepared.
  */
 export function airSurge(input: MeterInput, regionId: string): Meter {
-  const { now, events, historyStart } = input;
+  const { now, events } = input;
   const pred = (e: IntelligenceEvent) => inRegion(e, regionId) && isNotableAircraft(e);
-  const u = usualLevel(events, pred, now, 72, historyStart, 14, 1);
+  const u = usualFor(input, `air.${regionId}`, pred, 72, 14, 1);
   const recent = events.filter((e) => pred(e) && within(e, now, 72));
   const by = (c: string) => recent.filter((e) => aircraftClass(e) === c).length;
   const together = by('tanker') > 0 && by('airlift') > 0;
@@ -63,6 +63,7 @@ export function airSurge(input: MeterInput, regionId: string): Meter {
     evidence: evidenceOf(recent, (e) => aircraftClass(e)),
     asOf: newest(recent),
     baseline: u.status,
+    baselineBasis: u.basis?.text ?? null,
     notes: ['Only aircraft that broadcast ADS-B and are marked military by the network; many military flights do not broadcast.'],
   });
 }
@@ -342,11 +343,11 @@ export function strategicWeapons(input: MeterInput): Meter {
  * (with a usual day of 10+) (2).
  */
 export function informationBlackout(input: MeterInput, regionId: string): Meter {
-  const { now, events, historyStart } = input;
+  const { now, events } = input;
   const r = events.filter((e) => inRegion(e, regionId));
   const directed = r.filter((e) => within(e, now, 72) && isDirectedOutage(e));
   const ongoing = r.filter((e) => within(e, now, 72) && isOngoingOutage(e) && !isDirectedOutage(e));
-  const volume = usualLevel(r, () => true, now, 24, historyStart, 14, 1);
+  const volume = usualFor(input, `volume.${regionId}`, (e) => inRegion(e, regionId), 24, 14, 1);
   const drop = volume.status === 'ok' && volume.usual! >= 10 && volume.current < 0.4 * volume.usual!;
   const score = directed.length * 3 + Math.min(2, ongoing.length) + (drop ? 2 : 0);
   return meter({
@@ -366,6 +367,7 @@ export function informationBlackout(input: MeterInput, regionId: string): Meter 
     evidence: evidenceOf([...directed, ...ongoing]),
     asOf: newest([...directed, ...ongoing]),
     baseline: volume.status,
+    baselineBasis: volume.basis?.text ?? null,
     notes: ['Most outages are technical or power cuts; only Cloudflare attributes causes. The reporting-drop test needs 14 days of history.'],
   });
 }
@@ -477,14 +479,14 @@ export function homelandBoard(input: MeterInput): Meter {
 
 /** 7 days: KEV additions (1; ransomware-linked 3), non-routine CISA alerts (2), outages from cable cuts or unknown causes in watch regions (0.5). */
 export function cyberWeather(input: MeterInput): Meter {
-  const { now, events, historyStart } = input;
+  const { now, events } = input;
   const d7 = events.filter((e) => within(e, now, 7 * 24));
   const kev = d7.filter(isKev);
   const ransomware = kev.filter(isRansomwareKev);
   const alerts = d7.filter(isCisaAlert);
   const outages = d7.filter((e) => e.sourceId === 'cloudflare-radar-outages' && ['CABLE_CUT', 'UNKNOWN'].includes(String(meta(e, 'outageCause'))) && e.regionIds.length > 0);
   const score = kev.length + ransomware.length * 2 + alerts.length * 2 + outages.length * 0.5;
-  const usual = usualLevel(events, (e) => isKev(e) || isCisaAlert(e), now, 7 * 24, historyStart, 21, 1);
+  const usual = usualFor(input, 'cyber', (e) => isKev(e) || isCisaAlert(e), 7 * 24, 21, 1);
   const LABELS = ['LOW', 'LOW', 'GUARDED', 'ELEVATED', 'HIGH'];
   const level = levelFromScore(score, [0, 10, 20, 35]);
   return meter({
@@ -506,6 +508,7 @@ export function cyberWeather(input: MeterInput): Meter {
     evidence: evidenceOf([...ransomware, ...alerts, ...kev], (e) => (isRansomwareKev(e) ? 'ransomware-linked' : e.sourceId)),
     asOf: newest(d7.filter((e) => isKev(e) || isCisaAlert(e))),
     baseline: usual.status,
+    baselineBasis: usual.basis?.text ?? null,
     notes: ['A weather-style summary of public US government cyber warnings; it says nothing about any particular network.'],
   });
 }

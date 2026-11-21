@@ -308,4 +308,4 @@ Free sources and analysis of data already collected. Each new outside source is 
 11. **Known dates ahead**
    - [x] Curated calendar of tension-prone dates (elections, national days, anniversaries, regular exercises) added to the meters calendar — v0.45.0
 12. **Like-for-like comparisons**
-   - [ ] Compare Saturdays with Saturdays and holidays with holidays in usual-level baselines (most useful after a few months of history)
+   - [x] Compare Saturdays with Saturdays and holidays with holidays in usual-level baselines (most useful after a few months of history) — v0.46.0

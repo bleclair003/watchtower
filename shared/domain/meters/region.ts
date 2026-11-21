@@ -24,7 +24,7 @@ import {
   advisoryLevel,
   aircraftClass,
 } from './signals.ts';
-import { at, evidenceOf, inRegion, levelFromScore, meter, newest, plural, usualLevel, within } from './util.ts';
+import { at, evidenceOf, inRegion, levelFromScore, meter, newest, plural, usualFor, within } from './util.ts';
 
 const short = (r: string) => getRegion(r)?.shortCode ?? r;
 
@@ -198,9 +198,9 @@ const isPostureSignal = (regionId: string) => (e: IntelligenceEvent) =>
  * Withheld until 14 days of history exist.
  */
 export function buildupVsNoise(input: MeterInput, regionId: string): Meter {
-  const { now, events, historyStart } = input;
-  const news = usualLevel(events, (e) => inRegion(e, regionId) && isNews(e), now, 72, historyStart, 14, 3);
-  const posture = usualLevel(events, (e) => inRegion(e, regionId) && isPostureSignal(regionId)(e), now, 72, historyStart, 14, 1);
+  const { now, events } = input;
+  const news = usualFor(input, `news.${regionId}`, (e) => inRegion(e, regionId) && isNews(e), 72, 14, 3);
+  const posture = usualFor(input, `posture.${regionId}`, (e) => inRegion(e, regionId) && isPostureSignal(regionId)(e), 72, 14, 1);
   const base = { id: `buildup.${regionId}`, kind: 'buildup' as const, family: 'region' as const, name: `${short(regionId)} buildup vs noise`, regionId };
   const components: MeterComponent[] = [
     { label: 'News reports (72 h)', value: news.usual === null ? String(news.current) : `${news.current} (usual ${news.usual}, ${news.ratio}×)`, active: (news.ratio ?? 0) >= 2 },
@@ -220,7 +220,7 @@ export function buildupVsNoise(input: MeterInput, regionId: string): Meter {
         : n >= 2 && p < 1.2
           ? (['NOISE', 1, 'News coverage well above usual without matching posture signals.'] as const)
           : (['IN LINE', 0, 'News and posture signals are near their usual levels.'] as const);
-  return meter({ ...base, level, label, value: Math.round((p - n) * 10) / 10, reading, components, evidence: evidenceOf(postureEvents, () => 'posture signal', 4), asOf: newest(postureEvents), baseline: 'ok', notes: ['Value = posture ratio minus news ratio: positive means movement without matching coverage.'] });
+  return meter({ ...base, level, label, value: Math.round((p - n) * 10) / 10, reading, components, evidence: evidenceOf(postureEvents, () => 'posture signal', 4), asOf: newest(postureEvents), baseline: 'ok', baselineBasis: news.basis?.text ?? null, notes: ['Value = posture ratio minus news ratio: positive means movement without matching coverage.'] });
 }
 
 /** Stories in a region over 72 hours (shared by the corroboration meter). */
