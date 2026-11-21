@@ -9,6 +9,9 @@
 ### Added
 - Each run logs its Firestore document reads.
 
+### Changed
+- Collection every 30 minutes (external scheduler at :17 and :47); GitHub fallback every 6 hours at minute 2.
+
 
 ## [0.9.3] — 2026-11-21 — Health check fixes
 
