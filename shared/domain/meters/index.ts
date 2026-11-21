@@ -23,6 +23,7 @@ import { marketOdds } from './markets.ts';
 import { infrastructureMeter } from './infrastructure.ts';
 import { languageTemperature } from './languageTemp.ts';
 import { actorsMeter } from './actorsMeter.ts';
+import { coverageMeter } from './coverageMeter.ts';
 import { daysSince, upcomingCalendar } from './clocks.ts';
 import { appendShort, pointFor } from './history.ts';
 import { BASELINE_DAYS, DAY } from './util.ts';
@@ -59,6 +60,7 @@ export function allMeters(input: MeterInput): Meter[] {
     marketOdds(input),
     cyberWeather(input),
     ...GEO_REGIONS.map((r) => corroboration(input, r)),
+    ...GEO_REGIONS.map((r) => coverageMeter(input, r)),
     ...WATCH_REGIONS.map((r) => visibility(input, r.id)),
   ];
 }

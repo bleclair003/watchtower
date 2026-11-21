@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.41.0] — 2026-11-21 — Coverage gaps (Phase 15 item 5)
+
+### Added
+- **Coverage gaps** per region (METERS grid column GAPS; region strips): stories about the region reported by only one side over 72 hours — Al Jazeera; BBC; US media (NPR, Defense News, Military Times); official sources (UN News, war.gov, UK MOD, IAEA, Air Force, Marines) — that one side ran 2+ times or that are strike reports, while another side had 3+ reports about the region. The detail lists each possible gap with which sides did not carry it, and how many reports each side published.
+- Says plainly when only one side reported on the region, or when no side reported enough to assess gaps.
+
+### Checked against the real records of 2026-11-21
+The first version flagged five false gaps: the same events told in different words ("Russian missiles hit Poland" on Al Jazeera, "Russian missile hits Poland…" on the BBC; "Kerch Bridge" vs "Crimean Bridge"). A second, looser match now treats a story as covered when another side has a report sharing two content words. Over 10 days of data the remaining possible gaps were plausible: Al Jazeera's two reports on the Saudi-led coalition intercepting Houthi missiles, the BBC's report of Kuwait repelling an Iranian attack, UN News on children killed in Yemen.
+
+
 ## [0.40.0] — 2026-11-21 — People and groups (Phase 15 item 4)
 
 ### Added

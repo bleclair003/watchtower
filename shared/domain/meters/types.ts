@@ -32,6 +32,7 @@ export type MeterKind =
   | 'infrastructure'
   | 'language'
   | 'actors'
+  | 'coverage'
   | 'corroboration'
   | 'visibility';
 

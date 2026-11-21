@@ -294,7 +294,7 @@ Free sources and analysis of data already collected. Each new outside source is 
 4. **People and group tracking**
    - [x] Mentions over time of named groups and leaders per region; first-appearance flags for new names (panels, meter, daily brief) — v0.40.0
 5. **Coverage gaps**
-   - [ ] Stories reported by only one side (e.g. Al Jazeera but not BBC or official feeds, and the reverse)
+   - [x] Stories reported by only one side (e.g. Al Jazeera but not BBC or official feeds, and the reverse) — v0.41.0
 
 ### C. How the sources behave
 6. **Who's first**

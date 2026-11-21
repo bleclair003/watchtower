@@ -42,6 +42,7 @@ Meters that compare against a usual level (buildup vs noise, air surge, the repo
 | 24 | Infrastructure proximity (v0.38.0) | each region | per flagged site: fire or military record nearby (nuclear 3, other 1), named in a strike headline (nuclear 3, other 2), named otherwise 0.5, +1 if both near and struck (72 h) | 0.5 / 1 / 3 / 6 |
 | 25 | Language temperature (v0.39.0) | each region | mean headline score × 50 over 72 h, −100 calming … +100 escalating; word lists in `shared/domain/language.ts` | before 14 days: +10 / 25 / 40 / 60; after: +5 / 15 / 30 / 45 above usual; capped at GUARDED under 5 headlines |
 | 26 | People and groups (v0.40.0) | each region | tracked actors' mentions (72 h vs usual after 14 days; RISING = 3× and 5+) and new names first seen in 7 days (2+ headlines); points: 2 per rising actor, 0.5 per new name (max 3) | 0.5 / 2 / 4 / 6 |
+| 27 | Coverage gaps (v0.41.0) | each region | one-sided stories (2+ reports or a strike report) while another side had 3+ reports about the region, 72 h; not shown as a level | count of possible gaps |
 | 21 | Lead/lag lab | Signal Lab | for each RAI rise (+10 within 24 h), whether each meter rose in the 72 h before, only in the 24 h after, or neither | tallies; no conclusions under 5 rises |
 
 ## Checked against real data (2026-11-21)

@@ -26,6 +26,7 @@ const REGION_COLUMNS: [MeterKind, string, string][] = [
   ['humanitarian', 'HUMAN', 'Humanitarian strain'],
   ['infrastructure', 'INFRA', 'Records near or naming power plants, nuclear sites, refineries, dams and ports'],
   ['corroboration', 'CORROB', 'Share of stories corroborated'],
+  ['coverage', 'GAPS', 'Possible coverage gaps: stories reported by one side only'],
   ['visibility', 'VISIB', 'Share of the region’s sources online'],
 ];
 const TOPIC_ORDER: MeterKind[] = ['naval', 'maritime', 'sanctions', 'arms', 'washington', 'strategic', 'homeland', 'after-hours', 'markets', 'cyber'];

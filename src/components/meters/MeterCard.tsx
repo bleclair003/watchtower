@@ -14,6 +14,7 @@ export const levelTone = (l: MeterLevel) => LEVEL_TONE[String(l)];
 export function cellLabel(m: Meter): string {
   if (m.kind === 'escalation') return m.label.replace('RUNG ', 'R').replace(' · ', ' ');
   if (m.kind === 'corroboration' || m.kind === 'visibility') return m.value === null ? '—' : `${m.value}%`;
+  if (m.kind === 'coverage') return m.label.replace('POSSIBLE GAPS', 'GAPS').replace('POSSIBLE GAP', 'GAP');
   if (m.kind === 'language') return m.value === null ? '—' : `${m.value > 0 ? '+' : m.value < 0 ? '−' : '±'}${Math.abs(m.value)}°`;
   if (m.baseline === 'building' && m.level === null) return m.kind === 'air-surge' ? `${m.value ?? 0}/72H` : 'BUILDING';
   return m.label;
