@@ -39,6 +39,9 @@ import { AIRPORT_STATUS_SOURCE_ID, NOTICES_SOURCE_ID, type AirportStatusState, t
 import type { TfrState } from './adapters/usDomestic.ts';
 import type { RadState } from './adapters/radiation.ts';
 import { DONKI_SOURCE_ID, SWPC_SOURCE_ID, type DonkiState, type SwpcState } from './adapters/spaceWeather.ts';
+import { EPSS_SOURCE_ID, type EpssState } from './adapters/cyberAgencies.ts';
+import type { CisaKevState } from './adapters/cisaKev.ts';
+import { buildCyberSnapshot } from '../shared/domain/cyber.ts';
 import { NETWORK_SOURCE, clusterStations, type RadNetwork } from '../shared/domain/radiation.ts';
 import { UNHCR_SOURCE_ID, type UnhcrState } from './adapters/unhcr.ts';
 import { MARKETS_SOURCE_ID, type PolymarketState } from './adapters/polymarket.ts';
@@ -375,6 +378,17 @@ export async function runCollection(
     }
   } catch (err) {
     log(`SWX  space weather not added to the snapshot: ${sanitizeError(err)}`);
+  }
+  // CYBER page (Phase 20): built from loaded records and the KEV catalog's last 30 days, so it does not
+  // depend on which records fit in the feed snapshot.
+  try {
+    const [kev, epss] = await Promise.all([
+      tracked.includes('cisa-kev') ? store.getSourceState<CisaKevState>('cisa-kev') : null,
+      tracked.includes(EPSS_SOURCE_ID) ? store.getSourceState<EpssState>(EPSS_SOURCE_ID) : null,
+    ]);
+    snapshot.cyber = buildCyberSnapshot(loaded, kev?.recent ?? [], epss?.scores ?? {}, epss?.lastFetchedAt ?? null, Date.parse(snapshot.generatedAt));
+  } catch (err) {
+    log(`CYB  cyber page data not added to the snapshot: ${sanitizeError(err)}`);
   }
   if (tracked.includes(AIS_SOURCE_ID)) {
     try {

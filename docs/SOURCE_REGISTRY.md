@@ -282,3 +282,14 @@ Rebuild with `node scripts/build-infrastructure.ts`. On 2026-11-21 the endpoint 
 |---|---|---|
 | NASA DONKI (`api.nasa.gov/DONKI`: CMEAnalysis, WSAEnlilSimulations, GST) | US government, api.data.gov key | Latest model run per CME with predicted Earth arrival, model Kp and speed; CME count and fastest in 7 days; observed geomagnetic storms (14 days) |
 | NOAA SWPC (`services.swpc.noaa.gov/products`: noaa-scales, alerts, noaa-planetary-k-index) | US government, no key | R/S/G scales now and for 3 days, latest and 24-hour max Kp, notable messages (72 h) |
+
+## v0.51.0 Cyber — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| UK NCSC news and report RSS | official, Open Government Licence | Headlines and links (cyber, Global cybersecurity) |
+| Canadian Centre for Cyber Security alerts and advisories RSS | official | Alerts (ALyy-nnn) only; routine vendor-patch advisories (AVyy-nnn) left out |
+| JPCERT/CC English RSS 1.0 (RDF) | official | Headlines and links |
+| CERT-UA articles API (`cert.gov.ua/api/articles`) | official, undocumented | Articles (Ukrainian title; English title fetched once per new article), Global cybersecurity + Eastern Europe |
+| FIRST EPSS API | free, attribution to FIRST | Probability and percentile for the KEV entries of the last 30 days |
+| ransomware.live | needs a key | Not used: the free keyless API is for personal use only; API PRO needs a free key |

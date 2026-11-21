@@ -95,6 +95,23 @@ export function parseFeed(xml: string): FeedItem[] {
     }));
   }
 
+  // RSS 1.0 (RDF): items are siblings of the channel (e.g. JPCERT/CC).
+  const rdf = doc['rdf:RDF'] as Record<string, unknown> | undefined;
+  if (rdf) {
+    const raw = rdf.item as Record<string, unknown>[] | Record<string, unknown> | undefined;
+    const items = Array.isArray(raw) ? raw : raw ? [raw] : [];
+    const first = (v: unknown) => (Array.isArray(v) ? v[0] : v);
+    return items.map((it) => ({
+      title: xmlDecode(text(it.title)),
+      link: xmlDecode(text(first(it.link)) || String(it['@rdf:about'] ?? '')),
+      description: xmlDecode(text(it.description)),
+      published: text(it['dc:date']) || text(it.pubDate),
+      guid: xmlDecode(String(it['@rdf:about'] ?? '')),
+      content: htmlContent(text(it['content:encoded'])),
+      categories: [],
+    }));
+  }
+
   const atom = doc.feed as Record<string, unknown> | undefined;
   if (atom) {
     const entries = (atom.entry as Record<string, unknown>[] | undefined) ?? [];

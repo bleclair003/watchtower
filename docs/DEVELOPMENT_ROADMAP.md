@@ -339,3 +339,10 @@ Free sources and analysis of data already collected. Each new outside source is 
    - [x] CMEs with predicted Earth arrival (NASA DONKI WSA-Enlil) and observed geomagnetic storms — v0.50.0
    - [x] NOAA SWPC scales, three-day outlook, K-index and notable watches, warnings and alerts — v0.50.0
    - [x] Space weather meter, panel and calendar arrivals — v0.50.0
+
+## Phase 20 — CYBER page (2026-11-22)
+
+1. **Cyber as its own page**
+   - [x] CYBER page: KEV (30 d) with EPSS, CISA alerts and advisories, national cyber agencies, internet disruptions, cyber meter — v0.51.0
+   - [x] National cyber agencies: UK NCSC, Canadian Centre for Cyber Security, JPCERT/CC, CERT-UA — v0.51.0
+   - [ ] Ransomware victims (ransomware.live API PRO, free key) — needs a key under its terms

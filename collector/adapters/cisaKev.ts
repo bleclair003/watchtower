@@ -31,6 +31,18 @@ export interface CisaKevState {
   validators: Validators;
   catalogVersion: string | null;
   firstRunAt: string;
+  /** Entries added in the last 30 days (for the CYBER page and EPSS scores). */
+  recent?: KevRecent[];
+}
+
+export interface KevRecent {
+  cve: string;
+  vendor: string;
+  product: string;
+  name: string;
+  added: string;
+  due: string | null;
+  ransomware: boolean;
 }
 
 const str = (v: unknown, max = 200) => (typeof v === 'string' ? truncate(cleanText(v), max) : '');
@@ -100,6 +112,17 @@ export const cisaKev: SourceAdapter<CisaKevState> = {
       });
     }
 
+    const recent: KevRecent[] = (doc.vulnerabilities as KevEntry[])
+      .filter((v) => typeof v.dateAdded === 'string' && Date.parse(`${v.dateAdded}T00:00:00Z`) >= ctx.now - 30 * DAY && /^CVE-\d{4}-\d{4,}$/.test(str(v.cveID, 40)))
+      .map((v) => ({
+        cve: str(v.cveID, 40),
+        vendor: str(v.vendorProject, 80),
+        product: str(v.product, 80),
+        name: str(v.vulnerabilityName, 160),
+        added: String(v.dateAdded),
+        due: typeof v.dueDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v.dueDate) ? v.dueDate : null,
+        ransomware: str(v.knownRansomwareCampaignUse, 20) === 'Known',
+      }));
     return {
       events,
       rejected,
@@ -109,6 +132,7 @@ export const cisaKev: SourceAdapter<CisaKevState> = {
         validators: res.validators,
         catalogVersion: str(doc.catalogVersion, 20) || null,
         firstRunAt: ctx.state?.firstRunAt ?? nowIso,
+        recent,
       },
     };
   },

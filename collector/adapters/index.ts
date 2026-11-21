@@ -28,6 +28,7 @@ import { odinPowerOutages } from './odin.ts';
 import { faaAirportStatus, faaAirspaceNotices } from './faa.ts';
 import { bfsOdl, epaRadnet, stukRadiation } from './radiation.ts';
 import { nasaDonki, noaaSwpc } from './spaceWeather.ts';
+import { cccsCanada, certUa, firstEpss, jpcert, ncscUk } from './cyberAgencies.ts';
 import { congress } from './congress.ts';
 
 /** Active adapters. Adding a source = write an adapter + register it here. */
@@ -80,6 +81,11 @@ export const ADAPTERS: SourceAdapter<never>[] = [
   epaRadnet as SourceAdapter<never>,
   noaaSwpc as SourceAdapter<never>,
   nasaDonki as SourceAdapter<never>,
+  ncscUk as SourceAdapter<never>,
+  cccsCanada as SourceAdapter<never>,
+  jpcert as SourceAdapter<never>,
+  certUa as SourceAdapter<never>,
+  firstEpss as SourceAdapter<never>,
   // Free-key sources: active only when their key is set.
   firms as SourceAdapter<never>,
   cloudflareRadarOutages as SourceAdapter<never>,

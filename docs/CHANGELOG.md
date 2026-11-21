@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.51.0] — 2026-11-22 — CYBER page (Phase 20)
+
+### Added
+- **CYBER page** (`/cyber`, new nav tab): a summary strip (exploited vulnerabilities in 30 days, ransomware-linked, EPSS ≥ 50%, CISA alerts, ongoing disruptions), the cyber meter, and four panels:
+  - **Known exploited vulnerabilities (C1)** — everything added to CISA's KEV catalog in 30 days (from the catalog itself, so nothing is lost to feed trimming): CVE (linked to NVD), product and weakness, ransomware link, FIRST EPSS score and percentile, federal due date.
+  - **CISA alerts and advisories (C2)** — 30 days; routine ICS, medical-device and KEV-announcement items hidden behind a toggle.
+  - **National cyber agencies (C3)** — UK NCSC (news and threat reports), Canadian Centre for Cyber Security (alerts; routine vendor-patch advisories left out), JPCERT/CC, CERT-UA (Ukraine; English titles fetched once per new article).
+  - **Internet disruptions (C4)** — Cloudflare Radar (with its stated cause) and IODA, 7 days.
+- New sources `ncsc-uk`, `cccs-canada`, `jpcert`, `cert-ua` (cyber records in the feed under Global cybersecurity; CERT-UA also Eastern Europe) and `first-epss` (scores for the KEV entries of the last 30 days, every 6 hours).
+- The feed parser reads RSS 1.0 (RDF) feeds; the RSS adapter can add fixed regions to every item.
+
+### Limits
+- CERT-UA publishes its public articles about monthly (latest 15 Apr 2026 at release), mostly in Ukrainian.
+- EPSS is a model score; for KEV entries (already exploited) it ranks how widely exploitation is expected.
+- Ransomware victim tracking (ransomware.live) needs a free key under its terms and is not used yet.
+
+
 ## [0.50.1] — 2026-11-21
 
 ### Fixed

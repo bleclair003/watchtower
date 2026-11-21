@@ -14,6 +14,7 @@ export const ROUTES = [
   { path: '/signal-lab', title: 'SIGNAL LAB' },
   { path: '/meters', title: 'METERS' },
   { path: '/regions', title: 'REGIONS' },
+  { path: '/cyber', title: 'CYBER' },
   { path: '/regions/middle-east', title: 'MIDEAST' },
   { path: '/regions/united-states', title: 'USA' },
 ] as const;

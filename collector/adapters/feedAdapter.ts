@@ -26,6 +26,8 @@ export interface FeedAdapterConfig {
   baseUrl: string;
   /** Publisher-specific date parser (default: RFC 822 / ISO via parseFeedDate). */
   parseDate?: (raw: string) => string | null;
+  /** Regions added to every item (e.g. 'global-cyber' for national cyber agencies). */
+  extraRegions?: string[];
   /** Optional item filter (return a reason string to skip, or null to keep). */
   skip?: (item: FeedItem, title: string) => string | null;
 }
@@ -90,7 +92,7 @@ export function makeFeedAdapter(cfg: FeedAdapterConfig): SourceAdapter<FeedAdapt
         if (skipReason) continue;
 
         const geo = headlineGeo(title, cfg.us);
-        const regionIds = geo.regionIds;
+        const regionIds = [...new Set([...geo.regionIds, ...(cfg.extraRegions ?? [])])];
         const precision: LocationPrecision = geo.countryCodes.length ? 'country' : regionIds.length ? 'region' : 'none';
         const topic = cfg.category === 'classify' ? classifyTopic(title) : { category: cfg.category, term: null };
 
