@@ -12,6 +12,7 @@ import { MarketsPanel } from '../components/meters/MarketsPanel';
 import { ActorsPanel } from '../components/meters/ActorsPanel';
 import { SpeedPanel } from '../components/meters/SpeedPanel';
 import { TrackRecordPanel } from '../components/meters/TrackRecordPanel';
+import { KnownDatesList } from '../components/meters/KnownDatesList';
 import { formatUtc } from '../lib/time';
 import { safeExternalUrl } from '../lib/sanitize';
 
@@ -186,7 +187,7 @@ export default function MetersPage() {
                   return (
                     <li key={`${c.at}-${c.title}`} className="flex flex-wrap items-start gap-x-2 gap-y-0.5 px-2 py-1">
                       <span className="w-28 shrink-0 tabular-nums text-wt-fg-muted">{c.at.slice(0, 16).replace('T', ' ')}Z</span>
-                      <Tag tone={c.kind === 'launch' ? 'info' : 'muted'}>{c.kind}</Tag>
+                      <Tag tone={c.kind === 'launch' ? 'info' : c.kind === 'known-date' ? 'warn' : 'muted'}>{c.kind === 'known-date' ? 'date' : c.kind}</Tag>
                       <span className="min-w-0 basis-full sm:basis-0 sm:flex-1">
                         {url ? (
                           <a href={url} target="_blank" rel="noopener noreferrer nofollow" className="hover:underline">
@@ -202,7 +203,8 @@ export default function MetersPage() {
                 })}
               </ul>
             )}
-            <p className="border-t border-wt-line px-2 py-1 text-2xs text-wt-fg-dim">Only sources that publish future dates: scheduled military launches (Launch Library 2) and security-committee hearings (Congress.gov). Dates move.</p>
+            <p className="border-t border-wt-line px-2 py-1 text-2xs text-wt-fg-dim">From sources that publish future dates — scheduled military launches (Launch Library 2) and security-committee hearings (Congress.gov) — and the curated known dates. Dates move.</p>
+            <KnownDatesList now={now} />
           </Panel>
         </div>
 

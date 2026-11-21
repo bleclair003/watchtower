@@ -95,7 +95,7 @@ export interface DaysSinceCounter {
 export interface CalendarItem {
   at: string;
   title: string;
-  kind: 'launch' | 'hearing' | 'other';
+  kind: 'launch' | 'hearing' | 'known-date' | 'other';
   url: string | null;
   source: string;
   regionIds: string[];

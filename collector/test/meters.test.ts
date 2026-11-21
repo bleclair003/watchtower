@@ -191,7 +191,8 @@ describe('quality, clocks and history', () => {
   it('calendar: upcoming launches and future hearings, 30 days', () => {
     const hearing = ev('Senate Armed Services hearing', 1, { sourceId: 'congress', occurredAt: iso(NOW + 5 * DAY) });
     const cal = upcomingCalendar(input([hearing], { upcomingLaunches: [{ name: 'Falcon 9 | NROL-1', net: iso(NOW + 2 * DAY), provider: 'SpaceX', country: 'US', status: 'Go', url: null }, { name: 'Late', net: iso(NOW + 40 * DAY), provider: null, country: null, status: 'TBD', url: null }] }));
-    expect(cal.map((c) => c.kind)).toEqual(['launch', 'hearing']);
+    expect(cal.filter((c) => c.kind !== 'known-date').map((c) => c.kind)).toEqual(['launch', 'hearing']);
+    expect(cal.find((c) => c.kind === 'known-date')!.title).toMatch(/Taiwan local elections/); // 28 Nov 2026
   });
 
   it('upcoming launches come from the same Launch Library response', () => {

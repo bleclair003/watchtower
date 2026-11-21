@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.45.0] — 2026-11-21 — Known dates ahead (Phase 15 item 11)
+
+### Added
+- **Curated known dates** (`shared/domain/knownDates.ts`, 27 entries): fixed national days and anniversaries for each watch region (e.g. 3 Jan Soleimani, 11 Feb Iranian Revolution, 24 Feb Russia's full-scale invasion, 15 Apr Day of the Sun, 9 May Victory Day, 20 May Taiwan inauguration, 27 Jul Korean armistice, 9 Sep DPRK founding, 7 Oct, 10 Oct Double Ten, 19 Nov Galaxy Leader seizure); regular exercises by the month they are usually held, marked approximate (Freedom Shield ~March, Balikatan ~April–May, Han Kuang ~July, Ulchi Freedom Shield ~August); and elections only once confirmed — Taiwan's local elections and nuclear-energy referendum on 28 November 2026 (Central Election Commission).
+- Shown in the METERS 30-day calendar (tagged DATE), in a **Known dates ahead — 90 days** list under it, in a **Known dates ahead — 120 days** panel on each region page, and in a **Known dates (next 7 days)** section of the daily brief. Each date links to its Wikipedia article and says why it matters.
+- Lunar-calendar dates (Ashura, Quds Day, Israeli Independence Day) move each year and are not listed; other elections whose dates were ambiguous were left out rather than guessed.
+
+
 ## [0.44.0] — 2026-11-21 — Missing regulars (Phase 15 item 8)
 
 ### Added

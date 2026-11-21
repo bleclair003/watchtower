@@ -3,6 +3,7 @@ import type { MeterInput } from './input.ts';
 import type { CalendarItem, DaysSinceCounter } from './types.ts';
 import { isAdvisoryRaise, isDprkLaunch, isDprkNuclearTest, isGovernmentShutdown, isUnscDivided, isUnscFailedDraft, isUnscMeeting } from './signals.ts';
 import { DAY, inRegion, meta } from './util.ts';
+import { knownDatesAhead } from '../knownDates.ts';
 
 const when = (e: IntelligenceEvent) => e.occurredAt ?? e.publishedAt ?? e.collectedAt;
 
@@ -64,7 +65,7 @@ export function daysSince(input: MeterInput): DaysSinceCounter[] {
 
 export const daysBetween = (fromIso: string, now: number) => Math.max(0, Math.floor((now - Date.parse(fromIso)) / DAY));
 
-/** Dated items ahead: scheduled military launches (Launch Library 2) and security-committee hearings (Congress.gov). 30 days. */
+/** Dated items ahead: scheduled military launches (Launch Library 2), security-committee hearings (Congress.gov) and curated known dates. 30 days. */
 export function upcomingCalendar(input: MeterInput): CalendarItem[] {
   const { now } = input;
   const end = now + 30 * DAY;
@@ -74,8 +75,16 @@ export function upcomingCalendar(input: MeterInput): CalendarItem[] {
   const hearings: CalendarItem[] = input.events
     .filter((e) => e.sourceId === 'congress' && e.occurredAt && Date.parse(e.occurredAt) > now && Date.parse(e.occurredAt) <= end)
     .map((e) => ({ at: e.occurredAt!, title: e.title, kind: 'hearing' as const, url: e.sourceUrl, source: 'Congress.gov', regionIds: e.regionIds }));
+  const known: CalendarItem[] = knownDatesAhead(now, 30).map((d) => ({
+    at: d.at,
+    title: d.approximate ? `${d.title} (usually this month)` : d.title,
+    kind: 'known-date' as const,
+    url: d.url,
+    source: 'Known dates (curated)',
+    regionIds: d.regionIds,
+  }));
   const seen = new Set<string>();
-  return [...launches, ...hearings]
+  return [...launches, ...hearings, ...known]
     .filter((c) => (seen.has(c.title + c.at) ? false : (seen.add(c.title + c.at), true)))
     .sort((a, b) => a.at.localeCompare(b.at))
     .slice(0, 40);
