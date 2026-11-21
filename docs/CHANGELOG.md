@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.21.0] — 2026-11-21 — UN Security Council
+
+### Added
+- Source 32, **UN Security Council**: every meeting (verbatim record or closed-meeting communiqué) and adopted resolution from the **UN Digital Library** (MARC XML), and failed drafts and vetoes from the **UN press-release RSS**. Read every 2 hours.
+- Meetings are tagged to countries from the UN catalogue's own subject terms and the agenda (UN names such as "Iran (Islamic Republic of)" and "Territories occupied by Israel" mapped).
+- Resolutions show the tally and who voted against or abstained (e.g. Haiti GSF, 12-0-3: China, Pakistan and Russia abstained).
+- Catalog v11 (109 indicators): **Security Council attention** (meetings above the 28-day baseline) and **draft fails or is vetoed** (30 days, weight 2, high) for the six foreign watch regions.
+
+### Limits
+- The Security Council website refuses scripted requests (bot challenge), so the programme of work and "emergency meeting" labels are not available. Meetings are catalogued 1–3 days late. Vetoes are read from press-release titles; the feed holds only the latest 10 items, so a check every 2 hours is needed to keep up.
+
+
 ## [0.20.0] — 2026-11-21 — Sanctioned vessels on AIS (Baltic and North Sea)
 
 ### Added

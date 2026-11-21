@@ -179,8 +179,9 @@ Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at
    - [x] 25-second listen per run in parallel with the other sources; matched by IMO (identity messages) or OFAC MMSI; MMSI→IMO links kept across runs — v0.20.0
    - [x] Records and map markers when a sanctioned vessel is seen; experimental indicator for the Eastern Europe region
 5. **UN Security Council** (meetings programme, press releases, resolutions)
-   - [ ] Emergency and unscheduled meetings, vetoes, adopted resolutions
-   - [ ] Indicators: emergency session on a watch-region country; veto cast
+   - [x] Meetings, adopted resolutions (tallies, abstentions) and failed drafts / vetoes — v0.21.0 (UN Digital Library + press RSS)
+   - [x] Indicators: Council attention above baseline; failed draft or veto
+   - [ ] "Emergency meeting" label: the Council website refuses scripted requests
 6. **Missile and nuclear tests**
    - [ ] CNS North Korea missile test database (check access) plus official test notices
    - [ ] Indicator: missile or nuclear test reported

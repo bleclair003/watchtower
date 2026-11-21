@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 10;
+export const CATALOG_VERSION = 11;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -811,6 +811,63 @@ const sanctionedShipIndicators: IndicatorDefinition[] = [
   },
 ];
 
+const UNSC = 'un-security-council';
+
+/** Phase 13 item 5: UN Security Council attention and failed drafts (not for the US region). */
+const unscIndicators: IndicatorDefinition[] = STATE_DEPT_REGIONS.flatMap((r): IndicatorDefinition[] => [
+  {
+    id: `${r.id}.unsc-attention`,
+    name: `${r.shortCode} Security Council attention`,
+    description: `UN Security Council meetings about ${r.name} countries within 7 days (UN catalogue subjects and agenda), compared with the 28-day baseline.`,
+    family: 'diplomatic',
+    regionId: r.id,
+    requiredSourceIds: [UNSC],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: UNSC },
+        { field: 'regionIds', op: 'contains', value: r.id },
+        { field: 'metadata.subtype', op: 'eq', value: 'unsc-meeting' },
+      ],
+    },
+    windowHours: 168,
+    elevated: { countAtLeast: 2 },
+    triggered: { countAtLeast: 4 },
+    baseline: { days: 28, triggerRatio: 3, elevatedRatio: 2 },
+    weight: 1,
+    severity: 'medium',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale:
+      'Extra Council meetings on a country follow a crisis. Many meetings are scheduled mandate renewals, so only meetings above the baseline count. Meetings are catalogued 1–3 days late.',
+  },
+  {
+    id: `${r.id}.unsc-failed-draft`,
+    name: `${r.shortCode} Security Council draft fails or is vetoed`,
+    description: `A Security Council draft resolution concerning ${r.name} failed to be adopted (including vetoes) within 30 days, from UN press releases.`,
+    family: 'diplomatic',
+    regionId: r.id,
+    requiredSourceIds: [UNSC],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: UNSC },
+        { field: 'regionIds', op: 'contains', value: r.id },
+        { field: 'metadata.subtype', op: 'eq', value: 'unsc-failed-draft' },
+      ],
+    },
+    windowHours: 720,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 1 },
+    baseline: null,
+    weight: 2,
+    severity: 'high',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'A failed draft or a veto shows the Council divided over the situation, so no collective response is coming from it.',
+  },
+]);
+
 export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...advisoryIndicators,
   ...cyberIndicators,
@@ -824,6 +881,7 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...chokepointIndicators,
   ...sanctionsIndicators,
   ...sanctionedShipIndicators,
+  ...unscIndicators,
 ];
 
 export function getIndicator(id: string): IndicatorDefinition | undefined {

@@ -128,6 +128,16 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 - The window opens when the run starts and is awaited by the last adapter, so it overlaps the other sources.
 - The watchlist is read from the sanctions sources' saved state (about 2,000 vessels with IMO or MMSI).
 
+## v0.21.0 UN Security Council — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| UN Digital Library (MARC XML search) | official | The latest 30 Security Council meeting records (symbol, date, agenda, closed flag, subject countries) and 20 voting records (tally, members voting no or abstaining) |
+| UN Meetings Coverage and Press Releases (RSS) | official | Only items reporting a failed draft or a veto |
+
+- **Not available:** the Security Council website (main.un.org/securitycouncil, un.org/securitycouncil) answers HTTP 202 with an empty body, and press.un.org's Council pages a "Client Challenge" page, to scripted requests.
+- **Vetoes:** vetoed drafts are catalogued without votes, so they are read from press-release titles.
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |

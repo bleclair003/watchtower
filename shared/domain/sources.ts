@@ -695,6 +695,26 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     priority: 'P2',
     feasibility: { checkedAt: '2026-11-21T09:45:00Z', result: 'reachable', note: 'XML 22 MB, HTTP 200, ETag; 6,448 designations generated 2026-11-20.' },
   },
+  {
+    id: 'un-security-council',
+    name: 'Security Council meetings, resolutions and failed drafts',
+    organization: 'United Nations (Digital Library; Meetings Coverage and Press Releases)',
+    website: 'https://digitallibrary.un.org/',
+    endpoint: 'https://digitallibrary.un.org/search (MARC XML); https://press.un.org/en/rss.xml',
+    method: 'api',
+    sourceClass: 'official',
+    defaultCategory: 'diplomatic',
+    coverage: 'Every Security Council meeting (verbatim record or communiqué) and adopted resolution with per-member votes; failed drafts and vetoes from press releases',
+    authentication: 'None',
+    freeAccess: 'Free',
+    expectedUpdateFrequency: 'Meetings catalogued 1–3 days after they happen; press releases the same day',
+    pollIntervalMinutes: 120,
+    reliabilityNotes:
+      'The Security Council website and the press site’s Council pages answer scripted requests with a bot challenge (HTTP 202 / "Client Challenge"), so the UN Digital Library and the press-release RSS are used. Vetoed drafts are catalogued without votes, so vetoes come from press-release titles ("fails to adopt … negative vote"). The press feed holds only the latest 10 items across all UN bodies.',
+    termsNotes: 'United Nations documents; public. Links point to the official records.',
+    priority: 'P2',
+    feasibility: { checkedAt: '2026-11-21T10:30:00Z', result: 'reachable', note: 'Digital Library MARC XML HTTP 200 in ~1 s; press RSS 200 (gzip).' },
+  },
   // ------------------------------------------------------------ research ---
   {
     id: 'centcom-releases',

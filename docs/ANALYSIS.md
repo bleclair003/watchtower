@@ -217,6 +217,16 @@ New designations on the **US OFAC SDN**, **EU** and **UK** sanctions lists, in t
 - **Indicator:** sanctioned vessels in the Baltic (experimental, weight 0) until a baseline exists.
 - **Limits:** only ships with AIS on near volunteer receivers; coverage is good in north-west Europe and absent in the Middle East and Asia. A sanctioned ship at sea is not by itself a violation.
 
+## UN Security Council (v0.21.0)
+
+Security Council meetings, resolutions and failed drafts, in the feed and on region pages (category DIPLOMATIC).
+
+- **Meetings** ([`collector/adapters/unsc.ts`](../collector/adapters/unsc.ts)): one record per meeting record (S/PV.xxxxx), tagged to countries from the UN catalogue's subject terms and the agenda. Closed meetings are marked. Thematic meetings (children and armed conflict, non-proliferation without a country) have no region.
+- **Resolutions:** the tally and the members voting against or abstaining; countries from the linked meeting and the title. A resolution with any no vote or abstention is marked *divided*.
+- **Failed drafts and vetoes:** UN press releases whose title reports a draft that "fails to adopt" or a veto; permanent members named in the text as voting against are listed.
+- **Indicators:** *Security Council attention* (meetings above the 28-day baseline, since many are scheduled mandate renewals) and *draft fails or is vetoed* (30 days).
+- **Limits:** no programme of work or "emergency meeting" label (the Council website refuses scripted requests); meetings are catalogued 1–3 days late.
+
 ## Cost
 
 | Feature | Firestore reads |
