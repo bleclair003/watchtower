@@ -146,6 +146,11 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 
 - **Checked and not used (2026-11-21):** Japan Ministry of Defense notices (Cloudflare challenges scripted clients; the collector does not try to get around bot protection), CNS North Korea missile database at NTI and CTBTO (Cloudflare challenge), South Korea JCS (no feed).
 
+## v0.23.0 US embassy drawdowns — implemented ✅ (no new source)
+
+- Read from the State Department travel advisories already collected: ordered / authorized departure and suspended embassy operations, recorded when they change.
+- **Not available:** US embassy websites and their security-alert RSS feeds (*.usembassy.gov) answer every scripted request with CloudFront 403, curl included.
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |

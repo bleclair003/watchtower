@@ -14,12 +14,58 @@ const DAY = 86_400_000;
 
 export type AdvisoryChange = 'initial' | 'new' | 'raised' | 'lowered' | 'reissued';
 
+/** US embassy posture stated in an advisory: departure of US government staff, suspended operations. */
+export interface EmbassyPosture {
+  departure: 'ordered' | 'authorized' | null;
+  suspended: boolean;
+}
+
 export interface StateAdvisoryState {
   validators: Validators;
-  /** Last known level per advisory (keyed by advisory URL), the baseline for change detection. */
-  advisories: Record<string, { name: string; iso: string | null; level: number; publishedAt: string | null }>;
+  /**
+   * Last known level per advisory (keyed by advisory URL), the baseline for change detection.
+   * `posture` is absent for advisories recorded before v0.23.0 (then the first reading is a baseline).
+   */
+  advisories: Record<string, { name: string; iso: string | null; level: number; publishedAt: string | null; posture?: EmbassyPosture }>;
   baselineAt: string;
 }
+
+/**
+ * Reads the embassy posture from an advisory's text. Ordered/authorized departure means the State
+ * Department has ordered or allowed non-emergency US government staff (and/or families) to leave.
+ * Wording that lifts or ends a departure counts as none.
+ */
+export function advisoryPosture(text: string): EmbassyPosture {
+  const t = text.toLowerCase().replace(/\s+/g, ' ');
+  const lifted = /(lifted|ended|terminated|concluded)[^.]{0,40}(ordered|authorized) departure/.test(t);
+  const ordered = !lifted && /ordered (the )?departure|ordered[^.]{0,60}\bdeparture of\b/.test(t);
+  const authorized = !lifted && !ordered && /authori[sz]ed (the )?departure|authori[sz]ed[^.]{0,60}\bdeparture of\b/.test(t);
+  const resumed = /resumed (normal )?operations/.test(t);
+  const suspended = !resumed && /suspended (its |all )?(normal )?operations|ceased operations|embassy[^.]{0,60}\b(is closed|has closed|closed its)\b/.test(t);
+  return { departure: ordered ? 'ordered' : authorized ? 'authorized' : null, suspended };
+}
+
+export type PostureChange = 'ordered-departure' | 'authorized-departure' | 'operations-suspended' | 'departure-lifted' | 'operations-resumed';
+
+export function postureChanges(before: EmbassyPosture, after: EmbassyPosture): PostureChange[] {
+  const out: PostureChange[] = [];
+  if (after.departure !== before.departure) {
+    if (after.departure === 'ordered') out.push('ordered-departure');
+    else if (after.departure === 'authorized') out.push('authorized-departure');
+    else out.push('departure-lifted');
+  }
+  if (after.suspended && !before.suspended) out.push('operations-suspended');
+  if (!after.suspended && before.suspended) out.push('operations-resumed');
+  return out;
+}
+
+const POSTURE_TEXT: Record<PostureChange, string> = {
+  'ordered-departure': 'ORDERED DEPARTURE of US government staff',
+  'authorized-departure': 'AUTHORIZED DEPARTURE of US government staff',
+  'operations-suspended': 'US EMBASSY OPERATIONS SUSPENDED',
+  'departure-lifted': 'departure of US government staff lifted',
+  'operations-resumed': 'US embassy operations resumed',
+};
 
 /** "Yemen - Level 4: Do Not Travel" → { name: "Yemen", level: 4, label: "Do Not Travel" } */
 export function parseAdvisoryTitle(title: string): { name: string; level: number; label: string } | null {
@@ -83,7 +129,36 @@ export const stateTravelAdvisories: SourceAdapter<StateAdvisoryState> = {
       else if (publishedAt !== known.publishedAt) change = 'reissued';
       else change = null;
 
-      advisories[url] = { name: parsed.name, iso, level: parsed.level, publishedAt };
+      const text = htmlToText(item.description);
+      const posture = advisoryPosture(text);
+      advisories[url] = { name: parsed.name, iso, level: parsed.level, publishedAt, posture };
+      // Embassy posture changes are their own records (a reissue can add an ordered departure without a level change).
+      if (known?.posture && change && change !== 'initial') {
+        for (const pc of postureChanges(known.posture, posture)) {
+          const pid = contentHash(SOURCE_ID, url, 'posture', publishedAt, pc);
+          events.push({
+            id: pid,
+            contentHash: pid,
+            dataOrigin: 'live',
+            sourceId: SOURCE_ID,
+            sourceName: `${def.organization} — ${def.name}`,
+            sourceClass: 'official',
+            sourceUrl: url,
+            title: truncate(`${parsed.name}: ${POSTURE_TEXT[pc]} — State Department travel advisory (Level ${parsed.level})`, LIMITS.title),
+            summary: truncate(text, LIMITS.summary) || undefined,
+            category: 'diplomatic',
+            regionIds: iso ? regionsForCountry(iso) : [],
+            countryCodes: iso ? [iso] : [],
+            publishedAt,
+            occurredAt: null,
+            collectedAt: nowIso,
+            credibility: 'official',
+            verificationStatus: 'unreviewed',
+            locationPrecision: iso ? 'country' : 'none',
+            metadata: { subtype: 'embassy-posture', postureChange: pc, advisoryLevel: parsed.level, advisoryName: parsed.name },
+          });
+        }
+      }
       if (!change) continue;
 
       // First run: baseline only for anything older than the lookback window.
@@ -118,6 +193,8 @@ export const stateTravelAdvisories: SourceAdapter<StateAdvisoryState> = {
           change,
           fipsTag: fips ?? null,
           advisoryName: parsed.name,
+          departure: posture.departure,
+          operationsSuspended: posture.suspended,
         },
       });
     }

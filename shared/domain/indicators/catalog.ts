@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 12;
+export const CATALOG_VERSION = 13;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -923,6 +923,37 @@ const missileIndicators: IndicatorDefinition[] = [
   },
 ];
 
+/** Phase 13 item 7: US embassy drawdowns stated in State Department advisories. */
+const embassyIndicators: IndicatorDefinition[] = STATE_DEPT_REGIONS.map(
+  (r): IndicatorDefinition => ({
+    id: `${r.id}.embassy-drawdown`,
+    name: `${r.shortCode} US embassy drawdown`,
+    description: `A State Department advisory for a ${r.name} country newly states an ordered or authorized departure of US government staff, or suspended embassy operations, within 30 days.`,
+    family: 'diplomatic',
+    regionId: r.id,
+    requiredSourceIds: [STATE],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: STATE },
+        { field: 'regionIds', op: 'contains', value: r.id },
+        { field: 'metadata.subtype', op: 'eq', value: 'embassy-posture' },
+        { field: 'metadata.postureChange', op: 'in', value: ['ordered-departure', 'authorized-departure', 'operations-suspended'] },
+      ],
+    },
+    windowHours: 720,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 1 },
+    baseline: null,
+    weight: 3,
+    severity: 'high',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale:
+      'Ordering staff and families out, or suspending embassy operations, is one of the strongest official signals that a government expects danger, and it usually comes before or with a crisis.',
+  }),
+);
+
 export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...advisoryIndicators,
   ...cyberIndicators,
@@ -938,6 +969,7 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...sanctionedShipIndicators,
   ...unscIndicators,
   ...missileIndicators,
+  ...embassyIndicators,
 ];
 
 export function getIndicator(id: string): IndicatorDefinition | undefined {

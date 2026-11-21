@@ -235,6 +235,13 @@ Security Council meetings, resolutions and failed drafts, in the feed and on reg
 - **Indicators:** launch days (1 = elevated, 2 in 7 days = triggered) and nuclear test reported. The USGS explosion-typed seismic indicator is an independent check on a test.
 - **Why not official sources:** Japan's Ministry of Defense publishes the most detailed notices, but its site's bot protection challenges scripted clients, as do the CNS missile database and CTBTO. WATCHTOWER does not try to get around bot protection.
 
+## US embassy drawdowns (v0.23.0)
+
+- **From the State Department advisories** ([`collector/adapters/stateTravelAdvisories.ts`](../collector/adapters/stateTravelAdvisories.ts)): each advisory's text is read for *ordered departure*, *authorized departure* and *suspended embassy operations*; "lifted", "ended" and "resumed" wording counts as none.
+- **Records** only when a reissued advisory adds or lifts one of these. The conditions in force when tracking began (2026-11-21: Belarus ordered departure; suspended operations in Yemen, Sudan, Afghanistan, Russia and Belarus) are the baseline.
+- **Indicator:** *US embassy drawdown* (30 days, weight 3): one of the strongest official signals that a government expects danger.
+- **Limits:** advisories are reissued after the decision, sometimes days later; embassy security alerts would be faster, but the embassy sites refuse scripted requests.
+
 ## Cost
 
 | Feature | Firestore reads |

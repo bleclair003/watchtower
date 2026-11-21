@@ -186,8 +186,8 @@ Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at
    - [x] Launches and nuclear tests from Yonhap (CNS/NTI, CTBTO and Japan MOD refuse scripted clients) — v0.22.0
    - [x] Indicators: launch days; nuclear test reported
 7. **Embassy alerts and ordered departures**
-   - [ ] Per-embassy US security alerts for watch-region countries (find feeds that work)
-   - [ ] Indicator: ordered or authorised departure
+   - [x] Ordered / authorized departure and suspended operations from the State Department advisories (embassy sites refuse scripted requests) — v0.23.0
+   - [x] Indicator: US embassy drawdown
 
 ### C. US domestic and military
 8. **DoD contract awards** (daily announcements)

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.23.0] — 2026-11-21 — US embassy drawdowns
+
+### Added
+- The State Department advisory adapter now reads each advisory's **embassy posture**: ordered or authorized departure of US government staff, and suspended embassy operations ("lifted" / "ended" / "resumed" wording counts as none).
+- When a reissued advisory adds or lifts one of these, a separate record is created, e.g. "Iraq: ORDERED DEPARTURE of US government staff — State Department travel advisory (Level 4)". Advisory records also carry `departure` and `operationsSuspended`.
+- Catalog v13 (117 indicators): **US embassy drawdown** for the six foreign watch regions (30 days; weight 3, high).
+- On 2026-11-21 the advisories state an ordered departure for Belarus, and suspended operations for Yemen, Sudan, Afghanistan, Russia and Belarus. These standing conditions are the baseline; only changes are recorded.
+
+### Checked and not used
+- US embassy sites (*.usembassy.gov, including their security-alert RSS) refuse all scripted requests (CloudFront 403 "Technical Difficulties", for curl too).
+
+
 ## [0.22.0] — 2026-11-21 — North Korean launches and nuclear tests
 
 ### Added

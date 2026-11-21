@@ -40,7 +40,7 @@ For each indicator, at time `now`:
 - **Fields:** an allow-list (`CONDITION_FIELDS`) of event properties and selected `metadata.*` keys. Lookups are own-property only, so inherited names such as `constructor` are rejected; this is tested.
 - `validateCondition()` and `validateCatalog()` reject malformed definitions, and the catalog is validated in CI.
 
-## Catalog v12 (111 indicators)
+## Catalog v13 (117 indicators)
 
 | Region | Indicator | Window | Elevated / Triggered | Baseline | Weight · Severity |
 |---|---|---|---|---|---|
@@ -72,6 +72,7 @@ For each indicator, at time `now`:
 | each of 6 foreign geographic regions (v11) | Security Council draft fails or is vetoed (press releases) | 30 d | 1 / 1 | — | 2 · high |
 | Korean Peninsula (v12) | North Korean missile, rocket or satellite launch days (Yonhap) | 7 d | 1 / 2 | — | 2 · high |
 | Korean Peninsula (v12) | North Korean nuclear test reported (Yonhap) | 30 d | 1 / 1 | — | 3 · high |
+| each of 6 foreign geographic regions (v13) | US embassy drawdown: an advisory newly states ordered/authorized departure or suspended operations | 30 d | 1 / 1 | — | 3 · high |
 | Experimental | State Dept advisory tempo (global) | 72 h | 6 / 12 | 28 d | 0 |
 | Experimental | Pentagon Pizza Index | — | — | — | 0 · always NO DATA |
 
