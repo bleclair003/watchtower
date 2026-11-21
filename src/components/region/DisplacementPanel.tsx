@@ -2,7 +2,7 @@ import { figureChange, type DisplacementSnapshot } from '@shared/domain/displace
 import { countryName } from '../../lib/regionSummary';
 import { Panel } from '../ui/Panel';
 
-const fmt = (n: number) => (n >= 1e6 ? `${(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)}M` : n >= 1e3 ? `${Math.round(n / 1e3)}k` : n > 0 ? String(n) : '—');
+const fmt = (n: number) => (n >= 999_500 ? `${(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)}M` : n >= 1e3 ? `${Math.round(n / 1e3)}k` : n > 0 ? String(n) : '—');
 
 function Change({ now, before }: { now: number; before: number | undefined }) {
   const c = figureChange(now, before);
