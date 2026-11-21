@@ -162,8 +162,8 @@ Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at
    - [x] AIR map layer with class colours and a click card; limits stated (snapshot, transponders off) — v0.16.0
    - [x] Indicators: tanker/surveillance/bomber and airlift activity per region against a 14-day baseline (experimental)
 2. **US Navy fleet positions** (USNI News Fleet Tracker, weekly)
-   - [ ] Parse carrier and amphibious group positions from the weekly article; approximate areas only, no invented coordinates
-   - [ ] FLEET map layer and indicator: carrier group arrives in a watch region
+   - [x] Parse carrier and amphibious group positions from the weekly article; approximate areas only, markers at named-area reference points (v0.17.0)
+   - [x] FLEET map layer and indicator: carrier or big-deck arrives in a watch region (v0.17.0)
 3. **Ship traffic at chokepoints** (aisstream.io, free key)
    - [ ] Sign-up and terms check (user creates the key; stored as an Actions secret)
    - [ ] Short listen window per run (budget-checked); transit counts for Hormuz, Bab el-Mandeb, Taiwan Strait, Bosporus, Suez

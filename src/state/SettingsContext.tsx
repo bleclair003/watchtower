@@ -18,6 +18,8 @@ export interface OperatorSettings {
   installationsOperator: string;
   /** Military aircraft (ADS-B) layer on the map. */
   aircraft: boolean;
+  /** US Navy fleet (USNI tracker) layer on the map. */
+  fleet: boolean;
 }
 
 export const DEFAULT_SETTINGS: OperatorSettings = {
@@ -29,6 +31,7 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   installations: true,
   installationsOperator: 'ALL',
   aircraft: true,
+  fleet: true,
 };
 
 const KEY = 'wt.settings.v1';

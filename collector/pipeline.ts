@@ -21,6 +21,7 @@ import { runDailyBrief } from './brief/dailyBrief.ts';
 import { validateEvent } from './lib/validate.ts';
 import { truncate } from './lib/text.ts';
 import { AIRCRAFT_SOURCE_ID, type MilitaryAircraftState } from './adapters/militaryAircraft.ts';
+import { FLEET_SOURCE_ID, type FleetState } from './adapters/usniFleet.ts';
 
 export interface PipelineOptions {
   trigger: CollectionRun['trigger'];
@@ -230,6 +231,14 @@ export async function runCollection(
       if (air?.latest) snapshot.aircraft = air.latest;
     } catch (err) {
       log(`AIR  positions not added to the snapshot: ${sanitizeError(err)}`);
+    }
+  }
+  if (tracked.includes(FLEET_SOURCE_ID)) {
+    try {
+      const fleet = await store.getSourceState<FleetState>(FLEET_SOURCE_ID);
+      if (fleet?.latest) snapshot.fleet = fleet.latest;
+    } catch (err) {
+      log(`FLT  fleet positions not added to the snapshot: ${sanitizeError(err)}`);
     }
   }
 

@@ -40,7 +40,7 @@ For each indicator, at time `now`:
 - **Fields:** an allow-list (`CONDITION_FIELDS`) of event properties and selected `metadata.*` keys. Lookups are own-property only, so inherited names such as `constructor` are rejected; this is tested.
 - `validateCondition()` and `validateCatalog()` reject malformed definitions, and the catalog is validated in CI.
 
-## Catalog v6 (70 indicators)
+## Catalog v7 (76 indicators)
 
 | Region | Indicator | Window | Elevated / Triggered | Baseline | Weight · Severity |
 |---|---|---|---|---|---|
@@ -62,6 +62,7 @@ For each indicator, at time `now`:
 | United States (v5) | FEMA major disaster or NWS Extreme alert | 72 h | 1 / 3 | — | 1 · medium |
 | each of 7 geographic regions, experimental (v6) | Tankers, surveillance/command aircraft and bombers seen on ADS-B (each aircraft once a day) | 24 h | 3 / 6 | 14 d, ×2 / ×3 | 0 · never in the RAI |
 | each of 6 geographic regions (not the US), experimental (v6) | Military airlift seen on ADS-B | 24 h | 4 / 8 | 14 d, ×2 / ×3 | 0 · never in the RAI |
+| Middle East, Red Sea, Eastern Europe, South China Sea, Taiwan Strait, Korean Peninsula (v7) | US carrier or big-deck amphibious ship newly listed in the region's sea areas by the USNI News Fleet Tracker | 21 d | 1 / 2 | — | 2 · medium |
 | Experimental | State Dept advisory tempo (global) | 72 h | 6 / 12 | 28 d | 0 |
 | Experimental | Pentagon Pizza Index | — | — | — | 0 · always NO DATA |
 

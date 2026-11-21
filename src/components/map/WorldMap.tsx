@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AIRCRAFT_CLASS_LABEL, aircraftLabel, aircraftTypeName, type AircraftClass, type AircraftPosition } from '@shared/domain/aircraft';
+import { isBigDeck, type FleetArea } from '@shared/domain/fleet';
 import { componentOf, operationOf, type Branch, type Installation, type Operation, type WorldInstallation } from '@shared/domain/installations';
 import '../../lib/maplibreSetup';
 import { Map as MLMap, NavigationControl, Popup, type GeoJSONSource, type MapLayerMouseEvent, type StyleSpecification } from 'maplibre-gl';
@@ -32,6 +33,12 @@ export interface WorldMapProps {
   /** Selected aircraft (ICAO hex). */
   selectedAircraft?: string | null;
   onSelectAircraft?: (hex: string | null) => void;
+  /** US Navy areas from the USNI fleet tracker (approximate), optional. */
+  fleetAreas?: FleetArea[];
+  showFleet?: boolean;
+  /** Selected fleet area (name). */
+  selectedFleetArea?: string | null;
+  onSelectFleetArea?: (name: string | null) => void;
 }
 
 const GLOBAL_VIEW = { center: [35, 22] as [number, number], zoom: 1.35 };
@@ -53,6 +60,11 @@ export const AIRCRAFT_COLOR: Record<AircraftClass, string> = {
   helicopter: '#c8c8c8',
   other: '#8a958f',
 };
+/** Fleet areas: brighter where a carrier or big-deck amphib is listed. */
+export const FLEET_COLOR = { bigDeck: '#69c6d5', other: '#80a992' } as const;
+/** Ship silhouette in a 20x20 box (hull and island), for the map icon and legend. */
+export const SHIP_PATH = 'M1.5 11 L18.5 11 L16 15.5 L4 15.5 Z M10.5 4.5 L12.5 4.5 L12.5 7 L14 7 L14 10.5 L9 10.5 L9 7 L10.5 7 Z';
+
 /** Plane outline in a 20x20 box, pointing north (map icon and legend). */
 export const AIRCRAFT_PATH = 'M10 1.5 L11.4 7.5 L18.5 11.5 L18.5 13 L11.4 11 L11 16 L13.5 17.8 L13.5 18.8 L10 18 L6.5 18.8 L6.5 17.8 L9 16 L8.6 11 L1.5 13 L1.5 11.5 L8.6 7.5 Z';
 
@@ -69,6 +81,10 @@ function registerAircraftIcon(map: MLMap) {
   ctx.fillStyle = '#ffffff';
   ctx.fill(new Path2D(AIRCRAFT_PATH));
   map.addImage('aircraft', ctx.getImageData(0, 0, size, size), { pixelRatio: px, sdf: true });
+  if (map.hasImage('ship')) return;
+  ctx.clearRect(0, 0, 20, 20);
+  ctx.fill(new Path2D(SHIP_PATH));
+  map.addImage('ship', ctx.getImageData(0, 0, size, size), { pixelRatio: px, sdf: true });
 }
 
 /** Rasterize each category's SVG path into a map icon so map and legend match. */
@@ -299,6 +315,46 @@ export function WorldMap(props: WorldMapProps) {
           paint: { 'text-color': '#80a992', 'text-halo-color': '#050a08', 'text-halo-width': 1.2 },
         });
 
+        // US Navy fleet areas (USNI tracker): a wide faint halo says "somewhere in this area".
+        m.addSource('fleet', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({
+          id: 'fleet-halo',
+          type: 'circle',
+          source: 'fleet',
+          paint: {
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 14, 4, 34, 7, 70],
+            'circle-color': ['case', ['get', 'big'], FLEET_COLOR.bigDeck, FLEET_COLOR.other],
+            'circle-opacity': 0.08,
+            'circle-stroke-color': ['case', ['get', 'big'], FLEET_COLOR.bigDeck, FLEET_COLOR.other],
+            'circle-stroke-width': 1,
+            'circle-stroke-opacity': ['case', ['==', ['get', 'name'], '__none__'], 0.9, 0.35],
+          },
+        });
+        m.addLayer({
+          id: 'fleet',
+          type: 'symbol',
+          source: 'fleet',
+          layout: {
+            'icon-image': 'ship',
+            'icon-size': ['interpolate', ['linear'], ['zoom'], 1, 0.75, 6, 1],
+            'icon-allow-overlap': true,
+            'text-field': ['get', 'label'],
+            'text-font': font,
+            'text-size': 10,
+            'text-offset': [0, 1.2],
+            'text-anchor': 'top',
+            'text-optional': true,
+          },
+          paint: {
+            'icon-color': ['case', ['get', 'big'], FLEET_COLOR.bigDeck, FLEET_COLOR.other],
+            'icon-halo-color': '#050a08',
+            'icon-halo-width': 1,
+            'text-color': '#a8d8b8',
+            'text-halo-color': '#050a08',
+            'text-halo-width': 1.2,
+          },
+        });
+
         // Military aircraft (ADS-B): above installations, below event markers.
         m.addSource('aircraft', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
         m.addLayer({
@@ -422,6 +478,8 @@ export function WorldMap(props: WorldMapProps) {
           m.getCanvas().style.cursor = '';
           hover.remove();
         });
+        m.on('mouseenter', 'fleet', () => (m.getCanvas().style.cursor = 'pointer'));
+        m.on('mouseleave', 'fleet', () => (m.getCanvas().style.cursor = ''));
         for (const layer of ['clusters', 'region-fill']) {
           m.on('mouseenter', layer, () => (m.getCanvas().style.cursor = 'pointer'));
           m.on('mouseleave', layer, () => (m.getCanvas().style.cursor = ''));
@@ -438,6 +496,13 @@ export function WorldMap(props: WorldMapProps) {
             : [];
           if (planes[0] && cb.current.onSelectAircraft) {
             cb.current.onSelectAircraft(String(planes[0].properties.hex));
+            return;
+          }
+          const ships = m.getLayoutProperty('fleet', 'visibility') !== 'none'
+            ? m.queryRenderedFeatures([[e.point.x - 8, e.point.y - 8], [e.point.x + 8, e.point.y + 8]], { layers: ['fleet'] })
+            : [];
+          if (ships[0] && cb.current.onSelectFleetArea) {
+            cb.current.onSelectFleetArea(String(ships[0].properties.name));
             return;
           }
           const bases = m.getLayer('installations') && m.getLayoutProperty('installations', 'visibility') !== 'none'
@@ -561,6 +626,40 @@ export function WorldMap(props: WorldMapProps) {
     if (at) m.easeTo({ center: at, zoom: Math.max(m.getZoom(), 6), duration: 600 });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to selection changes
   }, [ready, selectedInstallation]);
+
+  const { fleetAreas, showFleet, selectedFleetArea } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    (m.getSource('fleet') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (fleetAreas ?? []).flatMap((a) => {
+        if (!a.point) return [];
+        const big = a.ships.filter((s) => isBigDeck(s.hullType));
+        const label = big.length ? big.map((s) => s.hull).join(' · ') : `${a.ships.length} ship${a.ships.length === 1 ? '' : 's'}`;
+        return [{
+          type: 'Feature' as const,
+          geometry: { type: 'Point' as const, coordinates: [a.point[1], a.point[0]] },
+          properties: { name: a.name, big: big.length > 0, label },
+        }];
+      }),
+    });
+  }, [ready, fleetAreas]);
+
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    for (const id of ['fleet', 'fleet-halo']) m.setLayoutProperty(id, 'visibility', showFleet ? 'visible' : 'none');
+  }, [ready, showFleet]);
+
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    m.setPaintProperty('fleet-halo', 'circle-stroke-opacity', ['case', ['==', ['get', 'name'], selectedFleetArea ?? '__none__'], 0.95, 0.35]);
+    const a = fleetAreas?.find((x) => x.name === selectedFleetArea);
+    if (a?.point) m.easeTo({ center: [a.point[1], a.point[0]], zoom: Math.max(m.getZoom(), 3), duration: 600 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to selection changes
+  }, [ready, selectedFleetArea]);
 
   const { aircraft, showAircraft, selectedAircraft } = props;
   useEffect(() => {

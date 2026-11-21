@@ -1,4 +1,4 @@
-import { AIRCRAFT_COLOR, AIRCRAFT_PATH, BRANCH_COLOR, OPERATION_COLOR, OPERATION_LABEL } from './WorldMap';
+import { AIRCRAFT_COLOR, AIRCRAFT_PATH, FLEET_COLOR, SHIP_PATH, BRANCH_COLOR, OPERATION_COLOR, OPERATION_LABEL } from './WorldMap';
 import { AIRCRAFT_CLASSES, AIRCRAFT_CLASS_LABEL } from '@shared/domain/aircraft';
 import { useState } from 'react';
 import { EVENT_CATEGORIES } from '@shared/domain/types';
@@ -16,12 +16,14 @@ interface Props {
   operatorFilter?: string;
   /** Aircraft layer: count shown, snapshot age, provider (omit when the layer is off). */
   aircraft?: { count: number; ageMinutes: number; stale: boolean; provider: string; simulated: boolean };
+  /** Fleet layer: big decks listed, tracker date (omit when the layer is off). */
+  fleet?: { bigDecks: number; ships: number; asOf: string; stale: boolean; simulated: boolean };
 }
 
 const BRANCH_LABEL = { army: 'Army', navy: 'Navy', 'air-force': 'Air Force', marines: 'Marines', other: 'Other DoD' } as const;
 
 /** Collapsible legend explaining symbols and location-precision handling. */
-export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, operatorFilter, aircraft }: Props) {
+export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, operatorFilter, aircraft, fleet }: Props) {
   const [open, setOpen] = useState(true);
   return (
     <div className="pointer-events-auto absolute bottom-2 left-2 z-10 max-w-[230px] border border-wt-line-strong bg-wt-panel/95 text-2xs">
@@ -87,6 +89,27 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
                   </ul>
                 </>
               )}
+            </div>
+          )}
+          {fleet && (
+            <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
+              <div className="flex justify-between">
+                <span title="USNI News Fleet and Marine Tracker, weekly, approximate areas">US Navy (USNI){fleet.simulated ? ' · SIMULATED' : ''}</span>
+                <span className="text-wt-fg tabular-nums">{fleet.ships}</span>
+              </div>
+              <p className={fleet.stale ? 'text-wt-warn' : 'text-wt-fg-dim'}>
+                As of {fleet.asOf}{fleet.stale ? ' (out of date)' : ''} · approximate areas
+              </p>
+              <ul className="grid grid-cols-2 gap-x-2">
+                {([['bigDeck', `Carrier / big deck (${fleet.bigDecks})`], ['other', 'Other ships']] as const).map(([k, label]) => (
+                  <li key={k} className="flex items-center gap-1">
+                    <svg viewBox="0 0 20 20" className="size-2.5 shrink-0" aria-hidden>
+                      <path d={SHIP_PATH} fill={FLEET_COLOR[k]} />
+                    </svg>
+                    {label}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
           {aircraft && (

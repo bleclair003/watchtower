@@ -106,6 +106,17 @@ test('military aircraft layer: simulated in demo mode, labelled, and can be hidd
   await expect(page.getByText(/Aircraft \(ADS-B\)/)).toHaveCount(0);
 });
 
+test('US Navy fleet layer: simulated in demo mode, dated, and can be hidden', async ({ page }) => {
+  await openModule(page, '/', 'GOC');
+  const fleet = page.getByRole('button', { name: 'FLEET', exact: true });
+  await expect(fleet).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText(/US Navy \(USNI\) · SIMULATED/)).toBeVisible();
+  await expect(page.getByText(/approximate areas/)).toBeVisible();
+  await fleet.click();
+  await expect(fleet).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByText(/US Navy \(USNI\)/)).toHaveCount(0);
+});
+
 test('military installations: filter by operating country', async ({ page }) => {
   await openModule(page, '/', 'GOC');
   const select = page.getByRole('combobox', { name: 'Show bases operated by' });

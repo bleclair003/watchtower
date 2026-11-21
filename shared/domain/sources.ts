@@ -574,6 +574,26 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     priority: 'P2',
     feasibility: { checkedAt: '2026-11-21T08:22:00Z', result: 'reachable', note: 'adsb.lol HTTP 200 with x-ratelimit-limit 500/day; adsb.fi HTTP 200; airplanes.live 403.' },
   },
+  {
+    id: 'usni-fleet-tracker',
+    name: 'Fleet and Marine Tracker (weekly)',
+    organization: 'USNI News (U.S. Naval Institute)',
+    website: 'https://news.usni.org/category/fleet-tracker',
+    endpoint: 'https://news.usni.org/feed',
+    method: 'rss',
+    sourceClass: 'media',
+    defaultCategory: 'maritime',
+    coverage: 'Deployed US Navy carriers, amphibious groups and other ships, by named sea area or port',
+    authentication: 'None',
+    freeAccess: 'Free RSS (full text of the tracker)',
+    expectedUpdateFrequency: 'Weekly, usually Monday',
+    pollIntervalMinutes: 180,
+    reliabilityNotes:
+      'Approximate positions by named area, based on Navy and public information; published weekly, so up to a week old. The category feed is cached for weeks (latest Oct. 26 on 2026-11-21), so the main feed is used. Article pages refuse scripted access (HTTP 403); the RSS carries the full text. Some weeks are missing from both feeds.',
+    termsNotes: 'Copyright USNI News. WATCHTOWER keeps only facts (ship, hull number, area, date) and links to the article. robots.txt content signals: search=yes, ai-train=no, use=reference; WATCHTOWER uses no AI model.',
+    priority: 'P2',
+    feasibility: { checkedAt: '2026-11-21T08:40:00Z', result: 'reachable', note: 'news.usni.org/feed HTTP 200 with content:encoded; 29 trackers parsed (Apr–Nov 2026).' },
+  },
   // ------------------------------------------------------------ research ---
   {
     id: 'centcom-releases',

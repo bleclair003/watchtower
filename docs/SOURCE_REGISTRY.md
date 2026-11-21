@@ -87,6 +87,15 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 - **Not used:** airplanes.live (asks API users to contact them first, HTTP 403 without).
 - **Probe 2026-11-21 08:22 UTC:** adsb.lol 76 aircraft flagged military, 40 with a position; adsb.fi 89 and 44.
 
+## v0.17.0 US Navy fleet (USNI News) — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| USNI News Fleet and Marine Tracker (`news.usni.org/feed`) | media | The latest weekly tracker, parsed into named areas and ships, for the map. Records when a carrier or big-deck amphibious ship (CVN, LHA, LHD) appears in a new area |
+
+- **Feeds:** the fleet-tracker category feed is cached for weeks (its newest item was Oct. 26 on 2026-11-21), so WATCHTOWER reads the main feed, and the category feed only once for history. Article pages refuse scripted access (HTTP 403); the RSS carries the full text. Checked at most every 3 hours.
+- **Terms:** copyright USNI News. WATCHTOWER keeps only facts (ship, hull number, area, date) and a link, never article text. robots.txt content signals: search=yes, ai-train=no, use=reference. WATCHTOWER runs no AI model on it.
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.17.0] — 2026-11-21 — US Navy fleet (USNI News)
+
+### Added
+- Source 26, the **USNI News Fleet and Marine Tracker** (weekly), read from the main USNI News feed, which carries the full text. Each tracker is parsed into named areas ("Arabian Sea", "Sasebo, Japan") and the ships listed in them.
+- **FLEET** map layer on the GOC: a ship marker with a wide faint halo at each named area's reference point, brighter where a carrier or big-deck amphibious ship is listed, labelled with hull numbers. The card lists the ships, the tracker date and its age, and links to the article. Areas too vague to place ("Japan", "Pacific Ocean") are not drawn.
+- Records when a carrier or big-deck amphibious ship appears in a new area compared with the previous tracker (about one to five a week).
+- Catalog v7 (76 indicators): **US carrier or big-deck arrival** for the Middle East, Red Sea, Eastern Europe, South China Sea, Taiwan Strait and Korean Peninsula (21-day window; 1 = elevated, 2 = triggered; weight 2).
+- Feed parser: reads RSS `content:encoded`.
+
+### Limits
+- Weekly and approximate: positions are up to a week old, by named area only. Some weeks are missing from the feeds. Submarines and most auxiliaries are not listed.
+
+
 ## [0.16.0] — 2026-11-21 — Military aircraft (ADS-B)
 
 ### Added

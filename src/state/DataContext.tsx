@@ -1,4 +1,5 @@
 import type { AircraftSnapshot } from '@shared/domain/aircraft';
+import type { FleetSnapshot } from '@shared/domain/fleet';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '@shared/domain/types';
 import { backendMode } from '../config/firebase';
@@ -28,6 +29,7 @@ interface DataState {
   activeAlertRules: number | null;
   discordConfigured: boolean | null;
   aircraft: AircraftSnapshot | null;
+  fleet: FleetSnapshot | null;
   loading: boolean;
   error: string | null;
   accessDenied: boolean;
@@ -55,6 +57,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
     activeAlertRules: null as number | null,
     discordConfigured: null as boolean | null,
     aircraft: null as AircraftSnapshot | null,
+    fleet: null as FleetSnapshot | null,
     loadedAt: null as string | null,
     readsThisSession: null as number | null,
   });
@@ -86,6 +89,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
         activeAlertRules: d.activeAlertRules,
         discordConfigured: d.discordConfigured,
         aircraft: d.aircraft,
+        fleet: d.fleet,
         loadedAt: new Date().toISOString(),
         readsThisSession: repo.readsThisSession(),
       });

@@ -8,6 +8,8 @@ export interface FeedItem {
   published: string;
   guid: string;
   categories: { domain: string; value: string }[];
+  /** RSS content:encoded (full HTML), or ''. Untrusted. */
+  content: string;
 }
 
 const parser = new XMLParser({
@@ -57,6 +59,9 @@ function xmlDecode(s: string): string {
     .replace(/&amp;/g, '&');
 }
 
+/** CDATA arrives as raw HTML; entity-escaped HTML needs decoding first. */
+const htmlContent = (raw: string) => (/<[a-z]/i.test(raw) ? raw : xmlDecode(raw));
+
 export class FeedParseError extends Error {
   constructor(message: string) {
     super(message);
@@ -82,6 +87,7 @@ export function parseFeed(xml: string): FeedItem[] {
       description: xmlDecode(text(it.description)),
       published: text(it.pubDate) || text(it['dc:date']),
       guid: xmlDecode(text(it.guid)),
+      content: htmlContent(text(it['content:encoded'])),
       categories: ((it.category as unknown[] | undefined) ?? []).map((c) => ({
         domain: typeof c === 'object' && c ? String((c as Record<string, unknown>)['@domain'] ?? '') : '',
         value: xmlDecode(text(c)),
@@ -101,6 +107,7 @@ export function parseFeed(xml: string): FeedItem[] {
         description: xmlDecode(text(e.summary) || text(e.content) || deepText(e.summary) || deepText(e.content)).replace(/\s+/g, ' ').trim(),
         published: text(e.published) || text(e.updated),
         guid: text(e.id),
+        content: '',
         categories: ((e.category as Record<string, unknown>[] | undefined) ?? []).map((c) => ({
           domain: String(c['@scheme'] ?? ''),
           value: String(c['@term'] ?? ''),

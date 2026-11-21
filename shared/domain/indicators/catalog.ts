@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 6;
+export const CATALOG_VERSION = 7;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -623,6 +623,41 @@ const aircraftIndicators: IndicatorDefinition[] = ADVISORY_REGIONS.flatMap((r): 
       ] satisfies IndicatorDefinition[])),
 ]);
 
+const FLEET = 'usni-fleet-tracker';
+/** Regions with sea areas in the USNI tracker. */
+const FLEET_REGIONS = ['middle-east', 'red-sea', 'eastern-europe', 'south-china-sea', 'taiwan-strait', 'korean-peninsula'];
+
+/** Phase 13: US Navy big-deck arrivals (USNI News Fleet Tracker, weekly). */
+const fleetIndicators: IndicatorDefinition[] = ADVISORY_REGIONS.filter((r) => FLEET_REGIONS.includes(r.id)).map(
+  (r): IndicatorDefinition => ({
+    id: `${r.id}.carrier-arrival`,
+    name: `${r.shortCode} US carrier or big-deck arrival`,
+    description: `A US aircraft carrier or amphibious assault ship newly listed in a ${r.name} sea area by the USNI News Fleet Tracker within 21 days.`,
+    family: 'maritime',
+    regionId: r.id,
+    requiredSourceIds: [FLEET],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: FLEET },
+        { field: 'regionIds', op: 'contains', value: r.id },
+        { field: 'metadata.change', op: 'in', value: ['arrived', 'moved'] },
+        { field: 'metadata.hullType', op: 'in', value: ['CVN', 'LHA', 'LHD'] },
+      ],
+    },
+    windowHours: 21 * 24,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 2 },
+    baseline: null,
+    weight: 2,
+    severity: 'medium',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale:
+      'Moving a carrier or amphibious group into a region is a deliberate, costly signal of US posture, and two arrivals within three weeks is a surge. The tracker is weekly and approximate, and a relief in place (one carrier replacing another) also counts as an arrival.',
+  }),
+);
+
 export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...advisoryIndicators,
   ...cyberIndicators,
@@ -632,6 +667,7 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...usIndicators,
   ...experimentalIndicators,
   ...aircraftIndicators,
+  ...fleetIndicators,
 ];
 
 export function getIndicator(id: string): IndicatorDefinition | undefined {

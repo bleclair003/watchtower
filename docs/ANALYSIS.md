@@ -171,6 +171,17 @@ Everything is built from the records the dashboard already loaded (the newest ~7
   - **Coverage is uneven:** dense over Europe and the US, thin over the Gulf, Red Sea, Taiwan Strait and Korea.
   - **Typical volume is small:** about 40 to 90 aircraft with a position worldwide at any moment.
 
+## US Navy fleet (v0.17.0)
+
+**FLEET** on the GOC map (saved per device) shows where the weekly **USNI News Fleet and Marine Tracker** lists deployed US Navy ships.
+
+- **Parsing** ([`collector/adapters/usniFleet.ts`](../collector/adapters/usniFleet.ts)): each "In the …" section of the tracker is an area. A ship counts for an area when its paragraph says where it is now ("is operating in", "is in port", "arrived") or is a strike-group roster line ("homeported …"). The week's narrative before the first area and photo captions are ignored, as are paragraphs about other times ("departed", "relieved", "returned"). Some trackers write area headings as bold paragraphs; those count too.
+- **Where markers go:** at the named area's reference point (centre of a sea, or the port city) from a fixed table ([`shared/domain/fleet.ts`](../shared/domain/fleet.ts)). **A marker is not a ship position.** A wide faint halo says "somewhere in this area". Areas too vague to place ("Japan", "Pacific Ocean") are listed but not drawn. Unknown area names are never guessed.
+- **Records:** a carrier or big-deck amphibious ship (CVN, LHA, LHD) that appears in a new area compared with the previous tracker. Records carry the area's watch region, if any, at region precision; they are never pinned to a point.
+- **Indicator:** *US carrier or big-deck arrival* per region (21 days; 1 arrival = elevated, 2 = triggered). A relief in place (one carrier replacing another) also counts as an arrival.
+- **First run (2026-11-21):** the Nov. 16 tracker showed three carriers in the Arabian Sea (George Washington, George H.W. Bush, Theodore Roosevelt). Theodore Roosevelt had moved there from the Philippine Sea, so the Middle East indicator is ELEVATED.
+- **Limits:** weekly and up to a week old; approximate by area; some weeks missing from the feeds (Nov. 2 and Nov. 9 on 2026-11-21); submarines and most auxiliaries are not listed. A ship is listed under the section USNI puts it in, which can be a port it has just left.
+
 ## Cost
 
 | Feature | Firestore reads |
