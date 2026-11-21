@@ -190,6 +190,12 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 | fawazahmed0/exchange-api (CC0; jsDelivr, pages.dev fallback) | aggregator | Daily rate per watch currency vs USD; 7- and 30-day change; a record only past the threshold |
 | EIA API v2 petroleum spot prices (api.data.gov key in header) | official | Brent and WTI daily prices; a record only on a 10% / 20% move |
 
+## v0.31.0 UNHCR displacement — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| UNHCR population API (`/population/v1/population/`, `coo_all` / `coa_all` totals) | official | Per watch country: refugees and asylum seekers abroad and hosted, IDPs, returns; latest and previous year. Snapshot only, no records |
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |

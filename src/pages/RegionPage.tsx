@@ -18,6 +18,7 @@ import { WorldMap } from '../components/map/WorldMap';
 import { FeedItem } from '../components/goc/FeedItem';
 import { useBases } from '../data/useInstallations';
 import { InstallationCard } from '../components/map/InstallationCard';
+import { DisplacementPanel } from '../components/region/DisplacementPanel';
 
 const MAX_ENTRIES = 60;
 
@@ -213,6 +214,7 @@ export default function RegionPage() {
         </Panel>
 
         <div className="space-y-1.5">
+          {region.countryCodes.length > 0 && id !== 'united-states' && <DisplacementPanel countries={region.countryCodes} data={data.displacement} />}
           <Panel title="Countries named — 7 days" designator="R6">
             {summary.byCountry.length === 0 ? (
               <p className="px-2 py-1.5 text-2xs text-wt-fg-dim">No country-level records.</p>

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.31.0] — 2026-11-21 — Refugee and displacement figures
+
+### Added
+- Source 41, **UNHCR Refugee Data Finder** (official API, no key), once a day: four tables (this year and last, by country of origin and of asylum), 32 watch-region countries.
+- Region pages: **Displacement — UNHCR** panel with people who fled abroad, internally displaced people (IDPs) and refugees hosted, per country, with the change against the previous year when 5% or more. Countries with no figures are named (Taiwan).
+- Context only: no records or indicators, since the figures change twice a year.
+
+### Real data at release (2026 mid-year vs 2025)
+- Lebanon IDPs 64,000 → 431,000; refugees hosted 535,000 → 892,000.
+- Ukraine: 5.2 million refugees abroad, 3.9 million IDPs. Sudan is outside the watch regions.
+
+
 ## [0.30.0] — 2026-11-21 — Economic stress: currencies and oil
 
 ### Added

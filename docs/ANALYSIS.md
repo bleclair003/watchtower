@@ -294,6 +294,13 @@ Security Council meetings, resolutions and failed drafts, in the feed and on reg
 - **Oil:** Brent and WTI spot prices from the EIA; a record on a 10% move in a week or 20% in a month, either way. The experimental spike indicator counts rises only.
 - **Limits:** daily reference rates, not intraday. For the Iranian rial and the Syrian and Lebanese pounds the source does not say whether its rate is official or market, so the level is indicative and the change is the signal. EIA prices are 3–4 days late. Oil moves for many non-security reasons.
 
+## Displacement (v0.31.0)
+
+- **Source:** UNHCR Refugee Data Finder API ([`collector/adapters/unhcr.ts`](../collector/adapters/unhcr.ts)), once a day.
+- **Shown:** on each region page, per country: people who fled abroad (refugees and asylum seekers), internally displaced people, and refugees hosted, with the change against the previous year.
+- **Not an alert:** the figures are published twice a year and describe the situation months earlier, so they are background, not a warning.
+- **Limits:** the current year is a mid-year figure until the annual release; IDP numbers come largely from IDMC; Taiwan and some small states have no UNHCR figures; North Korean refugees are undercounted.
+
 ## Cost
 
 | Feature | Firestore reads |

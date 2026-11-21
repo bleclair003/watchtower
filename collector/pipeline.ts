@@ -23,6 +23,7 @@ import { truncate } from './lib/text.ts';
 import { AIRCRAFT_SOURCE_ID, type MilitaryAircraftState } from './adapters/militaryAircraft.ts';
 import { FLEET_SOURCE_ID, type FleetState } from './adapters/usniFleet.ts';
 import { PORTWATCH_SOURCE_ID, type PortwatchState } from './adapters/portwatch.ts';
+import { UNHCR_SOURCE_ID, type UnhcrState } from './adapters/unhcr.ts';
 import { AIS_SOURCE_ID, type AisSanctionedState } from './adapters/aisSanctioned.ts';
 
 /** Sources fetched at once. One slot can be held for ~25 s by the AIS listening window. */
@@ -303,6 +304,14 @@ export async function runCollection(
       if (ais?.latest) snapshot.sanctionedShips = ais.latest;
     } catch (err) {
       log(`SHP  sanctioned-ship data not added to the snapshot: ${sanitizeError(err)}`);
+    }
+  }
+  if (tracked.includes(UNHCR_SOURCE_ID)) {
+    try {
+      const u = await store.getSourceState<UnhcrState>(UNHCR_SOURCE_ID);
+      if (u?.latest) snapshot.displacement = u.latest;
+    } catch (err) {
+      log(`DSP  displacement figures not added to the snapshot: ${sanitizeError(err)}`);
     }
   }
 

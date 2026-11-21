@@ -875,6 +875,26 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     priority: 'P2',
     feasibility: { checkedAt: '2026-11-21T13:30:00Z', result: 'reachable', note: 'API HTTP 200 with an api.data.gov key.' },
   },
+  {
+    id: 'unhcr-displacement',
+    name: 'Refugee and displacement figures',
+    organization: 'UN Refugee Agency (UNHCR) — Refugee Data Finder',
+    website: 'https://www.unhcr.org/refugee-statistics/',
+    endpoint: 'https://api.unhcr.org/population/v1/population/',
+    method: 'api',
+    sourceClass: 'official',
+    defaultCategory: 'diplomatic',
+    coverage: 'Refugees and asylum seekers from and hosted in each watch-region country, and internally displaced people (IDPs), for the latest and previous year',
+    authentication: 'None',
+    freeAccess: 'Free',
+    expectedUpdateFrequency: 'Twice a year (mid-year and annual releases)',
+    pollIntervalMinutes: 1440,
+    reliabilityNotes:
+      'Official statistics compiled from governments and UNHCR operations; IDP figures come largely from IDMC. The current year is a mid-year figure until the annual release. Slow-moving context for the region pages, so no records or indicators. Taiwan and some small states have no UNHCR figures.',
+    termsNotes: 'UNHCR statistics, quoted as figures with attribution and a link to the Refugee Data Finder.',
+    priority: 'P2',
+    feasibility: { checkedAt: '2026-11-21T13:50:00Z', result: 'reachable', note: 'API HTTP 200, no key; 2026 figures published.' },
+  },
   // ------------------------------------------------------------ research ---
   {
     id: 'centcom-releases',

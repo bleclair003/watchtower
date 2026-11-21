@@ -22,6 +22,7 @@ import { federalRegister } from './federalRegister.ts';
 import { militaryLaunches } from './launches.ts';
 import { whoDiseaseOutbreakNews } from './whoDon.ts';
 import { fxRates, oilPrices } from './economy.ts';
+import { unhcrDisplacement } from './unhcr.ts';
 import { congress } from './congress.ts';
 
 /** Active adapters. Adding a source = write an adapter + register it here. */
@@ -64,6 +65,7 @@ export const ADAPTERS: SourceAdapter<never>[] = [
   whoDiseaseOutbreakNews as SourceAdapter<never>,
   fxRates as SourceAdapter<never>,
   oilPrices as SourceAdapter<never>,
+  unhcrDisplacement as SourceAdapter<never>,
   // Free-key sources: active only when their key is set.
   firms as SourceAdapter<never>,
   cloudflareRadarOutages as SourceAdapter<never>,

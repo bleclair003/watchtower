@@ -2,6 +2,7 @@ import type { AircraftSnapshot } from '@shared/domain/aircraft';
 import type { FleetSnapshot } from '@shared/domain/fleet';
 import type { ChokepointSnapshot } from '@shared/domain/chokepoints';
 import type { SanctionedShipsSnapshot } from '@shared/domain/sanctionedShips';
+import type { DisplacementSnapshot } from '@shared/domain/displacement';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '@shared/domain/types';
 import { backendMode } from '../config/firebase';
@@ -34,6 +35,7 @@ interface DataState {
   fleet: FleetSnapshot | null;
   chokepoints: ChokepointSnapshot | null;
   sanctionedShips: SanctionedShipsSnapshot | null;
+  displacement: DisplacementSnapshot | null;
   loading: boolean;
   error: string | null;
   accessDenied: boolean;
@@ -64,6 +66,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
     fleet: null as FleetSnapshot | null,
     chokepoints: null as ChokepointSnapshot | null,
     sanctionedShips: null as SanctionedShipsSnapshot | null,
+    displacement: null as DisplacementSnapshot | null,
     loadedAt: null as string | null,
     readsThisSession: null as number | null,
   });
@@ -98,6 +101,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
         fleet: d.fleet,
         chokepoints: d.chokepoints,
         sanctionedShips: d.sanctionedShips,
+        displacement: d.displacement,
         loadedAt: new Date().toISOString(),
         readsThisSession: repo.readsThisSession(),
       });

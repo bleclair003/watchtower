@@ -208,7 +208,7 @@ Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at
    - [x] Daily currency moves for watch-region countries; Brent/WTI — v0.30.0
    - [x] Indicators: sharp currency drop; oil price spike — v0.30.0
 15. **Refugee flows** (UNHCR API)
-   - [ ] Displacement figures per country on region pages (slow-moving: context, not alerts)
+   - [x] Displacement figures per country on region pages (slow-moving: context, not alerts) — v0.31.0
 
 ### E. Analysis on existing data
 16. **What changed** (no new source)
