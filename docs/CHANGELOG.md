@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.50.1] — 2026-11-21
+
+### Fixed
+- The space weather meter showed "data as of 2d ago" because it used the time of NASA's model run; it now shows when the feeds were last read.
+
+
 ## [0.50.0] — 2026-11-21 — CME detector and space weather (Phase 19)
 
 ### Added

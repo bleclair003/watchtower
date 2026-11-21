@@ -58,7 +58,8 @@ export function spaceWeatherMeter(input: MeterInput): Meter {
     reading,
     components,
     evidence: evidenceOf(records, (e) => (e.sourceId === 'noaa-swpc' ? 'NOAA message' : 'NASA DONKI')),
-    asOf: newest(records) ?? sw.fetchedAt,
+    // The feeds are read every run: their fetch time is the data's age (a model run can be days old).
+    asOf: [sw.fetchedAt, newest(records)].filter((x): x is string => !!x).sort().pop() ?? null,
     baseline: 'none',
     notes: [
       'Strong geomagnetic storms (G3+) degrade GPS accuracy, HF radio and satellite operations and stress power grids; radio blackouts (R3+) cut HF on the sunlit side of Earth.',
