@@ -40,6 +40,11 @@ export interface AlertingResult {
  * Writing before sending means a crash can leave an alert "pending" but can
  * never cause a duplicate notification for the same input.
  */
+/** A label for public run logs that does not reveal the rule's name or a watchlist term. */
+export function publicRuleLabel(ruleId: string): string {
+  return `${ruleId.startsWith('watch-') ? 'watchlist item' : 'rule'} ${contentHash('log-label', ruleId).slice(0, 6)}`;
+}
+
 export async function runAlerting(store: CollectorStore, opts: AlertingOptions): Promise<AlertingResult> {
   const log = opts.log ?? (() => {});
   const nowIso = new Date(opts.now).toISOString();
@@ -168,7 +173,8 @@ export async function runAlerting(store: CollectorStore, opts: AlertingOptions):
       }
       await store.updateAlertDelivery(alerts.map((a) => a.id), delivery);
     }
-    log(`ALRT ${rule.name}: ${alerts.length} new alert(s) · discord ${outcome}`);
+    // Run logs are public (public repository): never print rule names or watchlist terms.
+    log(`ALRT ${publicRuleLabel(rule.id)}: ${alerts.length} new alert(s) · discord ${outcome}`);
   }
 
   await store.putAlertingState({ lastNotifiedAt: lastNotified, updatedAt: nowIso });

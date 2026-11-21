@@ -142,7 +142,9 @@ A successful call returns **HTTP 204**, and a Collect run appears in GitHub Acti
 
 **If the token leaks**, the worst anyone can do is start or cancel this repository's workflows (using Actions minutes). Revoke it on GitHub and make a new one.
 
-**Minutes:** each run bills 1 minute. Every 30 min ≈ 1,440 a month, plus ≈ 120 for the fallback and 3–4 per push for CI: about 1,600 of the 2,000 free minutes for private repositories. If CI pushes get heavy in a month, drop back to hourly (minute 0 only). 15-minute collection would need a public repository (unlimited minutes).
+**Minutes:** the repository is **public** (since 2026-11-21), so Actions minutes are unlimited and a run may take longer than a minute. While it was private, each run had to stay under 60 seconds (billed per started minute against 2,000 free minutes a month).
+
+**Public run logs:** anyone can read the Actions logs. The collector never prints secrets, alert-rule names or watchlist terms (alerts are logged by a short hash), and the grant-owner script prints no uid or email. Keep it that way when adding log lines.
 
 ## 5. Secrets policy
 

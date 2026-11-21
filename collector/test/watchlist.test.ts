@@ -74,3 +74,16 @@ describe('watchlist alerts in the collector', () => {
     expect(r.created).toBe(0);
   });
 });
+
+describe('public run logs', () => {
+  it('never contain watchlist terms or rule names', async () => {
+    const store = new MemoryStore();
+    store.watchlists.set('owner-uid', list([item('Wagner', { alert: true })]));
+    store.watchlists.set('other', { items: [{ term: 'Secret Person' }], updatedAt: iso(NOW), version: 1 });
+    const lines: string[] = [];
+    await runAlerting(store, { now: NOW, newEvents: [ev('Wagner convoy crosses border')], transitions: [], previousScores: [], currentScores: [], currentEvaluations: [], previousEvaluatedAt: null, discordWebhookUrl: null, log: (m) => lines.push(m) });
+    expect(lines.length).toBeGreaterThan(0);
+    expect(lines.join('\n')).not.toMatch(/Wagner|Secret Person/i);
+    expect(lines[0]).toMatch(/^ALRT watchlist item [0-9a-f]{6}: 1 new alert/);
+  });
+});

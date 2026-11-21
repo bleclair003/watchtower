@@ -6,7 +6,7 @@ updated: 2026-11-21
 
 # WATCHTOWER — vault home
 
-Personal OSINT early-warning console. **Live:** https://watchtower-b9b2a.web.app (owner sign-in) · **Repo:** github.com/bleclair003/watchtower (private) · **Collection:** hourly GitHub Actions run.
+Personal OSINT early-warning console. **Live:** https://watchtower-b9b2a.web.app (owner sign-in) · **Repo:** github.com/bleclair003/watchtower (public since 2026-11-21) · **Collection:** hourly GitHub Actions run.
 
 This folder is both the git repository and the Obsidian vault. Notes and code live side by side; code files show in the file explorer (they open in your editor). Build output and `node_modules` are excluded from search and the graph.
 
@@ -63,4 +63,4 @@ node collector/inspect.ts bbc-world   # how live items would be tagged
 
 ## Secrets — never in this vault
 
-The Firebase service-account key lives outside the repo (`C:\Users\Brody\.watchtower\`). API keys and the Discord webhook are GitHub Actions secrets only. `.env.local` holds the public web config and is git-ignored. If you enable Obsidian Sync for this vault, keep it to notes only.
+The Firebase service-account key lives outside the repo (`%USERPROFILE%\.watchtower\`). API keys and the Discord webhook are GitHub Actions secrets only. `.env.local` holds the public web config and is git-ignored. If you enable Obsidian Sync for this vault, keep it to notes only.

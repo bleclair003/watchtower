@@ -18,7 +18,7 @@ import { CATALOG_VERSION, INDICATOR_CATALOG } from '../shared/domain/indicators/
 import { evaluateAll, requiredLookbackHours } from '../shared/domain/indicators/evaluate.ts';
 import { appendScoreHistory, computeAllRegionScores } from '../shared/domain/indicators/rai.ts';
 import type { IndicatorDefinition, IndicatorTransition, RegionScore } from '../shared/domain/indicators/types.ts';
-import { runAlerting } from './alerts/alerting.ts';
+import { publicRuleLabel, runAlerting } from './alerts/alerting.ts';
 import type { SourceAdapter } from './adapters/types.ts';
 import type { CollectorStore } from './store/types.ts';
 import { politeFetch, type FetchOptions } from './lib/http.ts';
@@ -272,7 +272,8 @@ export async function runCollection(
     snapshot.activeAlertRules = alerting.activeRules;
     snapshot.alertRuleProblems = alerting.problems;
     for (const e of alerting.errors) run.errors.push({ sourceId: 'alert-delivery', message: sanitizeError(e) });
-    for (const p of alerting.problems) log(`ALRT rule "${p.ruleName}" invalid, skipped: ${p.problems.join('; ')}`);
+    // Names stay out of the public run log; the problems are shown in full on the Alerts page.
+    for (const p of alerting.problems) log(`ALRT ${p.ruleId === 'watchlist' ? 'watchlist' : publicRuleLabel(p.ruleId)} invalid, skipped (${p.problems.length} problem(s))`);
   } catch (err) {
     run.errors.push({ sourceId: 'alert-engine', message: sanitizeError(err) });
     log(`ALRT FAILED: ${sanitizeError(err)}`);

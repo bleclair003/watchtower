@@ -40,7 +40,8 @@ async function main(): Promise<number> {
   if (values.revoke) delete claims.owner;
   else claims.owner = true;
   await auth.setCustomUserClaims(user.uid, claims);
-  console.log(`${values.revoke ? 'Revoked' : 'Granted'} owner claim for uid ${user.uid}${emulator ? ' (emulator)' : ''}.`);
+  // Run logs are public: no uid or email here.
+  console.log(`${values.revoke ? 'Revoked' : 'Granted'} owner claim${emulator ? ' (emulator)' : ''}.`);
   console.log('The user must click RECHECK ACCESS (or sign out and in) for the change to take effect.');
   return 0;
 }
