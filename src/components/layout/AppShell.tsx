@@ -17,6 +17,7 @@ const NAV: NavItem[] = [
   { to: '/diagnostics', label: 'DIAGNOSTICS' },
   { to: '/settings', label: 'SETTINGS' },
   { to: '/indicators', label: 'INDICATORS' },
+  { to: '/meters', label: 'METERS' },
   { to: '/alerts', label: 'ALERTS' },
   { to: '/dossiers', label: 'DOSSIERS' },
   { to: '/sitrep', label: 'SITREP' },

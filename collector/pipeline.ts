@@ -2,6 +2,10 @@ import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../shared/d
 import { getSource } from '../shared/domain/sources.ts';
 import { computeBaseActivity } from '../shared/domain/baseActivity.ts';
 import { loadBases } from './lib/bases.ts';
+import { computeMeters } from '../shared/domain/meters/index.ts';
+import type { MetersSnapshot } from '../shared/domain/meters/types.ts';
+import { appendLong, leadLag, type HistoryPoint } from '../shared/domain/meters/history.ts';
+import { LAUNCHES_SOURCE_ID, type LaunchesState } from './adapters/launches.ts';
 import { computeHealth } from '../shared/domain/health.ts';
 import {
   SNAPSHOT_MAX_BYTES,
@@ -243,7 +247,7 @@ export async function runCollection(
 
   const tracked = opts.trackedSourceIds ?? adapters.map((a) => a.sourceId);
   const tSnapshot = clock();
-  const { snapshot, transitions, previousScores, previousEvaluatedAt } = await buildSnapshot(store, run, tracked, opts.catalog ?? INDICATOR_CATALOG, now(), log);
+  const { snapshot, loaded, transitions, previousScores, previousEvaluatedAt } = await buildSnapshot(store, run, tracked, opts.catalog ?? INDICATOR_CATALOG, now(), log);
   phases.push(['snapshot+indicators', clock() - tSnapshot]);
   const tAfter = clock();
 
@@ -317,6 +321,41 @@ export async function runCollection(
     }
   }
 
+  // Meters and monitors (Phase 14): computed over everything loaded, written in the final writes.
+  let meters: MetersSnapshot | null = null;
+  let meterHistory: HistoryPoint[] | null = null;
+  try {
+    const t = now();
+    const [previousMeters, launches, longRaw] = await Promise.all([
+      store.getMetersSnapshot(),
+      tracked.includes(LAUNCHES_SOURCE_ID) ? store.getSourceState<LaunchesState>(LAUNCHES_SOURCE_ID) : Promise.resolve(null),
+      store.getCollectorState<{ packed: string }>(METER_HISTORY_KEY),
+    ]);
+    const historyStart = loaded.reduce((m, e) => Math.min(m, Date.parse(e.collectedAt)), Infinity);
+    meters = computeMeters({
+      now: t,
+      events: loaded,
+      historyStart: Number.isFinite(historyStart) ? historyStart : null,
+      sourceStatus: snapshot.sourceStatus,
+      regionScores: snapshot.regionScores ?? [],
+      scoreHistory: snapshot.scoreHistory ?? [],
+      aircraft: snapshot.aircraft ?? null,
+      fleet: snapshot.fleet ?? null,
+      chokepoints: snapshot.chokepoints ?? null,
+      sanctionedShips: snapshot.sanctionedShips ?? null,
+      displacement: snapshot.displacement ?? null,
+      upcomingLaunches: launches?.upcoming ?? [],
+      previous: previousMeters,
+    });
+    meterHistory = appendLong(longRaw ? (JSON.parse(longRaw.packed) as HistoryPoint[]) : [], meters.history[meters.history.length - 1]);
+    meters.leadLag = leadLag(meterHistory, t);
+    const raised = meters.meters.filter((m) => m.level !== null && m.level >= 3 && m.family !== 'quality').length;
+    log(`MTR  ${meters.meters.length} meters · ${raised} elevated or high · ${meters.historyDays} d history · ${meterHistory.length} long-history points`);
+  } catch (err) {
+    meters = null;
+    log(`MTR  meters not computed: ${sanitizeError(err)}`);
+  }
+
   // Daily brief: once a day, after the snapshot is complete, so it reflects this run.
   // Only when the caller configures it (the collector CLI always does; unit tests opt in).
   if (opts.mode !== 'evaluate-only' && opts.brief) {
@@ -344,6 +383,14 @@ export async function runCollection(
   const tWrite = clock();
   await store.putRun(run);
   await store.putSnapshot(snapshot);
+  if (meters && meterHistory) {
+    try {
+      await store.putMetersSnapshot(meters);
+      await store.putCollectorState(METER_HISTORY_KEY, { packed: JSON.stringify(meterHistory), updatedAt: run.finishedAt });
+    } catch (err) {
+      log(`MTR  meters not written: ${sanitizeError(err)}`);
+    }
+  }
   phases.push(['final writes', clock() - tWrite]);
   log(`TIME ${phases.map(([n, ms]) => `${n} ${secs(ms)}`).join(' · ')}`);
   return { run, reports, snapshot };
@@ -358,6 +405,8 @@ export function snapshotLookbackHours(catalog: IndicatorDefinition[]): number {
  * from day buckets (~46 reads, no cap); this cap only applies outside the bucket window.
  */
 export const EVENT_QUERY_LIMIT = 20_000;
+/** Collector-only long meter history (packed, one point per 3 hours, 120 days). */
+export const METER_HISTORY_KEY = 'meterHistory';
 
 const eventTime = (e: { publishedAt: string | null; collectedAt: string }) => e.publishedAt ?? e.collectedAt;
 
@@ -376,6 +425,7 @@ export async function buildSnapshot(
   log: (msg: string) => void = () => {},
 ): Promise<{
   snapshot: DashboardSnapshot;
+  loaded: IntelligenceEvent[];
   transitions: IndicatorTransition[];
   previousScores: RegionScore[];
   previousEvaluatedAt: string | null;
@@ -440,6 +490,7 @@ export async function buildSnapshot(
   }
   return {
     snapshot,
+    loaded,
     transitions,
     previousScores: previous?.regionScores ?? [],
     previousEvaluatedAt: previous?.indicatorEvaluations?.[0]?.evaluatedAt ?? null,

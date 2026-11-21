@@ -12,6 +12,7 @@ export const ROUTES = [
   { path: '/sitrep', title: 'SITREP' },
   { path: '/replay', title: 'REPLAY' },
   { path: '/signal-lab', title: 'SIGNAL LAB' },
+  { path: '/meters', title: 'METERS' },
   { path: '/regions', title: 'REGIONS' },
   { path: '/regions/middle-east', title: 'MIDEAST' },
   { path: '/regions/united-states', title: 'USA' },

@@ -14,6 +14,7 @@ import { INDICATOR_STATE_TONE } from '../config/indicators';
 import { SeriesChart } from '../components/charts/SeriesChart';
 import { Panel } from '../components/ui/Panel';
 import { Lamp, Tag } from '../components/ui/Tag';
+import { LeadLagPanel } from '../components/meters/LeadLagPanel';
 
 const H = 3_600_000;
 const D = 24 * H;
@@ -260,6 +261,8 @@ export default function SignalLabPage() {
           </Panel>
         </>
       )}
+
+      <LeadLagPanel result={data.meters?.leadLag ?? null} />
 
       <Panel title="Experimental Signals — Unvalidated" designator="X">
         <p className="border-b border-wt-line px-2 py-1.5 text-2xs text-wt-warn">

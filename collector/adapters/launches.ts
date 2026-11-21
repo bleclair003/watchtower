@@ -1,3 +1,4 @@
+import type { UpcomingLaunch } from '../../shared/domain/meters/input.ts';
 import type { IntelligenceEvent } from '../../shared/domain/types.ts';
 import { regionsForCountry } from '../../shared/domain/regions.ts';
 import { contentHash } from '../lib/hash.ts';
@@ -83,6 +84,17 @@ export function launchEvents(launches: LL2Launch[], nowMs: number): Intelligence
 
 export interface LaunchesState {
   lastFetchedAt: string;
+  /** Scheduled military launches in the next 30 days (for the meters calendar). */
+  upcoming?: UpcomingLaunch[];
+}
+
+/** Military launches not yet flown, within 30 days, soonest first. */
+export function upcomingLaunches(launches: LL2Launch[], nowMs: number): UpcomingLaunch[] {
+  return launches
+    .filter((l) => !DONE.has(l.status?.abbrev ?? '') && isMilitaryLaunch(l) && /^\d{4}-\d{2}-\d{2}T/.test(l.net) && Date.parse(l.net) > nowMs && Date.parse(l.net) <= nowMs + 30 * 86_400_000)
+    .sort((a, b) => a.net.localeCompare(b.net))
+    .slice(0, 20)
+    .map((l) => ({ name: l.name, net: new Date(Date.parse(l.net)).toISOString(), provider: l.launch_service_provider?.name ?? null, country: ownerCountry(l), status: l.status?.name ?? l.status?.abbrev ?? 'scheduled', url: null }));
 }
 
 /**
@@ -100,6 +112,6 @@ export const militaryLaunches: SourceAdapter<LaunchesState> = {
     if (res.kind !== 'ok') throw new Error('Launch Library 2: unexpected 304');
     const body = JSON.parse(res.body) as { results?: LL2Launch[]; detail?: string };
     if (!Array.isArray(body.results)) throw new Error(`Launch Library 2: ${body.detail ?? 'unexpected response'}`);
-    return { events: launchEvents(body.results, ctx.now), rejected: [], itemsSeen: body.results.length, notModified: false, state: { lastFetchedAt: new Date(ctx.now).toISOString() } };
+    return { events: launchEvents(body.results, ctx.now), rejected: [], itemsSeen: body.results.length, notModified: false, state: { lastFetchedAt: new Date(ctx.now).toISOString(), upcoming: upcomingLaunches(body.results, ctx.now) } };
   },
 };

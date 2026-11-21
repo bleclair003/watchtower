@@ -162,3 +162,23 @@ test('military installations: filter by operating country', async ({ page }) => 
   await select.selectOption('ALL');
   await expect(page.getByText(/Operated by .* only/)).toHaveCount(0);
 });
+
+test('meters: region grid opens a detail with parts and limits; region page has a meter strip', async ({ page, problems }) => {
+  await openModule(page, '/meters', 'METERS');
+  await expect(page.getByText(/None is a probability of conflict/)).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Meters and monitors' }).getByText('SIMULATED')).toBeVisible();
+  const ladder = page.getByRole('row', { name: /MIDEAST/ }).getByRole('button').first();
+  await ladder.click();
+  await expect(page).toHaveURL(/m=escalation\.middle-east/);
+  const detail = page.getByRole('article', { name: 'MIDEAST escalation ladder' });
+  await expect(detail.getByText('4 Consequences')).toBeVisible();
+  await expect(detail.getByText(/Rungs describe the kind of activity/)).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Days since' })).toBeVisible();
+  await expect(page.getByRole('region', { name: /Coming up/ }).getByText(/Classified payload/)).toBeVisible();
+
+  await openModule(page, '/regions/middle-east', 'MIDEAST');
+  const strip = page.getByRole('list', { name: 'Region meters' });
+  await strip.getByRole('button', { name: /Escalation ladder/ }).click();
+  await expect(page.getByRole('article', { name: 'MIDEAST escalation ladder' })).toBeVisible();
+  expect(problems).toEqual([]);
+});

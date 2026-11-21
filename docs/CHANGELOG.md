@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.35.0] — 2026-11-21 — Meters and monitors (Phase 14)
+
+### Added
+- **21 meters and monitors** computed by the collector every run (see [docs/METERS.md](METERS.md)): escalation ladder, evacuation risk and buildup vs noise per region; air surge, naval presence, maritime risk per chokepoint, sanctions pressure, arms flow, Washington attention, diplomatic temperature, strategic weapons, information blackout, economic stress, humanitarian strain, homeland board and cyber weather; days-since counters; a 30-day calendar; corroboration and visibility per region; and a lead/lag lab.
+- **METERS page** (new module): region grid, topic monitors, counters, calendar, and a detail view with each meter's parts, evidence, limits and a sparkline of recent runs. **Meters strip** on every region page. **Lead/lag lab** in Signal Lab.
+- Meters are stored in `snapshots/meters` (one extra read per dashboard load); a collector-only long history (`collectorState/meterHistory`, 3-hourly, 120 days) feeds the lead/lag lab.
+- Launch Library 2: scheduled military launches in the next 30 days are kept for the calendar (same request as before).
+
+### Limits
+- Meters that compare against a usual level show BUILDING until 14 days of records exist (around 2026-12-04).
+- No meter is a probability of conflict or attack; each shows its evidence and data date.
+
+
 ## [0.34.0] — 2026-11-21 — Watchlist
 
 ### Added

@@ -1,3 +1,4 @@
+import type { MetersSnapshot } from '../../shared/domain/meters/types.ts';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../../shared/domain/types.ts';
 import type { DashboardSnapshot } from '../../shared/domain/snapshot.ts';
 import type { IndicatorTransition, ScoreHistoryPoint } from '../../shared/domain/indicators/types.ts';
@@ -65,6 +66,13 @@ export class MemoryStore implements CollectorStore {
   }
   async getSnapshot() {
     return this.snapshot ? structuredClone(this.snapshot) : null;
+  }
+  meters: MetersSnapshot | null = null;
+  async getMetersSnapshot() {
+    return this.meters ? structuredClone(this.meters) : null;
+  }
+  async putMetersSnapshot(m: MetersSnapshot) {
+    this.meters = structuredClone(m);
   }
   async putSnapshot(s: DashboardSnapshot) {
     this.snapshot = structuredClone(s);

@@ -1,3 +1,4 @@
+import type { MetersSnapshot } from '../../shared/domain/meters/types.ts';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../../shared/domain/types.ts';
 import type { DashboardSnapshot } from '../../shared/domain/snapshot.ts';
 import type { IndicatorTransition, ScoreHistoryPoint } from '../../shared/domain/indicators/types.ts';
@@ -23,6 +24,8 @@ export interface CollectorStore {
   /** Collector-private bookkeeping documents (collectorState/{key}). */
   getCollectorState<T>(key: string): Promise<T | null>;
   putCollectorState(key: string, value: unknown): Promise<void>;
+  getMetersSnapshot(): Promise<MetersSnapshot | null>;
+  putMetersSnapshot(m: MetersSnapshot): Promise<void>;
   /** Stored events by id (missing ids are omitted). Used only for revisable sources. */
   getEvents(ids: string[]): Promise<IntelligenceEvent[]>;
   /** Overwrites existing events (revisions of revisable sources). */

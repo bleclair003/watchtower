@@ -218,3 +218,60 @@ Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at
    - [x] Records near or naming each base this week against its usual level; flag unusual activity on the map and the card — v0.33.0 (flags from 21 days of history)
 18. **Watchlist**
    - [x] Your own list of people, units, bases or terms; matching records are highlighted and can trigger alerts (stored per user, Firestore rules updated) — v0.34.0
+
+## Phase 14 — Meters and monitors ✅ (v0.35.0, 2026-11-21; see [METERS.md](METERS.md))
+
+Analysis across the sources already collected. Every meter shows its evidence, the date its data is from, and whether its baseline is still being built; none states a probability. Computed by the collector each run (pure functions in `shared/domain/meters/`) and stored in the snapshot with a short history.
+
+### A. Region composite meters
+1. **Escalation ladder** (per region)
+   - [x] Highest active rung — rhetoric → posture → kinetic → consequence — with the evidence for each rung
+2. **Evacuation risk** (per region)
+   - [x] Embassy departure posture, US/UK travel-advice changes, airlift aircraft in the area, currency stress
+3. **Quiet buildup vs noise** (per region)
+   - [x] News volume against hard posture signals, each relative to its usual level: "hype" or "quiet buildup"
+
+### B. Topic monitors
+4. **Air surge**
+   - [x] Tanker, airlift and surveillance aircraft per watch area against the usual level
+5. **Naval presence**
+   - [x] Big-deck ships per theatre (USNI), strait traffic, sanctioned ships seen
+6. **Maritime risk** (per strait)
+   - [x] Transit drop, oil move and maritime news per strait
+7. **Sanctions pressure**
+   - [x] New US/EU/UK designations per target country per week, plus sanctioned ships seen
+8. **Arms flow**
+   - [x] Munitions contract dollars, FMS to watch partners, BIS export rules, congressional arms-sale challenges
+9. **Washington attention**
+   - [x] National emergencies, presidential security documents, war powers resolutions, security hearings, NTAS
+10. **Diplomatic temperature**
+   - [x] UNSC meetings and failed drafts, travel-advisory raises, DPRK statements
+11. **Strategic weapons**
+   - [x] Military and classified launches, DPRK missile reports, IAEA news, nuclear-related actions in Congress
+12. **Information blackout**
+   - [x] Government-directed or military outages, plus a sudden drop in reporting from a region
+13. **Economic stress gauge**
+   - [x] Currency, oil and chokepoint traffic per region
+14. **Humanitarian strain**
+   - [x] WHO outbreak reports, displacement, orange/red disaster alerts, fire clusters in conflict zones
+15. **Homeland board**
+   - [x] NTAS, security and VIP flight restrictions, FEMA declarations, severe weather, ransomware-linked KEV
+16. **Cyber weather**
+   - [x] CISA advisories, KEV (ransomware weighted), outages: low / guarded / elevated / high
+
+### C. Counters and clocks
+17. **Days since**
+   - [x] Last DPRK launch, UNSC emergency meeting, carrier in the Gulf, ordered departure, government shutdown of the internet (carried across runs)
+18. **Upcoming calendar**
+   - [x] Scheduled military launches and other dated items from collected sources
+
+### D. Quality and confidence
+19. **Corroboration**
+   - [x] Share of a region's stories corroborated by several publishers or an official source
+20. **Visibility**
+   - [x] How much of each region WATCHTOWER can see: sources online, data lag, known sensor gaps
+21. **Lead/lag lab** (Signal Lab)
+   - [x] Which meters moved before RAI rises, once history exists
+
+### E. Presentation
+   - [x] Meters page; meter strip on each region page; meter history for sparklines; demo-mode meters (simulated)

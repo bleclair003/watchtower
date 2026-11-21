@@ -19,6 +19,8 @@ import type { DisplacementSnapshot } from '@shared/domain/displacement';
 import { buildDemoDisplacement } from './demo/demoDisplacement';
 import type { BaseActivitySnapshot } from '@shared/domain/baseActivity';
 import { buildDemoBaseActivity } from './demo/demoBaseActivity';
+import type { MetersSnapshot } from '@shared/domain/meters/types';
+import { buildDemoMeters } from './demo/demoMeters';
 
 /**
  * Data access boundary for the UI.
@@ -54,6 +56,8 @@ export interface DashboardData {
   displacement: DisplacementSnapshot | null;
   /** Activity near bases, or null. */
   baseActivity: BaseActivitySnapshot | null;
+  /** Meters and monitors (Phase 14), or null before the first run that computed them. */
+  meters: MetersSnapshot | null;
 }
 
 export interface IntelRepository {
@@ -84,7 +88,7 @@ export class DemoRepository implements IntelRepository {
     // sources, so every indicator honestly reports DATA_UNAVAILABLE and RAI is N/E.
     const now = Date.now();
     const { evaluations } = evaluateAll(INDICATOR_CATALOG, this.events, [], now);
-    return {
+    const data: Omit<DashboardData, 'meters'> = {
       indicatorEvaluations: evaluations,
       regionScores: computeAllRegionScores(INDICATOR_CATALOG, evaluations, now),
       scoreHistory: [],
@@ -113,6 +117,7 @@ export class DemoRepository implements IntelRepository {
       generatedAt: null,
       totalEventsStored: null,
     };
+    return { ...data, meters: buildDemoMeters(now, this.events, data) };
   }
 
   readsThisSession() {

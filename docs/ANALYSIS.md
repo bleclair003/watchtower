@@ -321,6 +321,10 @@ Security Council meetings, resolutions and failed drafts, in the feed and on reg
 - **Alerts:** each item set to alert acts as an event rule for new records collected after the item was added; alerts go through the normal store, deduplication, cooldown (60 minutes per item) and Discord delivery.
 - **Storage and security:** one document per user (`watchlists/{uid}`), owner-only, version-checked by the Firestore rules (tested against the emulator).
 
+## Meters and monitors (v0.35.0)
+
+Twenty-one meters built from the collected sources: see [METERS.md](METERS.md) for every rule, threshold, the real-data review and the limits.
+
 ## Cost
 
 | Feature | Firestore reads |

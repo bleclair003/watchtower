@@ -1,5 +1,6 @@
 import { doc, getDoc, FirestoreError } from 'firebase/firestore';
-import { COLLECTIONS, SNAPSHOT_DOC_ID, type DashboardSnapshot } from '@shared/domain/snapshot';
+import type { MetersSnapshot } from '@shared/domain/meters/types';
+import { COLLECTIONS, SNAPSHOT_DOC_ID, METERS_DOC_ID, type DashboardSnapshot } from '@shared/domain/snapshot';
 import { getFirebase } from './firebaseClient';
 import { PermissionDeniedError, type DashboardData, type DataMode, type IntelRepository } from './repository';
 
@@ -15,6 +16,18 @@ export class FirestoreRepository implements IntelRepository {
     this.mode = mode;
   }
 
+  /** Meters live in their own document (one extra read); a missing or unreadable one is shown as "not computed yet". */
+  private async loadMeters(): Promise<MetersSnapshot | null> {
+    try {
+      const { db } = getFirebase();
+      const m = await getDoc(doc(db, COLLECTIONS.snapshots, METERS_DOC_ID));
+      this.reads++;
+      return m.exists() ? (m.data() as MetersSnapshot) : null;
+    } catch {
+      return null;
+    }
+  }
+
   async loadDashboard(): Promise<DashboardData> {
     const { db } = getFirebase();
     let snap;
@@ -27,7 +40,7 @@ export class FirestoreRepository implements IntelRepository {
     }
     if (!snap.exists()) {
       // Database reachable but the collector has never completed a run.
-      return { events: [], sourceStatus: [], lastRun: null, generatedAt: null, totalEventsStored: 0, indicatorEvaluations: [], regionScores: [], scoreHistory: [], alertRuleProblems: [], activeAlertRules: null, discordConfigured: null, aircraft: null, fleet: null, chokepoints: null, sanctionedShips: null, displacement: null, baseActivity: null };
+      return { events: [], sourceStatus: [], lastRun: null, generatedAt: null, totalEventsStored: 0, indicatorEvaluations: [], regionScores: [], scoreHistory: [], alertRuleProblems: [], activeAlertRules: null, discordConfigured: null, aircraft: null, fleet: null, chokepoints: null, sanctionedShips: null, displacement: null, baseActivity: null, meters: null };
     }
     const s = snap.data() as DashboardSnapshot;
     return {
@@ -51,6 +64,7 @@ export class FirestoreRepository implements IntelRepository {
       sanctionedShips: s.sanctionedShips ?? null,
       displacement: s.displacement ?? null,
       baseActivity: s.baseActivity ?? null,
+      meters: await this.loadMeters(),
     };
   }
 

@@ -1,7 +1,8 @@
+import type { MetersSnapshot } from '../../shared/domain/meters/types.ts';
 import { initializeApp, applicationDefault, getApps, type App } from 'firebase-admin/app';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../../shared/domain/types.ts';
-import { COLLECTIONS, SNAPSHOT_DOC_ID, type DashboardSnapshot } from '../../shared/domain/snapshot.ts';
+import { METERS_DOC_ID, COLLECTIONS, SNAPSHOT_DOC_ID, type DashboardSnapshot } from '../../shared/domain/snapshot.ts';
 import type { IndicatorTransition, ScoreHistoryPoint } from '../../shared/domain/indicators/types.ts';
 import type { AlertRecord } from '../../shared/domain/alerts/types.ts';
 import type { AlertingState, CollectorStore } from './types.ts';
@@ -226,6 +227,14 @@ export class FirestoreStore implements CollectorStore {
   }
   async putCollectorState(key: string, value: unknown) {
     await this.db.collection(COLLECTIONS.collectorState).doc(key).set(value as Record<string, unknown>);
+  }
+  async getMetersSnapshot() {
+    const snap = await this.db.collection(COLLECTIONS.snapshots).doc(METERS_DOC_ID).get();
+    this.readCount++;
+    return snap.exists ? (snap.data() as MetersSnapshot) : null;
+  }
+  async putMetersSnapshot(m: MetersSnapshot) {
+    await this.db.collection(COLLECTIONS.snapshots).doc(METERS_DOC_ID).set(m);
   }
   async getAlertingState() {
     const snap = await this.db.collection(COLLECTIONS.collectorState).doc('alerting').get();

@@ -18,6 +18,8 @@ import type { BaseActivitySnapshot } from './baseActivity.ts';
  */
 export const SNAPSHOT_COLLECTION = 'snapshots';
 export const SNAPSHOT_DOC_ID = 'dashboard';
+/** Meters and monitors (Phase 14), kept apart from the dashboard snapshot so they never crowd out the feed. */
+export const METERS_DOC_ID = 'meters';
 export const SNAPSHOT_MAX_EVENTS = 700;
 /** Summaries are shortened in the snapshot only; the full text stays in the `events` collection. */
 export const SNAPSHOT_SUMMARY_CHARS = 280;
