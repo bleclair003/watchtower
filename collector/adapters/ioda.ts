@@ -20,6 +20,14 @@ export interface IodaState {
   firstRunAt: string;
 }
 
+/**
+ * Signals WATCHTOWER does not import on their own. The Google Transparency Report signal
+ * ('gtr') produced multi-day "outages" in Finland and Norfolk Island in the first week of
+ * collection (2026-11-21 check) that no network signal confirmed. A real outage also shows
+ * in BGP, active probing or the telescope, which are imported as their own events.
+ */
+export const IGNORED_SIGNALS = new Set(['gtr']);
+
 const DATASOURCE: Record<string, string> = {
   bgp: 'BGP routing (fewer announced networks)',
   'ping-slash24': 'active probing (fewer responding hosts)',
@@ -76,6 +84,7 @@ export const iodaOutages: SourceAdapter<IodaState> = {
       }
       if (start * 1000 < ctx.now - (FIRST_RUN_LOOKBACK_DAYS + 1) * DAY) continue;
       if (!(duration >= MIN_DURATION_HOURS * 3600)) continue;
+      if (IGNORED_SIGNALS.has(ds)) continue;
       const iso = m[1];
       const name = cleanText(typeof r.location_name === 'string' ? r.location_name : iso);
       const startIso = new Date(start * 1000).toISOString();
@@ -91,7 +100,7 @@ export const iodaOutages: SourceAdapter<IodaState> = {
         sourceName: `IODA — ${def.name}`,
         sourceClass: 'scientific',
         sourceUrl: link,
-        title: truncate(`Internet connectivity drop detected — ${name} (${ds.toUpperCase()})`, LIMITS.title),
+        title: truncate(`Internet connectivity drop detected — ${name} (${ds.toUpperCase()}), from ${startIso.slice(0, 16).replace('T', ' ')} UTC`, LIMITS.title),
         summary: truncate(
           `IODA detected a drop in ${DATASOURCE[ds] ?? ds} for ${name}, starting ${startIso}` +
             (hours !== null ? `${ongoing ? ', still ongoing at collection' : ''}, ${hours} h at collection time` : '') +

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.3] — 2026-11-21 — Health check fixes
+
+### Fixed
+- GitHub's schedule skipped five hourly collections in a row. Collect can now be started hourly by an external scheduler (workflow_dispatch with `trigger: schedule`); GitHub's cron is a 4-hourly fallback.
+- IODA: outages seen only on the Google Transparency Report signal are no longer imported (multi-day false "outages" in Finland and Norfolk Island).
+- Outage and fire-cluster titles include their start date, so repeated events for one country are distinguishable.
+
+
 ## [0.9.2] — 2026-11-20 — Cloudflare Radar live
 
 ### Fixed

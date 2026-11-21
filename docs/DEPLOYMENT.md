@@ -117,6 +117,33 @@ Hosting stays within the Spark free tier: 10 GB storage and 360 MB/day transfer.
 
 Add each one under GitHub → repository → Settings → Secrets and variables → Actions → New repository secret. The next Collect run picks it up. Without it, the source logs `SKIP … not configured`.
 
+## 4c. Reliable hourly trigger (cron-job.org)
+
+GitHub's built-in schedule is best-effort: on 2026-11-21 it skipped five hourly runs in a row. An external scheduler now starts the Collect workflow every hour. GitHub's own cron remains as a 4-hourly fallback. The workflow's concurrency group stops overlapping runs.
+
+**1. A GitHub token that can only start this repository's workflows**
+- github.com → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate new token.
+- Name `watchtower-collect-trigger`; expiration up to 1 year (put a reminder in your calendar).
+- Repository access: **Only select repositories** → `bleclair003/watchtower`.
+- Repository permissions: **Actions → Read and write**. Nothing else. Metadata: Read is added automatically.
+
+**2. The cron job** (cron-job.org, free account)
+
+| Field | Value |
+|---|---|
+| URL | `https://api.github.com/repos/bleclair003/watchtower/actions/workflows/collect.yml/dispatches` |
+| Schedule | Every hour, at minute **47** |
+| Request method | `POST` (Advanced tab) |
+| Headers | `Authorization: Bearer <token>` · `Accept: application/vnd.github+json` · `X-GitHub-Api-Version: 2022-11-28` |
+| Request body | `{"ref":"main","inputs":{"trigger":"schedule"}}` |
+| Notifications | On failure |
+
+A successful call returns **HTTP 204**, and a Collect run appears in GitHub Actions within a minute, recorded with trigger `schedule`.
+
+**If the token leaks**, the worst anyone can do is start or cancel this repository's workflows (using Actions minutes). Revoke it on GitHub and make a new one.
+
+**Minutes:** about 720 a month for hourly collection, plus about 180 for the fallback and 3–4 per push for CI. The free allowance for private repositories is 2,000.
+
 ## 5. Secrets policy
 
 - Firebase **web** config is public by design; security comes from rules + the owner claim.

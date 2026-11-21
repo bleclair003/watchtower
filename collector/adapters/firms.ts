@@ -138,7 +138,7 @@ export const firms: SourceAdapter<FirmsState> = {
         sourceName: `NASA FIRMS — ${def.name}`,
         sourceClass: 'scientific',
         sourceUrl: `https://firms.modaps.eosdis.nasa.gov/map/#d:${date};@${top.lon.toFixed(3)},${top.lat.toFixed(3)},11.0z`,
-        title: truncate(`New thermal-anomaly cluster: ${ds.length} satellite fire detections — ${country} (${regionIds.map((r) => WATCH_REGIONS.find((w) => w.id === r)?.shortCode ?? r).join('/')})`, LIMITS.title),
+        title: truncate(`New thermal-anomaly cluster: ${ds.length} satellite fire detections — ${country} (${regionIds.map((r) => WATCH_REGIONS.find((w) => w.id === r)?.shortCode ?? r).join('/')}), ${date}`, LIMITS.title),
         summary: truncate(
           `${ds.length} VIIRS (NOAA-20) detections on ${date} in a ~25 km cell with none in the previous ${NOVELTY_DAYS} days; total fire radiative power ${frpSum} MW. ` +
             'A thermal anomaly can be a field burn, wildfire, industrial fire or a fire from military action; the satellite cannot tell which.',

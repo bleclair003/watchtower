@@ -5,14 +5,23 @@
 #   Secret    FIREBASE_SERVICE_ACCOUNT  Service-account key JSON (role: Cloud Datastore User)
 #   Secret    DISCORD_WEBHOOK_URL       Optional Discord webhook for alert notifications
 #
-# GitHub cron is best-effort: runs are often delayed and may occasionally be skipped.
-# The dashboard shows actual run times and flags the collector as OVERDUE after 3 h.
+# Hourly trigger: an external scheduler (cron-job.org) calls workflow_dispatch at :47 with
+# inputs.trigger = schedule (docs/DEPLOYMENT.md §4c). GitHub's own cron is best-effort and
+# skipped 5 consecutive hourly runs on 2026-11-21, so it is kept only as a 4-hourly fallback.
+# The concurrency group below stops two runs from collecting at the same time.
+# The dashboard flags the collector as OVERDUE after 3 h.
 name: Collect
 
 on:
   schedule:
-    - cron: '17 * * * *' # hourly, off the top of the hour to avoid peak scheduler load
-  workflow_dispatch: {}
+    - cron: '17 */4 * * *' # fallback only
+  workflow_dispatch:
+    inputs:
+      trigger:
+        description: Recorded as the run trigger
+        type: choice
+        options: [manual, schedule]
+        default: manual
 
 permissions:
   contents: read
@@ -44,7 +53,7 @@ jobs:
       - name: Collect
         env:
           WATCHTOWER_PROJECT_ID: ${{ vars.WATCHTOWER_PROJECT_ID }}
-          COLLECTOR_TRIGGER: ${{ github.event_name == 'schedule' && 'schedule' || 'manual' }}
+          COLLECTOR_TRIGGER: ${{ github.event_name == 'schedule' && 'schedule' || inputs.trigger || 'manual' }}
           METADATA_SERVER_DETECTION: none
           # Optional: alert notifications. Unset → alerts are still recorded in the app.
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}

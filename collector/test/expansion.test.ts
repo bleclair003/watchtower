@@ -12,7 +12,7 @@ import { bbcWorld, iaeaNews, parseIaeaDate } from '../adapters/news.ts';
 import { fcdoTravelAdvice } from '../adapters/fcdoTravelAdvice.ts';
 import { usgsEarthquakes } from '../adapters/usgsEarthquakes.ts';
 import { gdacs } from '../adapters/gdacs.ts';
-import { iodaOutages, MIN_DURATION_HOURS } from '../adapters/ioda.ts';
+import { iodaOutages, IGNORED_SIGNALS, MIN_DURATION_HOURS } from '../adapters/ioda.ts';
 import { INDICATOR_CATALOG, validateCatalog } from '../../shared/domain/indicators/catalog.ts';
 import { evaluateIndicator } from '../../shared/domain/indicators/evaluate.ts';
 
@@ -230,12 +230,13 @@ describe('IODA internet outages', () => {
 
   it(`imports only country outages of ${MIN_DURATION_HOURS} h or more, worded as detections`, async () => {
     const r = await iodaOutages.collect({ now, state: { firstRunAt: '2026-11-20T00:00:00Z' }, fetch: fetchMap({ 'https://api.ioda': body }) });
-    const rows = (JSON.parse(body).data as { location: string; duration: number }[]).filter(
-      (x) => /^country\/[A-Z]{2}$/.test(x.location) && x.duration >= MIN_DURATION_HOURS * 3600,
+    const rows = (JSON.parse(body).data as { location: string; duration: number; datasource: string }[]).filter(
+      (x) => /^country\/[A-Z]{2}$/.test(x.location) && x.duration >= MIN_DURATION_HOURS * 3600 && !IGNORED_SIGNALS.has(x.datasource),
     );
     expect(r.events).toHaveLength(rows.length);
     for (const e of r.events) {
-      expect(e.title).toMatch(/^Internet connectivity drop detected — /);
+      expect(e.title).toMatch(/^Internet connectivity drop detected — .+, from \d{4}-\d{2}-\d{2} \d{2}:\d{2} UTC$/);
+      expect(e.metadata!.signal).not.toBe('gtr');
       expect(e.summary).toMatch(/does not say which/);
       expect(e.countryCodes).toHaveLength(1);
       expect(e.locationPrecision).toBe('country');
