@@ -1,5 +1,6 @@
 import type { EventCategory, IntelligenceEvent } from '@shared/domain/types';
 import { WATCH_REGIONS } from '@shared/domain/regions';
+import { isOffTopic } from '@shared/domain/relevance';
 import { HOUR } from './time';
 
 export type SourceClassFilter = 'all' | 'official' | 'non-official';
@@ -13,6 +14,8 @@ export interface DashboardFilters {
   windowHours: number | null;
   sourceClass: SourceClassFilter;
   keyword: string;
+  /** Show news items marked off-topic (sport, entertainment …). Hidden by default. */
+  showOffTopic: boolean;
 }
 
 export const DEFAULT_FILTERS: DashboardFilters = {
@@ -22,6 +25,7 @@ export const DEFAULT_FILTERS: DashboardFilters = {
   windowHours: 72,
   sourceClass: 'all',
   keyword: '',
+  showOffTopic: false,
 };
 
 export const TIME_WINDOWS: { hours: number | null; label: string }[] = [
@@ -47,6 +51,7 @@ export function applyFilters(
 
   return events
     .filter((e) => {
+      if (!f.showOffTopic && isOffTopic(e)) return false;
       if (f.regionId && !e.regionIds.includes(f.regionId)) return false;
       if (f.categories.length && !f.categories.includes(e.category)) return false;
       if (f.sourceId && e.sourceId !== f.sourceId) return false;
@@ -69,6 +74,7 @@ export function countActiveFilters(f: DashboardFilters): number {
   if (f.sourceId) n++;
   if (f.sourceClass !== 'all') n++;
   if (f.keyword.trim()) n++;
+  if (f.showOffTopic) n++;
   if (f.windowHours !== DEFAULT_FILTERS.windowHours) n++;
   return n;
 }

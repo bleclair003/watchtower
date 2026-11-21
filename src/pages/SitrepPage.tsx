@@ -6,6 +6,7 @@ import { useArchive } from '../data/useArchive';
 import { mergeSourceStatus } from '../lib/sourceHealth';
 import { formatUtc } from '../lib/time';
 import { safeExternalUrl } from '../lib/sanitize';
+import { isOffTopic } from '@shared/domain/relevance';
 import { Panel } from '../components/ui/Panel';
 import { Tag } from '../components/ui/Tag';
 
@@ -47,7 +48,8 @@ export default function SitrepPage() {
       from: range.from,
       to: range.to,
       now: range.generatedAt,
-      events: archive.events,
+      // Off-topic news (sport, entertainment …) never belongs in a situation report.
+      events: archive.events.filter((e) => !isOffTopic(e)),
       evaluations: data.indicatorEvaluations,
       transitions: archive.transitions,
       currentScores: data.regionScores,

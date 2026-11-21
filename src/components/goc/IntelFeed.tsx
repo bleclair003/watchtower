@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { buildStories, groupFeed } from '@shared/domain/stories/stories';
+import { isOffTopic } from '@shared/domain/relevance';
 import type { IntelligenceEvent } from '@shared/domain/types';
 import type { DashboardFilters } from '../../lib/filters';
 import { Panel } from '../ui/Panel';
@@ -26,6 +27,7 @@ export function IntelFeed(props: Props) {
   const { events, selectedEventId, onSelect, now } = props;
   const itemRefs = useRef(new Map<string, HTMLLIElement>());
   const [grouped, setGrouped] = useState(true);
+  const offTopicCount = useMemo(() => props.allEvents.filter(isOffTopic).length, [props.allEvents]);
   // Stories are built from the filtered list, so a story's lead is always visible.
   const stories = useMemo(() => buildStories(events), [events]);
   const byId = useMemo(() => new Map(events.map((e) => [e.id, e])), [events]);
@@ -62,6 +64,16 @@ export function IntelFeed(props: Props) {
       designator="C1"
       actions={
         <span className="flex items-center gap-2 text-2xs text-wt-fg-muted tabular-nums">
+          {offTopicCount > 0 && (
+            <button
+              aria-pressed={props.filters.showOffTopic}
+              onClick={() => props.onFiltersChange({ showOffTopic: !props.filters.showOffTopic })}
+              title="News items about sport, entertainment, arts, science or lifestyle. Hidden by default; nothing is deleted."
+              className={`border px-1.5 ${props.filters.showOffTopic ? 'border-wt-warn text-wt-warn' : 'border-wt-line-strong text-wt-fg-muted hover:text-wt-fg'}`}
+            >
+              OFF-TOPIC {props.filters.showOffTopic ? 'SHOWN' : 'HIDDEN'} ({offTopicCount})
+            </button>
+          )}
           <button
             aria-pressed={grouped}
             onClick={() => setGrouped((g) => !g)}

@@ -2,6 +2,7 @@ import { forwardRef } from 'react';
 import { ExternalLink } from 'lucide-react';
 import type { IntelligenceEvent } from '@shared/domain/types';
 import { CORROBORATION_LABEL, type Story } from '@shared/domain/stories/stories';
+import { offTopicReason } from '@shared/domain/relevance';
 import { getRegion } from '@shared/domain/regions';
 import { CATEGORY_STYLES, CREDIBILITY_LABELS, SOURCE_CLASS_LABELS } from '../../config/categories';
 import { formatAge, formatUtc } from '../../lib/time';
@@ -54,6 +55,7 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem(
       : m.topicBasis === 'none'
         ? 'No topic keyword in the headline: filed as general news.'
         : null;
+  const offTopic = offTopicReason(e);
   const url = safeExternalUrl(e.sourceUrl);
   const isDemo = e.dataOrigin === 'demo';
 
@@ -77,6 +79,7 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem(
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-1 pl-[17px]">
           {isDemo && <Tag tone="warn">DEMO</Tag>}
+          {offTopic && <Tag tone="inactive" title={offTopic}>OFF-TOPIC</Tag>}
           {indicators.length > 0 && (
             <Tag tone="warn" title={`Evidence for: ${indicators.join('; ')}`}>
               IND ×{indicators.length}
@@ -168,6 +171,12 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem(
               <>
                 <dt className="text-wt-fg-dim">TOPIC</dt>
                 <dd className="text-wt-fg-dim">{topicBasis}</dd>
+              </>
+            )}
+            {offTopic && (
+              <>
+                <dt className="text-wt-fg-dim">RELEVANCE</dt>
+                <dd className="text-wt-fg-dim">Off-topic: {offTopic}. Hidden unless OFF-TOPIC is shown.</dd>
               </>
             )}
             <dt className="text-wt-fg-dim">INDICATORS</dt>

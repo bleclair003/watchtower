@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.10.1] — 2026-11-21 — Off-topic news hidden
+
+### Added
+- Sport, entertainment, arts, science and lifestyle news items are marked OFF-TOPIC and hidden by default in the feed, the map, the region report counts and SITREP. A feed toggle shows them, with the reason on each. Security stories, watch-region stories and classified topics are never hidden.
+
+
 ## [0.10.0] — 2026-11-21 — Stories
 
 ### Added

@@ -3,6 +3,7 @@ import { Grid3x3, Square } from 'lucide-react';
 import { getRegion } from '@shared/domain/regions';
 import { getIndicator } from '@shared/domain/indicators/catalog';
 import { applyFilters } from '../lib/filters';
+import { isOffTopic } from '@shared/domain/relevance';
 import { projectEvents } from '../lib/geo';
 import { useNow } from '../hooks/useNow';
 import { useData } from '../state/DataContext';
@@ -37,6 +38,8 @@ export default function GlobalOperationsPage() {
   }, [indicatorEvaluations]);
 
   const filtered = useMemo(() => applyFilters(events, filters, now), [events, filters, now]);
+  // Region report counts ignore off-topic news (sport, entertainment …) whatever the feed toggle says.
+  const relevantEvents = useMemo(() => events.filter((e) => !isOffTopic(e)), [events]);
   const projection = useMemo(() => projectEvents(filtered), [filtered]);
   const areaLevel = Object.values(projection.regionalCounts).reduce((a, b) => a + b, 0);
   const focusRegion = filters.regionId ? getRegion(filters.regionId) : undefined;
@@ -53,7 +56,7 @@ export default function GlobalOperationsPage() {
     <div className="flex h-full flex-col gap-1.5 overflow-y-auto p-1.5 lg:overflow-hidden">
       <div className="grid grid-cols-1 gap-1.5 lg:min-h-0 lg:flex-1 lg:grid-cols-[260px_minmax(0,1fr)_360px] 2xl:grid-cols-[290px_minmax(0,1fr)_420px]">
         <RegionalWatchlist
-          events={events}
+          events={relevantEvents}
           regionScores={regionScores}
           scoreHistory={scoreHistory}
           selectedRegionId={filters.regionId}
