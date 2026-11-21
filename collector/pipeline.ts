@@ -34,6 +34,7 @@ import { truncate } from './lib/text.ts';
 import { AIRCRAFT_SOURCE_ID, type MilitaryAircraftState } from './adapters/militaryAircraft.ts';
 import { FLEET_SOURCE_ID, type FleetState } from './adapters/usniFleet.ts';
 import { PORTWATCH_SOURCE_ID, type PortwatchState } from './adapters/portwatch.ts';
+import { ODIN_SOURCE_ID, type OdinState } from './adapters/odin.ts';
 import { UNHCR_SOURCE_ID, type UnhcrState } from './adapters/unhcr.ts';
 import { MARKETS_SOURCE_ID, type PolymarketState } from './adapters/polymarket.ts';
 import { AIS_SOURCE_ID, type AisSanctionedState } from './adapters/aisSanctioned.ts';
@@ -311,6 +312,15 @@ export async function runCollection(
       log(`CHK  chokepoint data not added to the snapshot: ${sanitizeError(err)}`);
     }
   }
+  if (tracked.includes(ODIN_SOURCE_ID)) {
+    try {
+      const odin = await store.getSourceState<OdinState>(ODIN_SOURCE_ID);
+      // Only a recent reading: outages change by the hour, so a stale one is left out.
+      if (odin?.latest && Date.parse(odin.latest.fetchedAt) > Date.parse(snapshot.generatedAt) - 3 * 3_600_000) snapshot.powerOutages = odin.latest;
+    } catch (err) {
+      log(`PWR  power outage data not added to the snapshot: ${sanitizeError(err)}`);
+    }
+  }
   if (tracked.includes(AIS_SOURCE_ID)) {
     try {
       const ais = await store.getSourceState<AisSanctionedState>(AIS_SOURCE_ID);
@@ -361,6 +371,7 @@ export async function runCollection(
       aircraft: snapshot.aircraft ?? null,
       fleet: snapshot.fleet ?? null,
       chokepoints: snapshot.chokepoints ?? null,
+      powerOutages: snapshot.powerOutages ?? null,
       sanctionedShips: snapshot.sanctionedShips ?? null,
       displacement: snapshot.displacement ?? null,
       predictionMarkets: snapshot.predictionMarkets ?? null,

@@ -7,6 +7,7 @@ import type { BaseActivitySnapshot } from '@shared/domain/baseActivity';
 import type { MetersSnapshot } from '@shared/domain/meters/types';
 import type { PredictionMarketsSnapshot } from '@shared/domain/predictionMarkets';
 import type { InfrastructureSnapshot } from '@shared/domain/infrastructure';
+import type { PowerOutageSnapshot } from '@shared/domain/powerOutages';
 import type { ActorsSnapshot } from '@shared/domain/actors';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '@shared/domain/types';
@@ -45,6 +46,7 @@ interface DataState {
   meters: MetersSnapshot | null;
   predictionMarkets: PredictionMarketsSnapshot | null;
   infrastructure: InfrastructureSnapshot | null;
+  powerOutages: PowerOutageSnapshot | null;
   actors: ActorsSnapshot | null;
   loading: boolean;
   error: string | null;
@@ -81,6 +83,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
     meters: null as MetersSnapshot | null,
     predictionMarkets: null as PredictionMarketsSnapshot | null,
     infrastructure: null as InfrastructureSnapshot | null,
+    powerOutages: null as PowerOutageSnapshot | null,
     actors: null as ActorsSnapshot | null,
     loadedAt: null as string | null,
     readsThisSession: null as number | null,
@@ -121,6 +124,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
         meters: d.meters,
         predictionMarkets: d.predictionMarkets,
         infrastructure: d.infrastructure,
+        powerOutages: d.powerOutages,
         actors: d.actors,
         loadedAt: new Date().toISOString(),
         readsThisSession: repo.readsThisSession(),

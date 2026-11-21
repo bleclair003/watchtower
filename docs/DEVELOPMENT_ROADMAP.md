@@ -309,3 +309,10 @@ Free sources and analysis of data already collected. Each new outside source is 
    - [x] Curated calendar of tension-prone dates (elections, national days, anniversaries, regular exercises) added to the meters calendar — v0.45.0
 12. **Like-for-like comparisons**
    - [x] Compare Saturdays with Saturdays and holidays with holidays in usual-level baselines (most useful after a few months of history) — v0.46.0
+
+## Phase 16 — Power outages (2026-11-21)
+
+1. **Power-outage monitoring**
+   - [x] Research free sources and their terms: ODIN (DOE/ORNL, public API, used), EIA-930 hourly demand (possible later), ENTSO-E (token, unclear reuse terms), PowerOutage.us (paid, scraping barred) — v0.47.0
+   - [x] US customers without power by county from ODIN: map layer, state records at 25k/100k/250k/500k/1M — v0.47.0
+   - [x] Power-outage meter for every region: Cloudflare power-cut outages, power-cut headlines, and ODIN in the US — v0.47.0

@@ -19,6 +19,7 @@ export function buildDemoMeters(now: number, events: IntelligenceEvent[], data: 
     aircraft: data.aircraft,
     fleet: data.fleet,
     chokepoints: data.chokepoints,
+    powerOutages: data.powerOutages,
     sanctionedShips: data.sanctionedShips,
     displacement: data.displacement,
     predictionMarkets: data.predictionMarkets,

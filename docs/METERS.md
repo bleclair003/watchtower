@@ -47,6 +47,7 @@ Meters that compare against a usual level (buildup vs noise, air surge, the repo
 | 27 | Coverage gaps (v0.41.0) | each region | one-sided stories (2+ reports or a strike report) while another side had 3+ reports about the region, 72 h; not shown as a level | count of possible gaps |
 | 28 | Who's first (v0.42.0) | METERS panel | outlets' first-report share and median delay in multi-publisher stories; sensor/official records vs the first matching news report (same kind and country, ±48 h) | tables, 30 days |
 | 29 | Source track record (v0.43.0) | METERS panel | per source: leading reports (none matching from another publisher in the 48 h before) carried by another publisher within 48 h; strike reports separately; pending under 48 h | table, 30 days |
+| 31 | Power outages (v0.47.0) | each region | internet outages Cloudflare attributes to power cuts (72 h or ongoing; nationwide 3, regional 1, max 2) + power-cut headlines (1 / 2–3 / 4+ publishers: 1 / 2 / 3); US also the largest state on ODIN (5k / 25k / 100k / 500k customers out sets its own level) | 1 / 2 / 4 / 6 |
 | 30 | Missing regulars (v0.44.0) | global | daily sources (new items on 80%+ of days) silent for more than max(24 h, 3× usual gap) while reachable | 1 / 2 / 3 / 5 quiet sources |
 | 21 | Lead/lag lab | Signal Lab | for each RAI rise (+10 within 24 h), whether each meter rose in the 72 h before, only in the 24 h after, or neither | tallies; no conclusions under 5 rises |
 

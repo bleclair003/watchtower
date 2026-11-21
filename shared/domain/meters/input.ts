@@ -8,6 +8,7 @@ import type { DisplacementSnapshot } from '../displacement.ts';
 import type { PredictionMarketsSnapshot } from '../predictionMarkets.ts';
 import type { InfrastructureSnapshot } from '../infrastructure.ts';
 import type { ActorsSnapshot } from '../actors.ts';
+import type { PowerOutageSnapshot } from '../powerOutages.ts';
 import type { MetersSnapshot } from './types.ts';
 import type { HolidayCounts } from './util.ts';
 
@@ -38,6 +39,7 @@ export interface MeterInput {
   predictionMarkets?: PredictionMarketsSnapshot | null;
   infrastructure?: InfrastructureSnapshot | null;
   actors?: ActorsSnapshot | null;
+  powerOutages?: PowerOutageSnapshot | null;
   upcomingLaunches?: UpcomingLaunch[];
   /** Stored daily counts on earlier holidays, per series (collector state; like-for-like baselines). */
   holidayCounts?: HolidayCounts | null;

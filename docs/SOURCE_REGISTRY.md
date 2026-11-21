@@ -246,3 +246,12 @@ Rebuild with `node scripts/build-infrastructure.ts`. On 2026-11-21 the endpoint 
 - Polite fetching: descriptive User-Agent, conditional GET, per-source minimum interval, exponential backoff on 429/5xx.
 - Never bypass authentication, CAPTCHAs, paywalls or robots.txt.
 - All fetched content is untrusted: strip HTML, cap field lengths, accept only http(s) URLs.
+
+## v0.47.0 Power outages — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| ODIN — Outage Data Initiative Nationwide (DOE / ORNL), `odin.ornl.gov/odi/map?scale=COUNTY` and `/odi/status` | official, public API, no key | Customers without power per county and state from reporting utilities (about 150–160), largest utilities, simplified county outlines for counties with 50+ out (up to 60); a record when a state reaches 25k / 100k / 250k / 500k / 1M out |
+| EIA-930 hourly grid data | possible later | Demand by balancing authority; a sudden drop can mark a major grid event, but it is indirect |
+| ENTSO-E Transparency Platform | not used | Needs a registered token; reuse of the data depends on agreements with each data owner |
+| PowerOutage.us | rejected | Paid API; the website terms forbid copying or storing its data |

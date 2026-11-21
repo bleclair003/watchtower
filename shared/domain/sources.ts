@@ -1054,6 +1054,27 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     priority: 'research',
     feasibility: { checkedAt: PROBE_DATE, result: 'unavailable', note: 'DATA SOURCE UNAVAILABLE' },
   },
+  // ------------------------------------------------------------ Phase 16 ---
+  {
+    id: 'odin-power-outages',
+    name: 'US power outages (ODIN)',
+    organization: 'Outage Data Initiative Nationwide — US Department of Energy / Oak Ridge National Laboratory',
+    website: 'https://odin.ornl.gov',
+    endpoint: 'https://odin.ornl.gov/odi/map?scale=COUNTY',
+    method: 'api',
+    sourceClass: 'official',
+    defaultCategory: 'disaster',
+    coverage: 'Customers without power by county, from the US utilities that report to ODIN (about 160 in Nov 2026, incl. CenterPoint, PacifiCorp, MidAmerican, Hawaiian Electric)',
+    authentication: 'None (anonymous public API)',
+    freeAccess: 'Free',
+    expectedUpdateFrequency: 'Live; the public feed runs about 15 minutes behind',
+    pollIntervalMinutes: 30,
+    reliabilityNotes:
+      'Only utilities that send data to ODIN are counted, so totals are a floor, not the national figure. Counts are customers (meters) as each utility reports them; no causes. ODIN gives no reliable per-state customer base (some utilities report company-wide totals), so no percentages are computed.',
+    termsNotes: 'Public, non-authenticated API published by a US national laboratory for sharing outage data; no terms page found (checked 2026-11-21). Attributed to ODIN (DOE/ORNL) on every record.',
+    priority: 'P2',
+    feasibility: { checkedAt: '2026-11-21T22:30:00Z', result: 'reachable', note: 'odi/map?scale=COUNTY HTTP 200, 146 kB, 119 counties with outages; odi/status lists 158 utilities.' },
+  },
 ];
 
 export function getSource(id: string): SourceDefinition | undefined {

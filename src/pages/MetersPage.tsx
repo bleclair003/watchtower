@@ -25,6 +25,7 @@ const REGION_COLUMNS: [MeterKind, string, string][] = [
   ['actors', 'ACTORS', 'Tracked people and groups, rising actors and new names'],
   ['language', 'TONE', 'Language temperature of news headlines, −100 calming to +100 escalating'],
   ['blackout', 'BLACKOUT', 'Information blackout'],
+  ['power', 'POWER', 'Power outages: internet outages from power cuts, power-cut headlines and, in the US, customers without power (ODIN)'],
   ['economic', 'ECON', 'Economic stress'],
   ['humanitarian', 'HUMAN', 'Humanitarian strain'],
   ['infrastructure', 'INFRA', 'Records near or naming power plants, nuclear sites, refineries, dams and ports'],

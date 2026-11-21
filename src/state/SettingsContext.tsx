@@ -26,6 +26,8 @@ export interface OperatorSettings {
   sanctionedShips: boolean;
   /** All critical-infrastructure sites on the map (flagged sites are always shown). */
   infrastructure: boolean;
+  /** US power outages by county (ODIN) on the map. */
+  powerOutages: boolean;
   /** Satellite imagery product on the GOC map ('off', 'viirs', 'modis', 'night', 'night-2016'). */
   imagery: string;
   /** Imagery day (YYYY-MM-DD); empty = yesterday. */
@@ -45,6 +47,7 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   chokepoints: true,
   sanctionedShips: true,
   infrastructure: false,
+  powerOutages: true,
   imagery: 'off',
   imageryDate: '',
 };

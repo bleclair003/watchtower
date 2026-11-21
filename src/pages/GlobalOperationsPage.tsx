@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Anchor, Ban, Factory, Grid3x3, Plane, Satellite, Shield, Ship, Square } from 'lucide-react';
+import { Anchor, Ban, Factory, Grid3x3, Plane, Satellite, Shield, Ship, Square, Zap } from 'lucide-react';
 import { useBases, useInfrastructure } from '../data/useInstallations';
 import { InfraCard } from '../components/map/InfraCard';
 import { ALL_OPERATORS, operatedBy, operatorCounts } from '@shared/domain/installations';
@@ -32,7 +32,7 @@ import { Panel } from '../components/ui/Panel';
 export default function GlobalOperationsPage() {
   // Re-evaluate time windows once a minute; the clock in the top bar ticks separately.
   const now = useNow(60_000).getTime();
-  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips, baseActivity, infrastructure } = useData();
+  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips, baseActivity, infrastructure, powerOutages } = useData();
   const unusualBases = useMemo(() => (baseActivity?.items ?? []).filter((i) => i.unusual).map((i) => i.key), [baseActivity]);
   const { filters, setFilters, resetFilters, selectedEventId, selectEvent, globalViewNonce } = useDashboard();
   const { settings, update } = useSettings();
@@ -218,6 +218,14 @@ export default function GlobalOperationsPage() {
               >
                 <Factory size={10} aria-hidden /> INFRA
               </button>
+              <button
+                className={toggleBtn(settings.powerOutages)}
+                aria-pressed={settings.powerOutages}
+                title="US counties with customers without power (ODIN: utilities reporting to the US Department of Energy / Oak Ridge National Laboratory)"
+                onClick={() => update({ powerOutages: !settings.powerOutages })}
+              >
+                <Zap size={10} aria-hidden /> POWER
+              </button>
               <label className={`${toggleBtn(imageryId !== 'off')} cursor-pointer`} title="Satellite imagery under the map overlays (NASA GIBS)">
                 <Satellite size={10} aria-hidden />
                 <select
@@ -301,6 +309,7 @@ export default function GlobalOperationsPage() {
               flaggedInfra={flaggedInfra}
               selectedInfra={selectedInfra}
               onSelectInfra={(id) => selectOnly('infra', id)}
+              powerOutages={settings.powerOutages ? (powerOutages?.counties ?? []) : []}
             />
           <MapLegend
             plotted={projection.points.features.length}
@@ -310,6 +319,7 @@ export default function GlobalOperationsPage() {
             worldInstallations={settings.installations ? shownWorld?.length : undefined}
             unusualBases={baseActivity?.flagsActive ? unusualBases.length : null}
             infrastructure={settings.infrastructure || flaggedInfra.length ? { all: settings.infrastructure ? (infraData.data?.count ?? null) : null, flagged: flaggedInfra.length, simulated: !!infrastructure?.simulated } : undefined}
+            power={settings.powerOutages && powerOutages ? { total: powerOutages.totalOut, states: powerOutages.states.length, counties: powerOutages.counties.length, utilities: powerOutages.utilitiesReporting, ageMinutes: Math.max(0, Math.round((now - Date.parse(powerOutages.fetchedAt)) / 60_000)), simulated: !!powerOutages.simulated } : undefined}
             operatorFilter={settings.installations && operator !== ALL_OPERATORS ? countryName(operator) : undefined}
             aircraft={
               settings.aircraft && aircraft

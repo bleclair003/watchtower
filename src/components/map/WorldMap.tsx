@@ -3,6 +3,7 @@ import { AIRCRAFT_CLASS_LABEL, aircraftLabel, aircraftTypeName, type AircraftCla
 import { isBigDeck, type FleetArea } from '@shared/domain/fleet';
 import type { ChokepointReading } from '@shared/domain/chokepoints';
 import type { FlaggedSite, InfraSite, InfraType } from '@shared/domain/infrastructure';
+import { unpackRings, type PowerOutageCounty } from '@shared/domain/powerOutages';
 import type { SanctionedShipSighting } from '@shared/domain/sanctionedShips';
 import { IMAGERY_ATTRIBUTION } from '../../lib/imagery';
 import { componentOf, operationOf, type Branch, type Installation, type Operation, type WorldInstallation } from '@shared/domain/installations';
@@ -64,6 +65,8 @@ export interface WorldMapProps {
   flaggedInfra?: FlaggedSite[];
   selectedInfra?: string | null;
   onSelectInfra?: (id: string | null) => void;
+  /** US counties with customers without power (ODIN); empty when the layer is off. */
+  powerOutages?: PowerOutageCounty[];
 }
 
 const GLOBAL_VIEW = { center: [35, 22] as [number, number], zoom: 1.35 };
@@ -85,6 +88,9 @@ export const AIRCRAFT_COLOR: Record<AircraftClass, string> = {
   helicopter: '#c8c8c8',
   other: '#8a958f',
 };
+/** US power outages: amber to red by customers out (severity, which is what those colours are reserved for). */
+export const POWER_STEPS: [number, string][] = [[50, '#ffd38a'], [1_000, '#ffb347'], [10_000, '#ff8a3d'], [100_000, '#ff5555']];
+const POWER_FILL = ['step', ['get', 'out'], POWER_STEPS[0][1], POWER_STEPS[1][0], POWER_STEPS[1][1], POWER_STEPS[2][0], POWER_STEPS[2][1], POWER_STEPS[3][0], POWER_STEPS[3][1]] as unknown as string;
 /** Infrastructure types: no red or amber (reserved for severity; flagged sites get a red ring). */
 export const INFRA_COLOR: Record<InfraType, string> = { nuclear: '#d2a8ff', power: '#8fb3ff', refinery: '#e0c89a', dam: '#6fd3d0', port: '#b8c4bc' };
 
@@ -297,6 +303,29 @@ export function WorldMap(props: WorldMapProps) {
           paint: { 'text-color': FG },
         });
         // Military installations: under the event markers, coloured by branch, labelled when zoomed in.
+        // US power outages (ODIN): county outlines shaded by customers out, under every marker.
+        m.addSource('power-outages', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({
+          id: 'power-outages',
+          type: 'fill',
+          source: 'power-outages',
+          paint: { 'fill-color': POWER_FILL, 'fill-opacity': 0.42 },
+        });
+        m.addLayer({
+          id: 'power-outages-line',
+          type: 'line',
+          source: 'power-outages',
+          paint: { 'line-color': POWER_FILL, 'line-width': 1, 'line-opacity': 0.9 },
+        });
+        m.addLayer({
+          id: 'power-outages-labels',
+          type: 'symbol',
+          source: 'power-outages',
+          minzoom: 4.5,
+          // Drawn even where base-map place names are (they would otherwise always win the collision).
+          layout: { 'text-field': ['get', 'label'], 'text-font': font, 'text-size': 10, 'text-allow-overlap': true },
+          paint: { 'text-color': '#ffd9a8', 'text-halo-color': '#050a08', 'text-halo-width': 1.2 },
+        });
         m.addSource('installations', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
         m.addLayer({
           id: 'installations',
@@ -857,6 +886,19 @@ export function WorldMap(props: WorldMapProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to selection changes
   }, [ready, selectedSanctionedShip]);
 
+  const { powerOutages } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    (m.getSource('power-outages') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (powerOutages ?? []).map((c) => ({
+        type: 'Feature' as const,
+        geometry: { type: 'MultiPolygon' as const, coordinates: unpackRings(c.path).map((ring) => [ring]) },
+        properties: { fips: c.fips, out: c.out, label: `${c.name}: ${c.out.toLocaleString('en-US')} out` },
+      })),
+    });
+  }, [ready, powerOutages]);
   const { infraSites, showInfrastructure, flaggedInfra, selectedInfra } = props;
   useEffect(() => {
     const m = mapRef.current;

@@ -27,6 +27,7 @@ import { coverageMeter } from './coverageMeter.ts';
 import { whoIsFirst } from '../speed.ts';
 import { trackRecord } from '../trackRecord.ts';
 import { quietMeter } from './quietMeter.ts';
+import { powerOutageMeter } from './power.ts';
 import { daysSince, upcomingCalendar } from './clocks.ts';
 import { appendShort, pointFor } from './history.ts';
 import { BASELINE_DAYS, DAY } from './util.ts';
@@ -55,6 +56,7 @@ export function allMeters(input: MeterInput): Meter[] {
     ...GEO_REGIONS.map((r) => actorsMeter(input, r)),
     strategicWeapons(input),
     ...GEO_REGIONS.map((r) => informationBlackout(input, r)),
+    ...GEO_REGIONS.map((r) => powerOutageMeter(input, r)),
     ...ABROAD.map((r) => economicStress(input, r)),
     ...GEO_REGIONS.map((r) => humanitarianStrain(input, r)),
     ...GEO_REGIONS.map((r) => infrastructureMeter(input, r)),

@@ -25,6 +25,8 @@ import type { PredictionMarketsSnapshot } from '@shared/domain/predictionMarkets
 import { buildDemoMarkets } from './demo/demoMarkets';
 import type { InfrastructureSnapshot } from '@shared/domain/infrastructure';
 import { buildDemoInfrastructure } from './demo/demoInfrastructure';
+import type { PowerOutageSnapshot } from '@shared/domain/powerOutages';
+import { buildDemoPowerOutages } from './demo/demoPowerOutages';
 import type { ActorsSnapshot } from '@shared/domain/actors';
 import { computeActors } from '@shared/domain/actorsTrack';
 
@@ -68,6 +70,8 @@ export interface DashboardData {
   predictionMarkets: PredictionMarketsSnapshot | null;
   /** Infrastructure with records near or naming it (72 h), or null. */
   infrastructure: InfrastructureSnapshot | null;
+  /** US customers without power by state and county (ODIN), or null. */
+  powerOutages: PowerOutageSnapshot | null;
   /** Tracked people and groups and new names, or null. */
   actors: ActorsSnapshot | null;
 }
@@ -115,6 +119,7 @@ export class DemoRepository implements IntelRepository {
       baseActivity: buildDemoBaseActivity(now),
       predictionMarkets: buildDemoMarkets(now),
       infrastructure: buildDemoInfrastructure(now),
+      powerOutages: buildDemoPowerOutages(now),
       // The real tracker over the demo records (no registry: nothing counts as new in demo mode).
       actors: { ...computeActors(this.events, now, null, null).snapshot, simulated: true },
       events: this.events,

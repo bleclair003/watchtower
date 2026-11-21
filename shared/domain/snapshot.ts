@@ -9,6 +9,7 @@ import type { DisplacementSnapshot } from './displacement.ts';
 import type { BaseActivitySnapshot } from './baseActivity.ts';
 import type { PredictionMarketsSnapshot } from './predictionMarkets.ts';
 import type { InfrastructureSnapshot } from './infrastructure.ts';
+import type { PowerOutageSnapshot } from './powerOutages.ts';
 import type { ActorsSnapshot } from './actors.ts';
 
 /**
@@ -68,6 +69,8 @@ export interface DashboardSnapshot {
   predictionMarkets?: PredictionMarketsSnapshot;
   /** Critical infrastructure with records near or naming it in the last 72 hours. */
   infrastructure?: InfrastructureSnapshot;
+  /** US customers without power by state and county (ODIN), from the last successful fetch. */
+  powerOutages?: PowerOutageSnapshot;
   /** Tracked people and groups, and new names in headlines. */
   actors?: ActorsSnapshot;
   /** Daily sources that have gone quiet while reachable (for the brief and Diagnostics). */

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.47.0] — 2026-11-21 — Power outages (Phase 16)
+
+### Added
+- **US power outages from ODIN** (source `odin-power-outages`): the Outage Data Initiative Nationwide (US Department of Energy / Oak Ridge National Laboratory) public API, no key. Every run reads customers without power by county from the utilities that report to ODIN (about 150–160, including CenterPoint, PacifiCorp, MidAmerican and Hawaiian Electric), with ODIN's own county outlines.
+- **POWER map layer** on GOC (on by default; also in SETTINGS): counties with 50+ customers out shaded amber to red (50+, 1k+, 10k+, 100k+), labelled when zoomed in; legend shows the US total, states, shaded counties, age and the number of reporting utilities.
+- **Records** in the feed, alerts and archive when a state reaches 25k, 100k, 250k, 500k or 1M customers out (once per state per day per step), region United States, no invented coordinates.
+- **Power-outage meter for every region** (METERS column POWER, region pages): internet outages that Cloudflare attributes to power cuts (nationwide 3, regional 1, max 2), headlines about power cuts, blackouts or attacks on the power system from 1 / 2–3 / 4+ publishers (1 / 2 / 3), and in the US the largest state outage on ODIN (5k LOW, 25k GUARDED, 100k ELEVATED, 500k HIGH).
+
+### Limits
+- ODIN counts only the utilities that report to it, so US totals are a floor; it gives no causes, and no reliable per-state customer base, so no percentages are shown.
+- Outside the US there is no free live outage feed; PowerOutage.us (paid, scraping barred) and ENTSO-E (token, unclear reuse terms) were not used.
+
+
 ## [0.46.1] — 2026-11-21 — Infrastructure drawn as squares
 
 ### Changed
