@@ -57,6 +57,15 @@ export const WATCH_REGIONS: WatchRegion[] = [
     countryCodes: ['YE', 'ER', 'DJ', 'SO'],
   },
   {
+    id: 'united-states',
+    name: 'United States (domestic)',
+    shortCode: 'USA',
+    description: 'Events inside the United States, with emphasis on the military and homeland security. US actions abroad are tagged to where they happen.',
+    // Contiguous US, for map framing. Alaska, Hawaii and territories are included by country, not by this box.
+    bbox: [-125.0, 24.0, -66.5, 49.5],
+    countryCodes: ['US'],
+  },
+  {
     id: 'global-cyber',
     name: 'Global Cybersecurity',
     shortCode: 'CYBER',

@@ -18,6 +18,7 @@ export const MIN_DETECTIONS = 3;
 /** ... and had no usable detections on any of the previous NOVELTY_DAYS days. */
 export const NOVELTY_DAYS = 7;
 const DAY_RANGE = 5;
+export const FIRMS_SKIP_REGIONS = new Set(['united-states']);
 
 export interface FirmsState {
   /** cell id → acquisition dates (YYYY-MM-DD) with usable detections, newest first, ≤ 14 kept. */
@@ -87,7 +88,8 @@ export const firms: SourceAdapter<FirmsState> = {
 
     const detections: Detection[] = [];
     for (const r of WATCH_REGIONS) {
-      if (!r.bbox) continue;
+      // Not the US: agricultural burning and wildfire would swamp a military-focused watch.
+      if (!r.bbox || FIRMS_SKIP_REGIONS.has(r.id)) continue;
       const res = await ctx.fetch(`https://firms.modaps.eosdis.nasa.gov/api/area/csv/${key}/${FIRMS_PRODUCT}/${r.bbox.join(',')}/${firstRun ? DAY_RANGE : 2}`);
       if (res.kind === 'not-modified') continue;
       detections.push(...parseFirmsCsv(res.body));
@@ -125,7 +127,7 @@ export const firms: SourceAdapter<FirmsState> = {
       // cluster only if its point lies inside one of the region's own countries.
       const country = watchCountryAt(top.lat, top.lon);
       const inBox = regionsForPoint(top.lat, top.lon);
-      const regionIds = country ? regionsForCountry(country).filter((r) => inBox.includes(r)) : [];
+      const regionIds = country ? regionsForCountry(country).filter((r) => inBox.includes(r) && !FIRMS_SKIP_REGIONS.has(r)) : [];
       if (!country || regionIds.length === 0) continue;
       const frpSum = Math.round(ds.reduce((s, d) => s + d.frp, 0));
       const occurredAt = `${date}T${top.time.slice(0, 2)}:${top.time.slice(2, 4)}:00.000Z`;

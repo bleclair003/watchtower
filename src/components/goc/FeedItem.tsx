@@ -48,7 +48,9 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem(
         ? 'Coordinates supplied by the source.'
         : m.geoBasis === 'source-country'
           ? 'Country supplied by the source.'
-          : null;
+          : m.geoBasis === 'source-default'
+            ? 'Counted as inside the US: a US-based source, and the headline names no foreign country.'
+            : null;
   const topicBasis =
     m.topicBasis === 'keyword'
       ? `Classified from the headline keyword "${String(m.topicTerm)}".`

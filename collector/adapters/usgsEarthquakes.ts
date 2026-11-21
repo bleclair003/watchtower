@@ -1,6 +1,6 @@
 import type { IntelligenceEvent } from '../../shared/domain/types.ts';
 import { getSource } from '../../shared/domain/sources.ts';
-import { regionsForPoint } from '../../shared/domain/regions.ts';
+import { regionsForExactPoint } from '../geo/countries.ts';
 import { contentHash } from '../lib/hash.ts';
 import { LIMITS, cleanText, safeUrl, truncate } from '../lib/text.ts';
 import type { Validators } from '../lib/http.ts';
@@ -89,7 +89,7 @@ export const usgsEarthquakes: SourceAdapter<UsgsState> = {
           LIMITS.summary,
         ),
         category: 'disaster',
-        regionIds: regionsForPoint(lat, lon),
+        regionIds: regionsForExactPoint(lat, lon),
         countryCodes: [],
         publishedAt: occurredAt,
         occurredAt,

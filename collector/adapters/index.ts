@@ -8,7 +8,8 @@ import { gdacs } from './gdacs.ts';
 import { iodaOutages } from './ioda.ts';
 import { firms } from './firms.ts';
 import { cloudflareRadarOutages } from './cloudflareRadar.ts';
-import { aljazeera, bbcWorld, iaeaNews, ukMod, unNews, warGovNews } from './news.ts';
+import { airForceNews, aljazeera, bbcWorld, defenseNews, iaeaNews, marinesNews, militaryTimes, nprNational, ukMod, unNews, warGovNews } from './news.ts';
+import { dhsNtas, faaTfr, femaDeclarations, nwsAlerts } from './usDomestic.ts';
 
 /** Active adapters. Adding a source = write an adapter + register it here. */
 export const ADAPTERS: SourceAdapter<never>[] = [
@@ -25,6 +26,16 @@ export const ADAPTERS: SourceAdapter<never>[] = [
   unNews as SourceAdapter<never>,
   bbcWorld as SourceAdapter<never>,
   aljazeera as SourceAdapter<never>,
+  // US domestic (v0.13)
+  faaTfr as SourceAdapter<never>,
+  dhsNtas as SourceAdapter<never>,
+  femaDeclarations as SourceAdapter<never>,
+  nwsAlerts as SourceAdapter<never>,
+  airForceNews as SourceAdapter<never>,
+  marinesNews as SourceAdapter<never>,
+  militaryTimes as SourceAdapter<never>,
+  defenseNews as SourceAdapter<never>,
+  nprNational as SourceAdapter<never>,
   // Free-key sources: active only when their key is set.
   firms as SourceAdapter<never>,
   cloudflareRadarOutages as SourceAdapter<never>,

@@ -1,7 +1,8 @@
 import { XMLParser } from 'fast-xml-parser';
 import type { IntelligenceEvent } from '../../shared/domain/types.ts';
 import { getSource } from '../../shared/domain/sources.ts';
-import { regionsForCountry, regionsForPoint } from '../../shared/domain/regions.ts';
+import { regionsForCountry } from '../../shared/domain/regions.ts';
+import { regionsForExactPoint } from '../geo/countries.ts';
 import { parseFeedDate } from '../lib/dates.ts';
 import { contentHash } from '../lib/hash.ts';
 import { FeedParseError } from '../lib/feed.ts';
@@ -97,7 +98,7 @@ export const gdacs: SourceAdapter<GdacsState> = {
         rejected.push({ ref: truncate(title || eventId || '(untitled)', 80), reason: 'missing id, type, link or coordinates' });
         continue;
       }
-      const regionIds = regionsForPoint(lat, lon);
+      const regionIds = regionsForExactPoint(lat, lon);
       if (!['Orange', 'Red'].includes(level) && !(level === 'Green' && regionIds.length)) continue;
 
       const from = parseFeedDate(str(it['gdacs:fromdate']));

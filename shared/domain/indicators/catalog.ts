@@ -12,16 +12,19 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 4;
+export const CATALOG_VERSION = 5;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
 const CISA = 'cisa-advisories';
 
-/** Geographic watch regions that the State Dept feed can inform. */
+/** Geographic watch regions (with countries). */
 const ADVISORY_REGIONS = WATCH_REGIONS.filter((r) => r.countryCodes.length > 0);
+/** Regions the State Dept travel-advisory feed can inform (it publishes no advisory for the US). */
+const STATE_DEPT_REGIONS = ADVISORY_REGIONS.filter((r) => r.id !== 'united-states');
+const US = 'united-states';
 
-const advisoryIndicators: IndicatorDefinition[] = ADVISORY_REGIONS.flatMap((r) => [
+const advisoryIndicators: IndicatorDefinition[] = STATE_DEPT_REGIONS.flatMap((r) => [
   {
     id: `${r.id}.advisory-raised`,
     name: `${r.shortCode} travel advisory raised`,
@@ -336,6 +339,143 @@ const freeKeyIndicators: IndicatorDefinition[] = ADVISORY_REGIONS.flatMap((r): I
   },
 ]);
 
+/** United States (domestic) indicators (v0.13). */
+const NTAS = 'dhs-ntas';
+const TFR = 'faa-tfr';
+const usIndicators: IndicatorDefinition[] = [
+  {
+    id: `${US}.ntas-advisory`,
+    name: 'USA NTAS terrorism advisory',
+    description: 'DHS issued or updated a National Terrorism Advisory System bulletin or alert in the last 30 days.',
+    family: 'official-activity',
+    regionId: US,
+    requiredSourceIds: [NTAS],
+    match: { field: 'sourceId', op: 'eq', value: NTAS },
+    windowHours: 720,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 1 },
+    baseline: null,
+    weight: 3,
+    severity: 'high',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'NTAS advisories are rare and issued only when DHS judges the terrorism threat to the homeland notable. An advisory describes a threat environment, not a specific imminent event unless it says so.',
+  },
+  {
+    id: `${US}.installation-incident`,
+    name: 'USA military-installation incident',
+    description: 'Headlines about an incident (shooting, lockdown, explosion, breach, drone incursion …) involving the US military inside the US, within 72 hours.',
+    family: 'official-activity',
+    regionId: US,
+    requiredSourceIds: ['war-gov-news'],
+    match: {
+      all: [
+        { field: 'regionIds', op: 'contains', value: US },
+        {
+          any: ['shooting', 'shooter', 'lockdown', 'explosion', 'blast', 'breach', 'intruder', 'drone incursion', 'drone sighting', 'drones spotted', 'attack', 'killed', 'crash', 'sabotage', 'arrested'].map(
+            (w) => ({ field: 'title' as const, op: 'contains' as const, value: w }),
+          ),
+        },
+        {
+          any: ['base', 'fort ', 'camp ', 'naval', 'air force', 'military', 'soldier', 'troops', 'marine', 'airman', 'sailor', 'national guard', 'pentagon', 'army', 'navy'].map(
+            (w) => ({ field: 'title' as const, op: 'contains' as const, value: w }),
+          ),
+        },
+      ],
+    },
+    windowHours: 72,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 2, distinctSourcesAtLeast: 2 },
+    baseline: null,
+    weight: 3,
+    severity: 'high',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale:
+      'Incidents at or involving installations inside the US (attacks, breaches, drone incursions) are direct domestic security events. Headline keywords also catch training accidents and court cases, so it triggers only when two independent sources report within 72 hours.',
+  },
+  {
+    id: `${US}.guard-deployment`,
+    name: 'USA National Guard deployment',
+    description: 'Headlines about National Guard deployments, activations or federalisation inside the US, within 7 days.',
+    family: 'official-activity',
+    regionId: US,
+    requiredSourceIds: ['war-gov-news'],
+    match: {
+      all: [
+        { field: 'regionIds', op: 'contains', value: US },
+        { field: 'title', op: 'contains', value: 'national guard' },
+        {
+          any: ['deploy', 'activat', 'mobiliz', 'mobilis', 'federaliz', 'federalis', 'sent to', 'troops to', 'patrol'].map(
+            (w) => ({ field: 'title' as const, op: 'contains' as const, value: w }),
+          ),
+        },
+      ],
+    },
+    windowHours: 168,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 3 },
+    baseline: null,
+    weight: 2,
+    severity: 'medium',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'Guard deployments accompany unrest, disasters, border operations and security events. Disaster deployments are common, so read the reports before drawing conclusions.',
+  },
+  {
+    id: `${US}.security-tfr-burst`,
+    name: 'USA security flight restrictions',
+    description: 'New FAA national-defence (SECURITY) temporary flight restrictions in 72 hours, compared with the 28-day baseline.',
+    family: 'aviation',
+    regionId: US,
+    requiredSourceIds: [TFR],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: TFR },
+        { field: 'metadata.tfrType', op: 'eq', value: 'SECURITY' },
+      ],
+    },
+    windowHours: 72,
+    elevated: { countAtLeast: 5 },
+    triggered: { countAtLeast: 10 },
+    baseline: { days: 28, triggerRatio: 3, elevatedRatio: 2 },
+    weight: 2,
+    severity: 'medium',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale:
+      'SECURITY TFRs protect military installations, critical infrastructure and major events. A burst above baseline can reflect drone incursions or a security operation; many are routine (stadiums, theme parks, scheduled events).',
+  },
+  {
+    id: `${US}.major-disaster`,
+    name: 'USA major disaster or extreme weather',
+    description: 'FEMA major-disaster declarations or NWS Extreme alerts in 72 hours.',
+    family: 'official-activity',
+    regionId: US,
+    requiredSourceIds: ['fema-declarations'],
+    match: {
+      any: [
+        { all: [{ field: 'sourceId', op: 'eq', value: 'fema-declarations' }, { field: 'metadata.declarationType', op: 'eq', value: 'DR' }] },
+        { field: 'sourceId', op: 'eq', value: 'nws-alerts' },
+      ],
+    },
+    windowHours: 72,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 3 },
+    baseline: null,
+    weight: 1,
+    severity: 'medium',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'Major disasters stretch emergency services and the National Guard. Weighted low: they are hazards, not security events.',
+  },
+];
+
 const experimentalIndicators: IndicatorDefinition[] = [
   {
     id: 'experimental.pentagon-pizza',
@@ -404,7 +544,9 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...advisoryIndicators,
   ...cyberIndicators,
   ...expansionIndicators,
-  ...freeKeyIndicators,
+  // FIRMS is not collected for the US (see collector/adapters/firms.ts).
+  ...freeKeyIndicators.filter((d) => d.id !== `${US}.thermal-clusters`),
+  ...usIndicators,
   ...experimentalIndicators,
 ];
 

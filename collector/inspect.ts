@@ -7,7 +7,7 @@ import { politeFetch } from './lib/http.ts';
 
 const wanted = process.argv.slice(2);
 for (const a of ADAPTERS.filter((x) => !wanted.length || wanted.includes(x.sourceId))) {
-  const res = await a.collect({ now: Date.now(), state: null, fetch: (url, v) => politeFetch(url, { validators: v }) });
+  const res = await a.collect({ now: Date.now(), state: null, fetch: (url, v, h) => politeFetch(url, { validators: v, extraHeaders: h }) });
   console.log(`\n== ${a.sourceId}: ${res.events.length} events`);
   for (const e of res.events) {
     const m = e.metadata ?? {};

@@ -8,6 +8,7 @@ import type { IntelligenceEvent } from '@shared/domain/types';
 import { useData } from '../state/DataContext';
 import { useNow } from '../hooks/useNow';
 import { countryName, summarizeRegion } from '../lib/regionSummary';
+import { US_STATE_NAMES } from '@shared/domain/geo/usPlaces';
 import { BAND_TONE, INDICATOR_STATE_TONE, RAI_DISCLAIMER } from '../config/indicators';
 import { CATEGORY_STYLES } from '../config/categories';
 import { Panel } from '../components/ui/Panel';
@@ -220,6 +221,26 @@ export default function RegionPage() {
               </table>
             )}
           </Panel>
+          {id === 'united-states' && (
+            <Panel title="States — 7 days" designator="R6b">
+              {summary.byState.length === 0 ? (
+                <p className="px-2 py-1.5 text-2xs text-wt-fg-dim">No state named or supplied.</p>
+              ) : (
+                <table className="w-full text-2xs">
+                  <tbody className="divide-y divide-wt-line">
+                    {summary.byState.slice(0, 15).map((s) => (
+                      <tr key={s.code}>
+                        <td className="px-2 py-0.5">
+                          {US_STATE_NAMES[s.code] ?? s.code} <span className="text-wt-fg-dim">{s.code}</span>
+                        </td>
+                        <td className="px-2 py-0.5 text-right tabular-nums">{s.count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </Panel>
+          )}
           <Panel title="Records by category — 7 days" designator="R7">
             {summary.byCategory.length === 0 ? (
               <p className="px-2 py-1.5 text-2xs text-wt-fg-dim">No records.</p>

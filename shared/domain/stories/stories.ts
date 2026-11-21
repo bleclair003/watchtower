@@ -22,7 +22,10 @@ import { matchGazetteer } from '../geo/gazetteer.ts';
  */
 
 /** Headline feeds whose items can form stories. Structured sources (KEV, USGS, IODA …) cannot. */
-export const STORY_SOURCES = new Set(['bbc-world', 'aljazeera', 'un-news', 'war-gov-news', 'uk-mod', 'iaea-news']);
+export const STORY_SOURCES = new Set([
+  'bbc-world', 'aljazeera', 'un-news', 'war-gov-news', 'uk-mod', 'iaea-news',
+  'af-news', 'marines-news', 'military-times', 'defense-news', 'npr-national',
+]);
 export const WINDOW_HOURS = 48;
 export const MIN_SHARED = 3;
 export const MIN_OVERLAP = 0.5;

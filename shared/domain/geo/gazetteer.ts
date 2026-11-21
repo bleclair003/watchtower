@@ -64,7 +64,7 @@ const COUNTRY_TERMS: Entry[] = [
   ['CF', ['Central African Republic']],
   ['TD', ['Chad', 'Chadian', "N'Djamena"]],
   ['CL', ['Chile', 'Chilean']],
-  ['CN', ['China', 'Chinese', 'Beijing', "People's Republic of China", X('PLA')]],
+  ['CN', ['China', 'Chinese', 'Beijing', "People's Republic of China", X('PLA'), 'Xi Jinping', X('Xi')]],
   ['CO', ['Colombia', 'Colombian', 'Bogota']],
   ['KM', ['Comoros']],
   ['CD', ['Democratic Republic of the Congo', 'Democratic Republic of Congo', 'DR Congo', X('DRC'), 'Kinshasa', 'Goma']],
@@ -234,6 +234,32 @@ const COUNTRY_TERMS: Entry[] = [
   ['ZW', ['Zimbabwe', 'Zimbabwean', 'Harare']],
 ];
 
+/**
+ * Major US bases abroad → host country. A headline about "Kadena" is about Japan, not the US
+ * homeland (found on live data: "Kadena welcomes first … F-15EX" was counted as domestic).
+ */
+const US_BASES_ABROAD: Entry[] = [
+  ['JP', ['Kadena', 'Yokosuka', 'Yokota', 'Misawa', 'Iwakuni', 'Sasebo', 'Camp Schwab', 'Futenma']],
+  ['KR', ['Osan', 'Camp Humphreys', 'Kunsan']],
+  ['DE', ['Ramstein', 'Grafenwoehr', 'Spangdahlem', 'Landstuhl']],
+  ['IT', ['Aviano', 'Sigonella', 'Vicenza']],
+  ['GB', ['Lakenheath', 'Mildenhall', 'Fairford']],
+  ['ES', ['Naval Station Rota', 'Morón Air Base']],
+  ['TR', ['Incirlik']],
+  ['QA', ['Al Udeid']],
+  ['KW', ['Camp Arifjan', 'Ali Al Salem']],
+  ['BH', ['NSA Bahrain', 'Fifth Fleet headquarters']],
+  ['DJ', ['Camp Lemonnier']],
+  ['GR', ['Souda Bay']],
+  ['IQ', ['Al Asad', 'Ain al-Asad']],
+  ['SY', ['Al-Tanf', 'Al Tanf']],
+  ['GL', ['Pituffik', 'Thule Air Base']],
+  ['CU', ['Guantanamo', 'Guantánamo']],
+  ['AF', ['Bagram', 'Sangin']],
+  ['PL', ['Redzikowo', 'Camp Kosciuszko']],
+  ['RO', ['Deveselu', 'Mihail Kogalniceanu']],
+];
+
 /** Named seas, straits and areas that identify a watch region without naming a country. */
 const AREA_TERMS: [regionId: string, terms: string[]][] = [
   ['red-sea', ['Red Sea', 'Gulf of Aden', 'Bab el-Mandeb', 'Bab al-Mandab', 'Horn of Africa']],
@@ -264,7 +290,7 @@ const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const wrap = (s: string) => `(?<![\\p{L}\\p{N}])${escape(s).replace(/['’]/g, "['’]")}(?:'s|’s)?(?![\\p{L}\\p{N}])`;
 
 const COMPILED: Compiled[] = [
-  ...COUNTRY_TERMS.flatMap(([code, terms]) =>
+  ...[...COUNTRY_TERMS, ...US_BASES_ABROAD].flatMap(([code, terms]) =>
     terms.map((t) => {
       const term = typeof t === 'string' ? t : t.term;
       const exact = typeof t !== 'string' && t.exact;

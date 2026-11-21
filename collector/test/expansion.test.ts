@@ -128,7 +128,7 @@ describe('generic feed adapter (BBC fixtures)', () => {
   it('the registered BBC adapter reads four feeds', async () => {
     const f = fetchMap({ 'https://feeds.bbci.co.uk/news/world': world });
     await bbcWorld.collect({ now: NOW, state: null, fetch: f });
-    expect(f).toHaveBeenCalledTimes(4);
+    expect(f).toHaveBeenCalledTimes(5); // world, middle east, europe, asia, US & Canada
   });
 });
 

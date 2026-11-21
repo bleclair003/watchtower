@@ -1,3 +1,4 @@
+import { WATCH_REGIONS } from '@shared/domain/regions';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -75,7 +76,7 @@ describe('RegionalWatchlist', () => {
   it('shows N/E rather than a fabricated score when no indicator is evaluable', async () => {
     const onSelect = vi.fn();
     render(<RegionalWatchlist events={events} regionScores={[]} scoreHistory={[]} selectedRegionId={null} onSelect={onSelect} now={NOW} />);
-    expect(screen.getAllByText('RAI N/E')).toHaveLength(7);
+    expect(screen.getAllByText('RAI N/E')).toHaveLength(WATCH_REGIONS.length);
     await userEvent.click(screen.getByText('RED SEA / GULF OF ADEN'));
     expect(onSelect).toHaveBeenCalledWith('red-sea');
   });

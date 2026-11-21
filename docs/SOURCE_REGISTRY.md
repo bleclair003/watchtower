@@ -50,6 +50,33 @@ These sources skip as `NOT CONFIGURED` (not failed) until their secret exists. K
 
 **ACLED: rejected (2026-11-20).** Personal email addresses get the Open tier, which has no API. The Research tier needs an institutional address and gets lagged event data. The EULA (1 Nov 2026) says making data available through your own dashboard is not a sufficient use, and restricts direct access to event-level data.
 
+## v0.13.0 United States (domestic) watch — implemented ✅
+
+The **United States (domestic)** region covers events *inside* the US, with emphasis on the military and homeland security. US actions abroad are tagged to where they happen.
+
+**What counts as inside the US** ([`shared/domain/geo/domestic.ts`](../shared/domain/geo/domestic.ts), [`usPlaces.ts`](../shared/domain/geo/usPlaces.ts)):
+- **Exact points** (USGS, GDACS): inside US borders, including Alaska, Hawaii and territories. Not by box, so Canada and Mexico don't count.
+- **Country-coded data** (IODA, Cloudflare, UK FCDO "USA" page, FEMA, NWS, FAA): country US.
+- **Headlines**, by the source's mode:
+  - *by place* (BBC): a US state, major city or military installation must be named.
+  - *unless foreign* (DoD, Air Force, Marines, Military Times, Defense News): domestic unless the headline names a foreign country, a US base abroad (Kadena, Ramstein, Al Udeid …) or an abroad word (continent, "overseas", "worldwide", "allies" …).
+  - *always* (NPR National): domestic by definition.
+- **A bare "US" is never enough.** "US strikes island near Kuwait" is not domestic.
+- **Ambiguous names left out:** Austin, Charlotte, Vance, Maxwell, Tinker, Fallon; bare Norfolk and Richmond.
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| FAA TFR | official | SECURITY (national-defence airspace, often over bases), VIP (presidential/VIP movement) and SPECIAL restrictions; state-level |
+| DHS NTAS | official | Any terrorism bulletin or alert. The feed is usually empty, so any entry is significant. Its format is read defensively, since no live advisory existed to check against |
+| FEMA OpenFEMA | official | One record per declaration (major disaster, emergency, fire management), with the number of areas |
+| NWS alerts | official | Active alerts with severity **Extreme** only |
+| Air Force, Marine Corps news | official | Service news |
+| Military Times, Defense News | media | Military and defence press |
+| NPR National | media | US national desk; relevant topics only |
+| BBC US & Canada | media | Added as a fifth BBC feed |
+
+**Not available (2026-11-21):** army.mil RSS (403); Navy and National Guard RSS (empty); Stars and Stripes (404); NORAD and NORTHCOM (feed site ids unknown, and their sites refuse scripted page loads). FIRMS fire detections are not collected for the US: agricultural burning and wildfire would swamp a military-focused watch.
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |

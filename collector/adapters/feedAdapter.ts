@@ -1,7 +1,6 @@
 import type { Credibility, EventCategory, IntelligenceEvent, LocationPrecision } from '../../shared/domain/types.ts';
 import { getSource } from '../../shared/domain/sources.ts';
-import { regionsForCountry } from '../../shared/domain/regions.ts';
-import { matchGazetteer } from '../../shared/domain/geo/gazetteer.ts';
+import { headlineGeo, type UsMode } from '../../shared/domain/geo/domestic.ts';
 import { parseFeed, type FeedItem } from '../lib/feed.ts';
 import { parseFeedDate } from '../lib/dates.ts';
 import { contentHash } from '../lib/hash.ts';
@@ -21,6 +20,8 @@ export interface FeedAdapterConfig {
   /** Fixed category, or 'classify' to use the keyword topic classifier on the headline. */
   category: EventCategory | 'classify';
   credibility: Credibility;
+  /** How items count as inside the United States (default 'by-place'). */
+  us?: UsMode;
   /** Base for relative links. */
   baseUrl: string;
   /** Publisher-specific date parser (default: RFC 822 / ISO via parseFeedDate). */
@@ -88,9 +89,9 @@ export function makeFeedAdapter(cfg: FeedAdapterConfig): SourceAdapter<FeedAdapt
         const skipReason = cfg.skip?.(item, title);
         if (skipReason) continue;
 
-        const geo = matchGazetteer(title);
-        const regionIds = [...new Set([...geo.countryCodes.flatMap(regionsForCountry), ...geo.areaRegionIds])];
-        const precision: LocationPrecision = geo.countryCodes.length ? 'country' : geo.areaRegionIds.length ? 'region' : 'none';
+        const geo = headlineGeo(title, cfg.us);
+        const regionIds = geo.regionIds;
+        const precision: LocationPrecision = geo.countryCodes.length ? 'country' : regionIds.length ? 'region' : 'none';
         const topic = cfg.category === 'classify' ? classifyTopic(title) : { category: cfg.category, term: null };
 
         const id = contentHash(cfg.sourceId, key);
@@ -114,8 +115,9 @@ export function makeFeedAdapter(cfg: FeedAdapterConfig): SourceAdapter<FeedAdapt
           verificationStatus: 'unreviewed',
           locationPrecision: precision,
           metadata: {
-            geoBasis: geo.terms.length ? 'text-mention' : 'none',
+            geoBasis: geo.terms.length ? 'text-mention' : geo.usBasis === 'source' ? 'source-default' : 'none',
             geoTerms: geo.terms,
+            ...(geo.usDomestic ? { usDomestic: geo.usBasis, usStates: geo.usStates } : {}),
             ...(cfg.category === 'classify' ? { topicBasis: topic.term ? 'keyword' : 'none', topicTerm: topic.term } : {}),
             ...(feed ? { feed } : {}),
           },

@@ -1,3 +1,4 @@
+import { WATCH_REGIONS } from '@shared/domain/regions';
 import { describe, expect, it } from 'vitest';
 import type { IntelligenceEvent } from '@shared/domain/types';
 import { isPlottable, projectEvents, regionAreas } from './geo';
@@ -53,7 +54,7 @@ describe('projectEvents', () => {
 describe('regionAreas', () => {
   it('builds a closed polygon and label per geographic region, marking selection', () => {
     const { polygons, labels } = regionAreas({ 'red-sea': 3 }, 'red-sea');
-    expect(polygons.features).toHaveLength(6); // global-cyber has no bbox
+    expect(polygons.features).toHaveLength(WATCH_REGIONS.filter((r) => r.bbox).length); // global-cyber has no bbox
     const ring = polygons.features[0].geometry.coordinates[0];
     expect(ring[0]).toEqual(ring[ring.length - 1]);
     const rs = labels.features.find((f) => f.properties?.id === 'red-sea')!;

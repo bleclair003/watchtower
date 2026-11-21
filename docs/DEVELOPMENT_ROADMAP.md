@@ -136,3 +136,10 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
    - [x] RAI history and score breakdown (RAI points per indicator), all region indicators, latest reports as stories, region map (7 days), countries and categories — v0.12.0
    - [x] REGIONS index, links from the GOC watchlist, `REGION <code>` command
 
+## Phase 11 — United States (domestic) watch (v0.13.0)
+- [x] Eighth watch region, `united-states`: events inside the US, with emphasis on the military and homeland security
+- [x] Domestic tagging: US places (states, cities, installations), source modes, US borders for points, US bases abroad mapped to host countries
+- [x] 9 new sources: FAA security/VIP flight restrictions, DHS NTAS, FEMA, NWS Extreme, Air Force, Marines, Military Times, Defense News, NPR National (+ BBC US & Canada)
+- [x] Catalog v5: NTAS advisory, installation incident, National Guard deployment, security flight-restriction burst, major disaster
+- [ ] NORAD/NORTHCOM feeds (need the correct feed ids), Army/Navy/National Guard (feeds blocked or empty)
+

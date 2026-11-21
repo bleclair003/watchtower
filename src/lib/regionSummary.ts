@@ -13,6 +13,8 @@ export interface RegionSummary {
   /** Records per country (watch-region countries first, then others named alongside). */
   byCountry: { code: string; count: number; inRegion: boolean }[];
   byCategory: { category: EventCategory; count: number }[];
+  /** US states named or supplied (United States region only; from metadata.usStates). */
+  byState: { code: string; count: number }[];
   /** Records with exact coordinates (plotted points). */
   plotted: number;
 }
@@ -45,6 +47,7 @@ export function summarizeRegion(all: IntelligenceEvent[], regionId: string, now:
   let prev24h = 0;
   const countries = new Map<string, number>();
   const categories = new Map<EventCategory, number>();
+  const states = new Map<string, number>();
   let plotted = 0;
   for (const e of events) {
     const age = now - eventTime(e);
@@ -52,6 +55,8 @@ export function summarizeRegion(all: IntelligenceEvent[], regionId: string, now:
     else if (age >= 24 * HOUR && age < 48 * HOUR) prev24h++;
     for (const c of e.countryCodes) countries.set(c, (countries.get(c) ?? 0) + 1);
     categories.set(e.category, (categories.get(e.category) ?? 0) + 1);
+    const us = e.metadata?.usStates;
+    if (Array.isArray(us)) for (const st of us) if (typeof st === 'string') states.set(st, (states.get(st) ?? 0) + 1);
     if (e.locationPrecision === 'exact' || e.locationPrecision === 'city') plotted++;
   }
   const inRegion = new Set(region?.countryCodes ?? []);
@@ -64,6 +69,7 @@ export function summarizeRegion(all: IntelligenceEvent[], regionId: string, now:
       .map(([code, count]) => ({ code, count, inRegion: inRegion.has(code) }))
       .sort((a, b) => Number(b.inRegion) - Number(a.inRegion) || b.count - a.count || a.code.localeCompare(b.code)),
     byCategory: [...categories].map(([category, count]) => ({ category, count })).sort((a, b) => b.count - a.count),
+    byState: [...states].map(([code, count]) => ({ code, count })).sort((a, b) => b.count - a.count || a.code.localeCompare(b.code)),
     plotted,
   };
 }

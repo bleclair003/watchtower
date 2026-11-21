@@ -1,3 +1,4 @@
+import { regionsForPoint } from '../../shared/domain/regions.ts';
 import { readFileSync } from 'node:fs';
 
 /**
@@ -66,3 +67,15 @@ function rawCountryAt(lat: number, lon: number): string | null {
 }
 
 export const WATCH_COUNTRY_CODES = INDEX.map((c) => c.code);
+
+/**
+ * Watch regions for an exact point. Box-based regions use their watch-area box, except the
+ * United States, which uses US borders (so Alaska, Hawaii and territories count, and
+ * points in Canada or Mexico inside the box do not).
+ */
+export function regionsForExactPoint(lat: number, lon: number): string[] {
+  const regions = new Set(regionsForPoint(lat, lon));
+  regions.delete('united-states');
+  if (rawCountryAt(lat, lon) === 'US') regions.add('united-states');
+  return [...regions];
+}

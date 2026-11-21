@@ -79,7 +79,7 @@ describe('catalog', () => {
   it('covers every geographic watch region plus global cyber, and keeps experiments isolated', () => {
     const regions = new Set(INDICATOR_CATALOG.filter((d) => !d.experimental).map((d) => d.regionId));
     expect([...regions].sort()).toEqual(
-      ['eastern-europe', 'global-cyber', 'korean-peninsula', 'middle-east', 'red-sea', 'south-china-sea', 'taiwan-strait'].sort(),
+      ['eastern-europe', 'global-cyber', 'korean-peninsula', 'middle-east', 'red-sea', 'south-china-sea', 'taiwan-strait', 'united-states'].sort(),
     );
     const pizza = getIndicator('experimental.pentagon-pizza')!;
     expect(pizza).toMatchObject({ experimental: true, weight: 0 });

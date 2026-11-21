@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.13.0] — 2026-11-21 — United States (domestic) watch
+
+### Added
+- Eighth watch region, United States (domestic): events inside the US, with emphasis on the military and homeland security. A bare "US" in a headline never counts; US places, US-based sources and US borders do. US bases abroad map to their host countries.
+- 9 sources (24 total): FAA security/VIP flight restrictions, DHS NTAS, FEMA declarations, NWS Extreme alerts, Air Force and Marine Corps news, Military Times, Defense News, NPR National; BBC US & Canada feed.
+- Catalog v5 (57 indicators): NTAS advisory, military-installation incident (2 independent sources to trigger), National Guard deployment, security flight-restriction burst, major disaster.
+- Region page: a States panel for the US.
+
+### Fixed (found on live data)
+- A Central/South America trip and a US base in Japan (Kadena) were first counted as domestic.
+
+
 ## [0.12.0] — 2026-11-21 — Region pages
 
 ### Added

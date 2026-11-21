@@ -65,6 +65,12 @@ export function isNotableWarning(e: IntelligenceEvent): boolean {
       return m.routine !== true;
     case 'cisa-kev':
       return m.knownRansomwareUse === true;
+    case 'dhs-ntas':
+      return true;
+    case 'fema-declarations':
+      return m.declarationType === 'DR';
+    case 'nws-alerts':
+      return true;
     default:
       return false;
   }
@@ -103,7 +109,7 @@ export function buildBrief(snapshot: DashboardSnapshot, now: number): Brief {
   }
 
   // 4. Top stories: relevant headline news, grouped; multi-publisher and official first.
-  const news = recent.filter((e) => e.sourceClass === 'media' || ['un-news', 'war-gov-news', 'uk-mod', 'iaea-news'].includes(e.sourceId)).filter((e) => !isOffTopic(e) && !isOpinion(e));
+  const news = recent.filter((e) => e.sourceClass === 'media' || ['un-news', 'war-gov-news', 'uk-mod', 'iaea-news', 'af-news', 'marines-news'].includes(e.sourceId)).filter((e) => !isOffTopic(e) && !isOpinion(e));
   const byId = new Map(news.map((e) => [e.id, e]));
   const rank = { official: 0, 'multi-source': 1, 'single-source': 2 } as const;
   const stories = buildStories(news).sort(
