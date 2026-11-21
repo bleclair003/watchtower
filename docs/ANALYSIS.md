@@ -274,6 +274,13 @@ Security Council meetings, resolutions and failed drafts, in the feed and on reg
 - **Use:** look at an area named in a record (smoke plumes, burn scars, a city's lights going out). Compare night lights with the 2016 baseline and with the days before; moonlight, clouds and daytime parts of the pass change brightness.
 - **Limits:** resolution is hundreds of metres, so buildings and vehicles are not visible; clouds hide the ground; it is a picture to look at, not an automatic detector.
 
+## Military space launches (v0.28.0)
+
+- **Source:** Launch Library 2 ([`collector/adapters/launches.ts`](../collector/adapters/launches.ts)), a community-maintained database of every orbital launch.
+- **What counts as military:** mission type "Government/Top Secret" (US Space Force, NRO, SDA; China's Yaogan and Shijian), a military operator (Russian Space Forces …), or any launch from North Korea or Iran, whose launchers share ballistic-missile technology.
+- **Records:** completed launches only (success, failure, partial failure), never schedules, so nothing changes after it is recorded.
+- **Indicators:** North Korean space launch (high), Iranian space launch, and an experimental worldwide tempo.
+
 ## Cost
 
 | Feature | Firestore reads |

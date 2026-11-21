@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 16;
+export const CATALOG_VERSION = 17;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -1163,6 +1163,86 @@ const congressIndicators: IndicatorDefinition[] = STATE_DEPT_REGIONS.flatMap((r)
   },
 ]);
 
+const LAUNCHES = 'military-launches';
+const launchMatch = (regionId: string) => ({
+  all: [
+    { field: 'sourceId' as const, op: 'eq' as const, value: LAUNCHES },
+    { field: 'regionIds' as const, op: 'contains' as const, value: regionId },
+  ],
+});
+
+/** Phase 13 item 12: military and classified space launches. */
+const launchIndicators: IndicatorDefinition[] = [
+  {
+    id: 'korean-peninsula.dprk-space-launch',
+    name: 'KOREA North Korean space launch',
+    description: 'A North Korean orbital launch attempt (successful or not) within 30 days, from Launch Library 2.',
+    family: 'official-activity',
+    regionId: 'korean-peninsula',
+    requiredSourceIds: [LAUNCHES],
+    match: { all: [...launchMatch('korean-peninsula').all, { field: 'countryCodes', op: 'contains', value: 'KP' }] },
+    windowHours: 720,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 1 },
+    baseline: null,
+    weight: 2,
+    severity: 'high',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'North Korean satellite launches use ballistic-missile technology banned by UN resolutions and are treated by its neighbours as missile tests.',
+  },
+  {
+    id: 'middle-east.iran-space-launch',
+    name: 'MIDEAST Iranian space launch',
+    description: 'An Iranian orbital launch attempt within 30 days, from Launch Library 2.',
+    family: 'official-activity',
+    regionId: 'middle-east',
+    requiredSourceIds: [LAUNCHES],
+    match: { all: [...launchMatch('middle-east').all, { field: 'countryCodes', op: 'contains', value: 'IR' }] },
+    windowHours: 720,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 2 },
+    baseline: null,
+    weight: 1,
+    severity: 'medium',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'Iran\u2019s space launchers, several run by the IRGC, share technology with its long-range missiles.',
+  },
+  {
+    id: 'global.military-launch-tempo',
+    name: 'GLOBAL military and classified launch tempo',
+    description: 'Military and classified orbital launches worldwide within 14 days.',
+    family: 'experimental',
+    regionId: 'global',
+    requiredSourceIds: [LAUNCHES],
+    match: { all: [{ field: 'sourceId', op: 'eq', value: LAUNCHES }] },
+    windowHours: 336,
+    elevated: { countAtLeast: 6 },
+    triggered: { countAtLeast: 10 },
+    baseline: { days: 28, triggerRatio: 2, elevatedRatio: 1.5 },
+    weight: 0,
+    severity: 'low',
+    experimental: true,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'A surge of military reconnaissance and communications launches can precede operations; most are routine constellation build-out, so it never affects the RAI.',
+    research: {
+      hypothesis: 'Military launch tempo rises before and during crises (replacing or adding reconnaissance capacity).',
+      dataAvailability: 'Launch Library 2, collected since 2026-11-21 (30 days back-filled).',
+      baselinePeriod: '28 days.',
+      expectedRelationship: 'Weak; dominated by scheduled constellation launches (SDA, Yaogan).',
+      historicalExamples: 'About 6 a month in Oct.–Nov. 2026.',
+      confounders: 'Launch-vehicle availability, weather, constellation schedules.',
+      falsePositives: 'Routine deployment campaigns.',
+      retrospectiveResults: 'Insufficient history.',
+      evidenceQuality: 'none',
+    },
+  },
+];
+
 export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...advisoryIndicators,
   ...cyberIndicators,
@@ -1182,6 +1262,7 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...contractIndicators,
   ...fedregIndicators,
   ...congressIndicators,
+  ...launchIndicators,
 ];
 
 export function getIndicator(id: string): IndicatorDefinition | undefined {

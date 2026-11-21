@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.28.0] — 2026-11-21 — Military space launches
+
+### Added
+- Source 37, **Launch Library 2** (The Space Devs, free, no key): completed orbital launches whose mission is "Government/Top Secret", whose operator is military (e.g. Russian Space Forces, South Korea's Agency for Defense Development, IRGC), or that come from North Korea or Iran. Every 3 hours; 30 days back-filled (8 launches).
+- Owner country = launch site's country, except Baikonur (Kazakhstan) = Russia. Records belong to that country's region (US launches to the United States region; China is in no watch region).
+- Catalog v17 (151 indicators): **North Korean space launch** (high), **Iranian space launch**, and an experimental **global military launch tempo**.
+
+
 ## [0.27.0] — 2026-11-21 — Satellite imagery
 
 ### Added

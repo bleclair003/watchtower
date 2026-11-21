@@ -19,6 +19,7 @@ import { unSecurityCouncil } from './unsc.ts';
 import { yonhapDprkLaunches } from './yonhapDprk.ts';
 import { dodContracts } from './dodContracts.ts';
 import { federalRegister } from './federalRegister.ts';
+import { militaryLaunches } from './launches.ts';
 import { congress } from './congress.ts';
 
 /** Active adapters. Adding a source = write an adapter + register it here. */
@@ -57,6 +58,7 @@ export const ADAPTERS: SourceAdapter<never>[] = [
   yonhapDprkLaunches as SourceAdapter<never>,
   dodContracts as SourceAdapter<never>,
   federalRegister as SourceAdapter<never>,
+  militaryLaunches as SourceAdapter<never>,
   // Free-key sources: active only when their key is set.
   firms as SourceAdapter<never>,
   cloudflareRadarOutages as SourceAdapter<never>,

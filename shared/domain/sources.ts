@@ -795,6 +795,26 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     priority: 'P2',
     feasibility: { checkedAt: '2026-11-21T12:00:00Z', result: 'reachable', note: 'HTTP 200 with the demo key; needs a free key for regular collection.' },
   },
+  {
+    id: 'military-launches',
+    name: 'Military and classified space launches',
+    organization: 'Launch Library 2 (The Space Devs)',
+    website: 'https://thespacedevs.com/llapi',
+    endpoint: 'https://ll.thespacedevs.com/2.3.0/launches/previous/',
+    method: 'api',
+    sourceClass: 'aggregator',
+    defaultCategory: 'military',
+    coverage: 'Every orbital launch worldwide; kept when the mission is "Government/Top Secret", the operator is military, or the launch is from North Korea or Iran',
+    authentication: 'None (free tier, about 15 requests an hour)',
+    freeAccess: 'Free',
+    expectedUpdateFrequency: 'Within hours of a launch; read every 3 hours',
+    pollIntervalMinutes: 180,
+    reliabilityNotes:
+      'Community-maintained database with launch status, mission type, orbit and pad. The owning country is the launch site\u2019s country, except Baikonur (Kazakhstan) which counts as Russia. Probe 2026-11-21: 12 military or classified launches in about two months (US Space Force/NRO/SDA, China Yaogan and Shijian, Russian GLONASS). Only completed launches are recorded, not schedules.',
+    termsNotes: 'The Space Devs API is free for non-commercial use; credit The Space Devs.',
+    priority: 'P2',
+    feasibility: { checkedAt: '2026-11-21T12:20:00Z', result: 'reachable', note: 'HTTP 200; 7,678 launches on record.' },
+  },
   // ------------------------------------------------------------ research ---
   {
     id: 'centcom-releases',

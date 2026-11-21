@@ -171,6 +171,12 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 
 - The API has no keyword search; the key goes in the `X-Api-Key` header, never the URL.
 
+## v0.28.0 Military space launches — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| Launch Library 2 `/launches/previous/` | aggregator | Completed military/classified launches: name, vehicle, mission type, orbit, pad, outcome |
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |
