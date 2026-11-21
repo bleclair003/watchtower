@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
 import { ExternalLink } from 'lucide-react';
 import type { IntelligenceEvent } from '@shared/domain/types';
+import { CORROBORATION_LABEL, type Story } from '@shared/domain/stories/stories';
 import { getRegion } from '@shared/domain/regions';
 import { CATEGORY_STYLES, CREDIBILITY_LABELS, SOURCE_CLASS_LABELS } from '../../config/categories';
 import { formatAge, formatUtc } from '../../lib/time';
@@ -18,6 +19,9 @@ interface Props {
   selected: boolean;
   onSelect: () => void;
   now: number;
+  /** Set when this item leads a story; `storyReports` are all its reports, newest first. */
+  story?: Story | null;
+  storyReports?: IntelligenceEvent[];
 }
 
 const PRECISION_LABEL: Record<IntelligenceEvent['locationPrecision'], string> = {
@@ -29,7 +33,10 @@ const PRECISION_LABEL: Record<IntelligenceEvent['locationPrecision'], string> = 
 };
 
 /** One intelligence feed entry. Expanded view shows full provenance. */
-export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem({ event: e, selected, onSelect, now, indicators = [], allowDossier = false }, ref) {
+export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem(
+  { event: e, selected, onSelect, now, indicators = [], allowDossier = false, story = null, storyReports = [] },
+  ref,
+) {
   const cred = CREDIBILITY_LABELS[e.credibility];
   const m = e.metadata ?? {};
   const terms = Array.isArray(m.geoTerms) ? (m.geoTerms as unknown[]).filter((t): t is string => typeof t === 'string') : [];
@@ -86,7 +93,14 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem({ eve
             </Tag>
           )}
           {e.metadata?.geoBasis === 'text-mention' && <Tag tone="inactive" title="Location from place names mentioned in the headline, not geolocation">TXT-GEO</Tag>}
-          <Tag tone={cred.tone} title={cred.label}>{cred.code}</Tag>
+          {story && (
+            <Tag tone={story.corroboration === 'single-source' ? 'muted' : 'info'} title={CORROBORATION_LABEL[story.corroboration]}>
+              STORY ×{story.memberIds.length} · {story.corroboration === 'official' ? 'OFFICIAL+' : story.corroboration === 'multi-source' ? `${story.publishers.length} PUBLISHERS` : '1 PUBLISHER'}
+            </Tag>
+          )}
+          {!(story && story.corroboration !== 'single-source' && e.credibility === 'single-source') && (
+            <Tag tone={cred.tone} title={cred.label}>{cred.code}</Tag>
+          )}
           <Tag>{CATEGORY_STYLES[e.category].code}</Tag>
           {e.regionIds.map((r) => (
             <Tag key={r} tone="muted">{getRegion(r)?.shortCode ?? r}</Tag>
@@ -98,6 +112,34 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem({ eve
       {selected && (
         <div className="space-y-1.5 border-l-2 border-wt-info px-2 pt-0.5 pb-2 pl-[25px] text-2xs">
           {e.summary && <p className="text-xs leading-snug text-wt-fg-muted">{e.summary}</p>}
+          {story && (
+            <section aria-label="Reports in this story" className="border border-wt-line p-1.5">
+              <p className="mb-1 text-wt-fg-dim">
+                STORY · {story.memberIds.length} REPORTS · {story.publishers.map((p) => p.publisher).join(' · ')}
+              </p>
+              <p className="mb-1 text-wt-fg-muted">
+                {CORROBORATION_LABEL[story.corroboration]}. Grouped because the headlines share: {story.sharedTerms.join(', ')}.
+              </p>
+              <ul className="space-y-0.5">
+                {storyReports.map((r) => {
+                  const rurl = safeExternalUrl(r.sourceUrl);
+                  return (
+                    <li key={r.id} className="flex items-start gap-1.5">
+                      <span className="whitespace-nowrap text-wt-fg-dim tabular-nums">{formatAge(r.publishedAt ?? r.collectedAt, now)}</span>
+                      <span className="whitespace-nowrap text-wt-fg-muted">{r.sourceName.split(' — ')[0]}</span>
+                      {rurl ? (
+                        <a href={rurl} target="_blank" rel="noopener noreferrer nofollow" className="min-w-0 text-wt-info hover:underline">
+                          {r.title}
+                        </a>
+                      ) : (
+                        <span className="min-w-0">{r.title}</span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
           <dl className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
             <dt className="text-wt-fg-dim">SOURCE</dt>
             <dd>
@@ -110,7 +152,10 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem({ eve
             <dt className="text-wt-fg-dim">COLLECTED</dt>
             <dd className="tabular-nums">{formatUtc(e.collectedAt)}</dd>
             <dt className="text-wt-fg-dim">CREDIBILITY</dt>
-            <dd>{cred.label}</dd>
+            <dd>
+              {cred.label}
+              {story && <span className="text-wt-fg-dim"> (this report) · story: {story.publishers.length} publisher{story.publishers.length === 1 ? '' : 's'}</span>}
+            </dd>
             <dt className="text-wt-fg-dim">VERIFICATION</dt>
             <dd className="uppercase">{e.verificationStatus}</dd>
             <dt className="text-wt-fg-dim">LOCATION</dt>

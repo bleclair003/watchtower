@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0] — 2026-11-21 — Stories
+
+### Added
+- Stories: the feed groups reports of the same event from different headline feeds into one entry. It shows the publishers, a corroboration label (1 publisher / N publishers / official included), the shared words that grouped them, and every report with its link. A STORIES ON/OFF toggle switches back to all items. Computed in the browser, so it costs no Firestore reads.
+- Checked against live headlines: page-template groups from one official publisher, and place-name-only matches, were found and excluded.
+
+
 ## [0.9.4] — 2026-11-21 — Firestore read cost
 
 ### Fixed

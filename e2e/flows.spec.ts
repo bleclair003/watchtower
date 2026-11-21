@@ -69,3 +69,12 @@ test('keyboard: first Tab reaches the skip link, which moves focus to the conten
   await page.keyboard.press('Enter');
   await expect(page.locator('#main')).toBeFocused();
 });
+
+test('feed can switch between grouped stories and all items', async ({ page }) => {
+  await openModule(page, '/', 'GOC');
+  const toggle = page.getByRole('button', { name: /^STORIES (ON|OFF)$/ });
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+  await expect(toggle).toHaveText('STORIES OFF');
+});

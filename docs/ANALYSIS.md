@@ -63,6 +63,34 @@ Before WATCHTOWER began collecting, the frame says so: nothing is shown because 
   - Catalog v2 adds **State Dept advisory tempo (global)**. It is computable from collected data and set to weight 0, so it never feeds the RAI.
   - The Pentagon Pizza Index remains a documented, data-less concept.
 
+## Stories (v0.10.0)
+
+The feed groups reports of the same event from different headline feeds into one **story** (toggle **STORIES ON/OFF** in the feed header). Code: [`shared/domain/stories/stories.ts`](../shared/domain/stories/stories.ts). It is computed in the browser from the records already loaded, so it costs no reads.
+
+**Which feeds:** BBC World, Al Jazeera, UN News, U.S. DoD, UK MOD, IAEA. Structured sources (KEV, USGS, GDACS, IODA, FIRMS, Cloudflare) never form stories.
+
+**Same story only if all hold:**
+- the headlines share at least **3** distinctive words, covering at least **half** of the shorter headline's words. Words are crudely stemmed to their first 6 letters, so "assassinate" matches "assassination";
+- at least one shared word is **not a place name**;
+- they were published within **48 hours** of each other;
+- they don't name **different countries**.
+
+Leading labels ("Guidance:", "Official Statistics:", "Bowen:") are ignored. A group made only of one official publisher's pages is not a story: those share templates, not events.
+
+**Corroboration counts publishers, not items:**
+
+| Label | Meaning |
+|---|---|
+| 1 PUBLISHER | Several reports from one outlet |
+| N PUBLISHERS | Independent outlets reported it. Not proof: outlets often use the same news agency |
+| OFFICIAL+ | An official publisher (UN, DoD, MOD, IAEA) is among the reports |
+
+Each story shows its reports, their publishers and the shared words that grouped them.
+
+**Known limits:**
+- Related coverage of one ongoing situation can be grouped. For example, two BBC pieces on Israeli West Bank settlements shared "settlers/settlements".
+- Reports that describe the same event in entirely different words stay separate.
+
 ## Cost
 
 | Feature | Firestore reads |

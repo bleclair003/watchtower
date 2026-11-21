@@ -122,3 +122,16 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
 - [x] Cloudflare Radar live since 2026-11-20; network-location and revision fixes after the first run
 - [x] ACLED evaluated and rejected (no API on personal accounts; EULA excludes dashboard use)
 - [ ] Cross-source corroboration: mark a media report `corroborated` when an independent source reports the same country and topic
+
+## Phase 10 — Analyst features (started 2026-11-21)
+1. **Stories** — group reports of the same event across outlets; show which sources reported it and whether it is multi-source
+   - [x] Deterministic grouping of same-story headlines (time window, shared terms, shared place), explainable per story
+   - [x] Corroboration level per story: single-source / multi-source (independent publishers) / includes official reporting
+   - [x] Feed shows one entry per story with its sources; toggle back to all items
+   - [x] Tests on real headlines; checked on real collected data (emulator) — v0.10.0
+2. **Daily brief to Discord** — morning summary: RAI changes, triggered indicators, new official warnings, top stories, links
+   - [ ] Brief builder (deterministic, from the SITREP generator)
+   - [ ] Scheduled delivery (once a day) through the existing webhook, with cooldown and failure logging
+3. **Region pages** — one page per watch region
+   - [ ] RAI history, active indicators, latest stories, region map (fires, quakes, outages), countries
+
