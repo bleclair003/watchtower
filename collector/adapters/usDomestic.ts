@@ -6,6 +6,8 @@ import { contentHash } from '../lib/hash.ts';
 import { FeedParseError } from '../lib/feed.ts';
 import { LIMITS, cleanText, decodeEntities, safeUrl, truncate } from '../lib/text.ts';
 import { FIRST_RUN_LOOKBACK_DAYS, STEADY_LOOKBACK_DAYS, type AdapterContext, type AdapterResult, type SourceAdapter } from './types.ts';
+import { TFR_DETAILS_PER_RUN, TFR_SHAPES_URL, buildTfrSnapshot, parseTfrDetail, tfrDetailUrl, tfrOutlines, type TfrDetail } from './faa.ts';
+import type { TfrSnapshot, TfrType } from '../../shared/domain/faa.ts';
 
 /**
  * US domestic structured sources: FAA temporary flight restrictions, DHS NTAS advisories,
@@ -49,9 +51,39 @@ export function tfrDate(raw: unknown): string | null {
   return m ? new Date(Date.UTC(Number(m[3]), Number(m[1]) - 1, Number(m[2]))).toISOString() : null;
 }
 
-export const faaTfr: SourceAdapter<Simple> = {
+export interface TfrState {
+  firstRunAt: string;
+  /** Details per NOTAM id (null = fetched, nothing usable). */
+  details?: Record<string, TfrDetail | null>;
+  latest?: TfrSnapshot | null;
+}
+
+/** Details for TFRs not seen before (a few per run), kept for those still listed. */
+async function tfrDetails(ctx: AdapterContext<TfrState>, ids: string[]): Promise<Record<string, TfrDetail | null>> {
+  const prev = ctx.state?.details ?? {};
+  const details: Record<string, TfrDetail | null> = {};
+  for (const id of ids) if (id in prev) details[id] = prev[id];
+  const missing = ids.filter((id) => !(id in details)).slice(0, TFR_DETAILS_PER_RUN);
+  for (let i = 0; i < missing.length; i += 5) {
+    await Promise.all(
+      missing.slice(i, i + 5).map(async (id) => {
+        try {
+          const r = await ctx.fetch(tfrDetailUrl(id), undefined, { Accept: 'application/json' });
+          if (r.kind !== 'ok') return;
+          const body = JSON.parse(r.body) as { text?: unknown }[];
+          details[id] = Array.isArray(body) && typeof body[0]?.text === 'string' ? parseTfrDetail(body[0].text) : null;
+        } catch {
+          // Left out: tried again next run.
+        }
+      }),
+    );
+  }
+  return details;
+}
+
+export const faaTfr: SourceAdapter<TfrState> = {
   sourceId: 'faa-tfr',
-  async collect(ctx: AdapterContext<Simple>): Promise<AdapterResult<Simple>> {
+  async collect(ctx: AdapterContext<TfrState>): Promise<AdapterResult<TfrState>> {
     const def = getSource('faa-tfr')!;
     const res = await ctx.fetch(def.endpoint!);
     if (res.kind === 'not-modified') return { events: [], rejected: [], itemsSeen: 0, notModified: true, state: ctx.state! };
@@ -60,7 +92,21 @@ export const faaTfr: SourceAdapter<Simple> = {
     const nowIso = new Date(ctx.now).toISOString();
     const lookback = ctx.now - (ctx.state ? STEADY_LOOKBACK_DAYS : FIRST_RUN_LOOKBACK_DAYS) * DAY;
     const events: IntelligenceEvent[] = [];
-    const rejected: AdapterResult<Simple>['rejected'] = [];
+    const rejected: AdapterResult<TfrState>['rejected'] = [];
+    // Layer: every listed TFR of the imported types, with details and outlines.
+    const imported = rows
+      .map((r) => ({ notam: String(r.notam_id ?? ''), type: String(r.type ?? '').toUpperCase() as TfrType, state: String(r.state ?? '').toUpperCase(), title: cleanText(String(r.description ?? '')).replace(/,\s*(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b.*$/i, '') }))
+      .filter((r) => TFR_TYPES[r.type] && /^\d\/\d{4}$/.test(r.notam));
+    const details = await tfrDetails(ctx, imported.map((r) => r.notam));
+    let outlines = new Map<string, string>();
+    try {
+      const shapes = await ctx.fetch(TFR_SHAPES_URL, undefined, { Accept: 'application/json' }, { maxBytes: 4 * 1024 * 1024 });
+      if (shapes.kind === 'ok') outlines = tfrOutlines(((JSON.parse(shapes.body) as { features?: unknown[] }).features ?? []) as never[]);
+    } catch {
+      // Shapes are optional: the layer falls back to the previous outlines below.
+    }
+    if (!outlines.size && ctx.state?.latest) for (const t of ctx.state.latest.items) if (t.path) outlines.set(t.notam, t.path);
+    const latest = buildTfrSnapshot(imported, details, outlines, nowIso);
     for (const r of rows) {
       const type = String(r.type ?? '').toUpperCase();
       const kind = TFR_TYPES[type];
@@ -78,20 +124,22 @@ export const faaTfr: SourceAdapter<Simple> = {
         .replace(/,\s*(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b.*$/i, '')
         .replace(/,\s*$/, '');
       const id = contentHash('faa-tfr', notam);
+      const d = details[notam] ?? null;
+      const when = d?.start || d?.end ? ` · ${d.start ? d.start.slice(0, 16).replace('T', ' ') : '…'} to ${d.end ? d.end.slice(0, 16).replace('T', ' ') : '…'} UTC` : '';
       events.push({
         ...base('faa-tfr', nowIso),
         id,
         contentHash: id,
         sourceUrl: `https://tfr.faa.gov/tfr3/?page=detail_${notam.replace('/', '_')}`,
         title: truncate(`FAA ${kind.label} flight restriction — ${where || (US_STATE_NAMES[state] ?? state)}`, LIMITS.title),
-        summary: truncate(`NOTAM ${notam} · type ${type} · ${state === 'USA' ? 'nationwide' : US_STATE_NAMES[state] ?? state} · issued ${created.slice(0, 10)}. ${where}`, LIMITS.summary),
+        summary: truncate(`NOTAM ${notam} · type ${type} · ${state === 'USA' ? 'nationwide' : US_STATE_NAMES[state] ?? state} · issued ${created.slice(0, 10)}${when}. ${d?.location ?? where}${d?.reason ? ` · ${d.reason}` : ''}${d?.altitude ? ` · ${d.altitude}` : ''}`, LIMITS.summary),
         category: kind.category,
         publishedAt: created,
         occurredAt: null,
-        metadata: { notamId: notam, tfrType: type, usStates: state && state !== 'USA' ? [state] : [], facility: String(r.facility ?? ''), geoBasis: 'source-country' },
+        metadata: { notamId: notam, tfrType: type, usStates: state && state !== 'USA' ? [state] : [], facility: String(r.facility ?? ''), startsAt: d?.start ?? null, endsAt: d?.end ?? null, geoBasis: 'source-country' },
       });
     }
-    return { events, rejected, itemsSeen: rows.length, notModified: false, state: { firstRunAt: ctx.state?.firstRunAt ?? nowIso } };
+    return { events, rejected, itemsSeen: rows.length, notModified: false, state: { firstRunAt: ctx.state?.firstRunAt ?? nowIso, details, latest } };
   },
 };
 

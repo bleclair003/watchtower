@@ -26,6 +26,7 @@ export type MeterKind =
   | 'strategic'
   | 'blackout'
   | 'power'
+  | 'airspace'
   | 'economic'
   | 'humanitarian'
   | 'homeland'

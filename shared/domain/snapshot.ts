@@ -10,6 +10,7 @@ import type { BaseActivitySnapshot } from './baseActivity.ts';
 import type { PredictionMarketsSnapshot } from './predictionMarkets.ts';
 import type { InfrastructureSnapshot } from './infrastructure.ts';
 import type { PowerOutageSnapshot } from './powerOutages.ts';
+import type { AirportStatusSnapshot, AirspaceNoticesSnapshot, TfrSnapshot } from './faa.ts';
 import type { ActorsSnapshot } from './actors.ts';
 
 /**
@@ -71,6 +72,12 @@ export interface DashboardSnapshot {
   infrastructure?: InfrastructureSnapshot;
   /** US customers without power by state and county (ODIN), from the last successful fetch. */
   powerOutages?: PowerOutageSnapshot;
+  /** FAA security, VIP and special flight restrictions with times and outlines. */
+  tfrs?: TfrSnapshot;
+  /** FAA airport status: ground stops, ground delay programs, delays, closures. */
+  airportStatus?: AirportStatusSnapshot;
+  /** FAA prohibitions and advisories for US civil aviation abroad. */
+  airspaceNotices?: AirspaceNoticesSnapshot;
   /** Tracked people and groups, and new names in headlines. */
   actors?: ActorsSnapshot;
   /** Daily sources that have gone quiet while reachable (for the brief and Diagnostics). */

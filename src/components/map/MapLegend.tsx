@@ -1,5 +1,6 @@
 import { INFRA_LABEL, INFRA_TYPES } from '@shared/domain/infrastructure';
-import { AIRCRAFT_COLOR, AIRCRAFT_PATH, FLEET_COLOR, INFRA_COLOR, POWER_STEPS, SANCTIONED_SHIP_COLOR, SHIP_PATH, BRANCH_COLOR, OPERATION_COLOR, OPERATION_LABEL } from './WorldMap';
+import { tfrActive, type AirportEvent, type TfrShape } from '@shared/domain/faa';
+import { AIRCRAFT_COLOR, AIRCRAFT_PATH, AIRPORT_COLOR, FLEET_COLOR, INFRA_COLOR, POWER_STEPS, TFR_COLOR, SANCTIONED_SHIP_COLOR, SHIP_PATH, BRANCH_COLOR, OPERATION_COLOR, OPERATION_LABEL } from './WorldMap';
 import { AIRCRAFT_CLASSES, AIRCRAFT_CLASS_LABEL } from '@shared/domain/aircraft';
 import { useState } from 'react';
 import { EVENT_CATEGORIES } from '@shared/domain/types';
@@ -17,6 +18,8 @@ interface Props {
   unusualBases?: number | null;
   /** Infrastructure layer: all sites shown (count, or null when only flagged ones), flagged count. */
   infrastructure?: { all: number | null; flagged: number; simulated: boolean };
+  /** FAA layer (omit when off). */
+  faa?: { tfrs: TfrShape[]; airports: AirportEvent[]; now: number; simulated: boolean };
   /** US power outages layer (omit when off). */
   power?: { total: number; states: number; counties: number; utilities: number; ageMinutes: number; simulated: boolean };
   /** Name of the operating country the bases are filtered to, if any. */
@@ -34,7 +37,7 @@ interface Props {
 const BRANCH_LABEL = { army: 'Army', navy: 'Navy', 'air-force': 'Air Force', marines: 'Marines', other: 'Other DoD' } as const;
 
 /** Collapsible legend explaining symbols and location-precision handling. */
-export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, infrastructure, power, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
+export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, infrastructure, power, faa, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
   const [open, setOpen] = useState(true);
   return (
     <div className="pointer-events-auto absolute bottom-2 left-2 z-10 max-w-[230px] border border-wt-line-strong bg-wt-panel/95 text-2xs">
@@ -128,6 +131,32 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
                 <span>Records near or naming it (72 h)</span>
                 <span className="ml-auto text-wt-fg tabular-nums">{infrastructure.flagged}</span>
               </div>
+            </div>
+          )}
+          {faa && (
+            <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
+              <div className="flex justify-between">
+                <span title="FAA temporary flight restrictions (VIP, security, special) and National Airspace System status">FAA airspace{faa.simulated ? ' · SIMULATED' : ''}</span>
+                <span className="text-wt-fg tabular-nums">{faa.tfrs.filter((t) => tfrActive(t, faa.now)).length} active</span>
+              </div>
+              <ul className="grid grid-cols-3 gap-x-2">
+                {(['VIP', 'SECURITY', 'SPECIAL'] as const).map((t) => (
+                  <li key={t} className="flex items-center gap-1">
+                    <span className="size-2 border border-dashed" style={{ borderColor: TFR_COLOR[t], background: `${TFR_COLOR[t]}55` }} aria-hidden />
+                    {t === 'SECURITY' ? 'Security' : t === 'SPECIAL' ? 'Special' : 'VIP'}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-wt-fg-dim">Restrictions: solid while active, faint before they start.</p>
+              <ul className="grid grid-cols-2 gap-x-2">
+                {([['ground-stop', 'Ground stop'], ['ground-delay', 'Delay program'], ['departure-delay', 'Delays'], ['closure', 'Closed']] as const).map(([k, label]) => (
+                  <li key={k} className="flex items-center gap-1">
+                    <span className="size-2 rounded-full" style={{ background: AIRPORT_COLOR[k] }} aria-hidden />
+                    {label} ({faa.airports.filter((a) => (k === 'departure-delay' ? a.kind.endsWith('delay') && a.kind !== 'ground-delay' : a.kind === k)).length})
+                  </li>
+                ))}
+              </ul>
+              <p className="text-wt-fg-dim">White ring: a cause other than weather, volume or runway work.</p>
             </div>
           )}
           {power && (

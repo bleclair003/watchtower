@@ -27,6 +27,8 @@ import type { InfrastructureSnapshot } from '@shared/domain/infrastructure';
 import { buildDemoInfrastructure } from './demo/demoInfrastructure';
 import type { PowerOutageSnapshot } from '@shared/domain/powerOutages';
 import { buildDemoPowerOutages } from './demo/demoPowerOutages';
+import type { AirportStatusSnapshot, AirspaceNoticesSnapshot, TfrSnapshot } from '@shared/domain/faa';
+import { buildDemoAirportStatus, buildDemoAirspaceNotices, buildDemoTfrs } from './demo/demoFaa';
 import type { ActorsSnapshot } from '@shared/domain/actors';
 import { computeActors } from '@shared/domain/actorsTrack';
 
@@ -72,6 +74,10 @@ export interface DashboardData {
   infrastructure: InfrastructureSnapshot | null;
   /** US customers without power by state and county (ODIN), or null. */
   powerOutages: PowerOutageSnapshot | null;
+  /** FAA flight restrictions, airport status and notices for US flights abroad, or null. */
+  tfrs: TfrSnapshot | null;
+  airportStatus: AirportStatusSnapshot | null;
+  airspaceNotices: AirspaceNoticesSnapshot | null;
   /** Tracked people and groups and new names, or null. */
   actors: ActorsSnapshot | null;
 }
@@ -120,6 +126,9 @@ export class DemoRepository implements IntelRepository {
       predictionMarkets: buildDemoMarkets(now),
       infrastructure: buildDemoInfrastructure(now),
       powerOutages: buildDemoPowerOutages(now),
+      tfrs: buildDemoTfrs(now),
+      airportStatus: buildDemoAirportStatus(now),
+      airspaceNotices: buildDemoAirspaceNotices(now),
       // The real tracker over the demo records (no registry: nothing counts as new in demo mode).
       actors: { ...computeActors(this.events, now, null, null).snapshot, simulated: true },
       events: this.events,

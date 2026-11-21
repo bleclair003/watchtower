@@ -28,6 +28,8 @@ export interface OperatorSettings {
   infrastructure: boolean;
   /** US power outages by county (ODIN) on the map. */
   powerOutages: boolean;
+  /** FAA flight restrictions and airport ground stops / delays on the map. */
+  faa: boolean;
   /** Satellite imagery product on the GOC map ('off', 'viirs', 'modis', 'night', 'night-2016'). */
   imagery: string;
   /** Imagery day (YYYY-MM-DD); empty = yesterday. */
@@ -48,6 +50,7 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   sanctionedShips: true,
   infrastructure: false,
   powerOutages: true,
+  faa: true,
   imagery: 'off',
   imageryDate: '',
 };

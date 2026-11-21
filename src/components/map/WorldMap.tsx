@@ -4,6 +4,7 @@ import { isBigDeck, type FleetArea } from '@shared/domain/fleet';
 import type { ChokepointReading } from '@shared/domain/chokepoints';
 import type { FlaggedSite, InfraSite, InfraType } from '@shared/domain/infrastructure';
 import { unpackRings, type PowerOutageCounty } from '@shared/domain/powerOutages';
+import { AIRPORT_KIND_LABEL, tfrActive, type AirportEvent, type TfrShape } from '@shared/domain/faa';
 import type { SanctionedShipSighting } from '@shared/domain/sanctionedShips';
 import { IMAGERY_ATTRIBUTION } from '../../lib/imagery';
 import { componentOf, operationOf, type Branch, type Installation, type Operation, type WorldInstallation } from '@shared/domain/installations';
@@ -67,6 +68,9 @@ export interface WorldMapProps {
   onSelectInfra?: (id: string | null) => void;
   /** US counties with customers without power (ODIN); empty when the layer is off. */
   powerOutages?: PowerOutageCounty[];
+  /** FAA flight restrictions and airport events (empty when the FAA layer is off). */
+  tfrs?: TfrShape[];
+  airports?: AirportEvent[];
 }
 
 const GLOBAL_VIEW = { center: [35, 22] as [number, number], zoom: 1.35 };
@@ -88,6 +92,11 @@ export const AIRCRAFT_COLOR: Record<AircraftClass, string> = {
   helicopter: '#c8c8c8',
   other: '#8a958f',
 };
+/** FAA flight restrictions by type (no red or amber: those are for severity). */
+export const TFR_COLOR = { VIP: '#c8e66b', SECURITY: '#e8a0c8', SPECIAL: '#9fd3e8' } as const;
+const TFR_FILL = ['match', ['get', 'type'], 'VIP', TFR_COLOR.VIP, 'SECURITY', TFR_COLOR.SECURITY, TFR_COLOR.SPECIAL] as unknown as string;
+/** FAA airport events: severity colours (a ground stop is the most serious). */
+export const AIRPORT_COLOR = { 'ground-stop': '#ff5555', 'ground-delay': '#ff8a3d', closure: '#9aa5a0', 'arrival-delay': '#ffd38a', 'departure-delay': '#ffd38a' } as const;
 /** US power outages: amber to red by customers out (severity, which is what those colours are reserved for). */
 export const POWER_STEPS: [number, string][] = [[50, '#ffd38a'], [1_000, '#ffb347'], [10_000, '#ff8a3d'], [100_000, '#ff5555']];
 const POWER_FILL = ['step', ['get', 'out'], POWER_STEPS[0][1], POWER_STEPS[1][0], POWER_STEPS[1][1], POWER_STEPS[2][0], POWER_STEPS[2][1], POWER_STEPS[3][0], POWER_STEPS[3][1]] as unknown as string;
@@ -326,6 +335,18 @@ export function WorldMap(props: WorldMapProps) {
           layout: { 'text-field': ['get', 'label'], 'text-font': font, 'text-size': 10, 'text-allow-overlap': true },
           paint: { 'text-color': '#ffd9a8', 'text-halo-color': '#050a08', 'text-halo-width': 1.2 },
         });
+        // FAA flight restrictions: outlines by type, solid while active, faint before they start.
+        m.addSource('tfrs', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({ id: 'tfrs', type: 'fill', source: 'tfrs', paint: { 'fill-color': TFR_FILL, 'fill-opacity': ['case', ['get', 'active'], 0.28, 0.06] } });
+        m.addLayer({ id: 'tfrs-line', type: 'line', source: 'tfrs', paint: { 'line-color': TFR_FILL, 'line-width': 1.2, 'line-dasharray': [2, 1.5] } });
+        m.addLayer({
+          id: 'tfrs-labels',
+          type: 'symbol',
+          source: 'tfrs',
+          minzoom: 6,
+          layout: { 'text-field': ['get', 'label'], 'text-font': font, 'text-size': 10, 'text-allow-overlap': true },
+          paint: { 'text-color': TFR_FILL, 'text-halo-color': '#050a08', 'text-halo-width': 1.2 },
+        });
         m.addSource('installations', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
         m.addLayer({
           id: 'installations',
@@ -500,6 +521,27 @@ export function WorldMap(props: WorldMapProps) {
           paint: { 'text-color': '#ffb0b0', 'text-halo-color': '#050a08', 'text-halo-width': 1.2 },
         });
 
+        // FAA airport events: ground stops red, ground delay programs orange, delays yellow, closures grey.
+        m.addSource('airports', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({
+          id: 'airports',
+          type: 'circle',
+          source: 'airports',
+          paint: {
+            'circle-radius': ['match', ['get', 'kind'], 'ground-stop', 5.5, 'ground-delay', 5, 4],
+            'circle-color': ['match', ['get', 'kind'], 'ground-stop', AIRPORT_COLOR['ground-stop'], 'ground-delay', AIRPORT_COLOR['ground-delay'], 'closure', AIRPORT_COLOR.closure, AIRPORT_COLOR['departure-delay']],
+            'circle-stroke-color': ['case', ['get', 'notable'], '#ffffff', '#050a08'],
+            'circle-stroke-width': ['case', ['get', 'notable'], 1.6, 0.8],
+          },
+        });
+        m.addLayer({
+          id: 'airports-labels',
+          type: 'symbol',
+          source: 'airports',
+          minzoom: 3.5,
+          layout: { 'text-field': ['get', 'label'], 'text-font': font, 'text-size': 10, 'text-offset': [0, 1.1], 'text-anchor': 'top', 'text-optional': true },
+          paint: { 'text-color': '#e6efe9', 'text-halo-color': '#050a08', 'text-halo-width': 1.2 },
+        });
         // Sanctioned vessels (AIS): ship icons along their course.
         m.addSource('sanctioned-ships', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
         m.addLayer({
@@ -886,6 +928,42 @@ export function WorldMap(props: WorldMapProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to selection changes
   }, [ready, selectedSanctionedShip]);
 
+  const { tfrs, airports } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    const now = Date.now();
+    const hhmm = (iso: string | null) => (iso ? `${iso.slice(11, 16)} UTC ${iso.slice(8, 10)}/${iso.slice(5, 7)}` : '');
+    (m.getSource('tfrs') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (tfrs ?? [])
+        .filter((t) => t.path)
+        .map((t) => {
+          const active = tfrActive(t, now);
+          return {
+            type: 'Feature' as const,
+            geometry: { type: 'MultiPolygon' as const, coordinates: unpackRings(t.path).map((ring) => [ring]) },
+            properties: { type: t.type, active, label: `${t.type}${active ? (t.end ? ` · until ${hhmm(t.end)}` : '') : t.start ? ` · from ${hhmm(t.start)}` : ''}` },
+          };
+        }),
+    });
+  }, [ready, tfrs]);
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    // One marker per airport: its most serious event.
+    const rank: Record<AirportEvent['kind'], number> = { 'ground-stop': 0, 'ground-delay': 1, closure: 2, 'arrival-delay': 3, 'departure-delay': 4 };
+    const best = new Map<string, AirportEvent>();
+    for (const a of airports ?? []) if (a.lat !== null && a.lon !== null && (!best.has(a.code) || rank[a.kind] < rank[best.get(a.code)!.kind])) best.set(a.code, a);
+    (m.getSource('airports') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: [...best.values()].map((a) => ({
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: [a.lon!, a.lat!] },
+        properties: { kind: a.kind, notable: a.notable, label: `${a.code} ${AIRPORT_KIND_LABEL[a.kind].toLowerCase()}: ${a.condition}` },
+      })),
+    });
+  }, [ready, airports]);
   const { powerOutages } = props;
   useEffect(() => {
     const m = mapRef.current;

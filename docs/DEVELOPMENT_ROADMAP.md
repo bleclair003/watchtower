@@ -316,3 +316,12 @@ Free sources and analysis of data already collected. Each new outside source is 
    - [x] Research free sources and their terms: ODIN (DOE/ORNL, public API, used), EIA-930 hourly demand (possible later), ENTSO-E (token, unclear reuse terms), PowerOutage.us (paid, scraping barred) — v0.47.0
    - [x] US customers without power by county from ODIN: map layer, state records at 25k/100k/250k/500k/1M — v0.47.0
    - [x] Power-outage meter for every region: Cloudflare power-cut outages, power-cut headlines, and ODIN in the US — v0.47.0
+
+## Phase 17 — Better FAA data (2026-11-21)
+
+1. **FAA airspace**
+   - [x] TFR outlines, times, reason and altitude on the map — v0.48.0
+   - [x] Airport status: ground stops, delay programs, delays and closures; records for causes other than weather or volume — v0.48.0
+   - [x] FAA prohibitions and advisories for US flights abroad, new documents as records — v0.48.0
+   - [x] Airspace meter for every region — v0.48.0
+   - [ ] FAA NOTAM API (foreign airspace closures, danger areas, GPS interference) — needs FAA developer credentials

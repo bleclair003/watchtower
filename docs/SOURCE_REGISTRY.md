@@ -255,3 +255,12 @@ Rebuild with `node scripts/build-infrastructure.ts`. On 2026-11-21 the endpoint 
 | EIA-930 hourly grid data | possible later | Demand by balancing authority; a sudden drop can mark a major grid event, but it is indirect |
 | ENTSO-E Transparency Platform | not used | Needs a registered token; reuse of the data depends on agreements with each data owner |
 | PowerOutage.us | rejected | Paid API; the website terms forbid copying or storing its data |
+
+## v0.48.0 FAA — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| FAA TFR map service (`tfr.faa.gov/geoserver/TFR/ows`, WFS) and detail text (`tfr.faa.gov/tfrapi/getWebText`) | official, public, no key | Outlines (simplified, ≤30 kB) and start/end, reason, altitude for VIP, security and special TFRs; details fetched once per TFR |
+| FAA NAS Status (`nasstatus.faa.gov/api/airport-events`) | official, public, no key | Ground stops, ground delay programs, delays and closures with cause and FAA airport position; records for causes other than weather, volume or runway work |
+| FAA Prohibitions, Restrictions and Notices (`faa.gov/air_traffic/publications/us_restrictions/`) | official web page | Notice documents per country or sea area (title, link, kind, first seen); a record when a new document appears |
+| FAA NOTAM API (`api.faa.gov`, NOTAM Management Service) | needs credentials | Not used yet: free registration with client credentials; status after the April 2026 NMS move unconfirmed |

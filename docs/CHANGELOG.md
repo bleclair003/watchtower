@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.48.0] — 2026-11-21 — Better FAA data (Phase 17)
+
+### Added
+- **Flight restriction shapes and times** (`faa-tfr`): VIP, security and special TFRs now carry their outline from the FAA TFR map service, start and end times (UTC), reason and altitude from each TFR's detail page (fetched once per TFR, 15 new ones per run). Record summaries include the times and reason. Record ids are unchanged.
+- **FAA airport status** (source `faa-airport-status`, NAS Status public JSON, every run): ground stops, ground delay programs, arrival and departure delays and closures at US airports, at the FAA's own airport positions. Records only for ground stops and delay programs whose cause is not weather, traffic volume or runway work (e.g. "equipment / outage", security).
+- **FAA notices for US flights abroad** (source `faa-airspace-notices`, the FAA's "Prohibitions, Restrictions and Notices" page, every 3 hours): SFARs and KICZ prohibition and advisory NOTAMs per country or sea area, tied to watch regions (Iran, Iraq, Syria, Saudi Arabia, Persian Gulf → Middle East; Russia, Ukraine, Belarus → Eastern Europe; Yemen, Somalia → Red Sea; North Korea → Korean Peninsula). A document that appears after tracking began becomes a record; those present at the start are standing notices.
+- **FAA map layer** (GOC toggle FAA, on by default; also in SETTINGS): TFR outlines by type (VIP lime, security pink, special blue; solid while active, faint before they start, labelled when zoomed in) and airports with a ground stop (red), delay program (orange), delays (yellow) or closure (grey), white-ringed when the cause is not weather or volume. Legend section "FAA airspace".
+- **Airspace meter for every region** (METERS column AIRSP): new FAA notices for the region in 14 days (3 each, max 6; standing bans listed, not scored), headlines about airspace closures, suspended flights, GPS jamming or no-fly zones (1 / 2–3 / 4+ publishers: 1 / 2 / 3); in the US, ground stops and delay programs not caused by weather or volume (2 each, max 4) and 8+ airports in ground stops at once (+3).
+
+### Limits
+- The TFR list, shapes and airport status are undocumented endpoints behind public FAA sites and may change. The NOTAM API (foreign airspace closures, danger areas, GPS interference) needs FAA credentials and is not used yet.
+- FAA notices cover only what the US regulator tells US operators; other countries' aviation authorities are not read.
+
+
 ## [0.47.1] — 2026-11-21 — Snapshot size guard covers map layers
 
 ### Fixed

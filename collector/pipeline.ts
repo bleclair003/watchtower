@@ -35,6 +35,8 @@ import { AIRCRAFT_SOURCE_ID, type MilitaryAircraftState } from './adapters/milit
 import { FLEET_SOURCE_ID, type FleetState } from './adapters/usniFleet.ts';
 import { PORTWATCH_SOURCE_ID, type PortwatchState } from './adapters/portwatch.ts';
 import { ODIN_SOURCE_ID, type OdinState } from './adapters/odin.ts';
+import { AIRPORT_STATUS_SOURCE_ID, NOTICES_SOURCE_ID, type AirportStatusState, type NoticesState } from './adapters/faa.ts';
+import type { TfrState } from './adapters/usDomestic.ts';
 import { UNHCR_SOURCE_ID, type UnhcrState } from './adapters/unhcr.ts';
 import { MARKETS_SOURCE_ID, type PolymarketState } from './adapters/polymarket.ts';
 import { AIS_SOURCE_ID, type AisSanctionedState } from './adapters/aisSanctioned.ts';
@@ -321,6 +323,19 @@ export async function runCollection(
       log(`PWR  power outage data not added to the snapshot: ${sanitizeError(err)}`);
     }
   }
+  // FAA layers (Phase 17). Airport status changes by the minute, so only a recent reading is used.
+  try {
+    const [tfr, airports, notices] = await Promise.all([
+      tracked.includes('faa-tfr') ? store.getSourceState<TfrState>('faa-tfr') : null,
+      tracked.includes(AIRPORT_STATUS_SOURCE_ID) ? store.getSourceState<AirportStatusState>(AIRPORT_STATUS_SOURCE_ID) : null,
+      tracked.includes(NOTICES_SOURCE_ID) ? store.getSourceState<NoticesState>(NOTICES_SOURCE_ID) : null,
+    ]);
+    if (tfr?.latest) snapshot.tfrs = tfr.latest;
+    if (airports?.latest && Date.parse(airports.latest.fetchedAt) > Date.parse(snapshot.generatedAt) - 3 * 3_600_000) snapshot.airportStatus = airports.latest;
+    if (notices?.latest) snapshot.airspaceNotices = notices.latest;
+  } catch (err) {
+    log(`FAA  FAA layers not added to the snapshot: ${sanitizeError(err)}`);
+  }
   if (tracked.includes(AIS_SOURCE_ID)) {
     try {
       const ais = await store.getSourceState<AisSanctionedState>(AIS_SOURCE_ID);
@@ -372,6 +387,9 @@ export async function runCollection(
       fleet: snapshot.fleet ?? null,
       chokepoints: snapshot.chokepoints ?? null,
       powerOutages: snapshot.powerOutages ?? null,
+      tfrs: snapshot.tfrs ?? null,
+      airportStatus: snapshot.airportStatus ?? null,
+      airspaceNotices: snapshot.airspaceNotices ?? null,
       sanctionedShips: snapshot.sanctionedShips ?? null,
       displacement: snapshot.displacement ?? null,
       predictionMarkets: snapshot.predictionMarkets ?? null,

@@ -1075,6 +1075,47 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     priority: 'P2',
     feasibility: { checkedAt: '2026-11-21T22:30:00Z', result: 'reachable', note: 'odi/map?scale=COUNTY HTTP 200, 146 kB, 119 counties with outages; odi/status lists 158 utilities.' },
   },
+  // ------------------------------------------------------------ Phase 17 ---
+  {
+    id: 'faa-airport-status',
+    name: 'National Airspace System status (airport events)',
+    organization: 'Federal Aviation Administration (FAA) — Air Traffic Control System Command Center',
+    website: 'https://nasstatus.faa.gov/',
+    endpoint: 'https://nasstatus.faa.gov/api/airport-events',
+    method: 'api',
+    sourceClass: 'official',
+    defaultCategory: 'aviation',
+    coverage: 'Ground stops, ground delay programs, arrival and departure delays and closures at US airports (and some Canadian airports in US traffic programs)',
+    authentication: 'None (public JSON behind the NAS Status site)',
+    freeAccess: 'Free',
+    expectedUpdateFrequency: 'Live (minutes)',
+    pollIntervalMinutes: 30,
+    reliabilityNotes:
+      'Causes are the FAA\'s short codes ("fog", "WX:Thunderstorms", "equipment / outage"). Records are made only for ground stops and ground delay programs with a cause other than weather, traffic volume or runway work. Partial closures to transient general aviation (routine NOTAMs) are left out. Undocumented endpoint behind the public site; may change.',
+    termsNotes: 'US government data. Not for flight planning.',
+    priority: 'P2',
+    feasibility: { checkedAt: '2026-11-21T22:50:00Z', result: 'reachable', note: 'airport-events HTTP 200 JSON, 8 airports with events (incl. a YYZ fog ground stop), with FAA coordinates.' },
+  },
+  {
+    id: 'faa-airspace-notices',
+    name: 'Prohibitions, Restrictions and Notices (US civil aviation abroad)',
+    organization: 'Federal Aviation Administration (FAA)',
+    website: 'https://www.faa.gov/air_traffic/publications/us_restrictions/',
+    endpoint: 'https://www.faa.gov/air_traffic/publications/us_restrictions/',
+    method: 'page-parse',
+    sourceClass: 'official',
+    defaultCategory: 'aviation',
+    coverage: 'Special Federal Aviation Regulations (SFARs) and KICZ prohibition and advisory NOTAMs for US operators, by country and sea area (Iran, Iraq, Syria, Yemen, Russia, Ukraine, Belarus, North Korea, Persian Gulf …)',
+    authentication: 'None',
+    freeAccess: 'Free public web page',
+    expectedUpdateFrequency: 'Irregular (new notices a few times a year)',
+    pollIntervalMinutes: 180,
+    reliabilityNotes:
+      'The page lists documents (PDF) under country headings; WATCHTOWER records a document when it first appears (an updated notice usually has a new file). Documents present when tracking began are listed as standing notices, not as news. A layout change would show as a collection error.',
+    termsNotes: 'US government web page, read every 3 hours.',
+    priority: 'P2',
+    feasibility: { checkedAt: '2026-11-21T22:50:00Z', result: 'reachable', note: 'HTTP 200; 24 country and area sections with 46 documents.' },
+  },
 ];
 
 export function getSource(id: string): SourceDefinition | undefined {

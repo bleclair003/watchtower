@@ -8,6 +8,7 @@ import type { MetersSnapshot } from '@shared/domain/meters/types';
 import type { PredictionMarketsSnapshot } from '@shared/domain/predictionMarkets';
 import type { InfrastructureSnapshot } from '@shared/domain/infrastructure';
 import type { PowerOutageSnapshot } from '@shared/domain/powerOutages';
+import type { AirportStatusSnapshot, AirspaceNoticesSnapshot, TfrSnapshot } from '@shared/domain/faa';
 import type { ActorsSnapshot } from '@shared/domain/actors';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '@shared/domain/types';
@@ -47,6 +48,9 @@ interface DataState {
   predictionMarkets: PredictionMarketsSnapshot | null;
   infrastructure: InfrastructureSnapshot | null;
   powerOutages: PowerOutageSnapshot | null;
+  tfrs: TfrSnapshot | null;
+  airportStatus: AirportStatusSnapshot | null;
+  airspaceNotices: AirspaceNoticesSnapshot | null;
   actors: ActorsSnapshot | null;
   loading: boolean;
   error: string | null;
@@ -84,6 +88,9 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
     predictionMarkets: null as PredictionMarketsSnapshot | null,
     infrastructure: null as InfrastructureSnapshot | null,
     powerOutages: null as PowerOutageSnapshot | null,
+    tfrs: null as TfrSnapshot | null,
+    airportStatus: null as AirportStatusSnapshot | null,
+    airspaceNotices: null as AirspaceNoticesSnapshot | null,
     actors: null as ActorsSnapshot | null,
     loadedAt: null as string | null,
     readsThisSession: null as number | null,
@@ -125,6 +132,9 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
         predictionMarkets: d.predictionMarkets,
         infrastructure: d.infrastructure,
         powerOutages: d.powerOutages,
+        tfrs: d.tfrs,
+        airportStatus: d.airportStatus,
+        airspaceNotices: d.airspaceNotices,
         actors: d.actors,
         loadedAt: new Date().toISOString(),
         readsThisSession: repo.readsThisSession(),
