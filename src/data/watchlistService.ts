@@ -10,7 +10,9 @@ import { getFirebase } from './firebaseClient';
  */
 export class WatchlistConflictError extends Error {
   constructor() {
-    super('Your watchlist was changed elsewhere (another tab or device). Reload the page, then re-apply your change.');
+    super(
+      'The database refused the save. Either your watchlist was changed elsewhere (another tab or device: reload the page, then re-apply your change), or the watchlist security rules have not been deployed yet.',
+    );
     this.name = 'WatchlistConflictError';
   }
 }
