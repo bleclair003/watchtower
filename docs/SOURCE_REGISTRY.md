@@ -177,6 +177,12 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 |---|---|---|
 | Launch Library 2 `/launches/previous/` | aggregator | Completed military/classified launches: name, vehicle, mission type, orbit, pad, outcome |
 
+## v0.29.0 WHO Disease Outbreak News — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| WHO DON API (`/api/news/diseaseoutbreaknews`, selected fields) | official | Title, summary, DON id, date; countries from the title; high-consequence pathogen flag |
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |

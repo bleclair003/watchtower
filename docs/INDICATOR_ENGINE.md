@@ -40,7 +40,7 @@ For each indicator, at time `now`:
 - **Fields:** an allow-list (`CONDITION_FIELDS`) of event properties and selected `metadata.*` keys. Lookups are own-property only, so inherited names such as `constructor` are rejected; this is tested.
 - `validateCondition()` and `validateCatalog()` reject malformed definitions, and the catalog is validated in CI.
 
-## Catalog v17 (151 indicators)
+## Catalog v18 (158 indicators)
 
 | Region | Indicator | Window | Elevated / Triggered | Baseline | Weight · Severity |
 |---|---|---|---|---|---|
@@ -82,6 +82,7 @@ For each indicator, at time `now`:
 | Korean Peninsula (v17) | North Korean orbital launch attempt (Launch Library 2) | 30 d | 1 / 1 | — | 2 · high |
 | Middle East (v17) | Iranian orbital launch attempt | 30 d | 1 / 2 | — | 1 · medium |
 | Global, experimental (v17) | Military and classified launches worldwide | 14 d | 6 / 10 | 28 d, ×1.5 / ×2 | 0 · never in the RAI |
+| each of 7 geographic regions (v18) | WHO Disease Outbreak News report naming a region country | 30 d | 1 / 2 | — | 1 · medium |
 | Experimental | State Dept advisory tempo (global) | 72 h | 6 / 12 | 28 d | 0 |
 | Experimental | Pentagon Pizza Index | — | — | — | 0 · always NO DATA |
 

@@ -281,6 +281,13 @@ Security Council meetings, resolutions and failed drafts, in the feed and on reg
 - **Records:** completed launches only (success, failure, partial failure), never schedules, so nothing changes after it is recorded.
 - **Indicators:** North Korean space launch (high), Iranian space launch, and an experimental worldwide tempo.
 
+## WHO outbreak reports (v0.29.0)
+
+- **Source:** WHO Disease Outbreak News ([`collector/adapters/whoDon.ts`](../collector/adapters/whoDon.ts)), published for public-health events of potential international concern.
+- **Records:** one per report, tagged to the countries in its title; reports for a WHO region or the global situation have no country. High-consequence pathogens are flagged in the title.
+- **Indicator:** a report naming a watch-region country (one = elevated, two in 30 days = triggered).
+- **Limits:** WHO reports after national notification, often days or weeks after the first cases; countries that do not report do not appear.
+
 ## Cost
 
 | Feature | Firestore reads |

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.29.0] — 2026-11-21 — WHO outbreak reports
+
+### Added
+- Source 38, **WHO Disease Outbreak News** (official API; the old RSS returns 404). Every 3 hours; 45 days back-filled (10 reports).
+- Countries from the report title ("Disease - Country, Country and Country"; UN-style names such as "the Russian Federation" handled). High-consequence pathogens are flagged in the title: Ebola, Marburg, Lassa, CCHF, Nipah, MERS/SARS, novel and avian influenza, plague, anthrax, hantavirus, and clusters of unknown cause.
+- Catalog v18 (158 indicators): **WHO outbreak report** for the seven geographic regions (1 = elevated, 2 in 30 days = triggered; weight 1).
+
+
 ## [0.28.0] — 2026-11-21 — Military space launches
 
 ### Added

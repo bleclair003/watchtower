@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 17;
+export const CATALOG_VERSION = 18;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -1243,6 +1243,36 @@ const launchIndicators: IndicatorDefinition[] = [
   },
 ];
 
+const WHO_DON = 'who-don';
+
+/** Phase 13 item 13: WHO outbreak reports naming a watch-region country. */
+const outbreakIndicators: IndicatorDefinition[] = ADVISORY_REGIONS.map(
+  (r): IndicatorDefinition => ({
+    id: `${r.id}.disease-outbreak`,
+    name: `${r.shortCode} WHO outbreak report`,
+    description: `A WHO Disease Outbreak News report naming a ${r.name} country within 30 days.`,
+    family: 'official-activity',
+    regionId: r.id,
+    requiredSourceIds: [WHO_DON],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: WHO_DON },
+        { field: 'regionIds', op: 'contains', value: r.id },
+      ],
+    },
+    windowHours: 720,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 2 },
+    baseline: null,
+    weight: 1,
+    severity: 'medium',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'WHO publishes these only for events of potential international concern; an outbreak in a region under strain (conflict, displacement) worsens it. Reports lag the first cases.',
+  }),
+);
+
 export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...advisoryIndicators,
   ...cyberIndicators,
@@ -1263,6 +1293,7 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...fedregIndicators,
   ...congressIndicators,
   ...launchIndicators,
+  ...outbreakIndicators,
 ];
 
 export function getIndicator(id: string): IndicatorDefinition | undefined {

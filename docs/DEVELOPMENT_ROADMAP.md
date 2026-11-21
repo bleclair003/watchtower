@@ -203,7 +203,7 @@ Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at
 12. **Military satellite launches** (Launch Library 2)
    - [x] Completed military and classified launches worldwide; North Korea and Iran flagged — v0.28.0
 13. **Disease outbreaks** (WHO Disease Outbreak News)
-   - [ ] Adapter and tagging; indicator for an outbreak in a watch-region country
+   - [x] Adapter and tagging; indicator for an outbreak in a watch-region country — v0.29.0
 14. **Economic stress** (free FX and oil price data)
    - [ ] Daily currency moves for watch-region countries; Brent/WTI
    - [ ] Indicators: sharp currency drop; oil price spike

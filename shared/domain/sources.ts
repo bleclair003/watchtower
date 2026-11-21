@@ -815,6 +815,26 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     priority: 'P2',
     feasibility: { checkedAt: '2026-11-21T12:20:00Z', result: 'reachable', note: 'HTTP 200; 7,678 launches on record.' },
   },
+  {
+    id: 'who-don',
+    name: 'Disease Outbreak News',
+    organization: 'World Health Organization (WHO)',
+    website: 'https://www.who.int/emergencies/disease-outbreak-news',
+    endpoint: 'https://www.who.int/api/news/diseaseoutbreaknews',
+    method: 'api',
+    sourceClass: 'official',
+    defaultCategory: 'disaster',
+    coverage: 'Official WHO reports on acute public-health events of potential international concern, worldwide',
+    authentication: 'None',
+    freeAccess: 'Free',
+    expectedUpdateFrequency: 'A few reports a month',
+    pollIntervalMinutes: 180,
+    reliabilityNotes:
+      'Official but deliberately slow: WHO publishes after national authorities notify it, often days or weeks after the first cases. Countries come from the title ("Disease - Country, Country and Country"); reports for a WHO region or "Global situation" have none. The old DON RSS feed returns 404; the site API is used, limited to the fields WATCHTOWER reads.',
+    termsNotes: 'WHO content; quoted summaries with a link to the report.',
+    priority: 'P2',
+    feasibility: { checkedAt: '2026-11-21T12:35:00Z', result: 'reachable', note: 'API HTTP 200 (OData).' },
+  },
   // ------------------------------------------------------------ research ---
   {
     id: 'centcom-releases',
