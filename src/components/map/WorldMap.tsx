@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { componentOf, type Branch, type Installation } from '@shared/domain/installations';
 import '../../lib/maplibreSetup';
 import { Map as MLMap, NavigationControl, Popup, type GeoJSONSource, type StyleSpecification } from 'maplibre-gl';
 import { EVENT_CATEGORIES, type IntelligenceEvent } from '@shared/domain/types';
@@ -17,12 +18,19 @@ export interface WorldMapProps {
   showRegions: boolean;
   /** Increment to fly back to the global view. */
   globalViewNonce: number;
+  /** Military installations layer (optional). */
+  installations?: Installation[];
+  showInstallations?: boolean;
+  selectedInstallation?: string | null;
+  onSelectInstallation?: (name: string | null) => void;
 }
 
 const GLOBAL_VIEW = { center: [35, 22] as [number, number], zoom: 1.35 };
 const FG = '#6aff9b';
 const INFO = '#69c6d5';
 const LOAD_TIMEOUT_MS = 20_000;
+/** Branch colours: no red or amber (reserved for severity). Branch is also named in the hover and card. */
+export const BRANCH_COLOR: Record<Branch, string> = { army: '#9ccc65', navy: '#69c6d5', 'air-force': '#b3a6ff', marines: '#e8a0c8', other: '#c8c8c8' };
 
 /** Rasterize each category's SVG path into a map icon so map and legend match. */
 function registerCategoryIcons(map: MLMap) {
@@ -192,6 +200,36 @@ export function WorldMap(props: WorldMapProps) {
           layout: { 'text-field': ['get', 'point_count_abbreviated'], 'text-font': font, 'text-size': 11 },
           paint: { 'text-color': FG },
         });
+        // Military installations: under the event markers, coloured by branch, labelled when zoomed in.
+        m.addSource('installations', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({
+          id: 'installations',
+          type: 'circle',
+          source: 'installations',
+          paint: {
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 1.6, 4, 3, 8, 5.5],
+            'circle-color': ['match', ['get', 'branch'], 'army', BRANCH_COLOR.army, 'navy', BRANCH_COLOR.navy, 'air-force', BRANCH_COLOR['air-force'], 'marines', BRANCH_COLOR.marines, BRANCH_COLOR.other],
+            'circle-opacity': ['case', ['get', 'active'], 0.85, 0.35],
+            'circle-stroke-color': '#050a08',
+            'circle-stroke-width': 0.6,
+          },
+        });
+        m.addLayer({
+          id: 'installation-selected',
+          type: 'circle',
+          source: 'installations',
+          filter: ['==', ['get', 'name'], '__none__'],
+          paint: { 'circle-radius': 9, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': INFO, 'circle-stroke-width': 1.6 },
+        });
+        m.addLayer({
+          id: 'installation-labels',
+          type: 'symbol',
+          source: 'installations',
+          minzoom: 6,
+          layout: { 'text-field': ['get', 'name'], 'text-font': font, 'text-size': 10, 'text-offset': [0, 1.1], 'text-anchor': 'top', 'text-optional': true },
+          paint: { 'text-color': '#80a992', 'text-halo-color': '#050a08', 'text-halo-width': 1.2 },
+        });
+
         m.addLayer({
           id: 'event-selected',
           type: 'circle',
@@ -237,6 +275,25 @@ export function WorldMap(props: WorldMapProps) {
           m.getCanvas().style.cursor = '';
           hover.remove();
         });
+        m.on('mousemove', 'installations', (e) => {
+          const f = e.features?.[0];
+          if (!f || m.queryRenderedFeatures(e.point, { layers: ['events'] }).length) return;
+          m.getCanvas().style.cursor = 'pointer';
+          const p = f.properties as { name: string; label: string };
+          const el = document.createElement('div');
+          const kind = document.createElement('div');
+          kind.className = 'text-[10px] tracking-widest text-wt-fg-dim';
+          kind.textContent = `INSTALLATION · ${p.label.toUpperCase()}`;
+          const title = document.createElement('div');
+          title.className = 'text-xs';
+          title.textContent = p.name;
+          el.append(kind, title);
+          hover.setLngLat((f.geometry as GeoJSON.Point).coordinates as [number, number]).setDOMContent(el).addTo(m);
+        });
+        m.on('mouseleave', 'installations', () => {
+          m.getCanvas().style.cursor = '';
+          hover.remove();
+        });
         for (const layer of ['clusters', 'region-fill']) {
           m.on('mouseenter', layer, () => (m.getCanvas().style.cursor = 'pointer'));
           m.on('mouseleave', layer, () => (m.getCanvas().style.cursor = ''));
@@ -246,6 +303,13 @@ export function WorldMap(props: WorldMapProps) {
           const pts = m.queryRenderedFeatures(e.point, { layers: ['events'] });
           if (pts[0]) {
             cb.current.onSelectEvent(String(pts[0].properties.id));
+            return;
+          }
+          const bases = m.getLayer('installations') && m.getLayoutProperty('installations', 'visibility') !== 'none'
+            ? m.queryRenderedFeatures([[e.point.x - 4, e.point.y - 4], [e.point.x + 4, e.point.y + 4]], { layers: ['installations'] })
+            : [];
+          if (bases[0] && cb.current.onSelectInstallation) {
+            cb.current.onSelectInstallation(String(bases[0].properties.name));
             return;
           }
           const clusters = m.queryRenderedFeatures(e.point, { layers: ['clusters'] });
@@ -309,6 +373,38 @@ export function WorldMap(props: WorldMapProps) {
     if (!ready || !m || globalViewNonce === 0) return;
     m.flyTo({ ...GLOBAL_VIEW, duration: 700 });
   }, [ready, globalViewNonce]);
+
+  const { installations, showInstallations, selectedInstallation } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    (m.getSource('installations') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (installations ?? []).map((i) => {
+        const c = componentOf(i.component);
+        return {
+          type: 'Feature' as const,
+          geometry: { type: 'Point' as const, coordinates: [i.lon, i.lat] },
+          properties: { name: i.name, branch: c.branch, label: c.label, active: i.status === 'act' },
+        };
+      }),
+    });
+  }, [ready, installations]);
+
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    for (const id of ['installations', 'installation-labels', 'installation-selected']) m.setLayoutProperty(id, 'visibility', showInstallations ? 'visible' : 'none');
+  }, [ready, showInstallations]);
+
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    m.setFilter('installation-selected', ['==', ['get', 'name'], selectedInstallation ?? '__none__']);
+    const inst = installations?.find((i) => i.name === selectedInstallation);
+    if (inst) m.easeTo({ center: [inst.lon, inst.lat], zoom: Math.max(m.getZoom(), 6), duration: 600 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to selection changes
+  }, [ready, selectedInstallation]);
 
   useEffect(() => {
     const m = mapRef.current;

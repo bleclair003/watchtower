@@ -78,3 +78,18 @@ test('feed can switch between grouped stories and all items', async ({ page }) =
   await expect(toggle).toHaveAttribute('aria-pressed', 'false');
   await expect(toggle).toHaveText('STORIES OFF');
 });
+
+test('military installations layer: toggle and data file with its licence', async ({ page, request }) => {
+  const res = await request.get('/data/installations-us.json');
+  expect(res.ok()).toBe(true);
+  const data = await res.json();
+  expect(data.count).toBeGreaterThan(800);
+  expect(data.licence).toMatch(/CC BY 4\.0/);
+  await openModule(page, '/', 'GOC');
+  const bases = page.getByRole('button', { name: 'BASES' });
+  await expect(bases).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText(/Installations \(DoD, US\)/)).toBeVisible();
+  await bases.click();
+  await expect(bases).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByText(/Installations \(DoD, US\)/)).toHaveCount(0);
+});

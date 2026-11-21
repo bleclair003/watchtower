@@ -12,6 +12,8 @@ export interface OperatorSettings {
   graticule: boolean;
   /** Watch-area outlines on the map. */
   regionOutlines: boolean;
+  /** Military installations layer on the map. */
+  installations: boolean;
 }
 
 export const DEFAULT_SETTINGS: OperatorSettings = {
@@ -20,6 +22,7 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   flicker: false,
   graticule: true,
   regionOutlines: true,
+  installations: true,
 };
 
 const KEY = 'wt.settings.v1';

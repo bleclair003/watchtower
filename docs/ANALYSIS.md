@@ -126,6 +126,28 @@ Checked on live data on 2026-11-21: 17 of 78 news items hidden (sport, celebrity
 
 Everything is built from the records the dashboard already loaded (the newest ~700), so the pages cost no extra reads. Off-topic news is excluded.
 
+## Military installations (v0.14.0)
+
+**BASES** on the GOC map (saved per device) shows **831 US military installations**, coloured by branch: Army, Navy, Air Force (incl. Space Force), Marine Corps, other DoD. Inactive sites (caretaker, excess, closed) are faded. Names appear from zoom level 6. The USA region page shows the same layer.
+
+- **Data:** DoD *Military Installations, Ranges, and Training Areas (MIRTA) – Points*, a National Geospatial Data Asset, published on ArcGIS Online by Esri's federal data team. Data currency 2024; CC BY 4.0, credit the Department of Defense.
+  - [`scripts/build-installations.ts`](../scripts/build-installations.ts) downloads it into `public/data/installations-us.json`, recording the source, licence and retrieval time.
+  - Coordinates are copied from the dataset. Nothing is geocoded or entered by hand.
+  - Re-run the script when DoD updates the data (yearly).
+- **Click an installation** for a card:
+  - **Dataset facts:** name, component, state, status, joint-base flag, the dataset point.
+  - **Look-up links:** Wikipedia search and OpenStreetMap.
+  - **FAA flight restrictions** that name it.
+  - **WATCHTOWER records** that name it, or that lie within 50 km with an exact location. Each record says why it is listed. Only the newest ~700 records are searched.
+- **Name matching** ([`shared/domain/installations.ts`](../shared/domain/installations.ts)):
+  - **Full official name:** matches anywhere.
+  - **Short name** ("Beale" for Beale Air Force Base): counts only in US-tagged records. One-word short names must be Capitalised or ALL CAPS, and common words, surnames and big-city names are excluded ("Clear", "Hill", "March", "Hawaii", "Philadelphia" …).
+  - **2023/2025 renames** match both ways (Fort Bragg / Fort Liberty, Fort Hood / Fort Cavazos …).
+  - Checked against real FAA data: restrictions over Beale AFB, Grand Forks AFB and Naval Station Norfolk attach to the right installation.
+- **Limits:**
+  - US only so far. MIRTA has no overseas sites, and worldwide installations need another source.
+  - Map markers are not keyboard-focusable: the card and the region page carry the same information.
+
 ## Cost
 
 | Feature | Firestore reads |

@@ -1,5 +1,7 @@
-import { useEffect, useMemo } from 'react';
-import { Grid3x3, Square } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Grid3x3, Shield, Square } from 'lucide-react';
+import { useInstallations } from '../data/useInstallations';
+import { InstallationCard } from '../components/map/InstallationCard';
 import { getRegion } from '@shared/domain/regions';
 import { getIndicator } from '@shared/domain/indicators/catalog';
 import { applyFilters } from '../lib/filters';
@@ -38,6 +40,9 @@ export default function GlobalOperationsPage() {
   }, [indicatorEvaluations]);
 
   const filtered = useMemo(() => applyFilters(events, filters, now), [events, filters, now]);
+  const bases = useInstallations(settings.installations);
+  const [selectedBase, setSelectedBase] = useState<string | null>(null);
+  const baseInfo = bases.data?.installations.find((i) => i.name === selectedBase) ?? null;
   // Region report counts ignore off-topic news (sport, entertainment …) whatever the feed toggle says.
   const relevantEvents = useMemo(() => events.filter((e) => !isOffTopic(e)), [events]);
   const projection = useMemo(() => projectEvents(filtered), [filtered]);
@@ -86,6 +91,17 @@ export default function GlobalOperationsPage() {
               >
                 <Square size={10} aria-hidden /> AREAS
               </button>
+              <button
+                className={toggleBtn(settings.installations)}
+                aria-pressed={settings.installations}
+                title="Military installations (DoD MIRTA, United States)"
+                onClick={() => {
+                  update({ installations: !settings.installations });
+                  setSelectedBase(null);
+                }}
+              >
+                <Shield size={10} aria-hidden /> BASES
+              </button>
             </>
           }
         >
@@ -98,8 +114,21 @@ export default function GlobalOperationsPage() {
               showGraticule={settings.graticule}
               showRegions={settings.regionOutlines}
               globalViewNonce={globalViewNonce}
+              installations={bases.data?.installations}
+              showInstallations={settings.installations}
+              selectedInstallation={selectedBase}
+              onSelectInstallation={setSelectedBase}
             />
-          <MapLegend plotted={projection.points.features.length} areaLevel={areaLevel} unlocated={projection.unlocated} />
+          <MapLegend
+            plotted={projection.points.features.length}
+            areaLevel={areaLevel}
+            unlocated={projection.unlocated}
+            installations={settings.installations ? bases.data?.count : undefined}
+          />
+          {baseInfo && bases.data && (
+            <InstallationCard installation={baseInfo} dataset={bases.data} events={events} now={now} onClose={() => setSelectedBase(null)} />
+          )}
+          {bases.error && settings.installations && <p className="absolute top-2 right-2 z-10 bg-wt-panel/95 px-2 py-1 text-2xs text-wt-warn">{bases.error}</p>}
         </Panel>
 
         <IntelFeed

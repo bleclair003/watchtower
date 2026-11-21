@@ -143,3 +143,8 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
 - [x] Catalog v5: NTAS advisory, installation incident, National Guard deployment, security flight-restriction burst, major disaster
 - [ ] NORAD/NORTHCOM feeds (need the correct feed ids), Army/Navy/National Guard (feeds blocked or empty)
 
+## Phase 12 — Military installations on the map (started 2026-11-21)
+- [x] United States: 831 DoD MIRTA installations, branch colours, BASES toggle, click card with facts, related records and FAA restrictions (v0.14.0)
+- [ ] Worldwide: find an authoritative or well-sourced open dataset for installations abroad (US bases overseas, other countries' forces); MIRTA covers the US and territories only
+- [ ] Installation boundaries (MIRTA polygons) on selection
+

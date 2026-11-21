@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.14.0] — 2026-11-21 — Military installations (United States)
+
+### Added
+- BASES map layer: 831 US military installations from the DoD MIRTA dataset (2024, CC BY 4.0), coloured by branch, faded when inactive, labelled when zoomed in. Also on the USA region page.
+- Installation card: dataset facts, FAA flight restrictions and WATCHTOWER records that name it or lie within 50 km, each with the reason; Wikipedia and OpenStreetMap links.
+- `scripts/build-installations.ts` rebuilds the data file from the official source.
+
+### Fixed (found while checking real data)
+- Short-name matching would have linked "Clear", "Hill", "March" and "Hawaii" to unrelated stories, and English "Norfolk" to Naval Station Norfolk. Short names now count only in US records, and common words, surnames and big-city names are excluded.
+
+
 ## [0.13.0] — 2026-11-21 — United States (domestic) watch
 
 ### Added
