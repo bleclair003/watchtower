@@ -250,6 +250,14 @@ Security Council meetings, resolutions and failed drafts, in the feed and on reg
 - **Ceilings:** IDIQ, multiple-award, "maximum" and not-to-exceed figures are ceilings, not money spent, and the title says so.
 - **Indicators (experimental):** munitions awards (US) and arms-sale awards per region. Procurement is slow and lumpy, so neither affects the RAI.
 
+## Federal Register (v0.25.0)
+
+- **Source:** the official journal of the US government ([`collector/adapters/federalRegister.ts`](../collector/adapters/federalRegister.ts)).
+- **Presidential documents** are kept when the title concerns security or foreign policy (sanctions, national emergency, defence, named watch countries …). Commemorative proclamations and routine annual continuations of existing national emergencies are skipped; a **new** national emergency gets its own record type.
+- **Export controls:** every Commerce (BIS) rule, including Entity List changes. **Terrorist designations:** State Department FTO/SDGT designations and revocations.
+- **Countries** come from the title and abstract; documents on public inspection before their publication date are dated today, not in the future.
+- **Indicators:** a new national emergency naming a region (high), and an experimental count of executive actions per region.
+
 ## Cost
 
 | Feature | Firestore reads |

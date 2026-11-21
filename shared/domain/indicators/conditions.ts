@@ -41,6 +41,7 @@ export const CONDITION_FIELDS = {
   'metadata.count': (e: IntelligenceEvent) => e.metadata?.count,
   'metadata.postureChange': (e: IntelligenceEvent) => e.metadata?.postureChange,
   'metadata.munitions': (e: IntelligenceEvent) => e.metadata?.munitions,
+  'metadata.fedregKind': (e: IntelligenceEvent) => e.metadata?.fedregKind,
 } as const;
 
 export type ConditionField = keyof typeof CONDITION_FIELDS;

@@ -157,6 +157,12 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 |---|---|---|
 | war.gov Contracts RSS + daily pages | official | Notable awards only: $1B+, munitions $100M+, FMS to watch-region partners; amounts labelled as ceilings where they are |
 
+## v0.25.0 Federal Register — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| Federal Register API (`/api/v1/documents.json`) | official | Security-related presidential documents, new/terminated national emergencies, BIS export-control rules, State terrorist designations and revocations |
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |

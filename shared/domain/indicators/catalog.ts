@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 14;
+export const CATALOG_VERSION = 15;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -1031,6 +1031,72 @@ const contractIndicators: IndicatorDefinition[] = [
   ),
 ];
 
+const FEDREG = 'federal-register';
+
+/** Phase 13 item 9: US executive actions in the Federal Register. */
+const fedregIndicators: IndicatorDefinition[] = STATE_DEPT_REGIONS.flatMap((r): IndicatorDefinition[] => [
+  {
+    id: `${r.id}.us-national-emergency`,
+    name: `${r.shortCode} US national emergency declared`,
+    description: `A new US national emergency naming a ${r.name} country, published in the Federal Register within 30 days.`,
+    family: 'official-activity',
+    regionId: r.id,
+    requiredSourceIds: [FEDREG],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: FEDREG },
+        { field: 'regionIds', op: 'contains', value: r.id },
+        { field: 'metadata.fedregKind', op: 'eq', value: 'national-emergency-declared' },
+      ],
+    },
+    windowHours: 720,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 1 },
+    baseline: null,
+    weight: 2,
+    severity: 'high',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'Declaring a national emergency is the legal step that unlocks sanctions and other measures against a country; new declarations are rare and deliberate.',
+  },
+  {
+    id: `${r.id}.us-executive-actions`,
+    name: `${r.shortCode} US executive actions`,
+    description: `Security-related executive orders, presidential actions, export-control rules and terrorist designations naming ${r.name} countries within 14 days.`,
+    family: 'experimental',
+    regionId: r.id,
+    requiredSourceIds: [FEDREG],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: FEDREG },
+        { field: 'regionIds', op: 'contains', value: r.id },
+      ],
+    },
+    windowHours: 336,
+    elevated: { countAtLeast: 2 },
+    triggered: { countAtLeast: 4 },
+    baseline: null,
+    weight: 0,
+    severity: 'low',
+    experimental: true,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'Several US legal actions naming a region in a short time show policy attention. Untested, so it never affects the RAI.',
+    research: {
+      hypothesis: 'Clusters of executive actions naming a region accompany escalations in US policy toward it.',
+      dataAvailability: 'Federal Register API, collected since 2026-11-21 (30 days back-filled).',
+      baselinePeriod: 'None yet.',
+      expectedRelationship: 'Coincident or lagging.',
+      historicalExamples: 'EO 14436 (Oct. 21, 2026) implementing sanctions on Russia and Iran.',
+      confounders: 'Publication delays; omnibus documents naming many countries.',
+      falsePositives: 'Documents that name a country in passing.',
+      retrospectiveResults: 'Insufficient history.',
+      evidenceQuality: 'none',
+    },
+  },
+]);
+
 export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...advisoryIndicators,
   ...cyberIndicators,
@@ -1048,6 +1114,7 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...missileIndicators,
   ...embassyIndicators,
   ...contractIndicators,
+  ...fedregIndicators,
 ];
 
 export function getIndicator(id: string): IndicatorDefinition | undefined {

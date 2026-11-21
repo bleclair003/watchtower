@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.25.0] — 2026-11-21 — Federal Register
+
+### Added
+- Source 35, the **Federal Register API** (free, no key): security- and foreign-policy executive orders and presidential documents, **new or terminated national emergencies**, Commerce (BIS) **export-control rules**, and State Department **terrorist designations and revocations**. Three small queries every 2 hours; 30 days back-filled.
+- Skipped: commemorative proclamations, routine annual continuations of national emergencies, unrelated orders, and OFAC notices (the sanctions lists cover them). Countries from the title and abstract.
+- Catalog v15 (136 indicators): **US national emergency declared** (weight 2, high) and **US executive actions** (experimental) for the six foreign regions.
+
+### Fixed during testing (real data)
+- "Era of Super Intelligence" (an AI order) matched on "intelligence"; a procedural State notice mentioning designations was counted as one.
+
+
 ## [0.24.0] — 2026-11-21 — DoD contract awards
 
 ### Added

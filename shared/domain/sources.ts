@@ -755,6 +755,26 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     priority: 'P2',
     feasibility: { checkedAt: '2026-11-21T11:10:00Z', result: 'reachable', note: 'RSS HTTP 200 (ETag); day pages 200 (~140 KB). 10 days: 92 awards, 8 notable.' },
   },
+  {
+    id: 'federal-register',
+    name: 'Federal Register (presidential documents, export controls, terrorist designations)',
+    organization: 'US Office of the Federal Register (National Archives) / Government Publishing Office',
+    website: 'https://www.federalregister.gov/',
+    endpoint: 'https://www.federalregister.gov/api/v1/documents.json',
+    method: 'api',
+    sourceClass: 'official',
+    defaultCategory: 'official',
+    coverage: 'Security-related executive orders and presidential documents; new or terminated national emergencies; Commerce (BIS) export-control rules; State Department terrorist designations and revocations',
+    authentication: 'None',
+    freeAccess: 'Free API, no key',
+    expectedUpdateFrequency: 'Each business day; documents appear on public inspection days before publication',
+    pollIntervalMinutes: 120,
+    reliabilityNotes:
+      'Authoritative legal text. Presidential documents are kept only when the title concerns security or foreign policy; commemorative proclamations and routine annual continuations of national emergencies are skipped. Countries come from the title and abstract (gazetteer). OFAC sanctions notices are not taken here: the sanctions lists cover them.',
+    termsNotes: 'US government work; public domain.',
+    priority: 'P2',
+    feasibility: { checkedAt: '2026-11-21T11:40:00Z', result: 'reachable', note: 'API HTTP 200 in 0.2–0.4 s.' },
+  },
   // ------------------------------------------------------------ research ---
   {
     id: 'centcom-releases',

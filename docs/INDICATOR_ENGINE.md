@@ -40,7 +40,7 @@ For each indicator, at time `now`:
 - **Fields:** an allow-list (`CONDITION_FIELDS`) of event properties and selected `metadata.*` keys. Lookups are own-property only, so inherited names such as `constructor` are rejected; this is tested.
 - `validateCondition()` and `validateCatalog()` reject malformed definitions, and the catalog is validated in CI.
 
-## Catalog v14 (124 indicators)
+## Catalog v15 (136 indicators)
 
 | Region | Indicator | Window | Elevated / Triggered | Baseline | Weight · Severity |
 |---|---|---|---|---|---|
@@ -75,6 +75,8 @@ For each indicator, at time `now`:
 | each of 6 foreign geographic regions (v13) | US embassy drawdown: an advisory newly states ordered/authorized departure or suspended operations | 30 d | 1 / 1 | — | 3 · high |
 | United States, experimental (v14) | DoD munitions/missile awards of $100M+ | 7 d | 2 / 4 | 28 d, ×2 / ×3 | 0 · never in the RAI |
 | each of 6 foreign geographic regions, experimental (v14) | DoD awards involving Foreign Military Sales to the region | 30 d | 1 / 3 | — | 0 · never in the RAI |
+| each of 6 foreign geographic regions (v15) | New US national emergency naming the region (Federal Register) | 30 d | 1 / 1 | — | 2 · high |
+| each of 6 foreign geographic regions, experimental (v15) | US executive actions naming the region | 14 d | 2 / 4 | — | 0 · never in the RAI |
 | Experimental | State Dept advisory tempo (global) | 72 h | 6 / 12 | 28 d | 0 |
 | Experimental | Pentagon Pizza Index | — | — | — | 0 · always NO DATA |
 

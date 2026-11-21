@@ -193,7 +193,7 @@ Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at
 8. **DoD contract awards** (daily announcements)
    - [x] Parse awards; flag munitions, missiles, large awards and FMS to watch-region partners — v0.24.0
 9. **Federal Register** (free API, no key)
-   - [ ] Executive orders, export controls (BIS), national emergency declarations, defence notices
+   - [x] Executive orders and presidential actions, new national emergencies, BIS export controls, State terrorist designations — v0.25.0
 10. **Congress** (congress.gov API, free key)
    - [ ] War-powers resolutions, NDAA steps, defence and intelligence hearings
 
