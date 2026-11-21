@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.22.0] — 2026-11-21 — North Korean launches and nuclear tests
+
+### Added
+- Source 33, **Yonhap News Agency** (English all-news RSS): headlines reporting that North Korea fired missiles, rockets or a satellite, or conducted a nuclear test. One record per kind and Korea day, rewritten as the URGENT / LEAD / LD versions of the story arrive. Forecasts and warnings ("may fire", "preparing") are excluded.
+- Catalog v12 (111 indicators): **North Korean missile launch** (1 launch day = elevated, 2 in a week = triggered; weight 2, high) and **North Korean nuclear test reported** (30 days; weight 3, high). The USGS explosion-typed seismic indicator remains the independent check for a test.
+
+### Checked and not used
+- Japan Ministry of Defense notices are the best official source (times, apogee, range, EEZ), but the site’s Cloudflare protection challenges scripted clients; getting around it would mean evading bot protection. The CNS North Korea missile database and CTBTO are behind the same kind of challenge; South Korea’s JCS has no feed.
+
+### Limits
+- Yonhap is a news agency, usually citing South Korea’s Joint Chiefs of Staff; first reports change. The feed holds about two days, so there is no history before 2026-11-21.
+
+
 ## [0.21.0] — 2026-11-21 — UN Security Council
 
 ### Added

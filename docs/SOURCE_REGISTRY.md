@@ -138,6 +138,14 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 - **Not available:** the Security Council website (main.un.org/securitycouncil, un.org/securitycouncil) answers HTTP 202 with an empty body, and press.un.org's Council pages a "Client Challenge" page, to scripted requests.
 - **Vetoes:** vetoed drafts are catalogued without votes, so they are read from press-release titles.
 
+## v0.22.0 North Korean launches — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| Yonhap News Agency, English all-news RSS | media | Headlines reporting a North Korean launch or nuclear test, grouped per Korea day; forecasts and warnings excluded |
+
+- **Checked and not used (2026-11-21):** Japan Ministry of Defense notices (Cloudflare challenges scripted clients; the collector does not try to get around bot protection), CNS North Korea missile database at NTI and CTBTO (Cloudflare challenge), South Korea JCS (no feed).
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |

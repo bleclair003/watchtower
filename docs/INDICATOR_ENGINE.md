@@ -40,7 +40,7 @@ For each indicator, at time `now`:
 - **Fields:** an allow-list (`CONDITION_FIELDS`) of event properties and selected `metadata.*` keys. Lookups are own-property only, so inherited names such as `constructor` are rejected; this is tested.
 - `validateCondition()` and `validateCatalog()` reject malformed definitions, and the catalog is validated in CI.
 
-## Catalog v11 (109 indicators)
+## Catalog v12 (111 indicators)
 
 | Region | Indicator | Window | Elevated / Triggered | Baseline | Weight · Severity |
 |---|---|---|---|---|---|
@@ -70,6 +70,8 @@ For each indicator, at time `now`:
 | Eastern Europe, experimental (v10) | Sanctioned vessels seen on AIS in the Baltic / Gulf of Finland (vessel-days) | 7 d | 5 / 10 | 28 d, ×2 / ×3 | 0 · never in the RAI |
 | each of 6 foreign geographic regions (v11) | UN Security Council meetings about the region's countries | 7 d | 2 / 4 | 28 d, ×2 / ×3 | 1 · medium |
 | each of 6 foreign geographic regions (v11) | Security Council draft fails or is vetoed (press releases) | 30 d | 1 / 1 | — | 2 · high |
+| Korean Peninsula (v12) | North Korean missile, rocket or satellite launch days (Yonhap) | 7 d | 1 / 2 | — | 2 · high |
+| Korean Peninsula (v12) | North Korean nuclear test reported (Yonhap) | 30 d | 1 / 1 | — | 3 · high |
 | Experimental | State Dept advisory tempo (global) | 72 h | 6 / 12 | 28 d | 0 |
 | Experimental | Pentagon Pizza Index | — | — | — | 0 · always NO DATA |
 

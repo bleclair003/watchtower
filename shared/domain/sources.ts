@@ -715,6 +715,26 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     priority: 'P2',
     feasibility: { checkedAt: '2026-11-21T10:30:00Z', result: 'reachable', note: 'Digital Library MARC XML HTTP 200 in ~1 s; press RSS 200 (gzip).' },
   },
+  {
+    id: 'yonhap-dprk-launches',
+    name: 'North Korean launches and nuclear tests (English all-news feed)',
+    organization: 'Yonhap News Agency (South Korea)',
+    website: 'https://en.yna.co.kr/',
+    endpoint: 'https://en.yna.co.kr/RSS/news.xml',
+    method: 'rss',
+    sourceClass: 'media',
+    defaultCategory: 'military',
+    coverage: 'Headlines reporting that North Korea fired missiles, rockets or a satellite, or conducted a nuclear test',
+    authentication: 'None',
+    freeAccess: 'Free RSS',
+    expectedUpdateFrequency: 'Minutes after a launch (URGENT), then LEAD / LD versions',
+    pollIntervalMinutes: 30,
+    reliabilityNotes:
+      'Yonhap reports launches within minutes, usually citing South Korea’s Joint Chiefs of Staff. The feed holds about 100 items (~2 days), so it is read every run. Forecasts and warnings ("may fire", "preparing") are excluded. Official alternatives checked 2026-11-21 and not usable: Japan Ministry of Defense notices (Cloudflare challenges scripted clients; getting around it would mean evading bot protection), CNS North Korea missile database and CTBTO (Cloudflare challenge), South Korea JCS (no feed).',
+    termsNotes: 'Yonhap content is copyrighted; WATCHTOWER keeps headlines and links only, as for other news feeds.',
+    priority: 'P2',
+    feasibility: { checkedAt: '2026-11-21T10:55:00Z', result: 'reachable', note: 'RSS HTTP 200, 100 items.' },
+  },
   // ------------------------------------------------------------ research ---
   {
     id: 'centcom-releases',

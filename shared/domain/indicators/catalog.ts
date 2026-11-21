@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 11;
+export const CATALOG_VERSION = 12;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -868,6 +868,61 @@ const unscIndicators: IndicatorDefinition[] = STATE_DEPT_REGIONS.flatMap((r): In
   },
 ]);
 
+const DPRK_LAUNCH = 'yonhap-dprk-launches';
+
+/** Phase 13 item 6: North Korean launches and nuclear tests (Yonhap). The USGS explosion indicator is the independent seismic check. */
+const missileIndicators: IndicatorDefinition[] = [
+  {
+    id: 'korean-peninsula.dprk-missile-launch',
+    name: 'KOREA North Korean missile launch',
+    description: 'Days with a North Korean missile, rocket or satellite launch reported by Yonhap (citing South Korea’s military) within 7 days.',
+    family: 'official-activity',
+    regionId: 'korean-peninsula',
+    requiredSourceIds: [DPRK_LAUNCH],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: DPRK_LAUNCH },
+        { field: 'metadata.subtype', op: 'eq', value: 'dprk-missile-launch' },
+      ],
+    },
+    windowHours: 168,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 2 },
+    baseline: null,
+    weight: 2,
+    severity: 'high',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale:
+      'Launches are North Korea’s main military signal. Japan’s Ministry of Defense reported launches on 12 days in 2026 up to November, so one launch day is ELEVATED and two within a week are TRIGGERED.',
+  },
+  {
+    id: 'korean-peninsula.dprk-nuclear-test',
+    name: 'KOREA North Korean nuclear test reported',
+    description: 'A North Korean nuclear test reported by Yonhap within 30 days.',
+    family: 'official-activity',
+    regionId: 'korean-peninsula',
+    requiredSourceIds: [DPRK_LAUNCH],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: DPRK_LAUNCH },
+        { field: 'metadata.subtype', op: 'eq', value: 'dprk-nuclear-test' },
+      ],
+    },
+    windowHours: 720,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 1 },
+    baseline: null,
+    weight: 3,
+    severity: 'high',
+    experimental: false,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'A nuclear test is the most serious escalation step short of use. The USGS explosion-typed seismic indicator is an independent check.',
+  },
+];
+
 export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...advisoryIndicators,
   ...cyberIndicators,
@@ -882,6 +937,7 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...sanctionsIndicators,
   ...sanctionedShipIndicators,
   ...unscIndicators,
+  ...missileIndicators,
 ];
 
 export function getIndicator(id: string): IndicatorDefinition | undefined {

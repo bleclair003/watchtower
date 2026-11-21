@@ -227,6 +227,14 @@ Security Council meetings, resolutions and failed drafts, in the feed and on reg
 - **Indicators:** *Security Council attention* (meetings above the 28-day baseline, since many are scheduled mandate renewals) and *draft fails or is vetoed* (30 days).
 - **Limits:** no programme of work or "emergency meeting" label (the Council website refuses scripted requests); meetings are catalogued 1–3 days late.
 
+## North Korean launches (v0.22.0)
+
+- **Source:** Yonhap's English all-news feed ([`collector/adapters/yonhapDprk.ts`](../collector/adapters/yonhapDprk.ts)). Yonhap reports a launch within minutes, usually citing South Korea's Joint Chiefs of Staff, then publishes LEAD and LD versions with details.
+- **What counts:** a headline naming North Korea with *fires / launches / test-fires* and *missile / rocket / projectile / ICBM / SLBM / satellite*, or *conducts a nuclear test*. Forecasts, warnings and analysis ("may fire", "preparing", "vows") do not count. South Korean or US launches do not count.
+- **Records:** one per kind and Korea day, listing the day's headlines; rewritten as new versions arrive.
+- **Indicators:** launch days (1 = elevated, 2 in 7 days = triggered) and nuclear test reported. The USGS explosion-typed seismic indicator is an independent check on a test.
+- **Why not official sources:** Japan's Ministry of Defense publishes the most detailed notices, but its site's bot protection challenges scripted clients, as do the CNS missile database and CTBTO. WATCHTOWER does not try to get around bot protection.
+
 ## Cost
 
 | Feature | Firestore reads |

@@ -16,6 +16,7 @@ import { portwatchChokepoints } from './portwatch.ts';
 import { euSanctions, ofacSdn, ukSanctions } from './sanctions.ts';
 import { aisSanctionedShips } from './aisSanctioned.ts';
 import { unSecurityCouncil } from './unsc.ts';
+import { yonhapDprkLaunches } from './yonhapDprk.ts';
 
 /** Active adapters. Adding a source = write an adapter + register it here. */
 export const ADAPTERS: SourceAdapter<never>[] = [
@@ -50,6 +51,7 @@ export const ADAPTERS: SourceAdapter<never>[] = [
   euSanctions as SourceAdapter<never>,
   ukSanctions as SourceAdapter<never>,
   unSecurityCouncil as SourceAdapter<never>,
+  yonhapDprkLaunches as SourceAdapter<never>,
   // Free-key sources: active only when their key is set.
   firms as SourceAdapter<never>,
   cloudflareRadarOutages as SourceAdapter<never>,

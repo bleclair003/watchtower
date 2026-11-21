@@ -183,8 +183,8 @@ Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at
    - [x] Indicators: Council attention above baseline; failed draft or veto
    - [ ] "Emergency meeting" label: the Council website refuses scripted requests
 6. **Missile and nuclear tests**
-   - [ ] CNS North Korea missile test database (check access) plus official test notices
-   - [ ] Indicator: missile or nuclear test reported
+   - [x] Launches and nuclear tests from Yonhap (CNS/NTI, CTBTO and Japan MOD refuse scripted clients) — v0.22.0
+   - [x] Indicators: launch days; nuclear test reported
 7. **Embassy alerts and ordered departures**
    - [ ] Per-embassy US security alerts for watch-region countries (find feeds that work)
    - [ ] Indicator: ordered or authorised departure
