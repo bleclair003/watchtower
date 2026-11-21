@@ -27,8 +27,8 @@ export function meterSeries(history: MetersSnapshot['history'], id: string): { t
 }
 
 /** Minimal line of a meter's recent values (no axes; the card states the current reading). */
-export function Sparkline({ points, width = 160, height = 28 }: { points: { t: number; v: number }[]; width?: number; height?: number }) {
-  if (points.length < 2) return <span className="text-2xs text-wt-fg-dim">History builds with each run.</span>;
+export function Sparkline({ points, width = 160, height = 28, emptyText = 'History builds with each run.' }: { points: { t: number; v: number }[]; width?: number; height?: number; emptyText?: string }) {
+  if (points.length < 2) return emptyText ? <span className="text-2xs text-wt-fg-dim">{emptyText}</span> : <span style={{ width }} className="inline-block" aria-hidden />;
   const t0 = points[0].t;
   const t1 = points[points.length - 1].t;
   const vs = points.map((p) => p.v);

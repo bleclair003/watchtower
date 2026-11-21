@@ -33,7 +33,7 @@ export function MarketsPanel({ data, regionId, now, designator = 'M6' }: { data:
                 )}
                 {!regionId && <span className="text-wt-fg-dim"> · {m.regionIds.map((r) => getRegion(r)?.shortCode ?? r).join('/')}</span>}
               </span>
-              <Sparkline points={unpackHistory(m.history).map(([t, v]) => ({ t, v: v * 100 }))} width={72} height={18} />
+              <Sparkline points={unpackHistory(m.history).map(([t, v]) => ({ t, v: v * 100 }))} width={72} height={18} emptyText="" />
               <span className="w-10 text-right tabular-nums text-wt-fg">{pct(m.yes)}</span>
               <span className={`w-14 text-right tabular-nums ${move !== null && Math.abs(move) >= 15 ? 'text-wt-warn' : 'text-wt-fg-dim'}`} title="Change in 24 hours, percentage points">
                 {move === null ? '—' : `${move >= 0 ? '+' : '−'}${Math.abs(move)} 24h`}
