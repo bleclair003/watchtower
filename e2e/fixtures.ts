@@ -12,6 +12,8 @@ export const ROUTES = [
   { path: '/sitrep', title: 'SITREP' },
   { path: '/replay', title: 'REPLAY' },
   { path: '/signal-lab', title: 'SIGNAL LAB' },
+  { path: '/regions', title: 'REGIONS' },
+  { path: '/regions/middle-east', title: 'MIDEAST' },
 ] as const;
 
 /**

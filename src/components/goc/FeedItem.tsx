@@ -2,7 +2,7 @@ import { forwardRef } from 'react';
 import { ExternalLink } from 'lucide-react';
 import type { IntelligenceEvent } from '@shared/domain/types';
 import { CORROBORATION_LABEL, type Story } from '@shared/domain/stories/stories';
-import { offTopicReason } from '@shared/domain/relevance';
+import { isOpinion, offTopicReason } from '@shared/domain/relevance';
 import { getRegion } from '@shared/domain/regions';
 import { CATEGORY_STYLES, CREDIBILITY_LABELS, SOURCE_CLASS_LABELS } from '../../config/categories';
 import { formatAge, formatUtc } from '../../lib/time';
@@ -80,6 +80,7 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem(
         <div className="mt-1 flex flex-wrap items-center gap-1 pl-[17px]">
           {isDemo && <Tag tone="warn">DEMO</Tag>}
           {offTopic && <Tag tone="inactive" title={offTopic}>OFF-TOPIC</Tag>}
+          {isOpinion(e) && <Tag tone="muted" title="Opinion column: the author's view, not a report of events">OPINION</Tag>}
           {indicators.length > 0 && (
             <Tag tone="warn" title={`Evidence for: ${indicators.join('; ')}`}>
               IND ×{indicators.length}

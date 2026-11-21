@@ -133,5 +133,6 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
    - [x] Brief builder (deterministic, from the dashboard snapshot; reuses stories and relevance) — v0.11.0
    - [x] Scheduled delivery (once a day at/after 11:00 UTC) through the existing webhook, with retries and failure logging
 3. **Region pages** — one page per watch region
-   - [ ] RAI history, active indicators, latest stories, region map (fires, quakes, outages), countries
+   - [x] RAI history and score breakdown (RAI points per indicator), all region indicators, latest reports as stories, region map (7 days), countries and categories — v0.12.0
+   - [x] REGIONS index, links from the GOC watchlist, `REGION <code>` command
 

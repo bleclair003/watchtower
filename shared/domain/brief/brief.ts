@@ -5,7 +5,7 @@ import { getIndicator } from '../indicators/catalog.ts';
 import { scoreDelta24h } from '../indicators/rai.ts';
 import { computeHealth } from '../health.ts';
 import { getSource } from '../sources.ts';
-import { isOffTopic } from '../relevance.ts';
+import { isOffTopic, isOpinion } from '../relevance.ts';
 import { buildStories } from '../stories/stories.ts';
 
 /**
@@ -41,8 +41,6 @@ export interface Brief {
 const H = 3_600_000;
 const t = (e: IntelligenceEvent) => Date.parse(e.publishedAt ?? e.collectedAt);
 const short = (r: string) => getRegion(r)?.shortCode ?? r;
-/** Opinion and analysis columns are not reports of events. */
-const isOpinion = (e: IntelligenceEvent) => /\/(opinions?|commentisfree|comment)\//.test(e.sourceUrl);
 /** Single reports: conflict and crisis first. */
 const CATEGORY_RANK: Record<string, number> = { military: 0, unrest: 1, disaster: 2, maritime: 3, aviation: 3, cyber: 3, diplomatic: 4, economic: 5 };
 const catRank = (e: IntelligenceEvent) => CATEGORY_RANK[e.category] ?? 6;

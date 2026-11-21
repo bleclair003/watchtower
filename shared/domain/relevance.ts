@@ -128,3 +128,6 @@ export function offTopicReason(e: RelevanceInput): string | null {
 }
 
 export const isOffTopic = (e: IntelligenceEvent) => offTopicReason(e) !== null;
+
+/** Opinion and comment columns (by the outlet's own section): an author's view, not a report of events. */
+export const isOpinion = (e: Pick<IntelligenceEvent, 'sourceUrl'>) => /\/(opinions?|commentisfree|comment)\//.test(e.sourceUrl);

@@ -38,6 +38,7 @@ export const COMMAND_HELP: CommandSpec[] = [
   { syntax: 'LAB', description: 'Open Signal Lab (trends, backtests)' },
   { syntax: 'SOURCES', description: 'Open the source directory' },
   { syntax: 'SETTINGS', description: 'Open operator settings' },
+  { syntax: 'REGION <REGION>', description: 'Open a watch region page (REGIONS for all)' },
   { syntax: 'GOC', description: 'Return to Global Operations Center' },
 ];
 
@@ -48,6 +49,7 @@ const NAV: Record<string, string> = {
   DOSSIERS: '/dossiers',
   REPLAY: '/replay',
   LAB: '/signal-lab',
+  REGIONS: '/regions',
   IWE: '/indicators',
   DIAGNOSTICS: '/diagnostics',
   SOURCES: '/sources',
@@ -97,6 +99,11 @@ export function parseCommand(input: string): Command {
     const region = matchRegion(arg);
     return region ? { kind: 'watch', regionId: region } : { kind: 'error', message: `UNKNOWN REGION: ${arg.toUpperCase()}` };
   }
+  if (verb === 'REGION') {
+    if (!arg) return { kind: 'navigate', to: '/regions' };
+    const region = matchRegion(arg);
+    return region ? { kind: 'navigate', to: `/regions/${region}` } : { kind: 'error', message: `UNKNOWN REGION: ${arg.toUpperCase()}` };
+  }
   if (verb === 'FEED') {
     if (!arg) return { kind: 'error', message: 'FEED REQUIRES A SOURCE' };
     const src = matchSource(arg);
@@ -114,6 +121,7 @@ export function suggestCommands(input: string): string[] {
     'HELP',
     'MAP GLOBAL',
     ...WATCH_REGIONS.map((r) => `WATCH ${r.shortCode}`),
+    ...WATCH_REGIONS.map((r) => `REGION ${r.shortCode}`),
     ...SOURCE_REGISTRY.filter((s) => s.priority === 'P1' || s.priority === 'P2').map((s) => `FEED ${s.id.toUpperCase()}`),
     'SEARCH ',
     'CLEAR',

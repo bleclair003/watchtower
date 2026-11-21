@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0] — 2026-11-21 — Region pages
+
+### Added
+- REGIONS index and one page per watch region: RAI with 24 h change and score breakdown in RAI points, recent RAI runs, every region indicator, a 7-day map, latest relevant reports grouped as stories, countries and categories. Linked from the GOC watchlist and the `REGION <code>` command. No extra database reads.
+- OPINION tag on opinion columns (feed and region pages); the daily brief already excludes them.
+
+
 ## [0.11.0] — 2026-11-21 — Daily brief
 
 ### Added

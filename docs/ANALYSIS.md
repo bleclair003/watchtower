@@ -112,6 +112,20 @@ Checked on live data on 2026-11-21: 17 of 78 news items hidden (sport, celebrity
 
 **Limits:** a relevant story worded without any listed word is hidden. The toggle shows it, and the word can be added to the list.
 
+## Region pages (v0.12.0)
+
+**REGIONS** (nav, the `REGION` command, or **OPEN … REGION PAGE** on a GOC watchlist row) lists the seven watch regions. Each links to a page with:
+
+- **Header:** RAI, band, 24 h change, coverage, report counts (24 h, previous 24 h, 7 days), plotted records, the region's countries, and the RAI disclaimer.
+- **RAI over recent runs:** the last ~80 collection runs from the dashboard snapshot. Longer trends are in Signal Lab.
+- **Why this score:** each contributing indicator's share in RAI points. The RAI is 100 × (sum of contributions) ÷ the region's maximum, so the shares add up to the score.
+- **Theatre:** a map focused on the region, showing the last 7 days of relevant records.
+- **Indicators:** every indicator for the region, active first, with experimental ones marked.
+- **Latest reports:** relevant records for the region (7 days), grouped as stories. Opinion columns are tagged **OPINION**.
+- **Countries named and records by category:** 7-day counts. The region's own countries come first; others named alongside are marked "outside region".
+
+Everything is built from the records the dashboard already loaded (the newest ~700), so the pages cost no extra reads. Off-topic news is excluded.
+
 ## Cost
 
 | Feature | Firestore reads |

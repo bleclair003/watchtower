@@ -135,9 +135,12 @@ export function RegionalWatchlist({ events, regionScores, scoreHistory, selected
                   ASSESSED: {score?.evaluatedAt && score.score !== null ? `${formatAge(score.evaluatedAt, now)} ago` : 'NOT EVALUABLE'}
                 </div>
               </button>
-              {selected && score && (
-                <div className="px-2 pb-2">
-                  <Breakdown score={score} />
+              {selected && (
+                <div className="space-y-1 px-2 pb-2">
+                  {score && <Breakdown score={score} />}
+                  <Link to={`/regions/${r.id}`} className="inline-block text-2xs text-wt-info hover:underline">
+                    OPEN {r.shortCode} REGION PAGE →
+                  </Link>
                 </div>
               )}
             </li>
