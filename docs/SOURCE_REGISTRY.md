@@ -196,6 +196,12 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 |---|---|---|
 | UNHCR population API (`/population/v1/population/`, `coo_all` / `coa_all` totals) | official | Per watch country: refugees and asylum seekers abroad and hosted, IDPs, returns; latest and previous year. Snapshot only, no records |
 
+## v0.36.0 Military aircraft — command and VIP roles
+
+| Source | Change |
+|---|---|
+| adsb-military | Also records US airborne command posts (E-6B; E-4B by serial) and government VIP transports (special-air-mission callsigns SAM, SPAR, VENUS, EXEC, AF1/AF2), with `metadata.aircraftRole`. Seen live on 2026-11-21: three C-37 Gulfstreams as SAM928, SAM208 and SPAR81. |
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |

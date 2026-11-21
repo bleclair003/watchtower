@@ -113,6 +113,24 @@ export const AIRCRAFT_TYPES: Record<string, [string, AircraftClass]> = {
   W3: ['W-3 Sokol', 'helicopter'],
 };
 
+/**
+ * Roles that say something about decision-makers rather than forces:
+ *  - command: US airborne command posts — E-6B Mercury (TACAMO / Looking Glass) and E-4B Nightwatch
+ *    (ICAO type B742 with a 1973–75 USAF serial; the type alone is a 747-200 airliner)
+ *  - vip: US government VIP transports flying under special-air-mission callsigns
+ *    (SAM, SPAR, VENUS, EXEC, AF1/AF2), whatever the airframe (C-32, C-37, C-40, VC-25…)
+ */
+export type AircraftRole = 'command' | 'vip';
+export const AIRCRAFT_ROLE_LABEL: Record<AircraftRole, string> = { command: 'Airborne command post', vip: 'Government VIP transport' };
+const E4B_SERIAL = /^7[345]-?0?\d{3,4}$/;
+const VIP_CALLSIGN = /^(SAM|SPAR|VENUS|EXEC)\d{1,5}$|^AF[12]$/;
+
+export function aircraftRole(a: { t: string | null; cs: string | null; reg: string | null }): AircraftRole | null {
+  if (a.t === 'E6' || a.t === 'E4B' || (a.t === 'B742' && !!a.reg && E4B_SERIAL.test(a.reg))) return 'command';
+  if (a.cs && VIP_CALLSIGN.test(a.cs.trim().toUpperCase())) return 'vip';
+  return null;
+}
+
 export function aircraftClassOf(type: string | null | undefined): AircraftClass {
   return (type && AIRCRAFT_TYPES[type]?.[1]) || 'other';
 }

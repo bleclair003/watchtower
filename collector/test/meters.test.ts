@@ -14,6 +14,7 @@ import { corroboration, visibility } from '../../shared/domain/meters/quality.ts
 import { daysSince, upcomingCalendar } from '../../shared/domain/meters/clocks.ts';
 import { appendLong, appendShort, leadLag, packValues, unpackValues, type HistoryPoint } from '../../shared/domain/meters/history.ts';
 import { isStrikeNews } from '../../shared/domain/meters/signals.ts';
+import { afterHours, easternHour, ROLE_RECORDING_START } from '../../shared/domain/meters/afterHours.ts';
 import { usualLevel } from '../../shared/domain/meters/util.ts';
 import { upcomingLaunches, type LL2Launch } from '../adapters/launches.ts';
 import { runCollection } from '../pipeline.ts';
@@ -132,6 +133,40 @@ describe('topic meters', () => {
   });
 });
 
+describe('Pentagon after-hours', () => {
+  const T = ROLE_RECORDING_START + 20 * DAY; // 20 days after VIP recording began
+  const at = (iso: string, p: Partial<IntelligenceEvent>) => ev('x', (T - Date.parse(iso)) / H, p);
+  const post = (iso: string) => ({ ...at(iso, { sourceId: 'war-gov-news', sourceClass: 'official', regionIds: ['united-states'] }), publishedAt: iso });
+  const vip = (iso: string) => ({ ...at(iso, { sourceId: 'adsb-military', sourceClass: 'aggregator', regionIds: ['united-states'], metadata: { aircraftRole: 'vip' } }), publishedAt: iso });
+  const nowAt = (events: IntelligenceEvent[], historyStart: number) => afterHours({ now: T, events: events.map((e) => ({ ...e, collectedAt: e.publishedAt! })), historyStart, sourceStatus: [], regionScores: [], scoreHistory: [] });
+
+  it('uses US Eastern night (22:00–06:00), across daylight-saving changes', () => {
+    expect(easternHour('2026-11-21T03:30:00Z')).toBe(22); // EST, UTC−5
+    expect(easternHour('2026-07-01T03:30:00Z')).toBe(23); // EDT, UTC−4
+  });
+
+  it('is withheld while building, then flags a burst of night work against the usual level', () => {
+    const iso = (daysAgo: number, utcHour: number) => new Date(Date.UTC(new Date(T).getUTCFullYear(), new Date(T).getUTCMonth(), new Date(T).getUTCDate() - daysAgo, utcHour)).toISOString();
+    // One night post every 6 days as background; then 4 night posts and 3 night VIP flights in the last 3 days.
+    const background = [4, 10, 16].map((d) => post(iso(d, 5))); // 05:00 UTC = 00:00 ET
+    const burst = [post(iso(1, 4)), post(iso(1, 6)), post(iso(2, 5)), post(iso(2, 7)), vip(iso(1, 5)), vip(iso(2, 4)), vip(iso(0, 6))];
+    const day = post(iso(1, 17)); // midday ET: not counted
+    expect(nowAt([...background, ...burst, day], T - 5 * DAY).baseline).toBe('building');
+    const m = nowAt([...background, ...burst, day], T - 30 * DAY);
+    expect(m.baseline).toBe('ok');
+    expect(m.level).toBe(4);
+    expect(m.components[0].value).toMatch(/^4 \(usual/);
+  });
+
+  it('one late post never moves it; VIP flights before recording began do not set the usual level', () => {
+    const iso = (h: number) => new Date(T - h * H).toISOString();
+    const lone = [post(new Date(Date.UTC(2026, 11, 10, 5)).toISOString())];
+    expect(nowAt(lone, T - 30 * DAY).level).toBeLessThanOrEqual(1);
+    const m = nowAt([vip(iso(30)), vip(iso(40)), vip(iso(50))], T - 60 * DAY);
+    expect(m.components[1].value).toMatch(/usual 0,/); // baseline counted from ROLE_RECORDING_START only
+  });
+});
+
 describe('quality, clocks and history', () => {
   it('corroboration counts single reports as stories of one', () => {
     const e = [ev('Israel strikes Gaza camp', 1), ev('Israel strikes Gaza camp, officials say', 2, { sourceId: 'aljazeera' }), ev('Unrelated Kuwait budget news', 3)];
@@ -192,7 +227,7 @@ describe('quality, clocks and history', () => {
 describe('engine', () => {
   it('every meter is well-formed on empty input (no data, no crash)', () => {
     const all = allMeters(input([], { historyStart: null }));
-    expect(all.length).toBe(82);
+    expect(all.length).toBe(83);
     expect(new Set(all.map((m) => m.id)).size).toBe(all.length);
     for (const m of all) {
       expect(m.reading.length, m.id).toBeGreaterThan(0);
@@ -204,7 +239,7 @@ describe('engine', () => {
     const store = new MemoryStore();
     await runCollection([], store, { now: () => NOW, log: () => {} } as never);
     const m = await store.getMetersSnapshot();
-    expect(m?.meters.length).toBe(82);
+    expect(m?.meters.length).toBe(83);
     expect(m?.history.length).toBe(1);
     expect(m?.leadLag?.note).toMatch(/too few/);
     const long = await store.getCollectorState<{ packed: string }>('meterHistory');

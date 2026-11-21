@@ -498,7 +498,7 @@ const experimentalIndicators: IndicatorDefinition[] = [
       'No legal, free, historical aggregate data source exists; popularity estimates are not order counts. Preserved as an untestable research concept and never fed fabricated values.',
     research: {
       hypothesis: 'Late-night food orders near the Pentagon rise before major U.S. military operations because staff work unusual hours.',
-      dataAvailability: 'None. Map-service "popular times" are modelled popularity estimates (not orders), have no free API, and scraping them breaches provider terms.',
+      dataAvailability: 'None for pizza: map-service "popular times" are modelled popularity estimates (not orders), have no free API, and scraping them breaches provider terms. A stand-in is live since v0.36.0: the Pentagon after-hours meter (night-time defence publishing and government command/VIP flights, US Eastern), on the METERS page and in the lead/lag lab.',
       baselinePeriod: 'Not applicable without data.',
       expectedRelationship: 'If real: an anomaly would precede publicly announced operations by hours to days.',
       historicalExamples: 'Anecdotes are widely shared after the fact. No systematic, pre-registered evaluation is known to WATCHTOWER.',

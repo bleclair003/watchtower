@@ -37,6 +37,7 @@ Meters that compare against a usual level (buildup vs noise, air surge, the repo
 | 18 | Coming up | — | scheduled military launches (Launch Library 2) and security-committee hearings (Congress.gov), 30 days | list |
 | 19 | Corroboration | each region | share of stories (72 h; a single report is a story of one) with several publishers or an official source | % |
 | 20 | Visibility | each region | share of the region's indicator sources online, data lag (USNI, PortWatch), known blind spots | % (level = blindness) |
+| 22 | Pentagon after-hours (v0.36.0) | US | night (22:00–06:00 ET) defence releases (war.gov, Air Force, Marines) and night command/VIP flights on ADS-B, each against its usual level (72 h); a part needs 2+ night items | ratio 1.5 / 2 / 3× after 14 days |
 | 21 | Lead/lag lab | Signal Lab | for each RAI rise (+10 within 24 h), whether each meter rose in the 72 h before, only in the 24 h after, or neither | tallies; no conclusions under 5 rises |
 
 ## Checked against real data (2026-11-21)

@@ -23,7 +23,7 @@ const REGION_COLUMNS: [MeterKind, string, string][] = [
   ['corroboration', 'CORROB', 'Share of stories corroborated'],
   ['visibility', 'VISIB', 'Share of the region’s sources online'],
 ];
-const TOPIC_ORDER: MeterKind[] = ['naval', 'maritime', 'sanctions', 'arms', 'washington', 'strategic', 'homeland', 'cyber'];
+const TOPIC_ORDER: MeterKind[] = ['naval', 'maritime', 'sanctions', 'arms', 'washington', 'strategic', 'homeland', 'after-hours', 'cyber'];
 const DISCLAIMER = 'Meters describe activity in the sources WATCHTOWER monitors. None is a probability of conflict, attack or any other event.';
 
 export default function MetersPage() {

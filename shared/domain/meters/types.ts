@@ -27,6 +27,7 @@ export type MeterKind =
   | 'humanitarian'
   | 'homeland'
   | 'cyber'
+  | 'after-hours'
   | 'corroboration'
   | 'visibility';
 

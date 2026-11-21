@@ -4,6 +4,8 @@ import {
   AIRCRAFT_CLASS_LABEL,
   AIRCRAFT_PROVIDERS,
   NOTABLE_AIRCRAFT_CLASSES,
+  AIRCRAFT_ROLE_LABEL,
+  aircraftRole,
   aircraftClassOf,
   aircraftLabel,
   aircraftTypeName,
@@ -103,9 +105,11 @@ export function aircraftEvents(snapshot: AircraftSnapshot, nowMs: number): Intel
   const date = nowIso.slice(0, 10);
   const events: IntelligenceEvent[] = [];
   for (const a of snapshot.aircraft) {
-    if (!NOTABLE_AIRCRAFT_CLASSES.includes(a.cls)) continue;
+    const role = aircraftRole(a);
+    if (!NOTABLE_AIRCRAFT_CLASSES.includes(a.cls) && !role) continue;
     const where = regionsForSeaOrWatchCountry(a.la, a.lo);
-    const regionIds = where.regionIds.filter((r) => !(SKIP_CLASSES_BY_REGION[r] ?? []).includes(a.cls));
+    // Region skips apply to routine classes, never to command posts or VIP transports.
+    const regionIds = where.regionIds.filter((r) => role || !(SKIP_CLASSES_BY_REGION[r] ?? []).includes(a.cls));
     if (!regionIds.length) continue;
     const country = where.country;
     const seenAt = new Date(Date.parse(snapshot.fetchedAt) - a.age * 1000).toISOString();
@@ -127,7 +131,7 @@ export function aircraftEvents(snapshot: AircraftSnapshot, nowMs: number): Intel
         sourceName: `${provider.name} — Military aircraft (ADS-B)`,
         sourceClass: 'aggregator',
         sourceUrl: provider.aircraftUrl(a.hex),
-        title: truncate(`Military ${AIRCRAFT_CLASS_LABEL[a.cls].toLowerCase()} aircraft seen: ${typeName} ${label} — ${region.shortCode} watch area`, LIMITS.title),
+        title: truncate(`${role ? `${AIRCRAFT_ROLE_LABEL[role]} seen` : `Military ${AIRCRAFT_CLASS_LABEL[a.cls].toLowerCase()} aircraft seen`}: ${typeName} ${label} — ${region.shortCode} watch area`, LIMITS.title),
         summary: truncate(
           `${typeName}${a.reg ? ` (${a.reg})` : ''}, callsign ${a.cs ?? 'not broadcast'}, seen at ${seenAt.slice(11, 16)} UTC at ${a.la.toFixed(2)}, ${a.lo.toFixed(2)}${facts ? ` (${facts})` : ''}` +
             `${country ? `, over ${country}` : ''}. ` +
@@ -149,6 +153,7 @@ export function aircraftEvents(snapshot: AircraftSnapshot, nowMs: number): Intel
         metadata: {
           subtype: 'military-aircraft-sighting',
           aircraftClass: a.cls,
+          ...(role ? { aircraftRole: role } : {}),
           aircraftType: a.t,
           hex: a.hex,
           callsign: a.cs,

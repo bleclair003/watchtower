@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.36.0] — 2026-11-21 — Pentagon after-hours index
+
+### Added
+- **Pentagon after-hours** meter (METERS page, US region strip, lead/lag lab): a stand-in for the "Pentagon pizza" idea using real signals of night-time work, 22:00–06:00 US Eastern (daylight saving handled):
+  - US defence news posted at night — war.gov, Air Force and Marines, the only US defence feeds whose timestamps carry a real time of day (checked against stored records; the others are stamped at fixed hours);
+  - US airborne command posts (E-6B Mercury; E-4B Nightwatch by its 1973–75 serials) and government VIP transports (SAM, SPAR, VENUS, EXEC, AF1/AF2 callsigns) seen on ADS-B at night.
+  Each is compared with its usual level over 72 hours; a part counts only with 2 or more night items; withheld until 14 days of history (VIP flights from this release, so their baseline starts 2026-11-21).
+- Military aircraft source: command posts and VIP transports are now recorded (with `aircraftRole`), including over the US where routine airlift is skipped. They keep class `other`, so tanker, ISR and airlift indicators and meters do not count them.
+
+### Why not pizza
+Google Maps "popular times" — the data behind PizzINT and the Pentagon Pizza Report — has no API, and scraping it breaches Google's terms. The Signal Lab research record for the pizza index now points to this meter.
+
+
 ## [0.35.0] — 2026-11-21 — Meters and monitors (Phase 14)
 
 ### Added

@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import type { FetchResult } from '../lib/http.ts';
 import { HttpError } from '../lib/http.ts';
 import { aircraftEvents, militaryAircraft, parseMilitaryAircraft, AIRCRAFT_SOURCE_ID } from '../adapters/militaryAircraft.ts';
-import { aircraftClassOf, type AircraftSnapshot } from '../../shared/domain/aircraft.ts';
+import { aircraftClassOf, aircraftRole, type AircraftSnapshot } from '../../shared/domain/aircraft.ts';
 import { validateEvent } from '../lib/validate.ts';
 import { INDICATOR_CATALOG, validateCatalog } from '../../shared/domain/indicators/catalog.ts';
 import { evaluateIndicator } from '../../shared/domain/indicators/evaluate.ts';
@@ -99,6 +99,25 @@ describe('military aircraft records', () => {
     for (const [f, , , regions] of cases) {
       expect([f, events.filter((e) => e.metadata?.callsign === f).map((e) => e.regionIds[0])]).toEqual([f, regions]);
     }
+  });
+
+  it('identifies US command posts and VIP transports (live callsigns of 2026-11-21)', () => {
+    expect(aircraftRole({ t: 'GLF5', cs: 'SAM928', reg: '20-1949' })).toBe('vip');
+    expect(aircraftRole({ t: 'GLF5', cs: 'SPAR81', reg: '01-0030' })).toBe('vip');
+    expect(aircraftRole({ t: 'E6', cs: 'GOTO87', reg: '164386' })).toBe('command');
+    expect(aircraftRole({ t: 'B742', cs: null, reg: '73-1676' })).toBe('command'); // E-4B by serial
+    expect(aircraftRole({ t: 'B742', cs: null, reg: 'EP-NHJ' })).toBeNull(); // another 747-200
+    expect(aircraftRole({ t: 'B752', cs: 'SAMSON1', reg: null })).toBeNull(); // not a SAM number
+    expect(aircraftRole({ t: 'C17', cs: 'RCH144', reg: null })).toBeNull();
+  });
+
+  it('records VIP transports even over the US (where routine airlift is skipped), with their role', () => {
+    const events = aircraftEvents(snap(withExtra(raw({ hex: 'ae0010', flight: 'SAM928', t: 'GLF5', lat: 38.8, lon: -77.0 }), raw({ hex: 'ae0011', flight: 'RCH9', t: 'C17', lat: 38.8, lon: -77.0 }))), NOW);
+    const vip = events.find((e) => e.metadata?.callsign === 'SAM928')!;
+    expect(vip.title).toMatch(/^Government VIP transport seen:/);
+    expect(vip.metadata?.aircraftRole).toBe('vip');
+    expect(vip.metadata?.aircraftClass).toBe('other'); // never counted by the tanker/airlift indicators
+    expect(events.some((e) => e.metadata?.callsign === 'RCH9')).toBe(false);
   });
 
   it('records tankers over the US and over open water in a watch box', () => {
