@@ -88,7 +88,7 @@ Rule of thumb: anything that must behave identically in the browser and in colle
 - **Sign-in flow:** popup, falling back to redirect when the popup is blocked; redirect in emulator mode. The emulator build also offers an email/password test sign-in that does not exist in live builds.
 - **Health is recomputed in the browser** from the snapshot's timestamps. If the collector stops, sources visibly decay to STALE, and the status strip shows OVERDUE after 3 h.
 - **State Dept change detection:** the adapter stores the last-seen level per advisory and emits RAISED / LOWERED / reissued / NEW events. Tags are **FIPS 10-4, not ISO** (`RS` = Russia, `IS` = Israel) and are mapped by a tested table.
-- **Planned optimization:** rebuild the snapshot incrementally (merge new events into the previous snapshot) instead of re-querying 400 events each run. This would cut collector reads by roughly 90%.
+- **Day buckets (v0.9.4):** the collector keeps a cache of recent events in `eventDays`, one document per collection day (split into parts above ~700 KB). Each run reads ~46 bucket documents instead of re-querying every event in the 31-day indicator window. Buckets are written in the same batch as the events they hold; `collectorState/eventDays` marks them as built, and they are rebuilt from `events` if that marker is missing. `events` stays the full archive used by the dashboard's SITREP, Replay and dossiers.
 
 ## 4. Task A — architecture review of PDD v1.0
 

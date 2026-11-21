@@ -81,6 +81,10 @@ async function main(): Promise<number> {
     `Run ${run.id}: fetched ${run.recordsFetched} · imported ${run.recordsImported} · duplicates ${run.duplicatesSuppressed} · rejected ${run.recordsRejected} · alerts ${run.alertsCreated ?? 0} · notified ${run.notificationsSent ?? 0} · errors ${run.errors.length}`,
   );
   console.log(`Snapshot: ${snapshot.events.length} events, ${Buffer.byteLength(JSON.stringify(snapshot))} bytes`);
+  if ('readCount' in store) {
+    const fs = store as unknown as { readCount: number; cacheInfo: string };
+    console.log(`Firestore: ~${fs.readCount} document reads this run (${fs.cacheInfo || 'no event cache used'})`);
+  }
   if (values['dry-run']) {
     for (const e of snapshot.events.slice(0, 12)) console.log(`  · [${e.sourceId}] ${e.publishedAt?.slice(0, 10) ?? '----------'} ${e.title}`);
   }

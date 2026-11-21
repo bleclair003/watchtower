@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.9.4] — 2026-11-21 — Firestore read cost
+
+### Fixed
+- Each run re-read every event from the last 31 days (up to 2,000, and truncated beyond that). With 15 sources, hourly collection would have exceeded the Spark free tier of 50,000 reads/day within about 2–3 weeks, and the cap would have cut baselines short. The collector now keeps a day-bucket cache (`eventDays`): ~45 reads per steady run, measured on the emulator, with no cap.
+- New-item checks read only ids outside the cache.
+
+### Added
+- Each run logs its Firestore document reads.
+
+
 ## [0.9.3] — 2026-11-21 — Health check fixes
 
 ### Fixed

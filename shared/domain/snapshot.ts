@@ -59,4 +59,6 @@ export const COLLECTIONS = {
   incidents: 'incidents',
   /** One RAI point per collection run, kept long-term for trends and SITREP comparisons (Phase 6). */
   raiHistory: 'raiHistory',
+  /** Collector-only cache: one document per collection day holding that day's events (v0.9.4). Not client-readable. */
+  eventDays: 'eventDays',
 } as const;

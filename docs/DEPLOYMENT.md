@@ -20,11 +20,11 @@
 |---|---|---|
 | Source items fetched | 2,034 first run; 248 steady (KEV answers 304) | — |
 | Firestore writes | first run 75 events + ~10 status/state/run/snapshot docs; steady ≈ 10 + new events | **< 500** |
-| Firestore reads (collector) | ≤ ~80 dedupe lookups + ≤ 400 snapshot rebuild + 3 status | **≈ 11,500 worst case** |
+| Firestore reads (collector) | ~45 steady (day buckets + status/state docs) + 1 per brand-new item; measured 44–47 on the emulator (v0.9.4) | **≈ 1,500 hourly; ≈ 3,000 every 30 min** |
 | Firestore reads (dashboard) | 1 per load / refresh | ~150 |
 | Actions minutes | ~1 min | ~24–36 min |
 
-The snapshot rebuild (re-reading up to 400 recent events each run) dominates reads. It is comfortably inside the Spark daily read allowance today; if more sources push it too high, switch the rebuild to an incremental merge (planned optimization, see ARCHITECTURE.md).
+Before v0.9.4 each run re-read every event in the 31-day indicator window (capped at 2,000). With 15 sources that would have passed the Spark limit of 50,000 reads/day at hourly collection within weeks, and the cap would have truncated baselines. Day buckets (ARCHITECTURE.md) replaced that. Each run logs its read count: `Firestore: ~N document reads this run`.
 
 ## 2. Connecting the real Firebase project (operator steps)
 

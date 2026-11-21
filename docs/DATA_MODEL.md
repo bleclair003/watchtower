@@ -29,6 +29,7 @@ Time fields:
 | `collectionRuns` | run id | collector | owner | Diagnostics history; retain 90 days |
 | `snapshots` | `dashboard` | collector | owner | `DashboardSnapshot` schema v2 (shared/domain/snapshot.ts): ≤ 400 newest events, source status, last run, indicator evaluations, region scores, ~3 days of RAI history; trimmed to ≤ 900 KB |
 | `regions` | region id | deploy script | owner | Mirrors `WATCH_REGIONS` |
+| `eventDays` | `YYYY-MM-DD` (parts `YYYY-MM-DD~1` …) | collector | nobody (default deny) | Cache of each collection day's events for cheap indicator evaluation; rebuilt from `events` when `collectorState/eventDays` is missing (v0.9.4) |
 | `raiHistory` | run timestamp | collector | owner | One `ScoreHistoryPoint` per run: long-term RAI trend and SITREP comparisons (Phase 6) |
 | `indicatorHistory` | `<time>_<indicatorId>` | collector | owner | Append-only log of indicator state transitions (Phase 3) |
 | `indicators` | indicator id | owner (UI) | collector, owner | Phase 4: operator-edited definitions (v1 catalog lives in code) |

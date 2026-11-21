@@ -230,8 +230,11 @@ export async function runCollection(
 export function snapshotLookbackHours(catalog: IndicatorDefinition[]): number {
   return Math.max(14 * 24, requiredLookbackHours(catalog) + 24);
 }
-/** Upper bound on events read per run (Firestore reads are metered). */
-export const EVENT_QUERY_LIMIT = 2000;
+/**
+ * Upper bound for the fallback events query. The Firestore store normally serves the window
+ * from day buckets (~46 reads, no cap); this cap only applies outside the bucket window.
+ */
+export const EVENT_QUERY_LIMIT = 20_000;
 
 const eventTime = (e: { publishedAt: string | null; collectedAt: string }) => e.publishedAt ?? e.collectedAt;
 
