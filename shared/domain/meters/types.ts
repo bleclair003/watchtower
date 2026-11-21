@@ -30,6 +30,7 @@ export type MeterKind =
   | 'after-hours'
   | 'markets'
   | 'infrastructure'
+  | 'language'
   | 'corroboration'
   | 'visibility';
 

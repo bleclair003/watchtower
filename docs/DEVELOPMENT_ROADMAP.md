@@ -290,7 +290,7 @@ Free sources and analysis of data already collected. Each new outside source is 
 
 ### B. Language and narrative (fixed rules, no paid AI)
 3. **Language temperature**
-   - [ ] Open, adjustable escalation and de-escalation word lists; score each region's headlines over time
+   - [x] Open, adjustable escalation and de-escalation word lists; score each region's headlines over time — v0.39.0
 4. **People and group tracking**
    - [ ] Mentions over time of named groups and leaders per region; first-appearance alerts for new names
 5. **Coverage gaps**

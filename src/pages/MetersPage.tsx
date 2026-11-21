@@ -18,6 +18,7 @@ const REGION_COLUMNS: [MeterKind, string, string][] = [
   ['buildup', 'BUILDUP', 'Quiet buildup vs noise'],
   ['air-surge', 'AIR', 'Air surge: tanker, airlift, ISR, bomber sightings'],
   ['diplomatic', 'DIPLO', 'Diplomatic temperature'],
+  ['language', 'TONE', 'Language temperature of news headlines, −100 calming to +100 escalating'],
   ['blackout', 'BLACKOUT', 'Information blackout'],
   ['economic', 'ECON', 'Economic stress'],
   ['humanitarian', 'HUMAN', 'Humanitarian strain'],

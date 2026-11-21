@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.39.0] — 2026-11-21 — Language temperature (Phase 15 item 3)
+
+### Added
+- **Language temperature** per region (METERS grid column TONE, region strips, lead/lag lab): the tone of the region's news headlines over 72 hours, −100 (calming) to +100 (escalating), with a day-by-day breakdown for 7 days, the most frequent listed words, and the hottest and calmest headlines as evidence.
+- **Open word lists** in `shared/domain/language.ts`: 24 escalation and 12 de-escalation entries with weights (e.g. airstrike, invasion, mobilisation 2; strike, attack, interception 1; warns, troops 0.5; ceasefire, peace deal 2; talks 1; summit 0.5). A de-escalation word next to a failure word ("ceasefire collapses", "talks stall", "deadlock") counts as escalation.
+- Compared with the region's usual temperature once 14 days of history exist; with fewer than 5 headlines the level is capped at GUARDED.
+
+### Tuned against the real headlines of 2026-11-21
+Removed false hits: "attack" as an adjective (attack drones), unit and product names ("bomb wings"), weapons named as topics ("missile shortages", now weight 0.5), "deployment" outside military use, "gun down" matched as "downs", "weapon release" read as a prisoner release, and a battlefield retreat read as de-escalation. Added "missiles hit …" as an act. Readings then: Middle East +39, Red Sea +50 (3 headlines, capped), Eastern Europe +17, US +5.
+
+
 ## [0.38.0] — 2026-11-21 — Infrastructure proximity (Phase 15 item 2)
 
 ### Added

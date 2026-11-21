@@ -40,6 +40,7 @@ Meters that compare against a usual level (buildup vs noise, air surge, the repo
 | 22 | Pentagon after-hours (v0.36.0) | US | night (22:00–06:00 ET) defence releases (war.gov, Air Force, Marines) and night command/VIP flights on ADS-B, each against its usual level (72 h); a part needs 2+ night items | ratio 1.5 / 2 / 3× after 14 days |
 | 23 | Prediction markets (v0.37.0) | global | largest 24-hour move in Polymarket odds among the tracked watch-region questions | 5 / 10 / 20 / 30 points |
 | 24 | Infrastructure proximity (v0.38.0) | each region | per flagged site: fire or military record nearby (nuclear 3, other 1), named in a strike headline (nuclear 3, other 2), named otherwise 0.5, +1 if both near and struck (72 h) | 0.5 / 1 / 3 / 6 |
+| 25 | Language temperature (v0.39.0) | each region | mean headline score × 50 over 72 h, −100 calming … +100 escalating; word lists in `shared/domain/language.ts` | before 14 days: +10 / 25 / 40 / 60; after: +5 / 15 / 30 / 45 above usual; capped at GUARDED under 5 headlines |
 | 21 | Lead/lag lab | Signal Lab | for each RAI rise (+10 within 24 h), whether each meter rose in the 72 h before, only in the 24 h after, or neither | tallies; no conclusions under 5 rises |
 
 ## Checked against real data (2026-11-21)
