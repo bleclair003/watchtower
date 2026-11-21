@@ -5,7 +5,7 @@
 #   Secret    FIREBASE_SERVICE_ACCOUNT  Service-account key JSON (role: Cloud Datastore User)
 #   Secret    DISCORD_WEBHOOK_URL       Optional Discord webhook for alert notifications
 #
-# Trigger: an external scheduler (cron-job.org) calls workflow_dispatch every 30 minutes (:17 and :47)
+# Trigger: an external scheduler (cron-job.org) calls workflow_dispatch every 30 minutes (:00 and :30)
 # with inputs.trigger = schedule (docs/DEPLOYMENT.md §4c). GitHub's own cron is best-effort and
 # skipped 5 consecutive hourly runs on 2026-11-21, so it is kept only as a 6-hourly fallback.
 # The concurrency group below stops two runs from collecting at the same time.
@@ -14,7 +14,7 @@ name: Collect
 
 on:
   schedule:
-    - cron: '2 */6 * * *' # fallback only; minute 2 avoids the external :17/:47 slots
+    - cron: '15 */6 * * *' # fallback only; minute 15 stays clear of the external :00/:30 runs
   workflow_dispatch:
     inputs:
       trigger:

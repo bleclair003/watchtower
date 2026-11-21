@@ -119,7 +119,7 @@ Add each one under GitHub → repository → Settings → Secrets and variables 
 
 ## 4c. Reliable hourly trigger (cron-job.org)
 
-GitHub's built-in schedule is best-effort: on 2026-11-21 it skipped five hourly runs in a row. An external scheduler now starts the Collect workflow every 30 minutes (since v0.9.4). GitHub's own cron remains as a 6-hourly fallback at minute 2. The workflow's concurrency group stops overlapping runs.
+GitHub's built-in schedule is best-effort: on 2026-11-21 it skipped five hourly runs in a row. An external scheduler now starts the Collect workflow every 30 minutes (since v0.9.4). GitHub's own cron remains as a 6-hourly fallback at minute 15. The workflow's concurrency group stops overlapping runs.
 
 **1. A GitHub token that can only start this repository's workflows**
 - github.com → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate new token.
@@ -132,7 +132,7 @@ GitHub's built-in schedule is best-effort: on 2026-11-21 it skipped five hourly 
 | Field | Value |
 |---|---|
 | URL | `https://api.github.com/repos/bleclair003/watchtower/actions/workflows/collect.yml/dispatches` |
-| Schedule | Every hour at minutes **17 and 47** (every 30 min) |
+| Schedule | Every hour at minutes **0 and 30** (every 30 min) |
 | Request method | `POST` (Advanced tab) |
 | Headers | `Authorization: Bearer <token>` · `Accept: application/vnd.github+json` · `X-GitHub-Api-Version: 2022-11-28` |
 | Request body | `{"ref":"main","inputs":{"trigger":"schedule"}}` |
@@ -142,7 +142,7 @@ A successful call returns **HTTP 204**, and a Collect run appears in GitHub Acti
 
 **If the token leaks**, the worst anyone can do is start or cancel this repository's workflows (using Actions minutes). Revoke it on GitHub and make a new one.
 
-**Minutes:** each run bills 1 minute. Every 30 min ≈ 1,440 a month, plus ≈ 120 for the fallback and 3–4 per push for CI: about 1,600 of the 2,000 free minutes for private repositories. If CI pushes get heavy in a month, drop back to hourly (minute 47 only). 15-minute collection would need a public repository (unlimited minutes).
+**Minutes:** each run bills 1 minute. Every 30 min ≈ 1,440 a month, plus ≈ 120 for the fallback and 3–4 per push for CI: about 1,600 of the 2,000 free minutes for private repositories. If CI pushes get heavy in a month, drop back to hourly (minute 0 only). 15-minute collection would need a public repository (unlimited minutes).
 
 ## 5. Secrets policy
 
