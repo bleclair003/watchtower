@@ -44,9 +44,18 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: npm
+
+      # GitHub bills each run by the started minute: restoring the installed runtime packages
+      # takes a few seconds, installing them ~9 s. The key changes whenever the lockfile does.
+      - name: Restore runtime dependencies
+        id: deps
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: collector-runtime-${{ runner.os }}-node24-${{ hashFiles('package-lock.json') }}
 
       - name: Install runtime dependencies
+        if: steps.deps.outputs.cache-hit != 'true'
         run: npm ci --omit=dev --ignore-scripts
 
       - name: Authenticate to Google Cloud

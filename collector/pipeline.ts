@@ -95,8 +95,14 @@ export async function runCollection(
   };
   const reports: SourceRunReport[] = [];
   const importedThisRun: IntelligenceEvent[] = [];
+  // Wall-clock timings for the run log (the injected `now` is fixed in tests).
+  const clock = () => performance.now();
+  const secs = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
+  const phases: [string, number][] = [];
+  const tAdapters = clock();
 
   for (const adapter of adapters) {
+    const tAdapter = clock();
     const def = getSource(adapter.sourceId);
     const report: SourceRunReport = {
       sourceId: adapter.sourceId, ok: false, notModified: false, itemsSeen: 0,
@@ -192,12 +198,17 @@ export async function runCollection(
       `${report.ok ? 'OK  ' : 'FAIL'} ${adapter.sourceId.padEnd(26)} ` +
         (report.ok
           ? `${report.notModified ? '304 not modified' : `${report.itemsSeen} seen`} · ${report.imported} new · ${report.duplicates} dup${report.revised ? ` · ${report.revised} revised` : ''} · ${report.rejected} rejected`
-          : report.error),
+          : report.error) +
+        ` · ${secs(clock() - tAdapter)}`,
     );
   }
+  phases.push(['sources', clock() - tAdapters]);
 
   const tracked = opts.trackedSourceIds ?? adapters.map((a) => a.sourceId);
+  const tSnapshot = clock();
   const { snapshot, transitions, previousScores, previousEvaluatedAt } = await buildSnapshot(store, run, tracked, opts.catalog ?? INDICATOR_CATALOG, now(), log);
+  phases.push(['snapshot+indicators', clock() - tSnapshot]);
+  const tAfter = clock();
 
   // Alerting: only this run's CHANGES can fire, so unchanged inputs never re-alert.
   try {
@@ -282,10 +293,14 @@ export async function runCollection(
     }
   }
 
+  phases.push(['alerts+brief+layers', clock() - tAfter]);
   run.finishedAt = new Date(now()).toISOString();
   snapshot.lastRun = run;
+  const tWrite = clock();
   await store.putRun(run);
   await store.putSnapshot(snapshot);
+  phases.push(['final writes', clock() - tWrite]);
+  log(`TIME ${phases.map(([n, ms]) => `${n} ${secs(ms)}`).join(' · ')}`);
   return { run, reports, snapshot };
 }
 
