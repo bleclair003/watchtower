@@ -302,7 +302,7 @@ Free sources and analysis of data already collected. Each new outside source is 
 7. **Source track record**
    - [x] Per source, how often a single-publisher report is later corroborated by others — v0.43.0
 8. **Missing regulars**
-   - [ ] Alert when a source that normally posts daily goes quiet, per source
+   - [x] Alert when a source that normally posts daily goes quiet, per source — v0.44.0 (meter and daily brief)
 
 ### D. Context and dates
 11. **Known dates ahead**

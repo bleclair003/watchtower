@@ -26,6 +26,7 @@ import { actorsMeter } from './actorsMeter.ts';
 import { coverageMeter } from './coverageMeter.ts';
 import { whoIsFirst } from '../speed.ts';
 import { trackRecord } from '../trackRecord.ts';
+import { quietMeter } from './quietMeter.ts';
 import { daysSince, upcomingCalendar } from './clocks.ts';
 import { appendShort, pointFor } from './history.ts';
 import { BASELINE_DAYS, DAY } from './util.ts';
@@ -61,6 +62,7 @@ export function allMeters(input: MeterInput): Meter[] {
     afterHours(input),
     marketOdds(input),
     cyberWeather(input),
+    quietMeter(input),
     ...GEO_REGIONS.map((r) => corroboration(input, r)),
     ...GEO_REGIONS.map((r) => coverageMeter(input, r)),
     ...WATCH_REGIONS.map((r) => visibility(input, r.id)),

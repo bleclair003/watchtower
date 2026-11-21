@@ -35,6 +35,7 @@ export type MeterKind =
   | 'language'
   | 'actors'
   | 'coverage'
+  | 'quiet'
   | 'corroboration'
   | 'visibility';
 

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.44.0] — 2026-11-21 — Missing regulars (Phase 15 item 8)
+
+### Added
+- **Missing regulars** meter (METERS topic monitors, lead/lag lab): a source that normally publishes every day — new items on 80% of days or more, learned from 7+ days of history and judged by when WATCHTOWER first collected each item — has published nothing for longer than 24 hours or three times its usual gap, whichever is longer, while it still loads. Sources that fail to load stay with source health (STALE, OFFLINE), so the two never overlap.
+- The **daily brief** names quiet daily sources in its collector-health section ("… nothing new for 30 h (usually 8 a day) — reachable but quiet").
+- Event-driven sources (earthquakes, sanctions, launches, outbreak reports) never qualify as daily, so they are not flagged.
+
+### Limits
+- Needs 7 days of history: shows BUILDING until about 2026-11-27.
+- A quiet official feed can mean a holiday or a website change as well as a deliberate silence.
+
+
 ## [0.43.0] — 2026-11-21 — Source track record (Phase 15 item 7)
 
 ### Added

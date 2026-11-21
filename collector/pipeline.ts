@@ -5,6 +5,7 @@ import { loadBases } from './lib/bases.ts';
 import { loadInfrastructure } from './lib/infrastructure.ts';
 import { computeInfrastructure } from '../shared/domain/infraProximity.ts';
 import { computeActors, packRegistry, unpackRegistry } from '../shared/domain/actorsTrack.ts';
+import { sourceCadence } from '../shared/domain/quietSources.ts';
 import { computeMeters } from '../shared/domain/meters/index.ts';
 import type { MetersSnapshot } from '../shared/domain/meters/types.ts';
 import { appendLong, leadLag, type HistoryPoint } from '../shared/domain/meters/history.ts';
@@ -363,6 +364,10 @@ export async function runCollection(
       upcomingLaunches: launches?.upcoming ?? [],
       previous: previousMeters,
     });
+    // Quiet daily sources, for the brief.
+    snapshot.quietSources = sourceCadence(loaded, snapshot.sourceStatus, t, Number.isFinite(historyStart) ? historyStart : null)
+      .filter((s) => s.quiet)
+      .map((s) => ({ sourceId: s.sourceId, name: s.name, hoursSinceNew: s.hoursSinceNew ?? 0, usualPerDay: s.usualPerDay }));
     meterHistory = appendLong(longRaw ? (JSON.parse(longRaw.packed) as HistoryPoint[]) : [], meters.history[meters.history.length - 1]);
     meters.leadLag = leadLag(meterHistory, t);
     const raised = meters.meters.filter((m) => m.level !== null && m.level >= 3 && m.family !== 'quality').length;

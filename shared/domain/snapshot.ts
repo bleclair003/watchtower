@@ -70,6 +70,8 @@ export interface DashboardSnapshot {
   infrastructure?: InfrastructureSnapshot;
   /** Tracked people and groups, and new names in headlines. */
   actors?: ActorsSnapshot;
+  /** Daily sources that have gone quiet while reachable (for the brief and Diagnostics). */
+  quietSources?: { sourceId: string; name: string; hoursSinceNew: number; usualPerDay: number }[];
 }
 
 /** Firestore collection names — single source of truth for app and collector. */

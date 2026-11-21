@@ -31,7 +31,7 @@ const REGION_COLUMNS: [MeterKind, string, string][] = [
   ['coverage', 'GAPS', 'Possible coverage gaps: stories reported by one side only'],
   ['visibility', 'VISIB', 'Share of the region’s sources online'],
 ];
-const TOPIC_ORDER: MeterKind[] = ['naval', 'maritime', 'sanctions', 'arms', 'washington', 'strategic', 'homeland', 'after-hours', 'markets', 'cyber'];
+const TOPIC_ORDER: MeterKind[] = ['naval', 'maritime', 'sanctions', 'arms', 'washington', 'strategic', 'homeland', 'after-hours', 'markets', 'cyber', 'quiet'];
 const DISCLAIMER = 'Meters describe activity in the sources WATCHTOWER monitors. None is a probability of conflict, attack or any other event.';
 
 export default function MetersPage() {

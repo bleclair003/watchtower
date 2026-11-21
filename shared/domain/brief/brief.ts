@@ -112,6 +112,7 @@ export function buildBrief(snapshot: DashboardSnapshot, now: number): Brief {
     const h = computeHealth(s, getSource(s.sourceId)?.pollIntervalMinutes ?? null, now);
     if (h !== 'ONLINE') health.push({ text: `${getSource(s.sourceId)?.name ?? s.sourceId}: ${h}${s.lastError ? ` (${s.lastError.slice(0, 80)})` : ''}` });
   }
+  for (const q of snapshot.quietSources ?? []) health.push({ text: `${q.name}: nothing new for ${Math.round(q.hoursSinceNew)} h (usually ${q.usualPerDay} a day) — reachable but quiet` });
   if (snapshot.lastRun?.errors.length) health.push({ text: `Last run reported ${snapshot.lastRun.errors.length} error(s)` });
 
   return {
