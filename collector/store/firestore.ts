@@ -190,6 +190,11 @@ export class FirestoreStore implements CollectorStore {
     this.readCount += Math.max(1, snap.size);
     return snap.docs.map((d) => ({ ...d.data(), id: d.id }));
   }
+  async listWatchlists() {
+    const snap = await this.db.collection(COLLECTIONS.watchlists).limit(10).get();
+    this.readCount += Math.max(1, snap.size);
+    return snap.docs.map((d) => d.data());
+  }
   async filterNewAlertIds(ids: string[]) {
     const fresh = new Set<string>();
     for (let i = 0; i < ids.length; i += 100) {

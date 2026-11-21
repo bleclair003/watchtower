@@ -10,6 +10,7 @@ import { safeExternalUrl } from '../../lib/sanitize';
 import { CategoryGlyph } from '../ui/CategoryGlyph';
 import { Tag } from '../ui/Tag';
 import { AddToDossier } from './AddToDossier';
+import { useWatchHits } from '../../state/WatchlistContext';
 
 interface Props {
   event: IntelligenceEvent;
@@ -60,6 +61,7 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem(
   const offTopic = offTopicReason(e);
   const url = safeExternalUrl(e.sourceUrl);
   const isDemo = e.dataOrigin === 'demo';
+  const watch = useWatchHits(e);
 
   return (
     <li ref={ref} className={selected ? 'bg-wt-info/[0.07]' : ''}>
@@ -67,7 +69,7 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem(
         onClick={onSelect}
         aria-expanded={selected}
         className={`block w-full border-l-2 px-2 py-1.5 text-left ${
-          selected ? 'border-wt-info' : 'border-transparent hover:bg-wt-bg2'
+          selected ? 'border-wt-info' : watch.length ? 'border-wt-warn bg-wt-warn/[0.06] hover:bg-wt-bg2' : 'border-transparent hover:bg-wt-bg2'
         }`}
       >
         <div className="flex items-start gap-1.5">
@@ -81,6 +83,11 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem(
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-1 pl-[17px]">
           {isDemo && <Tag tone="warn">DEMO</Tag>}
+          {watch.map((h) => (
+            <Tag key={h.item.id} tone="warn" title={`On your watchlist (${h.item.kind}): named as "${h.matched}"`}>
+              WATCH: {h.item.term}
+            </Tag>
+          ))}
           {offTopic && <Tag tone="inactive" title={offTopic}>OFF-TOPIC</Tag>}
           {isOpinion(e) && <Tag tone="muted" title="Opinion column: the author's view, not a report of events">OPINION</Tag>}
           {indicators.length > 0 && (

@@ -88,6 +88,23 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt;
     }
 
+    // Watchlist: one document per user. Top-level shape and size are enforced here (rules
+    // cannot check every list element); the app and the collector validate each item and the
+    // collector skips and reports an invalid list. Saves must bump `version` by exactly 1.
+    function validWatchlist(d) {
+      return d.keys().hasOnly(['items', 'updatedAt', 'version'])
+        && d.keys().hasAll(['items', 'updatedAt', 'version'])
+        && d.items is list && d.items.size() <= 100
+        && d.updatedAt is string && d.updatedAt.size() <= 40
+        && d.version is int;
+    }
+    match /watchlists/{uid} {
+      allow read, delete: if isOwner() && request.auth.uid == uid;
+      allow create: if isOwner() && request.auth.uid == uid && validWatchlist(request.resource.data) && request.resource.data.version == 1;
+      allow update: if isOwner() && request.auth.uid == uid && validWatchlist(request.resource.data)
+        && request.resource.data.version == resource.data.version + 1;
+    }
+
     match /userSettings/{uid} {
       allow read, write: if isOwner() && request.auth.uid == uid;
     }

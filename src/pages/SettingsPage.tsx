@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useSettings, type OperatorSettings } from '../state/SettingsContext';
 import { useAuth } from '../state/AuthContext';
 import { Panel } from '../components/ui/Panel';
+import { WatchlistPanel } from '../components/watchlist/WatchlistPanel';
 
 /** The on/off settings (the base operator filter is chosen on the GOC map). */
 type BooleanSetting = { [K in keyof OperatorSettings]: OperatorSettings[K] extends boolean ? K : never }[keyof OperatorSettings];
@@ -63,6 +64,9 @@ export default function SettingsPage() {
           Display settings are stored in this browser only.
         </p>
       </Panel>
+      <div className="mt-1.5">
+        <WatchlistPanel />
+      </div>
       {status === 'signed-in' && (
         <Panel title="Operator Account" designator="O2" className="mt-1.5 max-w-2xl">
           <div className="flex flex-wrap items-center gap-3 px-3 py-2 text-xs">

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.34.0] — 2026-11-21 — Watchlist
+
+### Added
+- **Watchlist** (Settings → Watchlist): up to 100 people, units, bases or terms, each with up to 5 other spellings. Stored per user at `watchlists/{uid}` (demo mode: this browser only).
+- **Highlights:** feed records that name a watchlist item (whole words, title or summary) get an amber edge and a **WATCH: term** tag, on the GOC and region pages. Short all-capital terms (IRGC, PLA) match only in capitals.
+- **Alerts:** items set to alert raise one alert per new matching record (chosen level), stored with the other alerts and sent to Discord when a webhook is configured, at most one message an hour per item. Records collected before the item was added never alert.
+- Firestore rules: `watchlists/{uid}` readable and writable only by the owner for their own uid; top-level shape and 100-item cap enforced; every save must bump `version` by 1. The collector validates each item and reports an invalid list instead of using it.
+
+### Limits
+- Matching is by spelling, not meaning: a name shared by different people or places matches all of them; add other spellings for transliterations.
+- Alerts need the collector run after the item is added; matches among older records are highlighted but never alerted.
+
+
 ## [0.33.0] — 2026-11-21 — Activity near bases
 
 ### Added

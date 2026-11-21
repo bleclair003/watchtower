@@ -315,6 +315,12 @@ Security Council meetings, resolutions and failed drafts, in the feed and on reg
 - **History gate:** no flags until 21 days of history exist; the card states how many days are available.
 - **Shown:** amber ring on the map, an Activity block on the installation card, and a legend count.
 
+## Watchlist (v0.34.0)
+
+- **Matching** ([`shared/domain/watchlist.ts`](../shared/domain/watchlist.ts)): whole words in the title or summary, any case; terms of up to five capital letters match only in capitals. The same matcher runs in the browser (highlights) and the collector (alerts).
+- **Alerts:** each item set to alert acts as an event rule for new records collected after the item was added; alerts go through the normal store, deduplication, cooldown (60 minutes per item) and Discord delivery.
+- **Storage and security:** one document per user (`watchlists/{uid}`), owner-only, version-checked by the Firestore rules (tested against the emulator).
+
 ## Cost
 
 | Feature | Firestore reads |

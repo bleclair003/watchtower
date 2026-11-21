@@ -5,6 +5,7 @@ import { DataProvider } from './state/DataContext';
 import { DashboardProvider } from './state/DashboardContext';
 import { SettingsProvider } from './state/SettingsContext';
 import { AuthProvider } from './state/AuthContext';
+import { WatchlistProvider } from './state/WatchlistContext';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { AuthGate } from './components/layout/AuthGate';
 
@@ -79,28 +80,30 @@ export default function App() {
       <AuthProvider>
         <AuthGate>
           <DataProvider>
-            <BrowserRouter>
-              <DashboardProvider>
-                <Routes>
-                  <Route element={<AppShell />}>
-                    <Route index element={page(<GlobalOperationsPage />)} />
-                    <Route path="sources" element={page(<SourcesPage />)} />
-                    <Route path="diagnostics" element={page(<DiagnosticsPage />)} />
-                    <Route path="settings" element={page(<SettingsPage />)} />
-                    <Route path="indicators" element={page(<IndicatorsPage />)} />
-                    <Route path="alerts" element={page(<AlertsPage />)} />
-                    <Route path="dossiers" element={page(<DossiersPage />)} />
-                    <Route path="dossiers/:id" element={page(<DossierPage />)} />
-                    <Route path="sitrep" element={page(<SitrepPage />)} />
-                    <Route path="replay" element={page(<ReplayPage />)} />
-                    <Route path="signal-lab" element={page(<SignalLabPage />)} />
-                    <Route path="regions" element={page(<RegionsPage />)} />
-                    <Route path="regions/:id" element={page(<RegionPage />)} />
-                    <Route path="*" element={<NotFound />} />
-                  </Route>
-                </Routes>
-              </DashboardProvider>
-            </BrowserRouter>
+            <WatchlistProvider>
+              <BrowserRouter>
+                <DashboardProvider>
+                  <Routes>
+                    <Route element={<AppShell />}>
+                      <Route index element={page(<GlobalOperationsPage />)} />
+                      <Route path="sources" element={page(<SourcesPage />)} />
+                      <Route path="diagnostics" element={page(<DiagnosticsPage />)} />
+                      <Route path="settings" element={page(<SettingsPage />)} />
+                      <Route path="indicators" element={page(<IndicatorsPage />)} />
+                      <Route path="alerts" element={page(<AlertsPage />)} />
+                      <Route path="dossiers" element={page(<DossiersPage />)} />
+                      <Route path="dossiers/:id" element={page(<DossierPage />)} />
+                      <Route path="sitrep" element={page(<SitrepPage />)} />
+                      <Route path="replay" element={page(<ReplayPage />)} />
+                      <Route path="signal-lab" element={page(<SignalLabPage />)} />
+                      <Route path="regions" element={page(<RegionsPage />)} />
+                      <Route path="regions/:id" element={page(<RegionPage />)} />
+                      <Route path="*" element={<NotFound />} />
+                    </Route>
+                  </Routes>
+                </DashboardProvider>
+              </BrowserRouter>
+            </WatchlistProvider>
           </DataProvider>
         </AuthGate>
       </AuthProvider>

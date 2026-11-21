@@ -164,6 +164,30 @@ describe('user settings', () => {
   });
 });
 
+describe('watchlists', () => {
+  const item = { id: 'wagner', term: 'Wagner', kind: 'unit', aliases: ['Africa Corps'], alert: true, severity: 'ADVISORY', createdAt: '2026-11-21T00:00:00Z' };
+  const list = (version: number, items: unknown[] = [item]) => ({ items, updatedAt: '2026-11-21T00:00:00Z', version });
+
+  it('owner can create, update with version +1, read and delete their own list', async () => {
+    await assertSucceeds(setDoc(doc(owner(), 'watchlists/owner-uid'), list(1)));
+    await assertSucceeds(setDoc(doc(owner(), 'watchlists/owner-uid'), list(2, [])));
+    await assertSucceeds(getDoc(doc(owner(), 'watchlists/owner-uid')));
+    await assertSucceeds(deleteDoc(doc(owner(), 'watchlists/owner-uid')));
+  });
+
+  it("rejects other users' lists, stale versions, extra fields and oversized lists", async () => {
+    await assertFails(setDoc(doc(owner(), 'watchlists/other-uid'), list(1)));
+    await assertFails(setDoc(doc(stranger(), 'watchlists/other-uid'), list(1)));
+    await assertFails(setDoc(doc(owner(), 'watchlists/owner-uid'), list(2))); // create must be version 1
+    await assertSucceeds(setDoc(doc(owner(), 'watchlists/owner-uid'), list(1)));
+    await assertFails(setDoc(doc(owner(), 'watchlists/owner-uid'), list(1))); // not bumped
+    await assertFails(setDoc(doc(owner(), 'watchlists/owner-uid'), list(3))); // skipped
+    await assertFails(setDoc(doc(owner(), 'watchlists/owner-uid'), { ...list(2), extra: true }));
+    await assertFails(setDoc(doc(owner(), 'watchlists/owner-uid'), list(2, Array.from({ length: 101 }, () => item))));
+    await assertFails(getDoc(doc(stranger(), 'watchlists/owner-uid')));
+  });
+});
+
 describe('default deny', () => {
   it('unknown collections are closed', async () => {
     await assertFails(getDoc(doc(owner(), 'anything/else')));

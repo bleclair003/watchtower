@@ -71,6 +71,8 @@ export const COLLECTIONS = {
   /** Append-only log of indicator state changes (for Phase 6 backtesting). */
   indicatorHistory: 'indicatorHistory',
   alertRules: 'alertRules',
+  /** One watchlist per user (`watchlists/{uid}`), owner-managed (Phase 13). */
+  watchlists: 'watchlists',
   alerts: 'alerts',
   /** Collector-internal bookkeeping (e.g. notification cooldowns). Not client-readable. */
   collectorState: 'collectorState',

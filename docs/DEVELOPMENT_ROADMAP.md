@@ -217,4 +217,4 @@ Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at
 17. **Activity near bases**
    - [x] Records near or naming each base this week against its usual level; flag unusual activity on the map and the card — v0.33.0 (flags from 21 days of history)
 18. **Watchlist**
-   - [ ] Your own list of people, units, bases or terms; matching records are highlighted and can trigger alerts (stored per user, Firestore rules updated)
+   - [x] Your own list of people, units, bases or terms; matching records are highlighted and can trigger alerts (stored per user, Firestore rules updated) — v0.34.0
