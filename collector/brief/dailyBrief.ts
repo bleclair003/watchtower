@@ -97,12 +97,15 @@ export async function runDailyBrief(store: CollectorStore, snapshot: DashboardSn
   const attempts = state.attemptsDate === today ? state.attempts + 1 : 1;
   try {
     await sendDiscord(o.webhookUrl, briefToDiscord(brief, o.appUrl), { fetchImpl: o.fetchImpl });
-    await store.putCollectorState(STATE_KEY, { lastSentDate: today, attemptsDate: today, attempts, lastError: null, updatedAt: new Date(o.now).toISOString() });
+    // A forced (test) send does not use up the day's scheduled brief.
+    if (!o.force) {
+      await store.putCollectorState(STATE_KEY, { lastSentDate: today, attemptsDate: today, attempts, lastError: null, updatedAt: new Date(o.now).toISOString() });
+    }
     log(`BRIEF sent for ${today}${o.force ? ' (forced)' : ''}`);
     return { sent: true };
   } catch (err) {
     const message = (err as Error).message;
-    await store.putCollectorState(STATE_KEY, { ...state, attemptsDate: today, attempts, lastError: message, updatedAt: new Date(o.now).toISOString() });
+    if (!o.force) await store.putCollectorState(STATE_KEY, { ...state, attemptsDate: today, attempts, lastError: message, updatedAt: new Date(o.now).toISOString() });
     log(`BRIEF delivery failed (attempt ${attempts}/${MAX_ATTEMPTS_PER_DAY}): ${message}`);
     return { sent: false, reason: 'delivery failed', error: message };
   }

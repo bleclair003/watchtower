@@ -91,6 +91,14 @@ describe('daily brief delivery', () => {
     expect(fail).toHaveBeenCalledTimes(MAX_ATTEMPTS_PER_DAY);
   });
 
+  it("a forced test send does not use up the day's scheduled brief", async () => {
+    const store = new MemoryStore();
+    const f = ok();
+    expect(await runDailyBrief(store, snap([]), { now: Date.parse('2026-11-21T07:15:00Z'), webhookUrl: HOOK, fetchImpl: f, force: true })).toEqual({ sent: true });
+    expect(await runDailyBrief(store, snap([]), { now: NOW, webhookUrl: HOOK, fetchImpl: f })).toEqual({ sent: true });
+    expect(f).toHaveBeenCalledTimes(2);
+  });
+
   it('force sends even when already sent, and nothing is sent without a webhook', async () => {
     const store = new MemoryStore();
     const f = ok();
