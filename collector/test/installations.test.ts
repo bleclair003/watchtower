@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import type { IntelligenceEvent } from '../../shared/domain/types.ts';
-import { COMPONENTS, STATUS_LABEL, distanceKm, dodRef, installationAliases, operationOf, relatedRecords, worldRef, type InstallationDataset, type WorldDataset } from '../../shared/domain/installations.ts';
+import { ALL_OPERATORS, COMPONENTS, STATUS_LABEL, distanceKm, dodRef, installationAliases, operatedBy, operationOf, operatorCountriesOf, operatorCounts, relatedRecords, worldRef, type InstallationDataset, type WorldDataset } from '../../shared/domain/installations.ts';
 import { isCrimea } from '../geo/countries.ts';
 
 const data = JSON.parse(readFileSync(new URL('../../public/data/installations-us.json', import.meta.url), 'utf8')) as InstallationDataset;
@@ -116,5 +116,28 @@ describe('worldwide installations (Wikidata)', () => {
     expect(relatedRecords(ramstein, [rec('Protest outside Ramstein over drone strikes', ['DE'])])[0].reason).toBe('names "Ramstein"');
     expect(relatedRecords(ramstein, [rec('Ramstein band plays in Seoul', ['KR'])])).toEqual([]);
     expect(relatedRecords(ramstein, [rec('Ramstein Air Base on alert', ['KR'])])[0].reason).toBe('names "Ramstein Air Base"');
+  });
+});
+
+describe('operated-by filter', () => {
+  const site = (c: string, oc: string[]) => ({ q: 'x', n: 'x', la: 0, lo: 0, c, o: [], oc, k: [], w: null });
+
+  it('uses recorded operator countries, else the host country (presumed), and ignores former states', () => {
+    expect(operatorCountriesOf(site('DE', ['US']))).toEqual({ codes: ['US'], presumed: false });
+    expect(operatorCountriesOf(site('RU', []))).toEqual({ codes: ['RU'], presumed: true });
+    expect(operatorCountriesOf(site('SY', ['SU', 'RU']))).toEqual({ codes: ['RU'], presumed: false });
+    expect(operatorCountriesOf(site('', []))).toEqual({ codes: [], presumed: true });
+    expect(operatedBy(site('RU', []), 'RU')).toBe(true);
+    expect(operatedBy(site('DE', ['US']), 'DE')).toBe(false);
+    expect(operatedBy(site('DE', ['US']), ALL_OPERATORS)).toBe(true);
+  });
+
+  it('counts DoD sites as US and sorts by count (real data)', () => {
+    const world = JSON.parse(readFileSync(new URL('../../public/data/installations-world.json', import.meta.url), 'utf8')) as WorldDataset;
+    const counts = operatorCounts(data.count, world.installations);
+    expect(counts[0].code).toBe('US');
+    expect(counts[0].count).toBeGreaterThan(data.count); // DoD + US-operated abroad
+    expect(counts.find((c) => c.code === 'RU')!.count).toBeGreaterThan(100);
+    expect(counts.some((c) => c.code === 'SU')).toBe(false);
   });
 });

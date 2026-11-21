@@ -151,6 +151,7 @@ Everything is built from the records the dashboard already loaded (the newest ~7
   - **Crimea** is assigned to UA, as elsewhere.
   - **The card shows:** type, host country, operators (from Wikidata; **may include former operators**), Wikipedia, Wikidata and OpenStreetMap links, and records that name the site or lie within 50 km.
   - **Short names count only in records about the host country** ("Ramstein" in a German record). The full name counts anywhere.
+- **Operator filter (v0.15.1):** next to BASES, choose all operators or one country (with counts). DoD sites count as US. A Wikidata site counts for each operator country recorded; with none recorded, it counts for its host country, marked *presumed* on the card. Former states (SU, YU, CS, DD) are ignored. A selected base that the filter hides is deselected. BASES off hides every base.
 - **Limits:**
   - **Wikidata is community-maintained:** coordinates and operators are not official, and coverage is uneven (343 UK sites, few in Africa). Some notable sites are missing under these classes: Camp Lemonnier, China's Djibouti base, the South China Sea island bases.
   - **Operator countries** come from each operator's own Wikidata country, which can mislead (a US command headquartered in Germany is recorded as German).

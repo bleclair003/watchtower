@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.1] — 2026-11-21 — Filter bases by operating country
+
+### Added
+- Operator filter next to BASES on the GOC map: all operators, or one country (each listed with its count, largest first). DoD sites count as US. Where Wikidata records no operator, the host country is assumed and the card says so. Former states (Soviet Union, Yugoslavia) are not listed. BASES off still hides every base. The choice is saved per device.
+- Installation card: OPERATOR COUNTRY line.
+
+
 ## [0.15.0] — 2026-11-21 — Military installations worldwide
 
 ### Added

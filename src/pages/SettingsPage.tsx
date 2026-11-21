@@ -3,7 +3,10 @@ import { useSettings, type OperatorSettings } from '../state/SettingsContext';
 import { useAuth } from '../state/AuthContext';
 import { Panel } from '../components/ui/Panel';
 
-const OPTIONS: { key: keyof OperatorSettings; label: string; help: string }[] = [
+/** The on/off settings (the base operator filter is chosen on the GOC map). */
+type BooleanSetting = { [K in keyof OperatorSettings]: OperatorSettings[K] extends boolean ? K : never }[keyof OperatorSettings];
+
+const OPTIONS: { key: BooleanSetting; label: string; help: string }[] = [
   { key: 'scanlines', label: 'CRT SCANLINES', help: 'Static horizontal scanline overlay.' },
   { key: 'glow', label: 'PHOSPHOR GLOW', help: 'Soft glow on headings.' },
   {
@@ -13,6 +16,7 @@ const OPTIONS: { key: keyof OperatorSettings; label: string; help: string }[] = 
   },
   { key: 'graticule', label: 'MAP GRID', help: '30° latitude/longitude graticule.' },
   { key: 'regionOutlines', label: 'WATCH-AREA OUTLINES', help: 'Dashed watch-region boxes and area-level counts on the map.' },
+  { key: 'installations', label: 'MILITARY INSTALLATIONS', help: 'DoD sites in the US and Wikidata sites worldwide on the map. Filter by operating country from the GOC map header.' },
 ];
 
 export default function SettingsPage() {

@@ -92,4 +92,19 @@ test('military installations layer: toggle and data file with its licence', asyn
   await bases.click();
   await expect(bases).toHaveAttribute('aria-pressed', 'false');
   await expect(page.getByText(/Installations \(DoD, US\)/)).toHaveCount(0);
+  // Hiding the layer also hides the operator filter.
+  await expect(page.getByRole('combobox', { name: 'Show bases operated by' })).toHaveCount(0);
+});
+
+test('military installations: filter by operating country', async ({ page }) => {
+  await openModule(page, '/', 'GOC');
+  const select = page.getByRole('combobox', { name: 'Show bases operated by' });
+  await expect(select).toBeVisible();
+  await expect(select.locator('option[value="RU"]')).toHaveCount(1);
+  await select.selectOption('RU');
+  await expect(page.getByText('Operated by Russia only')).toBeVisible();
+  // DoD sites are all US-operated, so a Russia filter shows none of them.
+  await expect(page.getByText(/Installations \(DoD, US\)/).locator('..')).toContainText('0');
+  await select.selectOption('ALL');
+  await expect(page.getByText(/Operated by .* only/)).toHaveCount(0);
 });

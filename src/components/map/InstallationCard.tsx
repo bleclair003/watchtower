@@ -7,6 +7,7 @@ import {
   dodRef,
   installationAliases,
   operationOf,
+  operatorCountriesOf,
   relatedRecords,
   worldRef,
   type Installation,
@@ -91,6 +92,14 @@ export function InstallationCard({ selected, events, now, onClose }: Props) {
         <dt className="text-wt-fg-dim">OPERATED</dt>
         <dd>
           <Tag tone={op === 'national' ? 'muted' : 'info'}>{OPERATION_LABEL[op].toUpperCase()}</Tag>
+        </dd>
+        <dt className="text-wt-fg-dim">OPERATOR COUNTRY</dt>
+        <dd className="text-wt-fg-muted">
+          {(() => {
+            const oc = operatorCountriesOf(w);
+            if (!oc.codes.length) return 'Not recorded';
+            return `${oc.codes.map(countryName).join(', ')}${oc.presumed ? ' (presumed: host country, no operator recorded)' : ''}`;
+          })()}
         </dd>
         <dt className="text-wt-fg-dim">OPERATORS</dt>
         <dd className="text-wt-fg-muted">

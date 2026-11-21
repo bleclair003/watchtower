@@ -146,6 +146,7 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
 ## Phase 12 — Military installations on the map (started 2026-11-21)
 - [x] United States: 831 DoD MIRTA installations, branch colours, BASES toggle, click card with facts, related records and FAA restrictions (v0.14.0)
 - [x] Worldwide: 2,775 current installations outside the US from Wikidata (CC0); rings coloured by US-operated abroad / foreign-operated / national (v0.15.0)
+- [x] Filter bases by operating country, or hide all (v0.15.1)
 - [ ] Fill notable gaps (Camp Lemonnier, Djibouti, South China Sea island bases) via Wikidata edits or a second source
 - [ ] Installation boundaries (MIRTA polygons) on selection
 

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Grid3x3, Shield, Square } from 'lucide-react';
 import { useBases } from '../data/useInstallations';
+import { ALL_OPERATORS, operatedBy, operatorCounts } from '@shared/domain/installations';
+import { countryName } from '../lib/regionSummary';
 import { InstallationCard } from '../components/map/InstallationCard';
 import { getRegion } from '@shared/domain/regions';
 import { getIndicator } from '@shared/domain/indicators/catalog';
@@ -42,6 +44,19 @@ export default function GlobalOperationsPage() {
   const filtered = useMemo(() => applyFilters(events, filters, now), [events, filters, now]);
   const [selectedBase, setSelectedBase] = useState<string | null>(null);
   const bases = useBases(settings.installations, settings.installations, selectedBase);
+  const operator = settings.installationsOperator || ALL_OPERATORS;
+  const operatorOptions = useMemo(
+    () => (bases.us.data && bases.world.data ? operatorCounts(bases.us.data.count, bases.world.data.installations) : []),
+    [bases.us.data, bases.world.data],
+  );
+  const shownUs = useMemo(() => (operator === ALL_OPERATORS || operator === 'US' ? bases.us.data?.installations : []), [operator, bases.us.data]);
+  const shownWorld = useMemo(() => bases.world.data?.installations.filter((w) => operatedBy(w, operator)), [operator, bases.world.data]);
+  // A selected base that the operator filter hides is deselected.
+  useEffect(() => {
+    if (!selectedBase) return;
+    const visible = selectedBase.startsWith('dod:') ? (shownUs ?? []).some((i) => `dod:${i.name}` === selectedBase) : (shownWorld ?? []).some((w) => `wd:${w.q}` === selectedBase);
+    if (!visible) setSelectedBase(null);
+  }, [selectedBase, shownUs, shownWorld]);
   // Region report counts ignore off-topic news (sport, entertainment …) whatever the feed toggle says.
   const relevantEvents = useMemo(() => events.filter((e) => !isOffTopic(e)), [events]);
   const projection = useMemo(() => projectEvents(filtered), [filtered]);
@@ -101,6 +116,22 @@ export default function GlobalOperationsPage() {
               >
                 <Shield size={10} aria-hidden /> BASES
               </button>
+              {settings.installations && operatorOptions.length > 0 && (
+                <select
+                  aria-label="Show bases operated by"
+                  title="Operating country. Where Wikidata records no operator, the host country is assumed."
+                  value={operator}
+                  onChange={(e) => update({ installationsOperator: e.target.value })}
+                  className="h-5 max-w-[11rem] border border-wt-line-strong bg-wt-bg px-1 text-2xs text-wt-fg"
+                >
+                  <option value={ALL_OPERATORS}>ALL OPERATORS ({(bases.us.data?.count ?? 0) + (bases.world.data?.count ?? 0)})</option>
+                  {operatorOptions.map((o) => (
+                    <option key={o.code} value={o.code}>
+                      {countryName(o.code)} ({o.count})
+                    </option>
+                  ))}
+                </select>
+              )}
             </>
           }
         >
@@ -113,8 +144,8 @@ export default function GlobalOperationsPage() {
               showGraticule={settings.graticule}
               showRegions={settings.regionOutlines}
               globalViewNonce={globalViewNonce}
-              installations={bases.us.data?.installations}
-              worldInstallations={bases.world.data?.installations}
+              installations={shownUs}
+              worldInstallations={shownWorld}
               showInstallations={settings.installations}
               selectedInstallation={selectedBase}
               onSelectInstallation={setSelectedBase}
@@ -123,8 +154,9 @@ export default function GlobalOperationsPage() {
             plotted={projection.points.features.length}
             areaLevel={areaLevel}
             unlocated={projection.unlocated}
-            installations={settings.installations ? bases.us.data?.count : undefined}
-            worldInstallations={settings.installations ? bases.world.data?.count : undefined}
+            installations={settings.installations ? shownUs?.length : undefined}
+            worldInstallations={settings.installations ? shownWorld?.length : undefined}
+            operatorFilter={settings.installations && operator !== ALL_OPERATORS ? countryName(operator) : undefined}
           />
           {bases.selected && <InstallationCard selected={bases.selected} events={events} now={now} onClose={() => setSelectedBase(null)} />}
           {bases.error && settings.installations && <p className="absolute top-2 right-2 z-10 bg-wt-panel/95 px-2 py-1 text-2xs text-wt-warn">{bases.error}</p>}

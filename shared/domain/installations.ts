@@ -192,3 +192,33 @@ export function operationOf(w: WorldInstallation): Operation {
 
 export const worldRef = (w: WorldInstallation): PlaceRef => ({ name: w.n, lat: w.la, lon: w.lo, country: w.c });
 
+
+/** Former states whose operators are historical (e.g. "Soviet Navy" at Tartus): never an operating country. */
+const FORMER_STATES = new Set(['SU', 'YU', 'CS', 'DD']);
+
+export interface OperatorCountries {
+  codes: string[];
+  /** True when no operator is recorded and the host country is assumed to operate the site. */
+  presumed: boolean;
+}
+
+/** Countries operating a worldwide site: recorded operators' countries, else the host country (presumed). */
+export function operatorCountriesOf(w: WorldInstallation): OperatorCountries {
+  const recorded = w.oc.filter((c) => c && !FORMER_STATES.has(c));
+  if (recorded.length) return { codes: recorded, presumed: false };
+  return { codes: w.c && !FORMER_STATES.has(w.c) ? [w.c] : [], presumed: true };
+}
+
+/** Filter value meaning "every operator". */
+export const ALL_OPERATORS = 'ALL';
+
+export function operatedBy(w: WorldInstallation, code: string): boolean {
+  return code === ALL_OPERATORS || operatorCountriesOf(w).codes.includes(code);
+}
+
+/** Operating countries across both datasets, with counts, most first (DoD sites count as US). */
+export function operatorCounts(dodCount: number, world: WorldInstallation[]): { code: string; count: number }[] {
+  const counts = new Map<string, number>([['US', dodCount]]);
+  for (const w of world) for (const c of operatorCountriesOf(w).codes) counts.set(c, (counts.get(c) ?? 0) + 1);
+  return [...counts].map(([code, count]) => ({ code, count })).filter((x) => x.count > 0).sort((a, b) => b.count - a.count || a.code.localeCompare(b.code));
+}

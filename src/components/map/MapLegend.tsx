@@ -11,12 +11,14 @@ interface Props {
   /** Installations shown on the map (omit when the layer is off). */
   installations?: number;
   worldInstallations?: number;
+  /** Name of the operating country the bases are filtered to, if any. */
+  operatorFilter?: string;
 }
 
 const BRANCH_LABEL = { army: 'Army', navy: 'Navy', 'air-force': 'Air Force', marines: 'Marines', other: 'Other DoD' } as const;
 
 /** Collapsible legend explaining symbols and location-precision handling. */
-export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations }: Props) {
+export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, operatorFilter }: Props) {
   const [open, setOpen] = useState(true);
   return (
     <div className="pointer-events-auto absolute bottom-2 left-2 z-10 max-w-[230px] border border-wt-line-strong bg-wt-panel/95 text-2xs">
@@ -53,6 +55,7 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
           </div>
           {installations !== undefined && (
             <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
+              {operatorFilter && <p className="text-wt-info">Operated by {operatorFilter} only</p>}
               <div className="flex justify-between">
                 <span>Installations (DoD, US)</span>
                 <span className="text-wt-fg tabular-nums">{installations}</span>

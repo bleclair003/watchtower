@@ -14,6 +14,8 @@ export interface OperatorSettings {
   regionOutlines: boolean;
   /** Military installations layer on the map. */
   installations: boolean;
+  /** Only bases operated by this country (ISO alpha-2), or 'ALL'. */
+  installationsOperator: string;
 }
 
 export const DEFAULT_SETTINGS: OperatorSettings = {
@@ -23,6 +25,7 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   graticule: true,
   regionOutlines: true,
   installations: true,
+  installationsOperator: 'ALL',
 };
 
 const KEY = 'wt.settings.v1';
