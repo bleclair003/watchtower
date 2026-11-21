@@ -104,7 +104,8 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 
 - **Terms:** attribution "Source: International Monetary Fund, PortWatch" on every record and card. The IMF "prohibits bulk download of information by automated technology without explicit permission". **The owner chose (2026-11-21) to use it without asking**, with a minimal footprint: one small query a day, six chokepoints, private dashboard only. If the IMF objects or blocks access, the source goes DEGRADED and nothing else is affected.
 - **Lag:** about 6 days (latest day 2026-11-15 on 2026-11-21).
-- **Rejected: aisstream.io.** A 60-second worldwide probe with a real key (2026-11-21) returned 4,200 messages, almost all from north-west Europe and North American coasts, and none from any of the five chokepoints, the Persian Gulf, the Red Sea or around Taiwan.
+- **aisstream.io: not for chokepoints.** A 60-second worldwide probe with a real key (2026-11-21) returned 4,200 messages, almost all from north-west Europe and North American coasts, and none from any of the five chokepoints, the Persian Gulf, the Red Sea or around Taiwan.
+- **aisstream.io second probe (120 s):** North Sea + Channel 2,984 ships, Baltic 930, Gulf of Finland 68, Eastern Mediterranean 115, Norfolk 28 and San Diego 19 with no US Navy warships, a handful of European naval auxiliaries. Ship type was known for only 11–22% of ships within 2 minutes. Kept for item 4b (sanctioned vessels in the Baltic and North Sea).
 
 ## P2 — next adapters
 

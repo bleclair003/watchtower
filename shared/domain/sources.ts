@@ -630,10 +630,10 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     expectedUpdateFrequency: 'Live',
     pollIntervalMinutes: null,
     reliabilityNotes:
-      'Probe 2026-11-21: 4,200 messages worldwide in 60 s, but none from the Persian Gulf, Red Sea or Taiwan area, 2 from the South China Sea, 11 from the Black Sea, and none in any of the five chokepoint boxes. Not usable for chokepoints; IMF PortWatch is used instead.',
+      'Probe 2026-11-21 (60 s, worldwide): none from the Persian Gulf, Red Sea or Taiwan area and none at any chokepoint, so IMF PortWatch is used for chokepoints. Probe 2 (120 s): North Sea + Channel 2,984 ships, Baltic 930, Gulf of Finland 68, Eastern Mediterranean 115, Norfolk 28 (no US Navy warships), San Diego 19 (none). Ship type known for only 11-22% of ships within 2 minutes (identity messages come every ~6 minutes). Planned use: sanctioned vessels in the Baltic and North Sea (roadmap Phase 13, item 4b).',
     termsNotes: 'No terms page (404). Browser connections with the key are not allowed.',
-    priority: 'rejected',
-    feasibility: { checkedAt: '2026-11-21T09:10:00Z', result: 'reachable-empty', note: 'No coverage at the chokepoints.' },
+    priority: 'P3',
+    feasibility: { checkedAt: '2026-11-21T09:35:00Z', result: 'reachable', note: 'Good coverage in the Baltic and North Sea only; no coverage at the chokepoints.' },
   },
   // ------------------------------------------------------------ research ---
   {
