@@ -38,6 +38,7 @@ export const CONDITION_FIELDS = {
   'metadata.aircraftClass': (e: IntelligenceEvent) => e.metadata?.aircraftClass,
   'metadata.hullType': (e: IntelligenceEvent) => e.metadata?.hullType,
   'metadata.status': (e: IntelligenceEvent) => e.metadata?.status,
+  'metadata.count': (e: IntelligenceEvent) => e.metadata?.count,
 } as const;
 
 export type ConditionField = keyof typeof CONDITION_FIELDS;

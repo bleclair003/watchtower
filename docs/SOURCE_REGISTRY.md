@@ -107,6 +107,18 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 - **aisstream.io: not for chokepoints.** A 60-second worldwide probe with a real key (2026-11-21) returned 4,200 messages, almost all from north-west Europe and North American coasts, and none from any of the five chokepoints, the Persian Gulf, the Red Sea or around Taiwan.
 - **aisstream.io second probe (120 s):** North Sea + Channel 2,984 ships, Baltic 930, Gulf of Finland 68, Eastern Mediterranean 115, Norfolk 28 and San Diego 19 with no US Navy warships, a handful of European naval auxiliaries. Ship type was known for only 11–22% of ships within 2 minutes. Kept for item 4b (sanctioned vessels in the Baltic and North Sea).
 
+## v0.19.0 Sanctions lists — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| US OFAC SDN list (`SDN.XML`, 29.6 MB) | official | Ids of all 19,599 entries (to find new ones) and 1,570 vessels with IMO (840 with MMSI). Checked every run with ETag |
+| EU consolidated financial sanctions list (XML, 26 MB) | official | Ids of 6,303 entries and 41 vessels (IMO). Once a day: the file took 75 s to generate in testing |
+| UK Sanctions List (XML, 22 MB) | official | Ids of 6,448 designations and 693 ships (IMO). Every 6 hours with ETag |
+
+- **Not used:** the old OFSI consolidated list URL (public access now refused); OFAC has no recent-actions RSS feed (404).
+- **Terms:** OFAC is US public domain; EU data reusable with acknowledgement; UK under the Open Government Licence v3.0.
+- **Indicators** require OFAC and UK to be healthy; EU records count when present, so a slow EU file never blanks them.
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |

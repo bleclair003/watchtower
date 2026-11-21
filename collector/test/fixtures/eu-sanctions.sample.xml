@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<export xmlns="http://eu.europa.ec/fpi/fsd/export" generationDate="2026-11-20T16:51:00.798+01:00" globalFileId="186069">
+    <sanctionEntity designationDate="2016-03-06" designationDetails="" unitedNationId="" euReferenceNumber="EU.3331.57" logicalId="7264">
+        <remark>Corrigendum 2019/352 (OJ L64) [corr. 28/03/2019-1]</remark>
+        <regulation regulationType="amendment" organisationType="council" publicationDate="2019-03-05" entryIntoForceDate="2019-03-05" numberTitle="2019/352 (OJ L64)" programme="UKR" logicalId="117466">
+            <publicationUrl>https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32019R0352&amp;from=EN</publicationUrl>
+        </regulation>
+        <subjectType code="person" classificationCode="P"/>
+        <nameAlias firstName="Віталій" middleName="Юрійович" lastName="Захарченко" wholeName="Віталій Юрійович Захарченко" function="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="18632">
+            <regulationSummary regulationType="amendment" publicationDate="2015-03-05" numberTitle="2015/357 (OJ L62)" publicationUrl="http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:JOL_2015_062_R_0001&amp;from=EN"/>
+        </nameAlias>
+        <nameAlias firstName="Vitaliy" middleName="Yurievich" lastName="Zakharchenko" wholeName="Vitaliy Yurievich Zakharchenko" function="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="18633">
+            <regulationSummary regulationType="amendment" publicationDate="2015-03-05" numberTitle="2015/357 (OJ L62)" publicationUrl="http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:JOL_2015_062_R_0001&amp;from=EN"/>
+        </nameAlias>
+        <nameAlias firstName="Vitalii" middleName="Yuriyovych" lastName="Zakharchenko" wholeName="Vitalii Yuriyovych Zakharchenko" function="Former Minister of Internal Affairs" gender="M" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="17665">
+            <remark>Vitalii Yuriyovych Zakharchenko</remark>
+            <regulationSummary regulationType="amendment" publicationDate="2019-03-05" numberTitle="2019/352 (OJ L64)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32019R0352&amp;from=EN"/>
+        </nameAlias>
+        <nameAlias firstName="Виталий" middleName="Юрьевич" lastName="Захарченко" wholeName="Виталий Юрьевич Захарченко" function="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="18634">
+            <regulationSummary regulationType="amendment" publicationDate="2015-03-05" numberTitle="2015/357 (OJ L62)" publicationUrl="http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:JOL_2015_062_R_0001&amp;from=EN"/>
+        </nameAlias>
+        <birthdate circa="false" calendarType="GREGORIAN" city="Kostiantynivka (Donetsk oblast)" zipCode="" birthdate="1963-01-20" dayOfMonth="20" monthOfYear="1" year="1963" region="" place="" countryIso2Code="UA" countryDescription="UKRAINE" regulationLanguage="en" logicalId="2051">
+            <regulationSummary regulationType="amendment" publicationDate="2015-03-05" numberTitle="2015/357 (OJ L62)" publicationUrl="http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:JOL_2015_062_R_0001&amp;from=EN"/>
+        </birthdate>
+    </sanctionEntity>
+    <sanctionEntity designationDetails="" unitedNationId="" euReferenceNumber="EU.3026.83" logicalId="7270">
+        <regulation regulationType="amendment" organisationType="council" publicationDate="2019-03-05" entryIntoForceDate="2019-03-05" numberTitle="2019/352 (OJ L64)" programme="UKR" logicalId="117466">
+            <publicationUrl>https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32019R0352&amp;from=EN</publicationUrl>
+        </regulation>
+        <subjectType code="person" classificationCode="P"/>
+        <nameAlias firstName="Viktor" middleName="Ivanovych" lastName="Ratushniak" wholeName="Viktor Ivanovych Ratushniak" function="Former Deputy Minister of Internal Affairs" gender="M" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="17671">
+            <regulationSummary regulationType="regulation" publicationDate="2014-03-06" numberTitle="208/2014 (OJ L66)" publicationUrl="http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32014R0208&amp;from=EN"/>
+        </nameAlias>
+        <nameAlias firstName="Віктор" middleName="Іванович" lastName="Ратушняк" wholeName="Віктор Іванович Ратушняк" function="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="18641">
+            <regulationSummary regulationType="amendment" publicationDate="2015-03-05" numberTitle="2015/357 (OJ L62)" publicationUrl="http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:JOL_2015_062_R_0001&amp;from=EN"/>
+        </nameAlias>
+        <birthdate circa="false" calendarType="GREGORIAN" city="" zipCode="" birthdate="1959-10-16" dayOfMonth="16" monthOfYear="10" year="1959" region="" place="" countryIso2Code="00" countryDescription="UNKNOWN" regulationLanguage="en" logicalId="2057">
+            <regulationSummary regulationType="regulation" publicationDate="2014-03-06" numberTitle="208/2014 (OJ L66)" publicationUrl="http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32014R0208&amp;from=EN"/>
+        </birthdate>
+    </sanctionEntity>
+    <sanctionEntity designationDetails="" unitedNationId="" euReferenceNumber="EU.3068.17" logicalId="7277">
+        <regulation regulationType="amendment" organisationType="council" publicationDate="2019-03-05" entryIntoForceDate="2019-03-05" numberTitle="2019/352 (OJ L64)" programme="UKR" logicalId="117466">
+            <publicationUrl>https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32019R0352&amp;from=EN</publicationUrl>
+        </regulation>
+        <subjectType code="person" classificationCode="P"/>
+        <nameAlias firstName="Serhiy" middleName="Vitalyovych" lastName="Kurchenko" wholeName="Serhiy Vitalyovych Kurchenko" function="Businessman" gender="M" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="17678">
+            <regulationSummary regulationType="amendment" publicationDate="2018-03-06" numberTitle="2018/326 (OJ L63)" publicationUrl="http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32018R0326&amp;from=EN"/>
+        </nameAlias>
+        <nameAlias firstName="Сергій" middleName="Віталійович" lastName="Курченко" wholeName="Сергій Віталійович Курченко" function="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="18650">
+            <regulationSummary regulationType="amendment" publicationDate="2015-03-05" numberTitle="2015/357 (OJ L62)" publicationUrl="http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:JOL_2015_062_R_0001&amp;from=EN"/>
+        </nameAlias>
+        <birthdate circa="false" calendarType="GREGORIAN" city="Kharkiv" zipCode="" birthdate="1985-09-21" dayOfMonth="21" monthOfYear="9" year="1985" region="" place="" countryIso2Code="UA" countryDescription="UKRAINE" regulationLanguage="en" logicalId="2063">
+            <regulationSummary regulationType="amendment" publicationDate="2015-03-05" numberTitle="2015/357 (OJ L62)" publicationUrl="http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:JOL_2015_062_R_0001&amp;from=EN"/>
+        </birthdate>
+    </sanctionEntity>
+    <sanctionEntity designationDate="2014-03-17" designationDetails="" unitedNationId="" euReferenceNumber="EU.4230.31" logicalId="7281">
+        <remark>Date of listing: 17/03/2014</remark>
+        <regulation regulationType="amendment" organisationType="council" publicationDate="2025-03-15" entryIntoForceDate="2025-03-16" numberTitle="2025/527 (OJ L202500527)" programme="UKR" logicalId="209955">
+            <publicationUrl>https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=OJ%3AL_202500527&amp;qid=1742218670627</publicationUrl>
+        </regulation>
+        <subjectType code="person" classificationCode="P"/>
+        <nameAlias firstName="Sergey" middleName="Valeryevich" lastName="AKSYONOV" wholeName="Sergey Valeryevich AKSYONOV" function="Former &quot;Prime Minister of Crimea” (2014). Since 9 October 2014, 'Head' of the so-called 'Republic of Crimea.&#xA;Member of the Russia State Council." gender="M" title="" nameLanguage="EN" strong="true" regulationLanguage="en" logicalId="17686">
+            <regulationSummary regulationType="amendment" publicationDate="2023-09-14" numberTitle="2023/1765 (OJ L226)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32023R1765"/>
+        </nameAlias>
+        <nameAlias firstName="Sergei" middleName="Valerievich" lastName="AKSENOV" wholeName="Sergei Valerievich AKSENOV" function="" gender="M" title="" nameLanguage="EN" strong="true" regulationLanguage="en" logicalId="18662">
+            <regulationSummary regulationType="amendment" publicationDate="2023-09-14" numberTitle="2023/1765 (OJ L226)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32023R1765"/>
+        </nameAlias>
+        <nameAlias firstName="Сергей" middleName="Валерьевич" lastName="АКСЁНОВ" wholeName="Сергей Валерьевич АКСЁНОВ" function="" title="" nameLanguage="RU" strong="true" regulationLanguage="en" logicalId="18663">
+            <regulationSummary regulationType="amendment" publicationDate="2023-09-14" numberTitle="2023/1765 (OJ L226)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32023R1765"/>
+        </nameAlias>
+        <nameAlias firstName="Serhiy" middleName="Valeriyovych" lastName="AKSYONOV" wholeName="Serhiy Valeriyovych AKSYONOV" function="" title="" nameLanguage="EN" strong="true" regulationLanguage="en" logicalId="18664">
+            <regulationSummary regulationType="amendment" publicationDate="2023-09-14" numberTitle="2023/1765 (OJ L226)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32023R1765"/>
+        </nameAlias>
+        <nameAlias firstName="Сергiй" middleName="Валерiйович" lastName="АКСЬОНОВ" wholeName="Сергiй Валерiйович АКСЬОНОВ" function="" gender="M" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="18665">
+            <regulationSummary regulationType="amendment" publicationDate="2023-09-14" numberTitle="2023/1765 (OJ L226)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32023R1765"/>
+        </nameAlias>
+        <nameAlias firstName="Siergiej" middleName="" lastName="Aksjonow" wholeName="Siergiej Aksjonow" function="" gender="M" title="" nameLanguage="PL" strong="true" regulationLanguage="en" logicalId="158217">
+            <regulationSummary regulationType="amendment" publicationDate="2023-09-14" numberTitle="2023/1765 (OJ L226)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32023R1765"/>
+        </nameAlias>
+        <nameAlias firstName="Сергей" middleName="" lastName="Аксьонов" wholeName="Сергей Аксьонов" function="" gender="M" title="" nameLanguage="BG" strong="true" regulationLanguage="en" logicalId="158301">
+            <regulationSummary regulationType="amendment" publicationDate="2023-09-14" numberTitle="2023/1765 (OJ L226)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32023R1765"/>
+        </nameAlias>
+        <nameAlias firstName="Sergej" middleName="Valerjevitj" lastName="AKSIONOV" wholeName="Sergej Valerjevitj AKSIONOV" function="" gender="M" title="" nameLanguage="SV" strong="true" regulationLanguage="en" logicalId="158557">
+            <regulationSummary regulationType="amendment" publicationDate="2023-09-14" numberTitle="2023/1765 (OJ L226)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32023R1765"/>
+        </nameAlias>
+        <nameAlias firstName="Sergej" middleName="" lastName="Aksjonov" wholeName="Sergej Aksjonov" function="" gender="M" title="" nameLanguage="CS" strong="true" regulationLanguage="en" logicalId="158302">
+            <regulationSummary regulationType="amendment" publicationDate="2023-09-14" numberTitle="2023/1765 (OJ L226)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32023R1765"/>
+        </nameAlias>
+        <nameAlias firstName="Sergej" middleName="" lastName="Aksionov" wholeName="Sergej Aksionov" function="" gender="M" title="" nameLanguage="SK" strong="true" regulationLanguage="en" logicalId="158450">
+            <regulationSummary regulationType="amendment" publicationDate="2023-09-14" numberTitle="2023/1765 (OJ L226)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32023R1765"/>
+        </nameAlias>
+        <nameAlias firstName="Serhij" middleName="Valerijovytj" lastName="AKSIONOV" wholeName="Serhij Valerijovytj AKSIONOV" function="" gender="M" title="" nameLanguage="SV" strong="true" regulationLanguage="en" logicalId="158556">
+            <regulationSummary regulationType="amendment" publicationDate="2023-09-14" numberTitle="2023/1765 (OJ L226)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32023R1765"/>
+        </nameAlias>
+        <birthdate circa="false" calendarType="GREGORIAN" city="Beltsy" zipCode="" birthdate="1972-11-26" dayOfMonth="26" monthOfYear="11" year="1972" region="" place="" countryIso2Code="MD" countryDescription="MOLDOVA, REPUBLIC OF" regulationLanguage="en" logicalId="2069">
+            <remark>(Bălți) Then USSR (now Republic of Moldova)</remark>
+            <regulationSummary regulationType="amendment" publicationDate="2023-09-14" numberTitle="2023/1765 (OJ L226)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32023R1765"/>
+        </birthdate>
+        <birthdate circa="false" calendarType="GREGORIAN" city="Bălți" zipCode="" birthdate="1972-11-26" dayOfMonth="26" monthOfYear="11" year="1972" region="" place="" countryIso2Code="MD" countryDescription="MOLDOVA, REPUBLIC OF" regulationLanguage="en" logicalId="158020">
+            <remark>Beltsy, the USSR</remark>
+            <regulationSummary regulationType="amendment" publicationDate="2023-09-14" numberTitle="2023/1765 (OJ L226)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32023R1765"/>
+        </birthdate>
+    </sanctionEntity>
+    <sanctionEntity designationDate="2016-03-02" designationDetails="" unitedNationId="" euReferenceNumber="EU.4198.83" logicalId="107840">
+        <remark>The Chongchongang Shipping Company, through its vessel, the Chong Chon Gang, attempted to directly import the illicit shipment of conventional weapons and arms to the DPRK in July 2013.</remark>
+        <regulation regulationType="amendment" organisationType="council" publicationDate="2022-09-12" entryIntoForceDate="2022-09-13" numberTitle="2022/1503 (OJ L235)" programme="PRK" logicalId="161780">
+            <publicationUrl>https://eur-lex.europa.eu/legal-content/en/TXT/PDF/?uri=CELEX:32022R1503</publicationUrl>
+        </regulation>
+        <subjectType code="enterprise" classificationCode="E"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Chongchongang Shipping Company" function="" title="" nameLanguage="EN" strong="true" regulationLanguage="en" logicalId="107841">
+            <remark>Owner of a vessel, the Chong Chon Gang, that attempted to directly import the illicit shipment of conventional weapons and arms to the DPRK in July 2013.</remark>
+            <regulationSummary regulationType="amendment" publicationDate="2022-09-12" numberTitle="2022/1503 (OJ L235)" publicationUrl="https://eur-lex.europa.eu/legal-content/en/TXT/PDF/?uri=CELEX:32022R1503"/>
+        </nameAlias>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Chong Chon Gang Shipping Co. Ltd." function="" title="" nameLanguage="EN" strong="true" regulationLanguage="en" logicalId="107899">
+            <regulationSummary regulationType="amendment" publicationDate="2016-03-05" numberTitle="2016/315 (OJ L60)" publicationUrl="http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32016R0315&amp;from=EN"/>
+        </nameAlias>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Chongchongang Shipping Co LTD" function="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="143174">
+            <regulationSummary regulationType="amendment" publicationDate="2022-09-12" numberTitle="2022/1503 (OJ L235)" publicationUrl="https://eur-lex.europa.eu/legal-content/en/TXT/PDF/?uri=CELEX:32022R1503"/>
+        </nameAlias>
+        <address city="Pyongyang" street="817, Haeum,Tonghun-dong, Chung-gu" poBox="" zipCode="" region="" place="" asAtListingTime="false" countryIso2Code="KP" countryDescription="KOREA, DEMOCRATIC PEOPLE'S REPUBLIC OF" regulationLanguage="en" logicalId="107896">
+            <regulationSummary regulationType="amendment" publicationDate="2022-09-12" numberTitle="2022/1503 (OJ L235)" publicationUrl="https://eur-lex.europa.eu/legal-content/en/TXT/PDF/?uri=CELEX:32022R1503"/>
+        </address>
+        <address city="Pyongyang" street="817 Haeun, Donghung-dong, Central District" poBox="" zipCode="" region="" place="" asAtListingTime="false" countryIso2Code="KP" countryDescription="KOREA, DEMOCRATIC PEOPLE'S REPUBLIC OF" regulationLanguage="en" logicalId="107897">
+            <regulationSummary regulationType="amendment" publicationDate="2022-09-12" numberTitle="2022/1503 (OJ L235)" publicationUrl="https://eur-lex.europa.eu/legal-content/en/TXT/PDF/?uri=CELEX:32022R1503"/>
+        </address>
+        <identification diplomatic="false" knownExpired="false" knownFalse="false" reportedLost="false" revokedByIssuer="false" issuedBy="" latinNumber="" nameOnDocument="" number="5342883" region="" identificationTypeCode="imo" identificationTypeDescription="IMO (vessel identification)" countryIso2Code="00" countryDescription="UNKNOWN" regulationLanguage="en" logicalId="107898">
+            <regulationSummary regulationType="amendment" publicationDate="2016-03-05" numberTitle="2016/315 (OJ L60)" publicationUrl="http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32016R0315&amp;from=EN"/>
+        </identification>
+    </sanctionEntity>
+    <sanctionEntity designationDate="2018-03-30" designationDetails="" unitedNationId="" euReferenceNumber="EU.4444.43" logicalId="116167">
+        <remark>UNLI-30.03.2018</remark>
+        <regulation regulationType="amendment" organisationType="council" publicationDate="2022-09-12" entryIntoForceDate="2022-09-13" numberTitle="2022/1503 (OJ L235)" programme="PRK" logicalId="161780">
+            <publicationUrl>https://eur-lex.europa.eu/legal-content/en/TXT/PDF/?uri=CELEX:32022R1503</publicationUrl>
+        </regulation>
+        <subjectType code="enterprise" classificationCode="E"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="CHONMYONG SHIPPING CO" function="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="116352">
+            <remark>Registered owner of CHON MYONG 1, a DPRK-flagged vessel that conducted ship-to-ship transfer of fuel in late December 2017.</remark>
+            <regulationSummary regulationType="amendment" publicationDate="2022-09-12" numberTitle="2022/1503 (OJ L235)" publicationUrl="https://eur-lex.europa.eu/legal-content/en/TXT/PDF/?uri=CELEX:32022R1503"/>
+        </nameAlias>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="CHON MYONG SHIPPING COMPANY LIMITED" function="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="116351">
+            <regulationSummary regulationType="amendment" publicationDate="2018-04-09" numberTitle="2018/548 (OJ L91)" publicationUrl="http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32018R0548&amp;from=EN"/>
+        </nameAlias>
+        <address city="Pyongyang" street="Saemaul 2-dong, Pyongchon-guyok" poBox="" zipCode="" region="" place="" asAtListingTime="false" countryIso2Code="KP" countryDescription="KOREA, DEMOCRATIC PEOPLE'S REPUBLIC OF" regulationLanguage="en" logicalId="116349">
+            <regulationSummary regulationType="amendment" publicationDate="2022-09-12" numberTitle="2022/1503 (OJ L235)" publicationUrl="https://eur-lex.europa.eu/legal-content/en/TXT/PDF/?uri=CELEX:32022R1503"/>
+        </address>
+        <address city="Pyongyang" street="Kalrimgil 2-dong, Mangyongdae-guyok" poBox="" zipCode="" region="" place="" asAtListingTime="false" countryIso2Code="KP" countryDescription="KOREA, DEMOCRATIC PEOPLE'S REPUBLIC OF" regulationLanguage="en" logicalId="116350">
+            <regulationSummary regulationType="amendment" publicationDate="2022-09-12" numberTitle="2022/1503 (OJ L235)" publicationUrl="https://eur-lex.europa.eu/legal-content/en/TXT/PDF/?uri=CELEX:32022R1503"/>
+        </address>
+        <identification diplomatic="false" knownExpired="false" knownFalse="false" reportedLost="false" revokedByIssuer="false" issuedBy="" latinNumber="" nameOnDocument="" number="5571322" region="" identificationTypeCode="imo" identificationTypeDescription="IMO (vessel identification)" countryIso2Code="00" countryDescription="UNKNOWN" regulationLanguage="en" logicalId="143201">
+            <regulationSummary regulationType="amendment" publicationDate="2022-09-12" numberTitle="2022/1503 (OJ L235)" publicationUrl="https://eur-lex.europa.eu/legal-content/en/TXT/PDF/?uri=CELEX:32022R1503"/>
+        </identification>
+    </sanctionEntity>
+    <sanctionEntity designationDate="2026-10-08" designationDetails="" unitedNationId="" euReferenceNumber="EU.15043" logicalId="186049">
+        <remark>Olga Alekseevna Belyavtseva is a Russian businesswomen, entrepreneur, and owner of companies Agronom-Sad, Biplast, Assol, Everest and Evermount Capital Group. Her companies are active in the agriculture, manufacturing, finance, consulting, construction and real estate sectors. According to her own words, her company Agronom-Sad occupies a leading position in the agricultural sector in Russia and has received subsidies from the Russian government.Therefore, Olga Alekseevna Belyavtseva is a leading businessperson operating in Russia and a businessperson involved in economic sectors providing a substantial source of revenue to the Government of the Russian Federation, which is responsible for the annexation of Crimea and the destabilisation of Ukraine.</remark>
+        <regulation regulationType="amendment" organisationType="council" publicationDate="2026-10-08" entryIntoForceDate="2026-10-08" numberTitle="2026/2263 (OJ L202602263)" programme="UKR" logicalId="227361">
+            <publicationUrl>https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202602263</publicationUrl>
+        </regulation>
+        <subjectType code="person" classificationCode="P"/>
+        <nameAlias firstName="Olga" middleName="Alekseevna" lastName="BELYAVTSEVA" wholeName="Olga Alekseevna BELYAVTSEVA" function="" gender="F" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="186050">
+            <regulationSummary regulationType="amendment" publicationDate="2026-10-08" numberTitle="2026/2263 (OJ L202602263)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202602263"/>
+        </nameAlias>
+        <nameAlias firstName="Ольга" middleName="Алексеевна" lastName="БЕЛЯВЦЕВА" wholeName="Ольга Алексеевна БЕЛЯВЦЕВА" function="" gender="F" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="186051">
+            <regulationSummary regulationType="amendment" publicationDate="2026-10-08" numberTitle="2026/2263 (OJ L202602263)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202602263"/>
+        </nameAlias>
+        <citizenship region="" countryIso2Code="RU" countryDescription="RUSSIAN FEDERATION" regulationLanguage="en" logicalId="186054">
+            <regulationSummary regulationType="amendment" publicationDate="2026-10-08" numberTitle="2026/2263 (OJ L202602263)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202602263"/>
+        </citizenship>
+        <birthdate circa="false" calendarType="GREGORIAN" city="Lipetsk" zipCode="" birthdate="1969-10-25" dayOfMonth="25" monthOfYear="10" year="1969" region="" place="former Russian SSR" countryIso2Code="RU" countryDescription="RUSSIAN FEDERATION" regulationLanguage="en" logicalId="186053">
+            <regulationSummary regulationType="amendment" publicationDate="2026-10-08" numberTitle="2026/2263 (OJ L202602263)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202602263"/>
+        </birthdate>
+        <identification diplomatic="false" knownExpired="false" knownFalse="false" reportedLost="false" revokedByIssuer="false" issuedBy="" latinNumber="" nameOnDocument="" number="768613166" region="" identificationTypeCode="passport" identificationTypeDescription="National passport" countryIso2Code="RU" countryDescription="RUSSIAN FEDERATION" regulationLanguage="en" logicalId="186052">
+            <regulationSummary regulationType="amendment" publicationDate="2026-10-08" numberTitle="2026/2263 (OJ L202602263)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202602263"/>
+        </identification>
+    </sanctionEntity>
+    <sanctionEntity designationDetails="" unitedNationId="" euReferenceNumber="EU.3567.71" logicalId="175">
+        <regulation regulationType="amendment" organisationType="council" publicationDate="2025-01-31" entryIntoForceDate="2025-02-01" numberTitle="2025/206 (L 202500206)" programme="TERR" logicalId="207667">
+            <publicationUrl>https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=OJ:L_202500206</publicationUrl>
+        </regulation>
+        <subjectType code="person" classificationCode="P"/>
+        <nameAlias firstName="Abdelkarim Hussein Mohamed" middleName="" lastName="AL-NASSER" wholeName="Abdelkarim Hussein Mohamed AL-NASSER" function="" gender="M" title="" nameLanguage="EN" strong="true" regulationLanguage="en" logicalId="263">
+            <regulationSummary regulationType="amendment" publicationDate="2024-01-16" numberTitle="2024/329 (OJ L16012024)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=OJ:L_202400329"/>
+        </nameAlias>
+        <nameAlias firstName="Abdelkarim Huseyn Mohamed" middleName="" lastName="AL-NASSER" wholeName="Abdelkarim Huseyn Mohamed AL-NASSER" function="" gender="M" title="" nameLanguage="SV" strong="true" regulationLanguage="en" logicalId="156121">
+            <regulationSummary regulationType="amendment" publicationDate="2025-01-31" numberTitle="2025/206 (L 202500206)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=OJ:L_202500206"/>
+        </nameAlias>
+        <citizenship region="" countryIso2Code="SA" countryDescription="SAUDI ARABIA" regulationLanguage="en" logicalId="65">
+            <regulationSummary regulationType="amendment" publicationDate="2003-12-22" numberTitle="2003/902/EC (OJ L340)" publicationUrl="http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=OJ:L:2003:340:0063:0064:EN:PDF"/>
+        </citizenship>
+        <birthdate circa="false" calendarType="GREGORIAN" city="Al Ihsa" zipCode="" region="Al Ihsa" place="" countryIso2Code="SA" countryDescription="SAUDI ARABIA" regulationLanguage="en" logicalId="169">
+            <regulationSummary regulationType="amendment" publicationDate="2023-07-21" numberTitle="2023/1505 (OJ L184)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32023R1505"/>
+        </birthdate>
+    </sanctionEntity>
+    <sanctionEntity designationDetails="" unitedNationId="" euReferenceNumber="EU.3568.36" logicalId="176">
+        <regulation regulationType="amendment" organisationType="council" publicationDate="2025-01-31" entryIntoForceDate="2025-02-01" numberTitle="2025/206 (L 202500206)" programme="TERR" logicalId="207667">
+            <publicationUrl>https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=OJ:L_202500206</publicationUrl>
+        </regulation>
+        <subjectType code="person" classificationCode="P"/>
+        <nameAlias firstName="Ibrahim Salih Mohamed" middleName="" lastName="AL-YACUB" wholeName="Ibrahim Salih Mohamed AL-YACUB" function="" gender="M" title="" nameLanguage="SV" strong="true" regulationLanguage="en" logicalId="172615">
+            <regulationSummary regulationType="amendment" publicationDate="2025-01-31" numberTitle="2025/206 (L 202500206)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=OJ:L_202500206"/>
+        </nameAlias>
+        <nameAlias firstName="Ibrahim Salih Mohammed" middleName="" lastName="AL-YACOUB" wholeName="Ibrahim Salih Mohammed AL-YACOUB" function="" gender="M" title="" nameLanguage="EN" strong="true" regulationLanguage="en" logicalId="264">
+            <regulationSummary regulationType="amendment" publicationDate="2024-01-16" numberTitle="2024/329 (OJ L16012024)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=OJ:L_202400329"/>
+        </nameAlias>
+        <citizenship region="" countryIso2Code="SA" countryDescription="SAUDI ARABIA" regulationLanguage="en" logicalId="66">
+            <regulationSummary regulationType="amendment" publicationDate="2003-12-22" numberTitle="2003/902/EC (OJ L340)" publicationUrl="http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=OJ:L:2003:340:0063:0064:EN:PDF"/>
+        </citizenship>
+        <birthdate circa="false" calendarType="GREGORIAN" city="Tarut" zipCode="" birthdate="1966-10-16" dayOfMonth="16" monthOfYear="10" year="1966" region="" place="" countryIso2Code="SA" countryDescription="SAUDI ARABIA" regulationLanguage="en" logicalId="170">
+            <regulationSummary regulationType="amendment" publicationDate="2005-03-16" numberTitle="2005/221/CFSP (OJ L69)" publicationUrl="http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32005D0221&amp;qid=1410439221593&amp;from=EN"/>
+        </birthdate>
+    </sanctionEntity>
+    </export>

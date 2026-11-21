@@ -195,6 +195,16 @@ Everything is built from the records the dashboard already loaded (the newest ~7
 - **Indicators:** *traffic reduced* (weight 1; 2 weekly records = triggered) and *severely reduced or falling fast* (weight 3; triggered at once) for the four chokepoints inside watch regions. Suez and Malacca are shown but belong to no watch region.
 - **Limits:** about 6 days behind; ships with AIS switched off are not counted; counts cover cargo and tanker ships only. Use is subject to the IMF terms decision in the source registry.
 
+## Sanctions (v0.19.0)
+
+New designations on the **US OFAC SDN**, **EU** and **UK** sanctions lists, in the feed and on region pages (category ECONOMIC).
+
+- **What is new:** each list is compared with its previous copy ([`collector/adapters/sanctions.ts`](../collector/adapters/sanctions.ts)). A list that suddenly shows hundreds of "new" ids is refused as an id-scheme change rather than reported as a sanctions wave.
+- **Target country** ([`shared/domain/sanctions.ts`](../shared/domain/sanctions.ts)): from the programme or regime (OFAC RUSSIA-EO14024, EU UKR, UK "Russia (Sanctions) Regulations" → Russia). Thematic programmes (counter-terrorism, cyber, human rights, drugs) have no country, so the designees’ addresses and nationality are used and the record says "linked to". Vessel flags are never used.
+- **Records:** one per list, day and target country, with counts by kind (vessels, entities, individuals) and up to eight names.
+- **First run (2026-11-21), UK back-fill:** 20 Russia designations on Nov. 12 (11 vessels), 15 Sudan individuals on Oct. 26, and 9 entities on Nov. 17 linked to the Palestinian Territories and Israel.
+- **Limits:** OFAC entries carry no designation date, so OFAC history starts from the first run; removals are not recorded; a designation is a legal measure, not proof of the conduct alleged.
+
 ## Cost
 
 | Feature | Firestore reads |

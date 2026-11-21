@@ -112,7 +112,7 @@ export async function runCollection(
       const result = await adapter.collect({
         now: now(),
         state,
-        fetch: (url, validators, headers) => politeFetch(url, { ...opts.fetchOptions, validators, extraHeaders: headers }),
+        fetch: (url, validators, headers, limits) => politeFetch(url, { ...opts.fetchOptions, validators, extraHeaders: headers, ...limits }),
       });
       report.itemsSeen = result.itemsSeen;
       report.notModified = result.notModified;

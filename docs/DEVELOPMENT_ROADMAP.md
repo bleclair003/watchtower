@@ -171,8 +171,9 @@ Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at
 
 ### B. Escalation and pressure signals
 4. **Sanctions** (OFAC SDN and recent actions, EU consolidated list, UK sanctions list)
-   - [ ] Daily diff of each list: new designations by country and programme
-   - [ ] Indicator: new sanctions designations targeting a watch-region country
+   - [x] Diff of each list: new designations by list, day and target country (OFAC, EU, UK) — v0.19.0
+   - [x] Indicators: new designations against the baseline; large package (25+)
+   - [x] Sanctioned vessels with IMO/MMSI kept for item 4b
 4b. **Sanctioned vessels in the Baltic and North Sea** (aisstream.io; needs item 4's vessel identifiers)
    - [x] Coverage probe: good in the Baltic (930 ships in 2 min) and North Sea (2,984); none at the chokepoints; no US Navy warships at Norfolk or San Diego
    - [ ] Short listen per run in parallel with the other sources (minutes budget), filtered to sanctioned MMSIs; ship directory kept across runs

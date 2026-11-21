@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.19.0] — 2026-11-21 — Sanctions (OFAC, EU, UK)
+
+### Added
+- Sources 28–30: the **US OFAC SDN list**, the **EU consolidated financial sanctions list** and the **UK Sanctions List** (official XML files, 20–30 MB each). OFAC is checked every run with a conditional request; the UK every 6 hours; the EU once a day (its file takes over a minute to generate).
+- New designations are found by comparing each list with its previous copy. EU and UK entries carry designation dates, so their first run back-filled 30 days; OFAC entries have no dates, so its first run only stores a baseline.
+- Records: one per list, day and target country, e.g. "UK sanctions: 20 new designations targeting Russia — 11 vessels, 9 entities". The target country comes from the sanctions programme; for thematic programmes (terrorism, cyber, human rights) the wording is "linked to …", from addresses and nationality. Vessel flags are never used (flags of convenience).
+- Sanctioned vessels with identifiers are kept for item 4b: OFAC 1,570 (840 with MMSI), UK 693 (IMO), EU 41 (IMO).
+- Catalog v9 (96 indicators): **new sanctions designations** (against a 28-day baseline) and **large sanctions package** (25+ in one batch) for the six foreign watch regions.
+- Adapters can raise the download size and time limits per request (official files up to 64 MB).
+
+### Limits
+- Removals from the lists are not recorded. A designation is a legal measure, not proof of the conduct alleged.
+
+
 ## [0.18.0] — 2026-11-21 — Chokepoint traffic (IMF PortWatch)
 
 ### Added

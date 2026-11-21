@@ -1,6 +1,12 @@
 import type { IntelligenceEvent } from '../../shared/domain/types.ts';
 import type { FetchResult, Validators } from '../lib/http.ts';
 
+/** Per-request overrides for large or slow official files (defaults: 8 MB, 30 s). */
+export interface FetchLimits {
+  maxBytes?: number;
+  timeoutMs?: number;
+}
+
 /**
  * Contract every source adapter implements.
  *
@@ -14,7 +20,7 @@ export interface AdapterContext<S> {
   /** Persisted per-source state from the previous run, or null on first run. */
   state: S | null;
   /** Polite fetch bound to the collector's HTTP policy. */
-  fetch: (url: string, validators?: Validators, headers?: Record<string, string>) => Promise<FetchResult>;
+  fetch: (url: string, validators?: Validators, headers?: Record<string, string>, limits?: FetchLimits) => Promise<FetchResult>;
 }
 
 export interface AdapterResult<S> {

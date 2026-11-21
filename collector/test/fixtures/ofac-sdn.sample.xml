@@ -1,0 +1,1102 @@
+<?xml version="1.0" standalone="yes"?>
+<sdnList xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/XML">
+  <publshInformation>
+    <Publish_Date>11/20/2026</Publish_Date>
+    <Record_Count>19599</Record_Count>
+  </publshInformation>
+  <sdnEntry>
+    <uid>10392</uid>
+    <lastName>MINISTRY OF DEFENSE AND ARMED FORCES LOGISTICS</lastName>
+    <sdnType>Entity</sdnType>
+    <remarks>(Linked To: ISLAMIC REVOLUTIONARY GUARD CORPS (IRGC)-QODS FORCE; Linked To: ROSOBORONEKSPORT OAO)</remarks>
+    <programList>
+      <program>NPWMD</program>
+      <program>IFSR</program>
+      <program>SDGT</program>
+      <program>IRAN-CON-ARMS-EO</program>
+      <program>RUSSIA-EO14024</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>186311</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>section 1(b) of Executive Order 13224, as amended by Executive Order 13886</idNumber>
+      </id>
+      <id>
+        <uid>114337</uid>
+        <idType>Additional Sanctions Information -</idType>
+        <idNumber>Subject to Secondary Sanctions</idNumber>
+      </id>
+      <id>
+        <uid>173820</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>See Section 11 of Executive Order 14024.</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>10190</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>MINISTRY OF DEFENSE AND SUPPORT FOR ARMED FORCES LOGISTICS</lastName>
+      </aka>
+      <aka>
+        <uid>10191</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>MODAFL</lastName>
+      </aka>
+      <aka>
+        <uid>10192</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>MODSAF</lastName>
+      </aka>
+      <aka>
+        <uid>42000</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>MINISTRY OF DEFENSE FOR ARMED FORCES LOGISTICS</lastName>
+      </aka>
+      <aka>
+        <uid>42001</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>MINISTRY OF DEFENSE ARMED FORCES LOGISTICS</lastName>
+      </aka>
+      <aka>
+        <uid>42002</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>VEZARAT-E DEFA VA POSHTYBANI-E NIRU-HAYE MOSALLAH</lastName>
+      </aka>
+      <aka>
+        <uid>42003</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>MINISTRY OF DEFENCE &amp; ARMED FORCES LOGISTICS</lastName>
+      </aka>
+      <aka>
+        <uid>42004</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>GOVERNMENT OF IRAN DEPARTMENT OF DEFENSE</lastName>
+      </aka>
+      <aka>
+        <uid>42005</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>VEZARATE DEFA</lastName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>40340</uid>
+        <address1>Ferdowsi Avenue, Sarhang Sakhaei Street</address1>
+        <city>Tehran</city>
+        <country>Iran</country>
+      </address>
+      <address>
+        <uid>40341</uid>
+        <address1>PO Box 11365-8439, Pasdaran Ave.</address1>
+        <city>Tehran</city>
+        <country>Iran</country>
+      </address>
+      <address>
+        <uid>40342</uid>
+        <address1>West side of Dabestan Street, Abbas Abad District</address1>
+        <city>Tehran</city>
+        <country>Iran</country>
+      </address>
+    </addressList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>12055</uid>
+    <lastName>ISLAMIC REVOLUTIONARY GUARD CORPS AIR FORCE</lastName>
+    <sdnType>Entity</sdnType>
+    <programList>
+      <program>NPWMD</program>
+      <program>IRGC</program>
+      <program>IFSR</program>
+      <program>SDGT</program>
+      <program>FTO</program>
+      <program>RUSSIA-EO14024</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>114342</uid>
+        <idType>Additional Sanctions Information -</idType>
+        <idNumber>Subject to Secondary Sanctions</idNumber>
+      </id>
+      <id>
+        <uid>173821</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>See Section 11 of Executive Order 14024.</idNumber>
+      </id>
+      <id>
+        <uid>185969</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>section 1(b) of Executive Order 13224, as amended by Executive Order 13886</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>12946</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>SEPAH PASDARAN AIR FORCE</lastName>
+      </aka>
+      <aka>
+        <uid>12952</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>IRGC AIR FORCE</lastName>
+      </aka>
+      <aka>
+        <uid>42221</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>ISLAMIC REVOLUTION GUARDS CORPS AIR FORCE</lastName>
+      </aka>
+      <aka>
+        <uid>42222</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>ISLAMIC REVOLUTIONARY GUARDS CORPS AIR FORCE</lastName>
+      </aka>
+      <aka>
+        <uid>42223</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>IRGCAF</lastName>
+      </aka>
+      <aka>
+        <uid>42224</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>AIR FORCE, IRGC (PASDARAN)</lastName>
+      </aka>
+      <aka>
+        <uid>42225</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>ISLAMIC REVOLUTIONARY GUARDS CORPS AEROSPACE FORCE</lastName>
+      </aka>
+      <aka>
+        <uid>42226</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>AEROSPACE FORCE OF THE ARMY OF THE GUARDIANS OF THE ISLAMIC REVOLUTION</lastName>
+      </aka>
+      <aka>
+        <uid>42227</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>AFAGIR</lastName>
+      </aka>
+      <aka>
+        <uid>42228</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>AEROSPACE DIVISION OF IRGC</lastName>
+      </aka>
+      <aka>
+        <uid>42229</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>IRGC AEROSPACE FORCE</lastName>
+      </aka>
+      <aka>
+        <uid>42230</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>IRGCASF</lastName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>18345</uid>
+        <city>Tehran</city>
+        <country>Iran</country>
+      </address>
+      <address>
+        <uid>40537</uid>
+        <country>Syria</country>
+      </address>
+    </addressList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>15892</uid>
+    <firstName>Ivan Pavlovitch</firstName>
+    <lastName>PROKOPENKO</lastName>
+    <sdnType>Individual</sdnType>
+    <programList>
+      <program>MAGNIT</program>
+      <program>RUSSIA-EO14024</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>29699</uid>
+        <idType>Tax ID No.</idType>
+        <idNumber>773407989940</idNumber>
+        <idCountry>Russia</idCountry>
+      </id>
+      <id>
+        <uid>173822</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>See Section 11 of Executive Order 14024.</idNumber>
+      </id>
+      <id>
+        <uid>157804</uid>
+        <idType>Gender</idType>
+        <idNumber>Male</idNumber>
+      </id>
+    </idList>
+    <addressList>
+      <address>
+        <uid>60406</uid>
+        <stateOrProvince>Tula Region</stateOrProvince>
+        <country>Russia</country>
+      </address>
+    </addressList>
+    <nationalityList>
+      <nationality>
+        <uid>57800</uid>
+        <country>Russia</country>
+        <mainEntry>true</mainEntry>
+      </nationality>
+      <nationality>
+        <uid>57801</uid>
+        <country>Ukraine</country>
+        <mainEntry>false</mainEntry>
+      </nationality>
+    </nationalityList>
+    <citizenshipList>
+      <citizenship>
+        <uid>57802</uid>
+        <country>Russia</country>
+        <mainEntry>true</mainEntry>
+      </citizenship>
+      <citizenship>
+        <uid>57803</uid>
+        <country>Ukraine</country>
+        <mainEntry>false</mainEntry>
+      </citizenship>
+    </citizenshipList>
+    <dateOfBirthList>
+      <dateOfBirthItem>
+        <uid>13412</uid>
+        <dateOfBirth>28 Sep 1973</dateOfBirth>
+        <mainEntry>true</mainEntry>
+      </dateOfBirthItem>
+    </dateOfBirthList>
+    <placeOfBirthList>
+      <placeOfBirthItem>
+        <uid>13413</uid>
+        <placeOfBirth>Vinnitsa, Ukraine</placeOfBirth>
+        <mainEntry>true</mainEntry>
+      </placeOfBirthItem>
+    </placeOfBirthList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>16418</uid>
+    <lastName>QODS AVIATION INDUSTRIES</lastName>
+    <sdnType>Entity</sdnType>
+    <remarks>(Linked To: MINISTRY OF DEFENSE AND ARMED FORCES LOGISTICS)</remarks>
+    <programList>
+      <program>NPWMD</program>
+      <program>IFSR</program>
+      <program>RUSSIA-EO14024</program>
+      <program>IRAN-CON-ARMS-EO</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>35175</uid>
+        <idType>National ID No.</idType>
+        <idNumber>14005441856</idNumber>
+        <idCountry>Iran</idCountry>
+      </id>
+      <id>
+        <uid>35176</uid>
+        <idType>Registration Number</idType>
+        <idNumber>483250</idNumber>
+        <idCountry>Iran</idCountry>
+      </id>
+      <id>
+        <uid>114808</uid>
+        <idType>Additional Sanctions Information -</idType>
+        <idNumber>Subject to Secondary Sanctions</idNumber>
+      </id>
+      <id>
+        <uid>173823</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>See Section 11 of Executive Order 14024.</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>24742</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>QODS RESEARCH CENTER</lastName>
+      </aka>
+      <aka>
+        <uid>24799</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>GHODS AVIATION INDUSTRIES</lastName>
+      </aka>
+      <aka>
+        <uid>62829</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>LIGHT AIRPLANES DESIGN AND MANUFACTURING INDUSTRIES</lastName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>24778</uid>
+        <address1>P.O. Box 15875-1834</address1>
+        <address2>Km 5 Karaj Special Road</address2>
+        <city>Tehran</city>
+        <country>Iran</country>
+      </address>
+      <address>
+        <uid>24779</uid>
+        <address1>Unit (or Suite) 207, Saleh Blvd</address1>
+        <city>Tehran</city>
+        <country>Iran</country>
+      </address>
+      <address>
+        <uid>24780</uid>
+        <address1>Unit 207</address1>
+        <address2>Tarajit Maydane Taymori (or Teimori) Square</address2>
+        <address3>Basiri Building, Tarasht</address3>
+        <city>Tehran</city>
+        <country>Iran</country>
+      </address>
+    </addressList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>16659</uid>
+    <firstName>Andrey Aleksandrovich</firstName>
+    <lastName>KLISHAS</lastName>
+    <title>Member of the Federation Council of the Federal Assembly of the Russian Federation</title>
+    <sdnType>Individual</sdnType>
+    <programList>
+      <program>UKRAINE-EO13661</program>
+      <program>RUSSIA-EO14024</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>173824</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>See Section 11 of Executive Order 14024.</idNumber>
+      </id>
+      <id>
+        <uid>152873</uid>
+        <idType>Gender</idType>
+        <idNumber>Male</idNumber>
+      </id>
+      <id>
+        <uid>143571</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>Ukraine-/Russia-Related Sanctions Regulations, 31 CFR 589.201 and/or 589.209</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>25275</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>KLISHAS</lastName>
+        <firstName>Andrei</firstName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>56627</uid>
+        <country>Russia</country>
+      </address>
+    </addressList>
+    <nationalityList>
+      <nationality>
+        <uid>52872</uid>
+        <country>Russia</country>
+        <mainEntry>true</mainEntry>
+      </nationality>
+    </nationalityList>
+    <dateOfBirthList>
+      <dateOfBirthItem>
+        <uid>15143</uid>
+        <dateOfBirth>09 Nov 1972</dateOfBirth>
+        <mainEntry>true</mainEntry>
+      </dateOfBirthItem>
+    </dateOfBirthList>
+    <placeOfBirthList>
+      <placeOfBirthItem>
+        <uid>15144</uid>
+        <placeOfBirth>Yekaterinburg, Sverdlovsk, Russia</placeOfBirth>
+        <mainEntry>true</mainEntry>
+      </placeOfBirthItem>
+    </placeOfBirthList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>16660</uid>
+    <firstName>Valentina Ivanovna</firstName>
+    <lastName>MATVIYENKO</lastName>
+    <sdnType>Individual</sdnType>
+    <programList>
+      <program>UKRAINE-EO13661</program>
+      <program>RUSSIA-EO14024</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>173825</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>See Section 11 of Executive Order 14024.</idNumber>
+      </id>
+      <id>
+        <uid>151209</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>Ukraine-/Russia-Related Sanctions Regulations, 31 CFR 589.201 and/or 589.209</idNumber>
+      </id>
+      <id>
+        <uid>150076</uid>
+        <idType>Gender</idType>
+        <idNumber>Female</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>55499</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>MATVIENKO</lastName>
+        <firstName>Valentina</firstName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>54685</uid>
+        <city>Moscow</city>
+        <country>Russia</country>
+      </address>
+    </addressList>
+    <nationalityList>
+      <nationality>
+        <uid>50077</uid>
+        <country>Russia</country>
+        <mainEntry>true</mainEntry>
+      </nationality>
+    </nationalityList>
+    <dateOfBirthList>
+      <dateOfBirthItem>
+        <uid>15145</uid>
+        <dateOfBirth>07 Apr 1949</dateOfBirth>
+        <mainEntry>true</mainEntry>
+      </dateOfBirthItem>
+    </dateOfBirthList>
+    <placeOfBirthList>
+      <placeOfBirthItem>
+        <uid>15146</uid>
+        <placeOfBirth>Shepetovka, Khmelnitsky, Ukraine</placeOfBirth>
+        <mainEntry>true</mainEntry>
+      </placeOfBirthItem>
+    </placeOfBirthList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>15036</uid>
+    <lastName>ARTAVIL</lastName>
+    <sdnType>Vessel</sdnType>
+    <remarks>(Linked To: NATIONAL IRANIAN TANKER COMPANY)</remarks>
+    <programList>
+      <program>IRAN</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>8045</uid>
+        <idType>Vessel Registration Identification</idType>
+        <idNumber>IMO 9187629</idNumber>
+      </id>
+      <id>
+        <uid>8114</uid>
+        <idType>MMSI</idType>
+        <idNumber>572469210</idNumber>
+      </id>
+      <id>
+        <uid>111445</uid>
+        <idType>Former Vessel Flag</idType>
+        <idNumber>Malta</idNumber>
+      </id>
+      <id>
+        <uid>112992</uid>
+        <idType>Former Vessel Flag</idType>
+        <idNumber>Tuvalu</idNumber>
+      </id>
+      <id>
+        <uid>113470</uid>
+        <idType>Former Vessel Flag</idType>
+        <idNumber>None Identified</idNumber>
+      </id>
+      <id>
+        <uid>129996</uid>
+        <idType>Former Vessel Flag</idType>
+        <idNumber>Tanzania</idNumber>
+      </id>
+      <id>
+        <uid>119227</uid>
+        <idType>Additional Sanctions Information -</idType>
+        <idNumber>Subject to Secondary Sanctions</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>22153</uid>
+        <type>f.k.a.</type>
+        <category>strong</category>
+        <lastName>ABADAN</lastName>
+      </aka>
+      <aka>
+        <uid>23827</uid>
+        <type>f.k.a.</type>
+        <category>weak</category>
+        <lastName>ALPHA</lastName>
+      </aka>
+      <aka>
+        <uid>40680</uid>
+        <type>f.k.a.</type>
+        <category>strong</category>
+        <lastName>SHONA</lastName>
+      </aka>
+    </akaList>
+    <vesselInfo>
+      <callSign>T2EU4</callSign>
+      <vesselType>Crude/Oil Products Tanker</vesselType>
+      <vesselFlag>Iran</vesselFlag>
+      <tonnage>99144</tonnage>
+      <grossRegisteredTonnage>56068</grossRegisteredTonnage>
+    </vesselInfo>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>15039</uid>
+    <lastName>ARNICA</lastName>
+    <sdnType>Vessel</sdnType>
+    <remarks>(Linked To: NATIONAL IRANIAN TANKER COMPANY)</remarks>
+    <programList>
+      <program>IRAN</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>8048</uid>
+        <idType>Vessel Registration Identification</idType>
+        <idNumber>IMO 9187643</idNumber>
+      </id>
+      <id>
+        <uid>8117</uid>
+        <idType>MMSI</idType>
+        <idNumber>572467210</idNumber>
+      </id>
+      <id>
+        <uid>111453</uid>
+        <idType>Former Vessel Flag</idType>
+        <idNumber>Malta</idNumber>
+      </id>
+      <id>
+        <uid>112994</uid>
+        <idType>Former Vessel Flag</idType>
+        <idNumber>Tuvalu</idNumber>
+      </id>
+      <id>
+        <uid>114783</uid>
+        <idType>Former Vessel Flag</idType>
+        <idNumber>Tanzania</idNumber>
+      </id>
+      <id>
+        <uid>119229</uid>
+        <idType>Additional Sanctions Information -</idType>
+        <idNumber>Subject to Secondary Sanctions</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>22155</uid>
+        <type>f.k.a.</type>
+        <category>strong</category>
+        <lastName>ASTANEH</lastName>
+      </aka>
+      <aka>
+        <uid>23441</uid>
+        <type>f.k.a.</type>
+        <category>strong</category>
+        <lastName>NEPTUNE</lastName>
+      </aka>
+      <aka>
+        <uid>24763</uid>
+        <type>f.k.a.</type>
+        <category>strong</category>
+        <lastName>SEAPRIDE</lastName>
+      </aka>
+      <aka>
+        <uid>40676</uid>
+        <type>f.k.a.</type>
+        <category>strong</category>
+        <lastName>ALERT</lastName>
+      </aka>
+    </akaList>
+    <vesselInfo>
+      <callSign>T2ES4</callSign>
+      <vesselType>Crude/Oil Products Tanker</vesselType>
+      <vesselFlag>Iran</vesselFlag>
+      <tonnage>99144</tonnage>
+      <grossRegisteredTonnage>56068</grossRegisteredTonnage>
+    </vesselInfo>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>15040</uid>
+    <lastName>APAMA</lastName>
+    <sdnType>Vessel</sdnType>
+    <remarks>(Linked To: NATIONAL IRANIAN TANKER COMPANY)</remarks>
+    <programList>
+      <program>IRAN</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>8049</uid>
+        <idType>Vessel Registration Identification</idType>
+        <idNumber>IMO 9187631</idNumber>
+      </id>
+      <id>
+        <uid>8118</uid>
+        <idType>MMSI</idType>
+        <idNumber>256845000</idNumber>
+      </id>
+      <id>
+        <uid>112995</uid>
+        <idType>Former Vessel Flag</idType>
+        <idNumber>Tuvalu</idNumber>
+      </id>
+      <id>
+        <uid>112996</uid>
+        <idType>Former Vessel Flag</idType>
+        <idNumber>Malta</idNumber>
+      </id>
+      <id>
+        <uid>119228</uid>
+        <idType>Additional Sanctions Information -</idType>
+        <idNumber>Subject to Secondary Sanctions</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>23442</uid>
+        <type>f.k.a.</type>
+        <category>strong</category>
+        <lastName>ASTARA</lastName>
+      </aka>
+      <aka>
+        <uid>24764</uid>
+        <type>f.k.a.</type>
+        <category>strong</category>
+        <lastName>JUPITER</lastName>
+      </aka>
+      <aka>
+        <uid>40675</uid>
+        <type>f.k.a.</type>
+        <category>strong</category>
+        <lastName>ABELIA</lastName>
+      </aka>
+    </akaList>
+    <vesselInfo>
+      <callSign>9HDS9</callSign>
+      <vesselType>Crude/Oil Products Tanker</vesselType>
+      <vesselFlag>Iran</vesselFlag>
+      <tonnage>99087</tonnage>
+      <grossRegisteredTonnage>56068</grossRegisteredTonnage>
+    </vesselInfo>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>6932</uid>
+    <lastName>AL-HAMATI SWEETS BAKERIES</lastName>
+    <sdnType>Entity</sdnType>
+    <programList>
+      <program>SDGT</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>185882</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>section 1(b) of Executive Order 13224, as amended by Executive Order 13886</idNumber>
+      </id>
+    </idList>
+    <addressList>
+      <address>
+        <uid>4965</uid>
+        <address1>Al-Mukallah</address1>
+        <city>Hadhramawt Governorate</city>
+        <country>Yemen</country>
+      </address>
+    </addressList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>6939</uid>
+    <firstName>Mohammad Hamdi Mohammad Sadiq</firstName>
+    <lastName>AL-AHDAL</lastName>
+    <sdnType>Individual</sdnType>
+    <programList>
+      <program>SDGT</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>21379</uid>
+        <idType>National ID No.</idType>
+        <idNumber>216040</idNumber>
+        <idCountry>Yemen</idCountry>
+      </id>
+      <id>
+        <uid>21593</uid>
+        <idType>Passport</idType>
+        <idNumber>541939</idNumber>
+        <idCountry>Yemen</idCountry>
+        <issueDate>31 Jul 2000</issueDate>
+      </id>
+      <id>
+        <uid>185887</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>section 1(b) of Executive Order 13224, as amended by Executive Order 13886</idNumber>
+      </id>
+      <id>
+        <uid>139894</uid>
+        <idType>Gender</idType>
+        <idNumber>Male</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>4920</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>AL-HAMATI</lastName>
+        <firstName>Muhammad</firstName>
+      </aka>
+      <aka>
+        <uid>4921</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>AL-MAKKI, Abu Asim</lastName>
+      </aka>
+      <aka>
+        <uid>49407</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>AL-AHDAL</lastName>
+        <firstName>Muhammad Muhummad Abdullah</firstName>
+      </aka>
+      <aka>
+        <uid>49408</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>AL-AHDAL</lastName>
+        <firstName>Mohamed Mohamed Abdullah</firstName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>4976</uid>
+        <address1>Jamal street, Al-Dahima alley</address1>
+        <city>Al-Hudaydah</city>
+        <country>Yemen</country>
+      </address>
+    </addressList>
+    <nationalityList>
+      <nationality>
+        <uid>39893</uid>
+        <country>Yemen</country>
+        <mainEntry>true</mainEntry>
+      </nationality>
+    </nationalityList>
+    <dateOfBirthList>
+      <dateOfBirthItem>
+        <uid>39891</uid>
+        <dateOfBirth>19 Nov 1971</dateOfBirth>
+        <mainEntry>true</mainEntry>
+      </dateOfBirthItem>
+    </dateOfBirthList>
+    <placeOfBirthList>
+      <placeOfBirthItem>
+        <uid>39892</uid>
+        <placeOfBirth>Medina, Saudi Arabia</placeOfBirth>
+        <mainEntry>true</mainEntry>
+      </placeOfBirthItem>
+    </placeOfBirthList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>9345</uid>
+    <lastName>KOREA MINING DEVELOPMENT TRADING CORPORATION</lastName>
+    <sdnType>Entity</sdnType>
+    <programList>
+      <program>NPWMD</program>
+      <program>DPRK2</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>134855</uid>
+        <idType>Transactions Prohibited For Persons Owned or Controlled By U.S. Financial Institutions:</idType>
+        <idNumber>North Korea Sanctions Regulations section 510.214</idNumber>
+      </id>
+      <id>
+        <uid>127626</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>North Korea Sanctions Regulations, sections 510.201 and 510.210</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>8816</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>NORTH KOREAN MINING DEVELOPMENT TRADING CORPORATION</lastName>
+      </aka>
+      <aka>
+        <uid>8817</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>KOMID</lastName>
+      </aka>
+      <aka>
+        <uid>8818</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>CHANGGWANG SINYONG CORPORATION</lastName>
+      </aka>
+      <aka>
+        <uid>8819</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>EXTERNAL TECHNOLOGY GENERAL CORPORATION</lastName>
+      </aka>
+      <aka>
+        <uid>23336</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>KOREA KUMRYONG TRADING COMPANY</lastName>
+      </aka>
+      <aka>
+        <uid>27210</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>DPRKN MINING DEVELOPMENT TRADING COOPERATION</lastName>
+      </aka>
+      <aka>
+        <uid>27211</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>KOREAN MINING AND INDUSTRIAL DEVELOPMENT CORPORATION</lastName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>11532</uid>
+        <address1>Central District</address1>
+        <city>Pyongyang</city>
+        <country>Korea, North</country>
+      </address>
+      <address>
+        <uid>26782</uid>
+        <city>Beijing</city>
+        <country>China</country>
+      </address>
+      <address>
+        <uid>26783</uid>
+        <city>Moscow</city>
+        <country>Russia</country>
+      </address>
+      <address>
+        <uid>26784</uid>
+        <city>Tehran</city>
+        <country>Iran</country>
+      </address>
+      <address>
+        <uid>26785</uid>
+        <city>Damascus</city>
+        <country>Syria</country>
+      </address>
+    </addressList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>11599</uid>
+    <lastName>KOREA TANGUN TRADING CORPORATION</lastName>
+    <sdnType>Entity</sdnType>
+    <programList>
+      <program>NPWMD</program>
+      <program>DPRK2</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>135045</uid>
+        <idType>Transactions Prohibited For Persons Owned or Controlled By U.S. Financial Institutions:</idType>
+        <idNumber>North Korea Sanctions Regulations section 510.214</idNumber>
+      </id>
+      <id>
+        <uid>199142</uid>
+        <idType>Target Type</idType>
+        <idNumber>Government Entity</idNumber>
+      </id>
+      <id>
+        <uid>127714</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>North Korea Sanctions Regulations, sections 510.201 and 510.210</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>27228</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>RYUNGSENG TRADING CORPORATION</lastName>
+      </aka>
+      <aka>
+        <uid>27229</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>RYUNG SENG TRADING CORPORATION</lastName>
+      </aka>
+      <aka>
+        <uid>27230</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>RYUNGSONG TRADING CORPORATION</lastName>
+      </aka>
+      <aka>
+        <uid>35183</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>KOREA KURYONGGANG TRADING CORPORATION</lastName>
+      </aka>
+      <aka>
+        <uid>89716</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>SECOND ACADEMY OF NATURAL SCIENCES FOREIGN AFFAIRS BUREAU</lastName>
+      </aka>
+      <aka>
+        <uid>89717</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>KOREA KUWOLSAN TRADING CORPORATION</lastName>
+      </aka>
+      <aka>
+        <uid>89718</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>KOREA RYENHAP 2 TRADING CORPORATION</lastName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>17397</uid>
+        <city>Pyongyang</city>
+        <country>Korea, North</country>
+      </address>
+    </addressList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>36</uid>
+    <lastName>AEROCARIBBEAN AIRLINES</lastName>
+    <sdnType>Entity</sdnType>
+    <programList>
+      <program>CUBA</program>
+    </programList>
+    <akaList>
+      <aka>
+        <uid>12</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>AERO-CARIBBEAN</lastName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>25</uid>
+        <city>Havana</city>
+        <country>Cuba</country>
+      </address>
+    </addressList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>173</uid>
+    <lastName>ANGLO-CARIBBEAN CO., LTD.</lastName>
+    <sdnType>Entity</sdnType>
+    <programList>
+      <program>CUBA</program>
+    </programList>
+    <akaList>
+      <aka>
+        <uid>57</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>AVIA IMPORT</lastName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>129</uid>
+        <address1>Ibex House, The Minories</address1>
+        <city>London</city>
+        <postalCode>EC3N 1DY</postalCode>
+        <country>United Kingdom</country>
+      </address>
+    </addressList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>306</uid>
+    <lastName>BANCO NACIONAL DE CUBA</lastName>
+    <sdnType>Entity</sdnType>
+    <programList>
+      <program>CUBA</program>
+    </programList>
+    <akaList>
+      <aka>
+        <uid>219</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>BNC</lastName>
+      </aka>
+      <aka>
+        <uid>220</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>NATIONAL BANK OF CUBA</lastName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>199</uid>
+        <address1>Zweierstrasse 35</address1>
+        <city>Zurich</city>
+        <postalCode>CH-8022</postalCode>
+        <country>Switzerland</country>
+      </address>
+      <address>
+        <uid>200</uid>
+        <address1>Avenida de Concha Espina 8</address1>
+        <city>Madrid</city>
+        <postalCode>E-28036</postalCode>
+        <country>Spain</country>
+      </address>
+      <address>
+        <uid>201</uid>
+        <address1>Dai-Ichi Bldg. 6th Floor, 10-2 Nihombashi, 2-chome, Chuo-ku</address1>
+        <city>Tokyo</city>
+        <postalCode>103</postalCode>
+        <country>Japan</country>
+      </address>
+      <address>
+        <uid>202</uid>
+        <address1>Federico Boyd Avenue &amp; 51 Street</address1>
+        <city>Panama City</city>
+        <country>Panama</country>
+      </address>
+    </addressList>
+  </sdnEntry>
+  </sdnList>

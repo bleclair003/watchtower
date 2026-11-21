@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 8;
+export const CATALOG_VERSION = 9;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -716,6 +716,59 @@ const chokepointIndicators: IndicatorDefinition[] = ADVISORY_REGIONS.filter((r) 
   ];
 });
 
+const SANCTIONS = ['ofac-sdn', 'eu-sanctions', 'uk-sanctions'];
+/** The EU file is slow to generate; its records count when present, but only OFAC and UK gate evaluation. */
+const SANCTIONS_REQUIRED = ['ofac-sdn', 'uk-sanctions'];
+
+/** Phase 13: new sanctions designations (OFAC, EU, UK). Not for the US region (designations target foreign countries). */
+const sanctionsIndicators: IndicatorDefinition[] = STATE_DEPT_REGIONS.flatMap((r): IndicatorDefinition[] => {
+  const base = [
+    { field: 'sourceId' as const, op: 'in' as const, value: SANCTIONS },
+    { field: 'regionIds' as const, op: 'contains' as const, value: r.id },
+  ];
+  return [
+    {
+      id: `${r.id}.sanctions-activity`,
+      name: `${r.shortCode} new sanctions designations`,
+      description: `Batches of new US, EU or UK sanctions designations targeting or linked to ${r.name} countries within 7 days, compared with the 28-day baseline.`,
+      family: 'diplomatic',
+      regionId: r.id,
+      requiredSourceIds: SANCTIONS_REQUIRED,
+      match: { all: base },
+      windowHours: 168,
+      elevated: { countAtLeast: 2 },
+      triggered: { countAtLeast: 4 },
+      baseline: { days: 28, triggerRatio: 3, elevatedRatio: 2 },
+      weight: 1,
+      severity: 'medium',
+      experimental: false,
+      enabled: true,
+      configVersion: 1,
+      rationale:
+        'Coordinated or repeated designations show governments raising pressure on a country. Russia and Iran are sanctioned almost every week, so only activity above the baseline counts.',
+    },
+    {
+      id: `${r.id}.sanctions-package`,
+      name: `${r.shortCode} large sanctions package`,
+      description: `A single US, EU or UK batch of 25 or more new designations targeting or linked to ${r.name} countries within 7 days.`,
+      family: 'diplomatic',
+      regionId: r.id,
+      requiredSourceIds: SANCTIONS_REQUIRED,
+      match: { all: [...base, { field: 'metadata.count' as const, op: 'gte' as const, value: 25 }] },
+      windowHours: 168,
+      elevated: { countAtLeast: 1 },
+      triggered: { countAtLeast: 1 },
+      baseline: null,
+      weight: 2,
+      severity: 'medium',
+      experimental: false,
+      enabled: true,
+      configVersion: 1,
+      rationale: 'Large packages usually answer a major event (an offensive, an attack, a nuclear step) or mark a policy shift.',
+    },
+  ];
+});
+
 export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...advisoryIndicators,
   ...cyberIndicators,
@@ -727,6 +780,7 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...aircraftIndicators,
   ...fleetIndicators,
   ...chokepointIndicators,
+  ...sanctionsIndicators,
 ];
 
 export function getIndicator(id: string): IndicatorDefinition | undefined {

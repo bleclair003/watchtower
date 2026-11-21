@@ -40,7 +40,7 @@ For each indicator, at time `now`:
 - **Fields:** an allow-list (`CONDITION_FIELDS`) of event properties and selected `metadata.*` keys. Lookups are own-property only, so inherited names such as `constructor` are rejected; this is tested.
 - `validateCondition()` and `validateCatalog()` reject malformed definitions, and the catalog is validated in CI.
 
-## Catalog v8 (84 indicators)
+## Catalog v9 (96 indicators)
 
 | Region | Indicator | Window | Elevated / Triggered | Baseline | Weight · Severity |
 |---|---|---|---|---|---|
@@ -65,6 +65,8 @@ For each indicator, at time `now`:
 | Middle East, Red Sea, Eastern Europe, South China Sea, Taiwan Strait, Korean Peninsula (v7) | US carrier or big-deck amphibious ship newly listed in the region's sea areas by the USNI News Fleet Tracker | 21 d | 1 / 2 | — | 2 · medium |
 | Middle East, Red Sea, Eastern Europe, Taiwan Strait (v8) | Chokepoint traffic reduced: 7-day transits under 70% of the 2025 average (IMF PortWatch; Hormuz, Bab el-Mandeb, Bosporus, Taiwan Strait) | 8 d | 1 / 2 | — | 1 · medium |
 | Middle East, Red Sea, Eastern Europe, Taiwan Strait (v8) | Chokepoint traffic severely reduced (under 40%) or 40% below the previous four weeks | 8 d | 1 / 1 | — | 3 · high |
+| each of 6 foreign geographic regions (v9) | New sanctions designations (OFAC, EU, UK batches targeting or linked to the region) | 7 d | 2 / 4 | 28 d, ×2 / ×3 | 1 · medium |
+| each of 6 foreign geographic regions (v9) | Large sanctions package: one batch of 25+ designations | 7 d | 1 / 1 | — | 2 · medium |
 | Experimental | State Dept advisory tempo (global) | 72 h | 6 / 12 | 28 d | 0 |
 | Experimental | Pentagon Pizza Index | — | — | — | 0 · always NO DATA |
 
