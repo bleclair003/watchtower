@@ -24,6 +24,7 @@ interface Box {
 }
 const boxes = new Map<string, Box>(CHOKEPOINTS.map((c) => [c.id, { messages: 0, types: {}, ships: new Set(), moving: new Set() }]));
 let total = 0;
+let raw = 0;
 let confirmed: unknown = null;
 const started = Date.now();
 let firstAt: number | null = null;
@@ -31,10 +32,13 @@ let firstAt: number | null = null;
 const ws = new WebSocket('wss://stream.aisstream.io/v0/stream');
 ws.binaryType = 'arraybuffer';
 ws.onopen = () => {
-  ws.send(JSON.stringify({ APIKey: key, BoundingBoxes: CHOKEPOINTS.map((c) => c.box) }));
+  const global = process.env.PROBE_GLOBAL === '1';
+  ws.send(JSON.stringify({ APIKey: key, BoundingBoxes: global ? [[[-90, -180], [90, 180]]] : CHOKEPOINTS.map((c) => c.box) }));
+  console.log(`subscribed (${global ? 'whole world' : 'chokepoint boxes'}); extensions: ${ws.extensions || 'none'}`);
 };
 ws.onmessage = (ev) => {
   const text = typeof ev.data === 'string' ? ev.data : new TextDecoder().decode(ev.data as ArrayBuffer);
+  if (raw++ < 3) console.log(`raw[${raw}] ${typeof ev.data} ${redactSecrets(text.slice(0, 300))}`);
   let msg: { MessageType?: string; MetaData?: { MMSI?: number; latitude?: number; longitude?: number }; Message?: Record<string, { Sog?: number }> };
   try {
     msg = JSON.parse(text);

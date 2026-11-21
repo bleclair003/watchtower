@@ -8,6 +8,10 @@ on:
       seconds:
         description: Seconds to listen (5-120)
         default: '60'
+      global:
+        description: Subscribe to the whole world (diagnostic)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -25,4 +29,5 @@ jobs:
         env:
           AISSTREAM_API_KEY: ${{ secrets.AISSTREAM_API_KEY }}
           LISTEN_SECONDS: ${{ inputs.seconds }}
+          PROBE_GLOBAL: ${{ inputs.global && '1' || '' }}
         run: node collector/ais-probe.ts "$LISTEN_SECONDS"
