@@ -29,6 +29,8 @@ import type { PowerOutageSnapshot } from '@shared/domain/powerOutages';
 import { buildDemoPowerOutages } from './demo/demoPowerOutages';
 import type { AirportStatusSnapshot, AirspaceNoticesSnapshot, TfrSnapshot } from '@shared/domain/faa';
 import { buildDemoAirportStatus, buildDemoAirspaceNotices, buildDemoTfrs } from './demo/demoFaa';
+import type { RadiationSnapshot } from '@shared/domain/radiation';
+import { buildDemoRadiation } from './demo/demoRadiation';
 import type { ActorsSnapshot } from '@shared/domain/actors';
 import { computeActors } from '@shared/domain/actorsTrack';
 
@@ -78,6 +80,8 @@ export interface DashboardData {
   tfrs: TfrSnapshot | null;
   airportStatus: AirportStatusSnapshot | null;
   airspaceNotices: AirspaceNoticesSnapshot | null;
+  /** Radiation networks (Germany, Finland, US), or null. */
+  radiation: RadiationSnapshot | null;
   /** Tracked people and groups and new names, or null. */
   actors: ActorsSnapshot | null;
 }
@@ -129,6 +133,7 @@ export class DemoRepository implements IntelRepository {
       tfrs: buildDemoTfrs(now),
       airportStatus: buildDemoAirportStatus(now),
       airspaceNotices: buildDemoAirspaceNotices(now),
+      radiation: buildDemoRadiation(now),
       // The real tracker over the demo records (no registry: nothing counts as new in demo mode).
       actors: { ...computeActors(this.events, now, null, null).snapshot, simulated: true },
       events: this.events,

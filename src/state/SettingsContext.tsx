@@ -30,6 +30,8 @@ export interface OperatorSettings {
   powerOutages: boolean;
   /** FAA flight restrictions and airport ground stops / delays on the map. */
   faa: boolean;
+  /** Radiation stations above their usual level (Germany, Finland, US) on the map. */
+  radiation: boolean;
   /** Satellite imagery product on the GOC map ('off', 'viirs', 'modis', 'night', 'night-2016'). */
   imagery: string;
   /** Imagery day (YYYY-MM-DD); empty = yesterday. */
@@ -51,6 +53,7 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   infrastructure: false,
   powerOutages: true,
   faa: true,
+  radiation: true,
   imagery: 'off',
   imageryDate: '',
 };

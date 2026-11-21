@@ -325,3 +325,10 @@ Free sources and analysis of data already collected. Each new outside source is 
    - [x] FAA prohibitions and advisories for US flights abroad, new documents as records — v0.48.0
    - [x] Airspace meter for every region — v0.48.0
    - [ ] FAA NOTAM API (foreign airspace closures, danger areas, GPS interference) — needs FAA developer credentials
+
+## Phase 18 — Radiation detection (2026-11-21)
+
+1. **Ambient gamma dose rate**
+   - [x] Germany (BfS ODL), Finland (STUK via FMI), US (16 EPA RadNet monitors), each station against its own usual level — v0.49.0
+   - [x] Groups of raised stations as records, RAD map layer, radiation meter — v0.49.0
+   - [ ] Ukraine's public stations via the SaveEcoBot radiation API — needs an access key (request form)

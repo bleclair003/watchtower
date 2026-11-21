@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.49.0] — 2026-11-21 — Radiation detection (Phase 18)
+
+### Added
+- **Three official gamma dose-rate networks**, each station judged against its own usual level (a running average of its normal readings; raised readings never move it):
+  - `bfs-odl` — Germany, Federal Office for Radiation Protection, ~1,550 stations reporting, hourly (open data, dl-de/by-2-0);
+  - `stuk-radiation` — Finland, STUK via the FMI open data service, ~245 stations, 10-minute averages (CC BY 4.0); the closest open network to Russia's Leningrad and Kola plants;
+  - `epa-radnet` — United States, 16 EPA RadNet monitors (Washington, Yaphank/Brookhaven, Boston, Atlanta, Jacksonville, Omaha, Colorado Springs, Carlsbad/WIPP, Idaho Falls/INL, Richland/Hanford, San Francisco, Los Angeles, San Diego, Honolulu, Fairbanks, San Juan), two read per run; a new monitor's usual level starts from its own previous two weeks.
+- **Detection**: a station is *elevated* at 2× its usual level and at least +0.10 µSv/h, *high* at 0.5 µSv/h and at least +0.3 (or 1.0 µSv/h with no usual level yet). Raised stations within 100 km form a group; a record is made for a group of 3+, any high station, or any raised RadNet monitor (once per group per 6 hours).
+- **RAD map layer** (GOC, on by default; also in SETTINGS): only stations above their usual level are drawn (amber elevated, red high), with their reading; legend lists the networks and station counts.
+- **Radiation meter** (METERS topic monitors): high station 4, alerting group 3, other raised stations 0.5 (max 1); withheld while usual levels build.
+
+### Fixed
+- The map legend had grown taller than the map on smaller screens, pushing its LEGEND toggle out of reach; it is now capped to the map's height and scrolls.
+
+### Limits
+- Rain washes natural radon products to the ground and can double readings for a few hours, which is why single stations count for little.
+- Germany and Finland are not watch regions: they are early warning for a release in Eastern Europe. Ukraine's own stations (SaveEcoBot API) need a key; the EU EURDEP network has no public live API.
+- Usual levels for Germany and Finland build over the first day of runs.
+
+
 ## [0.48.0] — 2026-11-21 — Better FAA data (Phase 17)
 
 ### Added

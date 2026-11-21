@@ -9,6 +9,7 @@ import type { PredictionMarketsSnapshot } from '@shared/domain/predictionMarkets
 import type { InfrastructureSnapshot } from '@shared/domain/infrastructure';
 import type { PowerOutageSnapshot } from '@shared/domain/powerOutages';
 import type { AirportStatusSnapshot, AirspaceNoticesSnapshot, TfrSnapshot } from '@shared/domain/faa';
+import type { RadiationSnapshot } from '@shared/domain/radiation';
 import type { ActorsSnapshot } from '@shared/domain/actors';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '@shared/domain/types';
@@ -51,6 +52,7 @@ interface DataState {
   tfrs: TfrSnapshot | null;
   airportStatus: AirportStatusSnapshot | null;
   airspaceNotices: AirspaceNoticesSnapshot | null;
+  radiation: RadiationSnapshot | null;
   actors: ActorsSnapshot | null;
   loading: boolean;
   error: string | null;
@@ -91,6 +93,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
     tfrs: null as TfrSnapshot | null,
     airportStatus: null as AirportStatusSnapshot | null,
     airspaceNotices: null as AirspaceNoticesSnapshot | null,
+    radiation: null as RadiationSnapshot | null,
     actors: null as ActorsSnapshot | null,
     loadedAt: null as string | null,
     readsThisSession: null as number | null,
@@ -135,6 +138,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
         tfrs: d.tfrs,
         airportStatus: d.airportStatus,
         airspaceNotices: d.airspaceNotices,
+        radiation: d.radiation,
         actors: d.actors,
         loadedAt: new Date().toISOString(),
         readsThisSession: repo.readsThisSession(),

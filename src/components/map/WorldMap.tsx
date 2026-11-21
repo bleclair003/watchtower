@@ -5,6 +5,7 @@ import type { ChokepointReading } from '@shared/domain/chokepoints';
 import type { FlaggedSite, InfraSite, InfraType } from '@shared/domain/infrastructure';
 import { unpackRings, type PowerOutageCounty } from '@shared/domain/powerOutages';
 import { AIRPORT_KIND_LABEL, tfrActive, type AirportEvent, type TfrShape } from '@shared/domain/faa';
+import { ratioOf, type FlaggedStation } from '@shared/domain/radiation';
 import type { SanctionedShipSighting } from '@shared/domain/sanctionedShips';
 import { IMAGERY_ATTRIBUTION } from '../../lib/imagery';
 import { componentOf, operationOf, type Branch, type Installation, type Operation, type WorldInstallation } from '@shared/domain/installations';
@@ -71,6 +72,8 @@ export interface WorldMapProps {
   /** FAA flight restrictions and airport events (empty when the FAA layer is off). */
   tfrs?: TfrShape[];
   airports?: AirportEvent[];
+  /** Radiation stations above their usual level (empty when the layer is off). */
+  radiation?: FlaggedStation[];
 }
 
 const GLOBAL_VIEW = { center: [35, 22] as [number, number], zoom: 1.35 };
@@ -92,6 +95,8 @@ export const AIRCRAFT_COLOR: Record<AircraftClass, string> = {
   helicopter: '#c8c8c8',
   other: '#8a958f',
 };
+/** Radiation stations above their usual level (severity colours). */
+export const RADIATION_COLOR = { elevated: '#ffb347', high: '#ff5555' } as const;
 /** FAA flight restrictions by type (no red or amber: those are for severity). */
 export const TFR_COLOR = { VIP: '#c8e66b', SECURITY: '#e8a0c8', SPECIAL: '#9fd3e8' } as const;
 const TFR_FILL = ['match', ['get', 'type'], 'VIP', TFR_COLOR.VIP, 'SECURITY', TFR_COLOR.SECURITY, TFR_COLOR.SPECIAL] as unknown as string;
@@ -542,6 +547,28 @@ export function WorldMap(props: WorldMapProps) {
           layout: { 'text-field': ['get', 'label'], 'text-font': font, 'text-size': 10, 'text-offset': [0, 1.1], 'text-anchor': 'top', 'text-optional': true },
           paint: { 'text-color': '#e6efe9', 'text-halo-color': '#050a08', 'text-halo-width': 1.2 },
         });
+        // Radiation stations above their usual level: amber elevated, red high.
+        m.addSource('radiation', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({
+          id: 'radiation',
+          type: 'circle',
+          source: 'radiation',
+          paint: {
+            'circle-radius': ['case', ['==', ['get', 'status'], 'high'], 7, 5],
+            'circle-color': ['case', ['==', ['get', 'status'], 'high'], RADIATION_COLOR.high, RADIATION_COLOR.elevated],
+            'circle-opacity': 0.85,
+            'circle-stroke-color': '#050a08',
+            'circle-stroke-width': 1,
+          },
+        });
+        m.addLayer({
+          id: 'radiation-labels',
+          type: 'symbol',
+          source: 'radiation',
+          minzoom: 4,
+          layout: { 'text-field': ['get', 'label'], 'text-font': font, 'text-size': 10, 'text-offset': [0, 1.1], 'text-anchor': 'top', 'text-optional': true },
+          paint: { 'text-color': '#ffe3a8', 'text-halo-color': '#050a08', 'text-halo-width': 1.2 },
+        });
         // Sanctioned vessels (AIS): ship icons along their course.
         m.addSource('sanctioned-ships', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
         m.addLayer({
@@ -928,6 +955,19 @@ export function WorldMap(props: WorldMapProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to selection changes
   }, [ready, selectedSanctionedShip]);
 
+  const { radiation } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    (m.getSource('radiation') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (radiation ?? []).map((s) => ({
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: [s.lon, s.lat] },
+        properties: { status: s.status, label: `${s.value.toFixed(3)} µSv/h${ratioOf(s) ? ` · ${ratioOf(s)}×` : ''}` },
+      })),
+    });
+  }, [ready, radiation]);
   const { tfrs, airports } = props;
   useEffect(() => {
     const m = mapRef.current;

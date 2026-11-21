@@ -22,6 +22,7 @@ const OPTIONS: { key: BooleanSetting; label: string; help: string }[] = [
   { key: 'fleet', label: 'US NAVY FLEET', help: 'Carriers and other deployed ships by named sea area, from the weekly USNI News Fleet and Marine Tracker. Approximate.' },
   { key: 'chokepoints', label: 'CHOKEPOINT TRAFFIC', help: 'Daily ship transits through six straits and canals (IMF PortWatch, about 6 days behind), coloured by change from the 2025 average.' },
   { key: 'sanctionedShips', label: 'SANCTIONED VESSELS', help: 'Ships on the US, EU or UK sanctions lists seen on AIS in the Baltic and North Sea over the last 48 hours.' },
+  { key: 'radiation', label: 'RADIATION', help: 'Radiation stations above their usual level (Germany BfS, Finland STUK, US EPA RadNet). Stations at their usual level are not drawn.' },
   { key: 'faa', label: 'FAA AIRSPACE', help: 'FAA VIP, security and special flight restrictions (outlines, solid while active) and airports with ground stops, ground delay programs, delays or closures.' },
   { key: 'powerOutages', label: 'US POWER OUTAGES', help: 'US counties with customers without power, from the utilities that report to ODIN (US Department of Energy / Oak Ridge National Laboratory), shaded by the number out.' },
 ];

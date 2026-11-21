@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Anchor, Ban, Factory, Grid3x3, Plane, PlaneLanding, Satellite, Shield, Ship, Square, Zap } from 'lucide-react';
+import { Anchor, Atom, Ban, Factory, Grid3x3, Plane, PlaneLanding, Satellite, Shield, Ship, Square, Zap } from 'lucide-react';
 import { useBases, useInfrastructure } from '../data/useInstallations';
 import { InfraCard } from '../components/map/InfraCard';
 import { ALL_OPERATORS, operatedBy, operatorCounts } from '@shared/domain/installations';
@@ -32,7 +32,7 @@ import { Panel } from '../components/ui/Panel';
 export default function GlobalOperationsPage() {
   // Re-evaluate time windows once a minute; the clock in the top bar ticks separately.
   const now = useNow(60_000).getTime();
-  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips, baseActivity, infrastructure, powerOutages, tfrs, airportStatus } = useData();
+  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips, baseActivity, infrastructure, powerOutages, tfrs, airportStatus, radiation } = useData();
   const unusualBases = useMemo(() => (baseActivity?.items ?? []).filter((i) => i.unusual).map((i) => i.key), [baseActivity]);
   const { filters, setFilters, resetFilters, selectedEventId, selectEvent, globalViewNonce } = useDashboard();
   const { settings, update } = useSettings();
@@ -234,6 +234,14 @@ export default function GlobalOperationsPage() {
               >
                 <PlaneLanding size={10} aria-hidden /> FAA
               </button>
+              <button
+                className={toggleBtn(settings.radiation)}
+                aria-pressed={settings.radiation}
+                title="Radiation stations above their usual level (Germany BfS, Finland STUK, US EPA RadNet)"
+                onClick={() => update({ radiation: !settings.radiation })}
+              >
+                <Atom size={10} aria-hidden /> RAD
+              </button>
               <label className={`${toggleBtn(imageryId !== 'off')} cursor-pointer`} title="Satellite imagery under the map overlays (NASA GIBS)">
                 <Satellite size={10} aria-hidden />
                 <select
@@ -320,6 +328,7 @@ export default function GlobalOperationsPage() {
               powerOutages={settings.powerOutages ? (powerOutages?.counties ?? []) : []}
               tfrs={settings.faa ? (tfrs?.items ?? []) : []}
               airports={settings.faa ? (airportStatus?.events ?? []) : []}
+              radiation={settings.radiation ? (radiation?.flagged ?? []) : []}
             />
           <MapLegend
             plotted={projection.points.features.length}
@@ -330,6 +339,7 @@ export default function GlobalOperationsPage() {
             unusualBases={baseActivity?.flagsActive ? unusualBases.length : null}
             infrastructure={settings.infrastructure || flaggedInfra.length ? { all: settings.infrastructure ? (infraData.data?.count ?? null) : null, flagged: flaggedInfra.length, simulated: !!infrastructure?.simulated } : undefined}
             power={settings.powerOutages && powerOutages ? { total: powerOutages.totalOut, states: powerOutages.states.length, counties: powerOutages.counties.length, utilities: powerOutages.utilitiesReporting, ageMinutes: Math.max(0, Math.round((now - Date.parse(powerOutages.fetchedAt)) / 60_000)), simulated: !!powerOutages.simulated } : undefined}
+            radiation={settings.radiation && radiation ? radiation : undefined}
             faa={settings.faa && (tfrs || airportStatus) ? { tfrs: tfrs?.items ?? [], airports: airportStatus?.events ?? [], now, simulated: !!(tfrs?.simulated || airportStatus?.simulated) } : undefined}
             operatorFilter={settings.installations && operator !== ALL_OPERATORS ? countryName(operator) : undefined}
             aircraft={

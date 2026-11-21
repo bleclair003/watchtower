@@ -23,6 +23,7 @@ export function buildDemoMeters(now: number, events: IntelligenceEvent[], data: 
     tfrs: data.tfrs,
     airportStatus: data.airportStatus,
     airspaceNotices: data.airspaceNotices,
+    radiation: data.radiation,
     sanctionedShips: data.sanctionedShips,
     displacement: data.displacement,
     predictionMarkets: data.predictionMarkets,

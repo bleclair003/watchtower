@@ -1,6 +1,7 @@
 import { INFRA_LABEL, INFRA_TYPES } from '@shared/domain/infrastructure';
 import { tfrActive, type AirportEvent, type TfrShape } from '@shared/domain/faa';
-import { AIRCRAFT_COLOR, AIRCRAFT_PATH, AIRPORT_COLOR, FLEET_COLOR, INFRA_COLOR, POWER_STEPS, TFR_COLOR, SANCTIONED_SHIP_COLOR, SHIP_PATH, BRANCH_COLOR, OPERATION_COLOR, OPERATION_LABEL } from './WorldMap';
+import { NETWORK_LABEL, type RadiationSnapshot } from '@shared/domain/radiation';
+import { AIRCRAFT_COLOR, AIRCRAFT_PATH, AIRPORT_COLOR, RADIATION_COLOR, FLEET_COLOR, INFRA_COLOR, POWER_STEPS, TFR_COLOR, SANCTIONED_SHIP_COLOR, SHIP_PATH, BRANCH_COLOR, OPERATION_COLOR, OPERATION_LABEL } from './WorldMap';
 import { AIRCRAFT_CLASSES, AIRCRAFT_CLASS_LABEL } from '@shared/domain/aircraft';
 import { useState } from 'react';
 import { EVENT_CATEGORIES } from '@shared/domain/types';
@@ -18,6 +19,8 @@ interface Props {
   unusualBases?: number | null;
   /** Infrastructure layer: all sites shown (count, or null when only flagged ones), flagged count. */
   infrastructure?: { all: number | null; flagged: number; simulated: boolean };
+  /** Radiation layer (omit when off). */
+  radiation?: RadiationSnapshot;
   /** FAA layer (omit when off). */
   faa?: { tfrs: TfrShape[]; airports: AirportEvent[]; now: number; simulated: boolean };
   /** US power outages layer (omit when off). */
@@ -37,19 +40,19 @@ interface Props {
 const BRANCH_LABEL = { army: 'Army', navy: 'Navy', 'air-force': 'Air Force', marines: 'Marines', other: 'Other DoD' } as const;
 
 /** Collapsible legend explaining symbols and location-precision handling. */
-export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, infrastructure, power, faa, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
+export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, infrastructure, power, faa, radiation, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
   const [open, setOpen] = useState(true);
   return (
-    <div className="pointer-events-auto absolute bottom-2 left-2 z-10 max-w-[230px] border border-wt-line-strong bg-wt-panel/95 text-2xs">
+    <div className="pointer-events-auto absolute bottom-2 left-2 z-10 flex max-h-[calc(100%-1rem)] max-w-[230px] flex-col border border-wt-line-strong bg-wt-panel/95 text-2xs">
       <button
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between px-2 py-1 tracking-widest text-wt-fg-muted hover:text-wt-fg"
+        className="flex w-full shrink-0 items-center justify-between px-2 py-1 tracking-widest text-wt-fg-muted hover:text-wt-fg"
       >
         LEGEND <span>{open ? '−' : '+'}</span>
       </button>
       {open && (
-        <div className="space-y-1.5 border-t border-wt-line p-2">
+        <div className="min-h-0 space-y-1.5 overflow-y-auto border-t border-wt-line p-2" tabIndex={0} role="region" aria-label="Map legend">
           <ul className="grid grid-cols-2 gap-x-2 gap-y-0.5">
             {EVENT_CATEGORIES.map((c) => (
               <li key={c} className="flex items-center gap-1 text-wt-fg">
@@ -131,6 +134,31 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
                 <span>Records near or naming it (72 h)</span>
                 <span className="ml-auto text-wt-fg tabular-nums">{infrastructure.flagged}</span>
               </div>
+            </div>
+          )}
+          {radiation && (
+            <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
+              <div className="flex justify-between">
+                <span title="Ambient gamma dose rate, each station against its own usual level">Radiation{radiation.simulated ? ' · SIMULATED' : ''}</span>
+                <span className="text-wt-fg tabular-nums">{radiation.flagged.length} above usual</span>
+              </div>
+              <ul>
+                {radiation.networks.map((n) => (
+                  <li key={n.network} className="flex justify-between">
+                    <span>{NETWORK_LABEL[n.network]}</span>
+                    <span className="tabular-nums">{n.stations} stations</span>
+                  </li>
+                ))}
+              </ul>
+              <ul className="grid grid-cols-2 gap-x-2">
+                {(['elevated', 'high'] as const).map((k) => (
+                  <li key={k} className="flex items-center gap-1">
+                    <span className="size-2 rounded-full" style={{ background: RADIATION_COLOR[k] }} aria-hidden />
+                    {k === 'high' ? 'High (0.5+ µSv/h)' : '2× usual or more'}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-wt-fg-dim">Only stations above their usual level are drawn. Rain can double readings for a few hours.</p>
             </div>
           )}
           {faa && (

@@ -40,7 +40,7 @@ export class FirestoreRepository implements IntelRepository {
     }
     if (!snap.exists()) {
       // Database reachable but the collector has never completed a run.
-      return { events: [], sourceStatus: [], lastRun: null, generatedAt: null, totalEventsStored: 0, indicatorEvaluations: [], regionScores: [], scoreHistory: [], alertRuleProblems: [], activeAlertRules: null, discordConfigured: null, aircraft: null, fleet: null, chokepoints: null, sanctionedShips: null, displacement: null, baseActivity: null, meters: null, predictionMarkets: null, infrastructure: null, actors: null, powerOutages: null, tfrs: null, airportStatus: null, airspaceNotices: null };
+      return { events: [], sourceStatus: [], lastRun: null, generatedAt: null, totalEventsStored: 0, indicatorEvaluations: [], regionScores: [], scoreHistory: [], alertRuleProblems: [], activeAlertRules: null, discordConfigured: null, aircraft: null, fleet: null, chokepoints: null, sanctionedShips: null, displacement: null, baseActivity: null, meters: null, predictionMarkets: null, infrastructure: null, actors: null, powerOutages: null, tfrs: null, airportStatus: null, airspaceNotices: null, radiation: null };
     }
     const s = snap.data() as DashboardSnapshot;
     return {
@@ -70,6 +70,7 @@ export class FirestoreRepository implements IntelRepository {
       tfrs: s.tfrs ?? null,
       airportStatus: s.airportStatus ?? null,
       airspaceNotices: s.airspaceNotices ?? null,
+      radiation: s.radiation ?? null,
       actors: s.actors ?? null,
       meters: await this.loadMeters(),
     };

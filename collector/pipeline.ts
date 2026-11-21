@@ -37,6 +37,8 @@ import { PORTWATCH_SOURCE_ID, type PortwatchState } from './adapters/portwatch.t
 import { ODIN_SOURCE_ID, type OdinState } from './adapters/odin.ts';
 import { AIRPORT_STATUS_SOURCE_ID, NOTICES_SOURCE_ID, type AirportStatusState, type NoticesState } from './adapters/faa.ts';
 import type { TfrState } from './adapters/usDomestic.ts';
+import type { RadState } from './adapters/radiation.ts';
+import { NETWORK_SOURCE, clusterStations, type RadNetwork } from '../shared/domain/radiation.ts';
 import { UNHCR_SOURCE_ID, type UnhcrState } from './adapters/unhcr.ts';
 import { MARKETS_SOURCE_ID, type PolymarketState } from './adapters/polymarket.ts';
 import { AIS_SOURCE_ID, type AisSanctionedState } from './adapters/aisSanctioned.ts';
@@ -336,6 +338,18 @@ export async function runCollection(
   } catch (err) {
     log(`FAA  FAA layers not added to the snapshot: ${sanitizeError(err)}`);
   }
+  // Radiation networks (Phase 18): summaries and raised stations from readings of the last 6 hours (RadNet 30).
+  try {
+    const nets = (Object.keys(NETWORK_SOURCE) as RadNetwork[]).filter((n) => tracked.includes(NETWORK_SOURCE[n]));
+    const states = await Promise.all(nets.map((n) => store.getSourceState<RadState>(NETWORK_SOURCE[n])));
+    const live = states.filter((s): s is RadState => !!s?.latest && Date.parse(s.latest.summary.fetchedAt) > Date.parse(snapshot.generatedAt) - (s.latest.summary.network === 'radnet' ? 30 : 6) * 3_600_000);
+    if (live.length) {
+      const flagged = live.flatMap((s) => s.latest!.flagged).slice(0, 60);
+      snapshot.radiation = { networks: live.map((s) => s.latest!.summary), flagged, clusters: clusterStations(flagged) };
+    }
+  } catch (err) {
+    log(`RAD  radiation not added to the snapshot: ${sanitizeError(err)}`);
+  }
   if (tracked.includes(AIS_SOURCE_ID)) {
     try {
       const ais = await store.getSourceState<AisSanctionedState>(AIS_SOURCE_ID);
@@ -390,6 +404,7 @@ export async function runCollection(
       tfrs: snapshot.tfrs ?? null,
       airportStatus: snapshot.airportStatus ?? null,
       airspaceNotices: snapshot.airspaceNotices ?? null,
+      radiation: snapshot.radiation ?? null,
       sanctionedShips: snapshot.sanctionedShips ?? null,
       displacement: snapshot.displacement ?? null,
       predictionMarkets: snapshot.predictionMarkets ?? null,

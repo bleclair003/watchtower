@@ -26,6 +26,7 @@ import { unhcrDisplacement } from './unhcr.ts';
 import { polymarketOdds } from './polymarket.ts';
 import { odinPowerOutages } from './odin.ts';
 import { faaAirportStatus, faaAirspaceNotices } from './faa.ts';
+import { bfsOdl, epaRadnet, stukRadiation } from './radiation.ts';
 import { congress } from './congress.ts';
 
 /** Active adapters. Adding a source = write an adapter + register it here. */
@@ -73,6 +74,9 @@ export const ADAPTERS: SourceAdapter<never>[] = [
   odinPowerOutages as SourceAdapter<never>,
   faaAirportStatus as SourceAdapter<never>,
   faaAirspaceNotices as SourceAdapter<never>,
+  bfsOdl as SourceAdapter<never>,
+  stukRadiation as SourceAdapter<never>,
+  epaRadnet as SourceAdapter<never>,
   // Free-key sources: active only when their key is set.
   firms as SourceAdapter<never>,
   cloudflareRadarOutages as SourceAdapter<never>,

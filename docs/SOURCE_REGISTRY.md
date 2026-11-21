@@ -264,3 +264,14 @@ Rebuild with `node scripts/build-infrastructure.ts`. On 2026-11-21 the endpoint 
 | FAA NAS Status (`nasstatus.faa.gov/api/airport-events`) | official, public, no key | Ground stops, ground delay programs, delays and closures with cause and FAA airport position; records for causes other than weather, volume or runway work |
 | FAA Prohibitions, Restrictions and Notices (`faa.gov/air_traffic/publications/us_restrictions/`) | official web page | Notice documents per country or sea area (title, link, kind, first seen); a record when a new document appears |
 | FAA NOTAM API (`api.faa.gov`, NOTAM Management Service) | needs credentials | Not used yet: free registration with client credentials; status after the April 2026 NMS move unconfirmed |
+
+## v0.49.0 Radiation — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| BfS ODL (`imis.bfs.de/ogc/opendata/ows`, `odlinfo_odl_1h_latest`) | official open data, dl-de/by-2-0 | Latest hourly dose rate per station; each station's usual level (packed); stations above usual |
+| STUK external radiation via FMI (`opendata.fmi.fi/wfs`, `stuk::observations::external-radiation::latest::simple`) | official open data, CC BY 4.0 | Latest 10-minute dose rate per station (by position); usual levels; stations above usual |
+| EPA RadNet CSV (`radnet.epa.gov/cdx-radnet-rest/api/rest/csv/{year}/fixed/{state}/{city}`) | official, US government | 16 monitors, two per run (whole-year files, ~800 kB each); latest reading and usual level per monitor |
+| SaveEcoBot radiation API (Ukraine) | needs a key | Not used yet: CC BY 4.0, key via request form |
+| EURDEP (EU) | not used | 6,000+ stations incl. Ukraine, Belarus, Russia, but no public live API (only the map); the JRC open-data folder holds past events only |
+| Safecast | not used | CC0 but sparse in the watch regions, with bad timestamps in Ukraine data |
