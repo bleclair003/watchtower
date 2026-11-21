@@ -1,4 +1,4 @@
-import { AIRCRAFT_COLOR, AIRCRAFT_PATH, FLEET_COLOR, SHIP_PATH, BRANCH_COLOR, OPERATION_COLOR, OPERATION_LABEL } from './WorldMap';
+import { AIRCRAFT_COLOR, AIRCRAFT_PATH, FLEET_COLOR, SANCTIONED_SHIP_COLOR, SHIP_PATH, BRANCH_COLOR, OPERATION_COLOR, OPERATION_LABEL } from './WorldMap';
 import { AIRCRAFT_CLASSES, AIRCRAFT_CLASS_LABEL } from '@shared/domain/aircraft';
 import { useState } from 'react';
 import { EVENT_CATEGORIES } from '@shared/domain/types';
@@ -18,12 +18,14 @@ interface Props {
   aircraft?: { count: number; ageMinutes: number; stale: boolean; provider: string; simulated: boolean };
   /** Fleet layer: big decks listed, tracker date (omit when the layer is off). */
   fleet?: { bigDecks: number; ships: number; asOf: string; stale: boolean; simulated: boolean };
+  /** Sanctioned vessels layer (omit when off). */
+  sanctioned?: { count: number; listenedMinutesAgo: number; shipsHeard: number; simulated: boolean };
 }
 
 const BRANCH_LABEL = { army: 'Army', navy: 'Navy', 'air-force': 'Air Force', marines: 'Marines', other: 'Other DoD' } as const;
 
 /** Collapsible legend explaining symbols and location-precision handling. */
-export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, operatorFilter, aircraft, fleet }: Props) {
+export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, operatorFilter, aircraft, fleet, sanctioned }: Props) {
   const [open, setOpen] = useState(true);
   return (
     <div className="pointer-events-auto absolute bottom-2 left-2 z-10 max-w-[230px] border border-wt-line-strong bg-wt-panel/95 text-2xs">
@@ -110,6 +112,22 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+          {sanctioned && (
+            <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
+              <div className="flex justify-between">
+                <span className="flex items-center gap-1" title="Ships on the US, EU or UK sanctions lists seen on AIS, Baltic and North Sea, last 48 h">
+                  <svg viewBox="0 0 20 20" className="size-2.5 shrink-0" aria-hidden>
+                    <path d={SHIP_PATH} fill={SANCTIONED_SHIP_COLOR} />
+                  </svg>
+                  Sanctioned vessels (48 h){sanctioned.simulated ? ' · SIMULATED' : ''}
+                </span>
+                <span className="text-wt-fg tabular-nums">{sanctioned.count}</span>
+              </div>
+              <p className="text-wt-fg-dim">
+                Baltic + North Sea · {sanctioned.shipsHeard.toLocaleString('en-US')} ships heard {sanctioned.listenedMinutesAgo} min ago
+              </p>
             </div>
           )}
           {aircraft && (

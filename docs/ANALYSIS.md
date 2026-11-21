@@ -205,6 +205,18 @@ New designations on the **US OFAC SDN**, **EU** and **UK** sanctions lists, in t
 - **First run (2026-11-21), UK back-fill:** 20 Russia designations on Nov. 12 (11 vessels), 15 Sudan individuals on Oct. 26, and 9 entities on Nov. 17 linked to the Palestinian Territories and Israel.
 - **Limits:** OFAC entries carry no designation date, so OFAC history starts from the first run; removals are not recorded; a designation is a legal measure, not proof of the conduct alleged.
 
+## Sanctioned vessels (v0.20.0)
+
+**SANCTIONED** on the GOC map shows ships on the US, EU or UK sanctions lists seen on AIS in the **Baltic** (incl. the Gulf of Finland) and the **North Sea + Channel** over the last 48 hours.
+
+- **How ships are matched** ([`collector/adapters/aisSanctioned.ts`](../collector/adapters/aisSanctioned.ts)):
+  - **By IMO** from the ship's own identity message. The IMO number is permanent, so a listed ship that has been re-flagged under a new MMSI and name is still found; its new MMSI is then remembered for later windows.
+  - **By MMSI** (OFAC lists MMSIs) from position reports. If the ship's identity message in the same window shows a different IMO, the MMSI has been reassigned and the match is dropped. MMSI-only matches are labelled as such.
+- **Sampling:** 25 seconds per collection run, while the other sources are collected. Moving ships report every few seconds; identity messages come every ~6 minutes, so IMO matches build up over several runs.
+- **Records:** one per vessel, area and day. Baltic and Gulf of Finland sightings belong to the Eastern Europe region; North Sea sightings to no region.
+- **Indicator:** sanctioned vessels in the Baltic (experimental, weight 0) until a baseline exists.
+- **Limits:** only ships with AIS on near volunteer receivers; coverage is good in north-west Europe and absent in the Middle East and Asia. A sanctioned ship at sea is not by itself a violation.
+
 ## Cost
 
 | Feature | Firestore reads |

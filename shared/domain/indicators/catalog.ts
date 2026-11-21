@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 9;
+export const CATALOG_VERSION = 10;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -769,6 +769,48 @@ const sanctionsIndicators: IndicatorDefinition[] = STATE_DEPT_REGIONS.flatMap((r
   ];
 });
 
+const AIS_SHIPS = 'ais-sanctioned-ships';
+
+/** Phase 13 item 4b: sanctioned vessels in the Baltic (experimental: base rates unknown). */
+const sanctionedShipIndicators: IndicatorDefinition[] = [
+  {
+    id: 'eastern-europe.sanctioned-vessels',
+    name: 'EASTEUR sanctioned vessels in the Baltic',
+    description: 'Distinct sanctioned vessels (OFAC, EU or UK lists) seen on AIS in the Baltic Sea or Gulf of Finland within 7 days, compared with the 28-day baseline.',
+    family: 'experimental',
+    regionId: 'eastern-europe',
+    requiredSourceIds: [AIS_SHIPS, 'ofac-sdn'],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: AIS_SHIPS },
+        { field: 'regionIds', op: 'contains', value: 'eastern-europe' },
+      ],
+    },
+    windowHours: 168,
+    elevated: { countAtLeast: 5 },
+    triggered: { countAtLeast: 10 },
+    baseline: { days: 28, triggerRatio: 3, elevatedRatio: 2 },
+    weight: 0,
+    severity: 'low',
+    experimental: true,
+    enabled: true,
+    configVersion: 1,
+    rationale:
+      'Sanctioned tankers (the Russian "shadow fleet") carry oil past sanctions through the Baltic, and ships from this fleet have damaged undersea cables. Records count ship-days (one per vessel, area and day), so a ship that stays counts on each day it is seen. Thresholds are guesses until a baseline exists.',
+    research: {
+      hypothesis: 'More sanctioned vessels than usual in the Baltic reflects increased sanctions evasion or activity around a crisis.',
+      dataAvailability: 'aisstream.io, sampled 25 s per collection run since 2026-11-21; watchlist from the OFAC, EU and UK lists.',
+      baselinePeriod: '28 days of collection.',
+      expectedRelationship: 'Rises with oil-export volumes through Baltic ports and with enforcement gaps.',
+      historicalExamples: 'None in WATCHTOWER data yet.',
+      confounders: 'Receiver coverage, the sampling window, new designations enlarging the watchlist, port calls.',
+      falsePositives: 'Ships re-designated or renamed; MMSI-only matches after re-flagging.',
+      retrospectiveResults: 'Insufficient history.',
+      evidenceQuality: 'none',
+    },
+  },
+];
+
 export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...advisoryIndicators,
   ...cyberIndicators,
@@ -781,6 +823,7 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...fleetIndicators,
   ...chokepointIndicators,
   ...sanctionsIndicators,
+  ...sanctionedShipIndicators,
 ];
 
 export function getIndicator(id: string): IndicatorDefinition | undefined {

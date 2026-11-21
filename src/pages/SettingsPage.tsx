@@ -20,6 +20,7 @@ const OPTIONS: { key: BooleanSetting; label: string; help: string }[] = [
   { key: 'aircraft', label: 'MILITARY AIRCRAFT', help: 'Military aircraft seen on ADS-B (adsb.lol) at the last collection run, on the GOC map. Only aircraft that broadcast are shown.' },
   { key: 'fleet', label: 'US NAVY FLEET', help: 'Carriers and other deployed ships by named sea area, from the weekly USNI News Fleet and Marine Tracker. Approximate.' },
   { key: 'chokepoints', label: 'CHOKEPOINT TRAFFIC', help: 'Daily ship transits through six straits and canals (IMF PortWatch, about 6 days behind), coloured by change from the 2025 average.' },
+  { key: 'sanctionedShips', label: 'SANCTIONED VESSELS', help: 'Ships on the US, EU or UK sanctions lists seen on AIS in the Baltic and North Sea over the last 48 hours.' },
 ];
 
 export default function SettingsPage() {

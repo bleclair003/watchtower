@@ -22,6 +22,8 @@ export interface OperatorSettings {
   fleet: boolean;
   /** Chokepoint traffic (IMF PortWatch) on the map. */
   chokepoints: boolean;
+  /** Sanctioned vessels (AIS, Baltic and North Sea) on the map. */
+  sanctionedShips: boolean;
 }
 
 export const DEFAULT_SETTINGS: OperatorSettings = {
@@ -35,6 +37,7 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   aircraft: true,
   fleet: true,
   chokepoints: true,
+  sanctionedShips: true,
 };
 
 const KEY = 'wt.settings.v1';

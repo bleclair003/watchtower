@@ -23,6 +23,7 @@ import { truncate } from './lib/text.ts';
 import { AIRCRAFT_SOURCE_ID, type MilitaryAircraftState } from './adapters/militaryAircraft.ts';
 import { FLEET_SOURCE_ID, type FleetState } from './adapters/usniFleet.ts';
 import { PORTWATCH_SOURCE_ID, type PortwatchState } from './adapters/portwatch.ts';
+import { AIS_SOURCE_ID, type AisSanctionedState } from './adapters/aisSanctioned.ts';
 
 export interface PipelineOptions {
   trigger: CollectionRun['trigger'];
@@ -113,6 +114,7 @@ export async function runCollection(
         now: now(),
         state,
         fetch: (url, validators, headers, limits) => politeFetch(url, { ...opts.fetchOptions, validators, extraHeaders: headers, ...limits }),
+        peerState: <T,>(id: string) => store.getSourceState<T>(id),
       });
       report.itemsSeen = result.itemsSeen;
       report.notModified = result.notModified;
@@ -248,6 +250,14 @@ export async function runCollection(
       if (pw?.latest) snapshot.chokepoints = pw.latest;
     } catch (err) {
       log(`CHK  chokepoint data not added to the snapshot: ${sanitizeError(err)}`);
+    }
+  }
+  if (tracked.includes(AIS_SOURCE_ID)) {
+    try {
+      const ais = await store.getSourceState<AisSanctionedState>(AIS_SOURCE_ID);
+      if (ais?.latest) snapshot.sanctionedShips = ais.latest;
+    } catch (err) {
+      log(`SHP  sanctioned-ship data not added to the snapshot: ${sanitizeError(err)}`);
     }
   }
 

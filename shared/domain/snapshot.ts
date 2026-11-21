@@ -4,6 +4,7 @@ import type { AlertRuleProblem } from './alerts/types.ts';
 import type { AircraftSnapshot } from './aircraft.ts';
 import type { FleetSnapshot } from './fleet.ts';
 import type { ChokepointSnapshot } from './chokepoints.ts';
+import type { SanctionedShipsSnapshot } from './sanctionedShips.ts';
 
 /**
  * Precomputed dashboard payload, written by the collector to
@@ -50,6 +51,8 @@ export interface DashboardSnapshot {
   fleet?: FleetSnapshot;
   /** Daily chokepoint transits (IMF PortWatch), with status. */
   chokepoints?: ChokepointSnapshot;
+  /** Sanctioned vessels seen on AIS in the Baltic and North Sea (last 48 h). */
+  sanctionedShips?: SanctionedShipsSnapshot;
 }
 
 /** Firestore collection names — single source of truth for app and collector. */

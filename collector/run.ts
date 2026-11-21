@@ -20,6 +20,7 @@ import { ADAPTERS } from './adapters/index.ts';
 import { runCollection } from './pipeline.ts';
 import { MemoryStore } from './store/memory.ts';
 import { isDiscordWebhookUrl } from './alerts/discord.ts';
+import { AIS_SOURCE_ID, primeAisListening } from './adapters/aisSanctioned.ts';
 import type { CollectorStore } from './store/types.ts';
 import type { CollectionRun } from '../shared/domain/types.ts';
 
@@ -57,6 +58,9 @@ async function main(): Promise<number> {
     store = new FirestoreStore(projectId);
     console.log(`Target: ${process.env.FIRESTORE_EMULATOR_HOST ? `emulator ${process.env.FIRESTORE_EMULATOR_HOST}` : 'Firestore'} · project ${projectId}`);
   }
+
+  // The AIS window listens while the other sources are collected (no added run time).
+  if (!values['evaluate-only'] && adapters.some((a) => a.sourceId === AIS_SOURCE_ID)) primeAisListening();
 
   const trigger = (process.env.COLLECTOR_TRIGGER ?? 'local') as CollectionRun['trigger'];
   console.log(`WATCHTOWER collection run · trigger=${trigger} · ${adapters.length} source(s)${values['dry-run'] ? ' · DRY RUN' : ''}`);

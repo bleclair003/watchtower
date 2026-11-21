@@ -119,6 +119,15 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 - **Terms:** OFAC is US public domain; EU data reusable with acknowledgement; UK under the Open Government Licence v3.0.
 - **Indicators** require OFAC and UK to be healthy; EU records count when present, so a slow EU file never blanks them.
 
+## v0.20.0 Sanctioned vessels on AIS — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| aisstream.io (`AISSTREAM_API_KEY` secret) | aggregator | A 25-second window each run over the Baltic and North Sea. Only ships matching the OFAC/EU/UK vessel lists are kept: latest position per vessel (48 h) and an MMSI→IMO link for ships matched by IMO |
+
+- The window opens when the run starts and is awaited by the last adapter, so it overlaps the other sources.
+- The watchlist is read from the sanctions sources' saved state (about 2,000 vessels with IMO or MMSI).
+
 ## P2 — next adapters
 
 | Source | Endpoint | Info | Method | Auth | Probe | Notes |

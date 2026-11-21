@@ -133,7 +133,7 @@ describe('adapters', () => {
 
 describe('sanctions indicators', () => {
   it('are valid, cover the foreign watch regions, and a large package triggers', () => {
-    const defs = INDICATOR_CATALOG.filter((d) => d.requiredSourceIds.includes('ofac-sdn'));
+    const defs = INDICATOR_CATALOG.filter((d) => /\.sanctions-/.test(d.id));
     expect(validateCatalog(defs)).toEqual([]);
     expect(defs.length).toBe(12);
     expect(defs.some((d) => d.regionId === 'united-states')).toBe(false);

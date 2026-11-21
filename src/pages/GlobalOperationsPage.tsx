@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Anchor, Grid3x3, Plane, Shield, Ship, Square } from 'lucide-react';
+import { Anchor, Ban, Grid3x3, Plane, Shield, Ship, Square } from 'lucide-react';
 import { useBases } from '../data/useInstallations';
 import { ALL_OPERATORS, operatedBy, operatorCounts } from '@shared/domain/installations';
 import { countryName } from '../lib/regionSummary';
@@ -7,6 +7,8 @@ import { InstallationCard } from '../components/map/InstallationCard';
 import { AircraftCard } from '../components/map/AircraftCard';
 import { FleetCard } from '../components/map/FleetCard';
 import { ChokepointCard } from '../components/map/ChokepointCard';
+import { SanctionedShipCard } from '../components/map/SanctionedShipCard';
+import { sightingKey } from '../components/map/WorldMap';
 import { FLEET_STALE_DAYS, isBigDeck } from '@shared/domain/fleet';
 import { AIRCRAFT_PROVIDERS, AIRCRAFT_STALE_MINUTES } from '@shared/domain/aircraft';
 import { getRegion } from '@shared/domain/regions';
@@ -28,7 +30,7 @@ import { Panel } from '../components/ui/Panel';
 export default function GlobalOperationsPage() {
   // Re-evaluate time windows once a minute; the clock in the top bar ticks separately.
   const now = useNow(60_000).getTime();
-  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints } = useData();
+  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips } = useData();
   const { filters, setFilters, resetFilters, selectedEventId, selectEvent, globalViewNonce } = useDashboard();
   const { settings, update } = useSettings();
 
@@ -76,8 +78,12 @@ export default function GlobalOperationsPage() {
   const [selectedStrait, setSelectedStrait] = useState<string | null>(null);
   const shownStraits = settings.chokepoints && chokepoints ? chokepoints.items : undefined;
   const selectedStraitItem = selectedStrait ? shownStraits?.find((c) => c.id === selectedStrait) : undefined;
-  // One map card at a time: selecting a base, aircraft, fleet area or chokepoint clears the others.
-  const selectOnly = (kind: 'base' | 'air' | 'fleet' | 'strait', key: string | null) => {
+  const [selectedListed, setSelectedListed] = useState<string | null>(null);
+  const shownListed = settings.sanctionedShips && sanctionedShips ? sanctionedShips.sightings : undefined;
+  const selectedListedShip = selectedListed ? shownListed?.find((s) => sightingKey(s) === selectedListed) : undefined;
+  // One map card at a time: selecting a base, aircraft, fleet area, chokepoint or vessel clears the others.
+  const selectOnly = (kind: 'base' | 'air' | 'fleet' | 'strait' | 'listed', key: string | null) => {
+    setSelectedListed(kind === 'listed' ? key : null);
     setSelectedBase(kind === 'base' ? key : null);
     setSelectedAircraft(kind === 'air' ? key : null);
     setSelectedFleetArea(kind === 'fleet' ? key : null);
@@ -175,6 +181,17 @@ export default function GlobalOperationsPage() {
               >
                 <Ship size={10} aria-hidden /> STRAITS
               </button>
+              <button
+                className={toggleBtn(settings.sanctionedShips)}
+                aria-pressed={settings.sanctionedShips}
+                title="Ships on the US, EU or UK sanctions lists seen on AIS (Baltic and North Sea, last 48 h)"
+                onClick={() => {
+                  update({ sanctionedShips: !settings.sanctionedShips });
+                  setSelectedListed(null);
+                }}
+              >
+                <Ban size={10} aria-hidden /> SANCTIONED
+              </button>
               {settings.installations && operatorOptions.length > 0 && (
                 <select
                   aria-label="Show bases operated by"
@@ -220,6 +237,10 @@ export default function GlobalOperationsPage() {
               showChokepoints={settings.chokepoints}
               selectedChokepoint={selectedStraitItem ? selectedStrait : null}
               onSelectChokepoint={(id) => selectOnly('strait', id)}
+              sanctionedShips={shownListed}
+              showSanctionedShips={settings.sanctionedShips}
+              selectedSanctionedShip={selectedListedShip ? selectedListed : null}
+              onSelectSanctionedShip={(key) => selectOnly('listed', key)}
             />
           <MapLegend
             plotted={projection.points.features.length}
@@ -231,6 +252,16 @@ export default function GlobalOperationsPage() {
             aircraft={
               settings.aircraft && aircraft
                 ? { count: aircraft.aircraft.length, ageMinutes: aircraftAgeMin, stale: aircraftStale, provider: AIRCRAFT_PROVIDERS[aircraft.provider].name, simulated: !!aircraft.simulated }
+                : undefined
+            }
+            sanctioned={
+              settings.sanctionedShips && sanctionedShips
+                ? {
+                    count: sanctionedShips.sightings.length,
+                    listenedMinutesAgo: Math.max(0, Math.round((now - Date.parse(sanctionedShips.listenedAt)) / 60_000)),
+                    shipsHeard: sanctionedShips.ships,
+                    simulated: !!sanctionedShips.simulated,
+                  }
                 : undefined
             }
             fleet={
@@ -245,10 +276,11 @@ export default function GlobalOperationsPage() {
                 : undefined
             }
           />
-          {selectedStraitItem && chokepoints && <ChokepointCard item={selectedStraitItem} snapshot={chokepoints} now={now} onClose={() => setSelectedStrait(null)} />}
-          {!selectedStraitItem && selectedArea && fleet && <FleetCard area={selectedArea} snapshot={fleet} now={now} onClose={() => setSelectedFleetArea(null)} />}
-          {!selectedStraitItem && !selectedArea && selectedPlane && aircraft && <AircraftCard aircraft={selectedPlane} snapshot={aircraft} now={now} onClose={() => setSelectedAircraft(null)} />}
-          {!selectedStraitItem && !selectedArea && !selectedPlane && bases.selected && <InstallationCard selected={bases.selected} events={events} now={now} onClose={() => setSelectedBase(null)} />}
+          {selectedListedShip && sanctionedShips && <SanctionedShipCard ship={selectedListedShip} snapshot={sanctionedShips} now={now} onClose={() => setSelectedListed(null)} />}
+          {!selectedListedShip && selectedStraitItem && chokepoints && <ChokepointCard item={selectedStraitItem} snapshot={chokepoints} now={now} onClose={() => setSelectedStrait(null)} />}
+          {!selectedListedShip && !selectedStraitItem && selectedArea && fleet && <FleetCard area={selectedArea} snapshot={fleet} now={now} onClose={() => setSelectedFleetArea(null)} />}
+          {!selectedListedShip && !selectedStraitItem && !selectedArea && selectedPlane && aircraft && <AircraftCard aircraft={selectedPlane} snapshot={aircraft} now={now} onClose={() => setSelectedAircraft(null)} />}
+          {!selectedListedShip && !selectedStraitItem && !selectedArea && !selectedPlane && bases.selected && <InstallationCard selected={bases.selected} events={events} now={now} onClose={() => setSelectedBase(null)} />}
           {bases.error && settings.installations && <p className="absolute top-2 right-2 z-10 bg-wt-panel/95 px-2 py-1 text-2xs text-wt-warn">{bases.error}</p>}
         </Panel>
 

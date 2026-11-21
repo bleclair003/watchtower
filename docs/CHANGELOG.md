@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.20.0] — 2026-11-21 — Sanctioned vessels on AIS (Baltic and North Sea)
+
+### Added
+- Source 31, **sanctioned vessels on AIS**: each collection run listens to aisstream.io for 25 seconds over the Baltic Sea (incl. the Gulf of Finland) and the North Sea + Channel, while the other sources are collected, so the run is not longer.
+- Ships are matched against the vessels on the OFAC, EU and UK sanctions lists: by **IMO** from the ship's own identity message (permanent; survives re-flagging, and the MMSI is then remembered) or, for OFAC entries, by **MMSI** (dropped when the ship's identity message shows a different IMO, i.e. a reassigned MMSI).
+- **SANCTIONED** map layer on the GOC: pink ship icons for sightings in the last 48 hours (faded after 6 hours); the card shows the lists, programmes, match basis, broadcast name, speed, course and destination.
+- Records: one per vessel, area and day. Catalog v10 (97 indicators): **sanctioned vessels in the Baltic** (Eastern Europe, experimental).
+- Adapters can read other sources' saved state (the sanctions lists' vessel identifiers).
+
+### Limits
+- Only ships with AIS on, near volunteer receivers, during the 25-second window. Identity messages come every ~6 minutes, so IMO matches build up over several runs.
+
+
 ## [0.19.0] — 2026-11-21 — Sanctions (OFAC, EU, UK)
 
 ### Added

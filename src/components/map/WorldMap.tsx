@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AIRCRAFT_CLASS_LABEL, aircraftLabel, aircraftTypeName, type AircraftClass, type AircraftPosition } from '@shared/domain/aircraft';
 import { isBigDeck, type FleetArea } from '@shared/domain/fleet';
 import type { ChokepointReading } from '@shared/domain/chokepoints';
+import type { SanctionedShipSighting } from '@shared/domain/sanctionedShips';
 import { componentOf, operationOf, type Branch, type Installation, type Operation, type WorldInstallation } from '@shared/domain/installations';
 import '../../lib/maplibreSetup';
 import { Map as MLMap, NavigationControl, Popup, type GeoJSONSource, type MapLayerMouseEvent, type StyleSpecification } from 'maplibre-gl';
@@ -45,6 +46,12 @@ export interface WorldMapProps {
   showChokepoints?: boolean;
   selectedChokepoint?: string | null;
   onSelectChokepoint?: (id: string | null) => void;
+  /** Sanctioned vessels seen on AIS, optional. */
+  sanctionedShips?: SanctionedShipSighting[];
+  showSanctionedShips?: boolean;
+  /** Selected vessel key (IMO, or mmsi:<n>). */
+  selectedSanctionedShip?: string | null;
+  onSelectSanctionedShip?: (key: string | null) => void;
 }
 
 const GLOBAL_VIEW = { center: [35, 22] as [number, number], zoom: 1.35 };
@@ -66,6 +73,10 @@ export const AIRCRAFT_COLOR: Record<AircraftClass, string> = {
   helicopter: '#c8c8c8',
   other: '#8a958f',
 };
+/** Sanctioned vessels: pink, distinct from severity colours and from the fleet layer. */
+export const SANCTIONED_SHIP_COLOR = '#ff7ab6';
+export const sightingKey = (s: Pick<SanctionedShipSighting, 'imo' | 'mmsi'>) => s.imo ?? `mmsi:${s.mmsi}`;
+
 /** Chokepoint status colours: amber and red are severity here, which is what they are reserved for. */
 export const CHOKEPOINT_COLOR = { normal: '#80a992', reduced: '#ffc857', severe: '#ff5555', 'sudden-drop': '#ff5555', 'insufficient-data': '#5f6b66' } as const;
 
@@ -385,6 +396,41 @@ export function WorldMap(props: WorldMapProps) {
           },
         });
 
+        // Sanctioned vessels (AIS): ship icons along their course.
+        m.addSource('sanctioned-ships', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({
+          id: 'sanctioned-ship-selected',
+          type: 'circle',
+          source: 'sanctioned-ships',
+          filter: ['==', ['get', 'key'], '__none__'],
+          paint: { 'circle-radius': 11, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': INFO, 'circle-stroke-width': 1.6 },
+        });
+        m.addLayer({
+          id: 'sanctioned-ships',
+          type: 'symbol',
+          source: 'sanctioned-ships',
+          layout: {
+            'icon-image': 'ship',
+            'icon-size': ['interpolate', ['linear'], ['zoom'], 1, 0.7, 6, 1],
+            'icon-allow-overlap': true,
+            'text-field': ['step', ['zoom'], '', 4, ['get', 'name']],
+            'text-font': font,
+            'text-size': 10,
+            'text-offset': [0, 1.2],
+            'text-anchor': 'top',
+            'text-optional': true,
+          },
+          paint: {
+            'icon-color': SANCTIONED_SHIP_COLOR,
+            'icon-opacity': ['case', ['get', 'recent'], 1, 0.55],
+            'icon-halo-color': '#050a08',
+            'icon-halo-width': 1,
+            'text-color': '#f3c1da',
+            'text-halo-color': '#050a08',
+            'text-halo-width': 1.2,
+          },
+        });
+
         // Military aircraft (ADS-B): above installations, below event markers.
         m.addSource('aircraft', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
         m.addLayer({
@@ -508,6 +554,8 @@ export function WorldMap(props: WorldMapProps) {
           m.getCanvas().style.cursor = '';
           hover.remove();
         });
+        m.on('mouseenter', 'sanctioned-ships', () => (m.getCanvas().style.cursor = 'pointer'));
+        m.on('mouseleave', 'sanctioned-ships', () => (m.getCanvas().style.cursor = ''));
         m.on('mouseenter', 'chokepoints', () => (m.getCanvas().style.cursor = 'pointer'));
         m.on('mouseleave', 'chokepoints', () => (m.getCanvas().style.cursor = ''));
         m.on('mouseenter', 'fleet', () => (m.getCanvas().style.cursor = 'pointer'));
@@ -528,6 +576,13 @@ export function WorldMap(props: WorldMapProps) {
             : [];
           if (planes[0] && cb.current.onSelectAircraft) {
             cb.current.onSelectAircraft(String(planes[0].properties.hex));
+            return;
+          }
+          const listed = m.getLayoutProperty('sanctioned-ships', 'visibility') !== 'none'
+            ? m.queryRenderedFeatures([[e.point.x - 7, e.point.y - 7], [e.point.x + 7, e.point.y + 7]], { layers: ['sanctioned-ships'] })
+            : [];
+          if (listed[0] && cb.current.onSelectSanctionedShip) {
+            cb.current.onSelectSanctionedShip(String(listed[0].properties.key));
             return;
           }
           const straits = m.getLayoutProperty('chokepoints', 'visibility') !== 'none'
@@ -665,6 +720,36 @@ export function WorldMap(props: WorldMapProps) {
     if (at) m.easeTo({ center: at, zoom: Math.max(m.getZoom(), 6), duration: 600 });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to selection changes
   }, [ready, selectedInstallation]);
+
+  const { sanctionedShips, showSanctionedShips, selectedSanctionedShip } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    const cutoff = Date.now() - 6 * 3_600_000;
+    (m.getSource('sanctioned-ships') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (sanctionedShips ?? []).map((s) => ({
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: [s.lo, s.la] },
+        properties: { key: sightingKey(s), name: s.listedName, recent: Date.parse(s.seenAt) >= cutoff },
+      })),
+    });
+  }, [ready, sanctionedShips]);
+
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    for (const id of ['sanctioned-ships', 'sanctioned-ship-selected']) m.setLayoutProperty(id, 'visibility', showSanctionedShips ? 'visible' : 'none');
+  }, [ready, showSanctionedShips]);
+
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    m.setFilter('sanctioned-ship-selected', ['==', ['get', 'key'], selectedSanctionedShip ?? '__none__']);
+    const s = sanctionedShips?.find((x) => sightingKey(x) === selectedSanctionedShip);
+    if (s) m.easeTo({ center: [s.lo, s.la], zoom: Math.max(m.getZoom(), 5), duration: 600 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to selection changes
+  }, [ready, selectedSanctionedShip]);
 
   const { chokepoints, showChokepoints, selectedChokepoint } = props;
   useEffect(() => {

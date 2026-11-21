@@ -176,8 +176,8 @@ Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at
    - [x] Sanctioned vessels with IMO/MMSI kept for item 4b
 4b. **Sanctioned vessels in the Baltic and North Sea** (aisstream.io; needs item 4's vessel identifiers)
    - [x] Coverage probe: good in the Baltic (930 ships in 2 min) and North Sea (2,984); none at the chokepoints; no US Navy warships at Norfolk or San Diego
-   - [ ] Short listen per run in parallel with the other sources (minutes budget), filtered to sanctioned MMSIs; ship directory kept across runs
-   - [ ] Records and map markers when a sanctioned vessel is seen; indicator for the Eastern Europe region
+   - [x] 25-second listen per run in parallel with the other sources; matched by IMO (identity messages) or OFAC MMSI; MMSI→IMO links kept across runs — v0.20.0
+   - [x] Records and map markers when a sanctioned vessel is seen; experimental indicator for the Eastern Europe region
 5. **UN Security Council** (meetings programme, press releases, resolutions)
    - [ ] Emergency and unscheduled meetings, vetoes, adopted resolutions
    - [ ] Indicators: emergency session on a watch-region country; veto cast

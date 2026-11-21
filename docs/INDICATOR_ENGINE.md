@@ -40,7 +40,7 @@ For each indicator, at time `now`:
 - **Fields:** an allow-list (`CONDITION_FIELDS`) of event properties and selected `metadata.*` keys. Lookups are own-property only, so inherited names such as `constructor` are rejected; this is tested.
 - `validateCondition()` and `validateCatalog()` reject malformed definitions, and the catalog is validated in CI.
 
-## Catalog v9 (96 indicators)
+## Catalog v10 (97 indicators)
 
 | Region | Indicator | Window | Elevated / Triggered | Baseline | Weight · Severity |
 |---|---|---|---|---|---|
@@ -67,6 +67,7 @@ For each indicator, at time `now`:
 | Middle East, Red Sea, Eastern Europe, Taiwan Strait (v8) | Chokepoint traffic severely reduced (under 40%) or 40% below the previous four weeks | 8 d | 1 / 1 | — | 3 · high |
 | each of 6 foreign geographic regions (v9) | New sanctions designations (OFAC, EU, UK batches targeting or linked to the region) | 7 d | 2 / 4 | 28 d, ×2 / ×3 | 1 · medium |
 | each of 6 foreign geographic regions (v9) | Large sanctions package: one batch of 25+ designations | 7 d | 1 / 1 | — | 2 · medium |
+| Eastern Europe, experimental (v10) | Sanctioned vessels seen on AIS in the Baltic / Gulf of Finland (vessel-days) | 7 d | 5 / 10 | 28 d, ×2 / ×3 | 0 · never in the RAI |
 | Experimental | State Dept advisory tempo (global) | 72 h | 6 / 12 | 28 d | 0 |
 | Experimental | Pentagon Pizza Index | — | — | — | 0 · always NO DATA |
 

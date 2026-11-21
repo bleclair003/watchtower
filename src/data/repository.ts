@@ -13,6 +13,8 @@ import type { FleetSnapshot } from '@shared/domain/fleet';
 import { buildDemoFleet } from './demo/demoFleet';
 import type { ChokepointSnapshot } from '@shared/domain/chokepoints';
 import { buildDemoChokepoints } from './demo/demoChokepoints';
+import type { SanctionedShipsSnapshot } from '@shared/domain/sanctionedShips';
+import { buildDemoSanctionedShips } from './demo/demoSanctionedShips';
 
 /**
  * Data access boundary for the UI.
@@ -42,6 +44,8 @@ export interface DashboardData {
   fleet: FleetSnapshot | null;
   /** Chokepoint transits (IMF PortWatch), or null. */
   chokepoints: ChokepointSnapshot | null;
+  /** Sanctioned vessels seen on AIS, or null. */
+  sanctionedShips: SanctionedShipsSnapshot | null;
 }
 
 export interface IntelRepository {
@@ -82,6 +86,7 @@ export class DemoRepository implements IntelRepository {
       aircraft: buildDemoAircraft(now),
       fleet: buildDemoFleet(now),
       chokepoints: buildDemoChokepoints(now),
+      sanctionedShips: buildDemoSanctionedShips(now),
       events: this.events,
       // No collector has ever run in demo mode, so every source is honestly NOT_CONFIGURED.
       sourceStatus: SOURCE_REGISTRY.map((s) => ({

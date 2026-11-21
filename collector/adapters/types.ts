@@ -21,6 +21,8 @@ export interface AdapterContext<S> {
   state: S | null;
   /** Polite fetch bound to the collector's HTTP policy. */
   fetch: (url: string, validators?: Validators, headers?: Record<string, string>, limits?: FetchLimits) => Promise<FetchResult>;
+  /** Read-only access to another source's saved state (e.g. the sanctions lists' vessel identifiers). */
+  peerState?: <T>(sourceId: string) => Promise<T | null>;
 }
 
 export interface AdapterResult<S> {
