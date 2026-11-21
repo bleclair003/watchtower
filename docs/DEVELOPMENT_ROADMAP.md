@@ -275,3 +275,37 @@ Analysis across the sources already collected. Every meter shows its evidence, t
 
 ### E. Presentation
    - [x] Meters page; meter strip on each region page; meter history for sparklines; demo-mode meters (simulated)
+
+## Phase 15 — Outside signals, language and source behaviour (planned 2026-11-21)
+
+Free sources and analysis of data already collected. Each new outside source is checked for terms and access before it is built; each analysis states its method and limits, and none states a probability of its own.
+
+### A. New free signals
+1. **Prediction markets and forecasters**
+   - [ ] Check terms and API access: Polymarket, Kalshi (read-only market data), Metaculus (may need a free token)
+   - [ ] Track odds on hand-picked geopolitical questions next to the meters; flag sharp moves; label as betting odds or crowd forecasts, not WATCHTOWER's view
+2. **Infrastructure proximity alerts**
+   - [ ] Load free static datasets (power plants incl. nuclear, refineries, dams, major ports) with their licences and dates
+   - [ ] Flag fire clusters, outages and strike reports near them (e.g. within 10 km of a nuclear plant); show on the map and in the meters
+
+### B. Language and narrative (fixed rules, no paid AI)
+3. **Language temperature**
+   - [ ] Open, adjustable escalation and de-escalation word lists; score each region's headlines over time
+4. **People and group tracking**
+   - [ ] Mentions over time of named groups and leaders per region; first-appearance alerts for new names
+5. **Coverage gaps**
+   - [ ] Stories reported by only one side (e.g. Al Jazeera but not BBC or official feeds, and the reverse)
+
+### C. How the sources behave
+6. **Who's first**
+   - [ ] Per kind of event, which source reports first (sensor, official, media) and by how many hours
+7. **Source track record**
+   - [ ] Per source, how often a single-publisher report is later corroborated by others
+8. **Missing regulars**
+   - [ ] Alert when a source that normally posts daily goes quiet, per source
+
+### D. Context and dates
+11. **Known dates ahead**
+   - [ ] Curated calendar of tension-prone dates (elections, national days, anniversaries, regular exercises) added to the meters calendar
+12. **Like-for-like comparisons**
+   - [ ] Compare Saturdays with Saturdays and holidays with holidays in usual-level baselines (most useful after a few months of history)
