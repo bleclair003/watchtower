@@ -22,6 +22,7 @@ import { DisplacementPanel } from '../components/region/DisplacementPanel';
 import { WhatChangedPanel } from '../components/region/WhatChangedPanel';
 import { RegionMeters } from '../components/meters/RegionMeters';
 import { MarketsPanel } from '../components/meters/MarketsPanel';
+import { ActorsPanel } from '../components/meters/ActorsPanel';
 import { regionChanges } from '@shared/domain/changes';
 
 const MAX_ENTRIES = 60;
@@ -113,6 +114,7 @@ export default function RegionPage() {
       <WhatChangedPanel changes={changes} now={now} />
       <RegionMeters regionId={id} meters={data.meters} now={now} />
       <MarketsPanel data={data.predictionMarkets} regionId={id} now={now} designator="PM" />
+      <ActorsPanel data={data.actors} regionId={id} now={now} designator="PG" />
 
       <div className="grid gap-1.5 lg:grid-cols-2">
         <Panel title="RAI — recent runs" designator="R1">

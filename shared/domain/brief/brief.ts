@@ -125,6 +125,12 @@ export function buildBrief(snapshot: DashboardSnapshot, now: number): Brief {
       section('Indicator changes (24 h)', changes, 8, 'No indicator changed state.'),
       section('Official warnings (24 h)', warnings, 8, 'No level changes, attributed shutdowns, orange/red disaster alerts or unusual seismic events.'),
       section('Top stories (24 h)', storyLines, 6, 'No relevant multi-report stories or watch-region news.'),
+      section(
+        'New names in the news (7 days)',
+        (snapshot.actors?.newNames ?? []).map((n) => ({ text: `${n.name} — ${n.mentions} headlines, ${n.publishers} publisher(s)${n.regionIds.length ? ` [${n.regionIds.map(short).join('/')}]` : ''}`, url: n.sample.url })),
+        6,
+        'No new names with 2 or more headlines.',
+      ),
       section('Collector health', health, 6, `All ${snapshot.sourceStatus.length} sources online.`),
     ],
   };

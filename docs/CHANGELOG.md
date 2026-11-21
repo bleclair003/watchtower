@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.40.0] — 2026-11-21 — People and groups (Phase 15 item 4)
+
+### Added
+- **Tracked people and groups** (`shared/domain/actors.ts`, 43 entries, names and spellings only — no titles): Hamas, Hezbollah, IRGC/Quds Force, Houthis/Ansar Allah, al-Shabaab, Wagner/Africa Corps, PLA, China Coast Guard, Netanyahu, Khamenei, Putin, Zelensky, Kim Jong Un, Xi Jinping, Trump, Hegseth and others, each tied to its regions. Counted in record titles and summaries per day (14 days), 24 h / 72 h / 7 d; RISING when 72-hour mentions are 3× the usual level (5+), after 14 days of history.
+- **New names**: candidate proper names in sentence-case headlines (BBC, Al Jazeera, UN News, NPR, Defense News, Military Times), minus places, institutions and tracked names, compared with every name seen since tracking began (collector-only registry `collectorState/nameRegistry`, up to 30,000 names). Shown after 2 headlines within 7 days of first appearance. The first run learns the names already in the news without flagging them.
+- **People and groups** meter per region (METERS grid column ACTORS; region strips; lead/lag lab), a **People and groups** panel on the METERS page and region pages (counts and a 14-day line per name; new names with a sample headline), and a **New names in the news** section in the daily brief.
+
+### Tuned against the real headlines of 2026-11-21
+Names stop at punctuation and possessives ("Steve Rosenberg: Historic …", "India’s Manipur"); phrases containing place words ("Crimean Bridge") and generic capitalised phrases ("Weekly Full Episode", "Coast Guard", "Iron Curtain") are dropped. From 20 raw candidates to 3 real names (Jensen Huang, Gianni Infantino, Steve Rosenberg).
+
+
 ## [0.39.0] — 2026-11-21 — Language temperature (Phase 15 item 3)
 
 ### Added

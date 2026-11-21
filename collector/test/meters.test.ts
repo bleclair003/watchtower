@@ -227,7 +227,7 @@ describe('quality, clocks and history', () => {
 describe('engine', () => {
   it('every meter is well-formed on empty input (no data, no crash)', () => {
     const all = allMeters(input([], { historyStart: null }));
-    expect(all.length).toBe(98);
+    expect(all.length).toBe(105);
     expect(new Set(all.map((m) => m.id)).size).toBe(all.length);
     for (const m of all) {
       expect(m.reading.length, m.id).toBeGreaterThan(0);
@@ -239,7 +239,7 @@ describe('engine', () => {
     const store = new MemoryStore();
     await runCollection([], store, { now: () => NOW, log: () => {} } as never);
     const m = await store.getMetersSnapshot();
-    expect(m?.meters.length).toBe(98);
+    expect(m?.meters.length).toBe(105);
     expect(m?.history.length).toBe(1);
     expect(m?.leadLag?.note).toMatch(/too few/);
     const long = await store.getCollectorState<{ packed: string }>('meterHistory');

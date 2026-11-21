@@ -25,6 +25,8 @@ import type { PredictionMarketsSnapshot } from '@shared/domain/predictionMarkets
 import { buildDemoMarkets } from './demo/demoMarkets';
 import type { InfrastructureSnapshot } from '@shared/domain/infrastructure';
 import { buildDemoInfrastructure } from './demo/demoInfrastructure';
+import type { ActorsSnapshot } from '@shared/domain/actors';
+import { computeActors } from '@shared/domain/actorsTrack';
 
 /**
  * Data access boundary for the UI.
@@ -66,6 +68,8 @@ export interface DashboardData {
   predictionMarkets: PredictionMarketsSnapshot | null;
   /** Infrastructure with records near or naming it (72 h), or null. */
   infrastructure: InfrastructureSnapshot | null;
+  /** Tracked people and groups and new names, or null. */
+  actors: ActorsSnapshot | null;
 }
 
 export interface IntelRepository {
@@ -111,6 +115,8 @@ export class DemoRepository implements IntelRepository {
       baseActivity: buildDemoBaseActivity(now),
       predictionMarkets: buildDemoMarkets(now),
       infrastructure: buildDemoInfrastructure(now),
+      // The real tracker over the demo records (no registry: nothing counts as new in demo mode).
+      actors: { ...computeActors(this.events, now, null, null).snapshot, simulated: true },
       events: this.events,
       // No collector has ever run in demo mode, so every source is honestly NOT_CONFIGURED.
       sourceStatus: SOURCE_REGISTRY.map((s) => ({

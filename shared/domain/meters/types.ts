@@ -31,6 +31,7 @@ export type MeterKind =
   | 'markets'
   | 'infrastructure'
   | 'language'
+  | 'actors'
   | 'corroboration'
   | 'visibility';
 

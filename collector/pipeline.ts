@@ -4,6 +4,7 @@ import { computeBaseActivity } from '../shared/domain/baseActivity.ts';
 import { loadBases } from './lib/bases.ts';
 import { loadInfrastructure } from './lib/infrastructure.ts';
 import { computeInfrastructure } from '../shared/domain/infraProximity.ts';
+import { computeActors, packRegistry, unpackRegistry } from '../shared/domain/actorsTrack.ts';
 import { computeMeters } from '../shared/domain/meters/index.ts';
 import type { MetersSnapshot } from '../shared/domain/meters/types.ts';
 import { appendLong, leadLag, type HistoryPoint } from '../shared/domain/meters/history.ts';
@@ -358,6 +359,7 @@ export async function runCollection(
       displacement: snapshot.displacement ?? null,
       predictionMarkets: snapshot.predictionMarkets ?? null,
       infrastructure: snapshot.infrastructure ?? null,
+      actors: snapshot.actors ?? null,
       upcomingLaunches: launches?.upcoming ?? [],
       previous: previousMeters,
     });
@@ -421,6 +423,8 @@ export function snapshotLookbackHours(catalog: IndicatorDefinition[]): number {
 export const EVENT_QUERY_LIMIT = 20_000;
 /** Collector-only long meter history (packed, one point per 3 hours, 120 days). */
 export const METER_HISTORY_KEY = 'meterHistory';
+/** Collector-only registry of every candidate name seen in headlines (for first-appearance flags). */
+export const NAME_REGISTRY_KEY = 'nameRegistry';
 
 const eventTime = (e: { publishedAt: string | null; collectedAt: string }) => e.publishedAt ?? e.collectedAt;
 
@@ -491,6 +495,18 @@ export async function buildSnapshot(
     log(`BAS  ${b.items.length} installation(s) with records this week · ${b.items.filter((i) => i.unusual).length} unusual · ${b.historyDays} d history${b.flagsActive ? '' : ' (flags start at 21 d)'}`);
   } catch (err) {
     log(`BAS  base activity not computed: ${sanitizeError(err)}`);
+  }
+
+  // People and groups; new names (the registry of names already seen is collector-only state).
+  try {
+    const stored = await store.getCollectorState<{ packed: string }>(NAME_REGISTRY_KEY);
+    const historyStart = loaded.reduce((m, e) => Math.min(m, Date.parse(e.collectedAt)), Infinity);
+    const { snapshot: actors, registry } = computeActors(loaded, now, Number.isFinite(historyStart) ? historyStart : null, stored ? unpackRegistry(stored.packed) : null);
+    snapshot.actors = actors;
+    await store.putCollectorState(NAME_REGISTRY_KEY, { packed: packRegistry(registry), updatedAt: new Date(now).toISOString() });
+    log(`ACT  ${actors.actors.length} tracked actors named · ${actors.newNames.length} new name(s) · ${registry.names.size} names known`);
+  } catch (err) {
+    log(`ACT  people and groups not computed: ${sanitizeError(err)}`);
   }
 
   // Critical infrastructure near or named in records (72 h).

@@ -9,6 +9,7 @@ import type { DisplacementSnapshot } from './displacement.ts';
 import type { BaseActivitySnapshot } from './baseActivity.ts';
 import type { PredictionMarketsSnapshot } from './predictionMarkets.ts';
 import type { InfrastructureSnapshot } from './infrastructure.ts';
+import type { ActorsSnapshot } from './actors.ts';
 
 /**
  * Precomputed dashboard payload, written by the collector to
@@ -67,6 +68,8 @@ export interface DashboardSnapshot {
   predictionMarkets?: PredictionMarketsSnapshot;
   /** Critical infrastructure with records near or naming it in the last 72 hours. */
   infrastructure?: InfrastructureSnapshot;
+  /** Tracked people and groups, and new names in headlines. */
+  actors?: ActorsSnapshot;
 }
 
 /** Firestore collection names — single source of truth for app and collector. */

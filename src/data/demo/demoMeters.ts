@@ -23,6 +23,7 @@ export function buildDemoMeters(now: number, events: IntelligenceEvent[], data: 
     displacement: data.displacement,
     predictionMarkets: data.predictionMarkets,
     infrastructure: data.infrastructure,
+    actors: data.actors,
     upcomingLaunches: [
       { name: '[SIMULATED] Demo launcher | Classified payload', net: new Date(now + 3 * 86_400_000).toISOString(), provider: 'Demo Space Force', country: null, status: 'Go for Launch', url: null },
     ],

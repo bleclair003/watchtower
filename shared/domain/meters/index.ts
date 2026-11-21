@@ -22,6 +22,7 @@ import { afterHours } from './afterHours.ts';
 import { marketOdds } from './markets.ts';
 import { infrastructureMeter } from './infrastructure.ts';
 import { languageTemperature } from './languageTemp.ts';
+import { actorsMeter } from './actorsMeter.ts';
 import { daysSince, upcomingCalendar } from './clocks.ts';
 import { appendShort, pointFor } from './history.ts';
 import { BASELINE_DAYS, DAY } from './util.ts';
@@ -47,6 +48,7 @@ export function allMeters(input: MeterInput): Meter[] {
     washingtonAttention(input),
     ...GEO_REGIONS.map((r) => diplomaticTemperature(input, r)),
     ...GEO_REGIONS.map((r) => languageTemperature(input, r)),
+    ...GEO_REGIONS.map((r) => actorsMeter(input, r)),
     strategicWeapons(input),
     ...GEO_REGIONS.map((r) => informationBlackout(input, r)),
     ...ABROAD.map((r) => economicStress(input, r)),

@@ -9,6 +9,7 @@ import { Panel } from '../components/ui/Panel';
 import { Tag } from '../components/ui/Tag';
 import { MeterCard, cellLabel, levelTone } from '../components/meters/MeterCard';
 import { MarketsPanel } from '../components/meters/MarketsPanel';
+import { ActorsPanel } from '../components/meters/ActorsPanel';
 import { formatUtc } from '../lib/time';
 import { safeExternalUrl } from '../lib/sanitize';
 
@@ -18,6 +19,7 @@ const REGION_COLUMNS: [MeterKind, string, string][] = [
   ['buildup', 'BUILDUP', 'Quiet buildup vs noise'],
   ['air-surge', 'AIR', 'Air surge: tanker, airlift, ISR, bomber sightings'],
   ['diplomatic', 'DIPLO', 'Diplomatic temperature'],
+  ['actors', 'ACTORS', 'Tracked people and groups, rising actors and new names'],
   ['language', 'TONE', 'Language temperature of news headlines, −100 calming to +100 escalating'],
   ['blackout', 'BLACKOUT', 'Information blackout'],
   ['economic', 'ECON', 'Economic stress'],
@@ -30,7 +32,7 @@ const TOPIC_ORDER: MeterKind[] = ['naval', 'maritime', 'sanctions', 'arms', 'was
 const DISCLAIMER = 'Meters describe activity in the sources WATCHTOWER monitors. None is a probability of conflict, attack or any other event.';
 
 export default function MetersPage() {
-  const { meters, mode, predictionMarkets } = useData();
+  const { meters, mode, predictionMarkets, actors } = useData();
   const now = useNow(60_000).getTime();
   const [params, setParams] = useSearchParams();
   const selectedId = params.get('m');
@@ -137,6 +139,8 @@ export default function MetersPage() {
           </Panel>
 
           <MarketsPanel data={predictionMarkets} now={now} />
+
+          <ActorsPanel data={actors} now={now} />
 
           <Panel title="Days since" designator="M3">
             <ul className="grid grid-cols-2 gap-px bg-wt-line sm:grid-cols-3 lg:grid-cols-5">

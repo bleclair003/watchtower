@@ -292,7 +292,7 @@ Free sources and analysis of data already collected. Each new outside source is 
 3. **Language temperature**
    - [x] Open, adjustable escalation and de-escalation word lists; score each region's headlines over time — v0.39.0
 4. **People and group tracking**
-   - [ ] Mentions over time of named groups and leaders per region; first-appearance alerts for new names
+   - [x] Mentions over time of named groups and leaders per region; first-appearance flags for new names (panels, meter, daily brief) — v0.40.0
 5. **Coverage gaps**
    - [ ] Stories reported by only one side (e.g. Al Jazeera but not BBC or official feeds, and the reverse)
 
