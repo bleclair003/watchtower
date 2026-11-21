@@ -1,0 +1,14 @@
+{
+  "showUnsupportedFiles": true,
+  "userIgnoreFilters": [
+    "node_modules/",
+    "dist/",
+    "dist-e2e/",
+    "test-results/",
+    "playwright-report/",
+    "collector/test/fixtures/",
+    "collector/geo/watch-countries.json",
+    "package-lock.json"
+  ],
+  "alwaysUpdateLinks": true
+}

@@ -41,3 +41,7 @@ ui-debug.log*
 dist-e2e
 playwright-report
 test-results
+
+# Obsidian per-device UI state
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
