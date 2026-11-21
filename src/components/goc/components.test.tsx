@@ -75,7 +75,7 @@ describe('IntelFeed', () => {
 describe('RegionalWatchlist', () => {
   it('shows N/E rather than a fabricated score when no indicator is evaluable', async () => {
     const onSelect = vi.fn();
-    render(<RegionalWatchlist events={events} regionScores={[]} scoreHistory={[]} selectedRegionId={null} onSelect={onSelect} now={NOW} />);
+    render(<RegionalWatchlist events={events} regionScores={[]} scoreHistory={[]} indicatorEvaluations={[]} selectedRegionId={null} onSelect={onSelect} now={NOW} />);
     expect(screen.getAllByText('RAI N/E')).toHaveLength(WATCH_REGIONS.length);
     await userEvent.click(screen.getByText('RED SEA / GULF OF ADEN'));
     expect(onSelect).toHaveBeenCalledWith('red-sea');
@@ -92,7 +92,7 @@ describe('RegionalWatchlist', () => {
     const history = [{ at: new Date(NOW - 24 * 3_600_000).toISOString(), scores: { 'red-sea': 30 } }];
     render(
       <MemoryRouter>
-        <RegionalWatchlist events={events} regionScores={[score]} scoreHistory={history} selectedRegionId="red-sea" onSelect={() => {}} now={NOW} />
+        <RegionalWatchlist events={events} regionScores={[score]} scoreHistory={history} indicatorEvaluations={[]} selectedRegionId="red-sea" onSelect={() => {}} now={NOW} />
       </MemoryRouter>,
     );
     expect(screen.getByText('RAI 42 · ELEVATED')).toBeInTheDocument();

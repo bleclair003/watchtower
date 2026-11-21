@@ -301,6 +301,13 @@ Security Council meetings, resolutions and failed drafts, in the feed and on reg
 - **Not an alert:** the figures are published twice a year and describe the situation months earlier, so they are background, not a warning.
 - **Limits:** the current year is a mid-year figure until the annual release; IDP numbers come largely from IDMC; Taiwan and some small states have no UNHCR figures; North Korean refugees are undercounted.
 
+## What changed (v0.32.0)
+
+- **Where:** region pages (panel), GOC Regional Watch (one line per region), daily brief (indicator changes section). Logic in [`shared/domain/changes.ts`](../shared/domain/changes.ts).
+- **Indicators:** a state change in the last 24 hours, from the evaluation's `stateSince` and `previousState`. A move into NORMAL, UNKNOWN or DATA_UNAVAILABLE is shown only when the earlier state is known, so new indicators never appear as "returned to normal". Experimental indicators are left out.
+- **New stories:** stories are built over 48 hours and kept only when their first report is in the last 24, so a continuing story is not counted as new.
+- **Warnings:** the same notable-warning rule as the brief (advisory level and posture changes, orange/red disaster alerts, attributed shutdowns, unusual seismic events, significant cyber).
+
 ## Cost
 
 | Feature | Firestore reads |

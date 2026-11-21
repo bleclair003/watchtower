@@ -212,8 +212,8 @@ Budget: GitHub Actions minutes are the binding limit (~1,600 of 2,000 a month at
 
 ### E. Analysis on existing data
 16. **What changed** (no new source)
-   - [ ] Per-region diff against 24 hours ago: new indicators, RAI changes, new stories, new official warnings
-   - [ ] On the region pages, the GOC and the daily brief
+   - [x] Per-region diff against 24 hours ago: new indicators, RAI changes, new stories, new official warnings — v0.32.0
+   - [x] On the region pages, the GOC and the daily brief — v0.32.0
 17. **Activity near bases**
    - [ ] Records near or naming each base this week against its usual level; flag unusual activity on the map and the card
 18. **Watchlist**

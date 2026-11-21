@@ -5,6 +5,7 @@ import type { DashboardSnapshot } from '../../shared/domain/snapshot.ts';
 import { buildBrief, isNotableWarning } from '../../shared/domain/brief/brief.ts';
 import { briefToDiscord, runDailyBrief, MAX_ATTEMPTS_PER_DAY } from '../brief/dailyBrief.ts';
 import { MemoryStore } from '../store/memory.ts';
+import { INDICATOR_CATALOG } from '../../shared/domain/indicators/catalog.ts';
 
 const NOW = Date.parse('2026-11-21T11:05:00Z');
 const HOOK = 'https://discord.com/api/webhooks/123456789012345678/abcdefghijklmnopqrstuvwxyz0123456789ABCD';
@@ -44,6 +45,13 @@ describe('daily brief content', () => {
     expect(JSON.stringify(b)).not.toContain('Old story'); // outside 24 h
     expect(sec('Active indicators').lines).toEqual([]);
     expect(sec('Active indicators').empty).toMatch(/None/);
+  });
+
+  it('lists indicator state changes from the last 24 hours', () => {
+    const id = INDICATOR_CATALOG.find((d) => d.regionId === 'middle-east' && !d.experimental)!;
+    const evaluation = { indicatorId: id.id, regionId: 'middle-east', state: 'TRIGGERED' as const, previousState: 'ELEVATED' as const, reason: '', evaluatedAt: new Date(NOW).toISOString(), configVersion: 1, matchedCount: 2, distinctSources: 1, elevatedAt: 1, triggeredAt: 2, baseline: { status: 'not-configured' as const, meanPerWindow: null, historyDays: 0 }, evidenceEventIds: [], lastTriggeredAt: null, stateSince: new Date(NOW - 2 * 3_600_000).toISOString() };
+    const brief = buildBrief({ ...snap([]), indicatorEvaluations: [evaluation] }, NOW);
+    expect(brief.sections.find((x) => x.title === 'Indicator changes (24 h)')!.lines.map((l) => l.text)).toEqual([`▲ ${id.name}: ELEVATED → TRIGGERED`]);
   });
 
   it('treats only real changes and attributed causes as notable', () => {

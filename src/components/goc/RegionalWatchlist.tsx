@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { Crosshair } from 'lucide-react';
 import { WATCH_REGIONS } from '@shared/domain/regions';
 import type { IntelligenceEvent } from '@shared/domain/types';
-import type { RegionScore, ScoreHistoryPoint } from '@shared/domain/indicators/types';
+import type { IndicatorEvaluation, RegionScore, ScoreHistoryPoint } from '@shared/domain/indicators/types';
+import { regionChanges } from '@shared/domain/changes';
 import { scoreDelta24h } from '@shared/domain/indicators/rai';
 import { computeRegionStats } from '../../lib/filters';
 import { formatAge } from '../../lib/time';
@@ -15,6 +16,7 @@ interface Props {
   events: IntelligenceEvent[];
   regionScores: RegionScore[];
   scoreHistory: ScoreHistoryPoint[];
+  indicatorEvaluations: IndicatorEvaluation[];
   selectedRegionId: string | null;
   onSelect: (id: string | null) => void;
   now: number;
@@ -65,12 +67,35 @@ function Breakdown({ score }: { score: RegionScore }) {
   );
 }
 
+/** One line: what changed in the region in the last 24 hours. */
+function ChangedLine({ c }: { c: ReturnType<typeof regionChanges> | undefined }) {
+  if (!c) return null;
+  const up = c.indicators.filter((x) => x.direction === 'up').length;
+  const down = c.indicators.filter((x) => x.direction === 'down').length;
+  const parts = [
+    up ? `▲${up} indicator${up > 1 ? 's' : ''}` : '',
+    down ? `▼${down} indicator${down > 1 ? 's' : ''}` : '',
+    c.newStories.length ? `${c.newStories.length} new stor${c.newStories.length > 1 ? 'ies' : 'y'}` : '',
+    c.warnings.length ? `${c.warnings.length} warning${c.warnings.length > 1 ? 's' : ''}` : '',
+  ].filter(Boolean);
+  return (
+    <div className="mt-0.5 truncate text-2xs" title="Changes in the last 24 hours (details on the region page)">
+      <span className="text-wt-fg-dim">24H: </span>
+      <span className={up || c.warnings.length ? 'text-wt-warn' : 'text-wt-fg-muted'}>{parts.length ? parts.join(' · ') : 'no changes'}</span>
+    </div>
+  );
+}
+
 /**
  * Regional watchlist: Regional Activity Index, its 24 h change, active
  * indicators, and raw report volume (shown separately — volume is not a score).
  */
-export function RegionalWatchlist({ events, regionScores, scoreHistory, selectedRegionId, onSelect, now, className }: Props) {
+export function RegionalWatchlist({ events, regionScores, scoreHistory, indicatorEvaluations, selectedRegionId, onSelect, now, className }: Props) {
   const stats = useMemo(() => computeRegionStats(events, now), [events, now]);
+  const changes = useMemo(
+    () => new Map(WATCH_REGIONS.map((r) => [r.id, regionChanges({ events, indicatorEvaluations, regionScores, scoreHistory }, r.id, now)])),
+    [events, indicatorEvaluations, regionScores, scoreHistory, now],
+  );
 
   return (
     <Panel
@@ -131,6 +156,7 @@ export function RegionalWatchlist({ events, regionScores, scoreHistory, selected
                     <dd className="tabular-nums text-wt-fg-muted">{s.latestAt ? formatAge(s.latestAt, now) : '—'}</dd>
                   </div>
                 </dl>
+                <ChangedLine c={changes.get(r.id)} />
                 <div className="mt-0.5 text-2xs text-wt-fg-dim">
                   ASSESSED: {score?.evaluatedAt && score.score !== null ? `${formatAge(score.evaluatedAt, now)} ago` : 'NOT EVALUABLE'}
                 </div>

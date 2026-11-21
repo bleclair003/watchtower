@@ -115,6 +115,7 @@ export default function GlobalOperationsPage() {
           events={relevantEvents}
           regionScores={regionScores}
           scoreHistory={scoreHistory}
+          indicatorEvaluations={indicatorEvaluations}
           selectedRegionId={filters.regionId}
           onSelect={(id) => setFilters({ regionId: id })}
           now={now}

@@ -5,7 +5,7 @@ import { getIndicator } from '../indicators/catalog.ts';
 import { scoreDelta24h } from '../indicators/rai.ts';
 import { computeHealth } from '../health.ts';
 import { getSource } from '../sources.ts';
-import { isOffTopic, isOpinion } from '../relevance.ts';
+import { describeChange, indicatorChanges, isNews, isNotableWarning } from '../changes.ts';
 import { buildStories } from '../stories/stories.ts';
 
 /**
@@ -49,32 +49,7 @@ function section(title: string, all: BriefLine[], max: number, empty: string): B
   return { title, lines: all.slice(0, max), empty, more: Math.max(0, all.length - max) };
 }
 
-/** Official warnings worth a line: level changes, attributed shutdowns, high alerts, unusual seismic events, significant cyber. */
-export function isNotableWarning(e: IntelligenceEvent): boolean {
-  const m = e.metadata ?? {};
-  switch (e.sourceId) {
-    case 'state-travel-advisories':
-      return m.change === 'raised' || m.change === 'new' || m.change === 'lowered';
-    case 'gdacs':
-      return m.alertLevel === 'Orange' || m.alertLevel === 'Red';
-    case 'cloudflare-radar-outages':
-      return m.outageCause === 'GOVERNMENT_DIRECTED' || m.outageCause === 'MILITARY_ACTION';
-    case 'usgs-earthquakes':
-      return m.seismicType !== 'earthquake' || (typeof m.magnitude === 'number' && m.magnitude >= 6.5);
-    case 'cisa-advisories':
-      return m.routine !== true;
-    case 'cisa-kev':
-      return m.knownRansomwareUse === true;
-    case 'dhs-ntas':
-      return true;
-    case 'fema-declarations':
-      return m.declarationType === 'DR';
-    case 'nws-alerts':
-      return true;
-    default:
-      return false;
-  }
-}
+export { isNotableWarning } from '../changes.ts';
 
 export function buildBrief(snapshot: DashboardSnapshot, now: number): Brief {
   const from = now - 24 * H;
@@ -97,6 +72,11 @@ export function buildBrief(snapshot: DashboardSnapshot, now: number): Brief {
     .sort((a, b) => (a.state === b.state ? a.indicatorId.localeCompare(b.indicatorId) : a.state === 'TRIGGERED' ? -1 : 1))
     .map((e) => ({ text: `${e.state} · ${getIndicator(e.indicatorId)?.name ?? e.indicatorId} (${e.matchedCount} matching)` }));
 
+  // 2b. What changed: indicator state changes in the last 24 hours.
+  const changes: BriefLine[] = indicatorChanges(snapshot.indicatorEvaluations ?? [], now).map((c) => ({
+    text: `${c.direction === 'up' ? '▲' : c.direction === 'down' ? '▼' : '•'} ${c.name}: ${describeChange(c)}`,
+  }));
+
   // 3. Official warnings: notable items, plus one summary line for UK travel-advice updates in watch regions.
   const warnings: BriefLine[] = recent
     .filter(isNotableWarning)
@@ -109,7 +89,7 @@ export function buildBrief(snapshot: DashboardSnapshot, now: number): Brief {
   }
 
   // 4. Top stories: relevant headline news, grouped; multi-publisher and official first.
-  const news = recent.filter((e) => e.sourceClass === 'media' || ['un-news', 'war-gov-news', 'uk-mod', 'iaea-news', 'af-news', 'marines-news'].includes(e.sourceId)).filter((e) => !isOffTopic(e) && !isOpinion(e));
+  const news = recent.filter(isNews);
   const byId = new Map(news.map((e) => [e.id, e]));
   const rank = { official: 0, 'multi-source': 1, 'single-source': 2 } as const;
   const stories = buildStories(news).sort(
@@ -142,6 +122,7 @@ export function buildBrief(snapshot: DashboardSnapshot, now: number): Brief {
     sections: [
       section('Regional Activity Index', rai, 7, 'No scores.'),
       section('Active indicators', active, 8, 'None: all indicators normal or not evaluable.'),
+      section('Indicator changes (24 h)', changes, 8, 'No indicator changed state.'),
       section('Official warnings (24 h)', warnings, 8, 'No level changes, attributed shutdowns, orange/red disaster alerts or unusual seismic events.'),
       section('Top stories (24 h)', storyLines, 6, 'No relevant multi-report stories or watch-region news.'),
       section('Collector health', health, 6, `All ${snapshot.sourceStatus.length} sources online.`),

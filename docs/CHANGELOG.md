@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.32.0] — 2026-11-21 — What changed
+
+### Added
+- **What changed — last 24 h** panel on every region page: indicators that changed state (with from → to and direction), stories whose first report is in the last 24 hours (multi-publisher first), and notable official warnings. The RAI change and record counts stay in the page header.
+- GOC Regional Watch: a **24H** line per region (indicators up or down, new stories, warnings).
+- Daily brief: new **Indicator changes (24 h)** section.
+- Indicator evaluations now record `previousState` (null on a first evaluation), carried while the state is unchanged.
+
+### Changed
+- Embassy drawdowns (ordered or authorized departure, suspended operations) now count as notable official warnings in the brief.
+- `isNotableWarning` and the news filter moved to `shared/domain/changes.ts`, shared by the brief and the new panels.
+
+### Limits
+- Built from the data already loaded (no extra reads): the newest ~700 records on the dashboard.
+- Evaluations stored before this release have no previous state, so changes from before it show as "now ELEVATED" rather than from → to, and returns to NORMAL are not shown until the next real change.
+
+
 ## [0.31.0] — 2026-11-21 — Refugee and displacement figures
 
 ### Added

@@ -19,6 +19,8 @@ import { FeedItem } from '../components/goc/FeedItem';
 import { useBases } from '../data/useInstallations';
 import { InstallationCard } from '../components/map/InstallationCard';
 import { DisplacementPanel } from '../components/region/DisplacementPanel';
+import { WhatChangedPanel } from '../components/region/WhatChangedPanel';
+import { regionChanges } from '@shared/domain/changes';
 
 const MAX_ENTRIES = 60;
 
@@ -41,6 +43,7 @@ export default function RegionPage() {
   const stories = useMemo(() => buildStories(summary.events), [summary.events]);
   const entries = useMemo(() => groupFeed(summary.events, stories).slice(0, MAX_ENTRIES), [summary.events, stories]);
   const byId = useMemo(() => new Map(summary.events.map((e) => [e.id, e])), [summary.events]);
+  const changes = useMemo(() => regionChanges(data, id, now), [data, id, now]);
 
   if (!region) {
     return (
@@ -105,6 +108,7 @@ export default function RegionPage() {
           Countries: {region.countryCodes.length ? region.countryCodes.map(countryName).join(' · ') : 'none (non-geographic watch)'}. {RAI_DISCLAIMER}
         </p>
       </Panel>
+      <WhatChangedPanel changes={changes} now={now} />
 
       <div className="grid gap-1.5 lg:grid-cols-2">
         <Panel title="RAI — recent runs" designator="R1">

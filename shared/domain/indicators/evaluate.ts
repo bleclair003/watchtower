@@ -75,6 +75,7 @@ export function evaluateIndicator(
     state,
     reason,
     stateSince: previous && previous.state === state ? previous.stateSince : nowIso,
+    ...(previous && previous.state === state ? (previous.previousState !== undefined ? { previousState: previous.previousState } : {}) : { previousState: previous?.state ?? null }),
     lastTriggeredAt: state === 'TRIGGERED' && previous?.state !== 'TRIGGERED' ? nowIso : (previous?.lastTriggeredAt ?? null),
   });
 

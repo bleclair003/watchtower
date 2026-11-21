@@ -114,6 +114,11 @@ export interface IndicatorEvaluation {
   lastTriggeredAt: string | null;
   /** When the current state began (carried across runs). */
   stateSince: string;
+  /**
+   * The state before the current one: null on the first evaluation, absent on evaluations
+   * stored before v0.32.0 (unknown). Carried across runs while the state is unchanged.
+   */
+  previousState?: IndicatorState | null;
 }
 
 export interface IndicatorTransition {
