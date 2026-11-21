@@ -3,6 +3,7 @@ import type { FleetSnapshot } from '@shared/domain/fleet';
 import type { ChokepointSnapshot } from '@shared/domain/chokepoints';
 import type { SanctionedShipsSnapshot } from '@shared/domain/sanctionedShips';
 import type { DisplacementSnapshot } from '@shared/domain/displacement';
+import type { BaseActivitySnapshot } from '@shared/domain/baseActivity';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '@shared/domain/types';
 import { backendMode } from '../config/firebase';
@@ -36,6 +37,7 @@ interface DataState {
   chokepoints: ChokepointSnapshot | null;
   sanctionedShips: SanctionedShipsSnapshot | null;
   displacement: DisplacementSnapshot | null;
+  baseActivity: BaseActivitySnapshot | null;
   loading: boolean;
   error: string | null;
   accessDenied: boolean;
@@ -67,6 +69,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
     chokepoints: null as ChokepointSnapshot | null,
     sanctionedShips: null as SanctionedShipsSnapshot | null,
     displacement: null as DisplacementSnapshot | null,
+    baseActivity: null as BaseActivitySnapshot | null,
     loadedAt: null as string | null,
     readsThisSession: null as number | null,
   });
@@ -102,6 +105,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
         chokepoints: d.chokepoints,
         sanctionedShips: d.sanctionedShips,
         displacement: d.displacement,
+        baseActivity: d.baseActivity,
         loadedAt: new Date().toISOString(),
         readsThisSession: repo.readsThisSession(),
       });

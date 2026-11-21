@@ -170,12 +170,13 @@ export default function RegionPage() {
               worldInstallations={bases.world.data?.installations}
               showInstallations
               selectedInstallation={selectedBase}
+              unusualInstallations={(data.baseActivity?.items ?? []).filter((i) => i.unusual).map((i) => i.key)}
               onSelectInstallation={setSelectedBase}
             />
           ) : (
             <p className="p-2 text-2xs text-wt-fg-dim">This watch is not geographic, so there is no map.</p>
           )}
-          {bases.selected && <InstallationCard selected={bases.selected} events={data.events} now={now} onClose={() => setSelectedBase(null)} />}
+          {bases.selected && <InstallationCard selected={bases.selected} events={data.events} now={now} onClose={() => setSelectedBase(null)} activity={data.baseActivity} />}
         </Panel>
 
         <Panel title={`Indicators (${indicators.length})`} designator="R4" bodyClassName="max-h-[380px] overflow-y-auto">

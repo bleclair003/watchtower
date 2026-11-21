@@ -308,6 +308,13 @@ Security Council meetings, resolutions and failed drafts, in the feed and on reg
 - **New stories:** stories are built over 48 hours and kept only when their first report is in the last 24, so a continuing story is not counted as new.
 - **Warnings:** the same notable-warning rule as the brief (advisory level and posture changes, orange/red disaster alerts, attributed shutdowns, unusual seismic events, significant cyber).
 
+## Activity near bases (v0.33.0)
+
+- **Computed in the collector** ([`shared/domain/baseActivity.ts`](../shared/domain/baseActivity.ts)) over the records it already loads for indicators (about 36 days), so the baseline needs no extra reads. Matching uses a word index of installation names and a 1° grid for locations.
+- **This week vs usual:** records in the last 7 days against the mean of up to four earlier weeks. Unusual = 3+ records, 2+ sources, and 3× the usual week (a usual week under 1 counts as 1).
+- **History gate:** no flags until 21 days of history exist; the card states how many days are available.
+- **Shown:** amber ring on the map, an Activity block on the installation card, and a legend count.
+
 ## Cost
 
 | Feature | Firestore reads |

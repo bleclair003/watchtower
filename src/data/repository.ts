@@ -17,6 +17,8 @@ import type { SanctionedShipsSnapshot } from '@shared/domain/sanctionedShips';
 import { buildDemoSanctionedShips } from './demo/demoSanctionedShips';
 import type { DisplacementSnapshot } from '@shared/domain/displacement';
 import { buildDemoDisplacement } from './demo/demoDisplacement';
+import type { BaseActivitySnapshot } from '@shared/domain/baseActivity';
+import { buildDemoBaseActivity } from './demo/demoBaseActivity';
 
 /**
  * Data access boundary for the UI.
@@ -50,6 +52,8 @@ export interface DashboardData {
   sanctionedShips: SanctionedShipsSnapshot | null;
   /** UNHCR displacement figures, or null. */
   displacement: DisplacementSnapshot | null;
+  /** Activity near bases, or null. */
+  baseActivity: BaseActivitySnapshot | null;
 }
 
 export interface IntelRepository {
@@ -92,6 +96,7 @@ export class DemoRepository implements IntelRepository {
       chokepoints: buildDemoChokepoints(now),
       sanctionedShips: buildDemoSanctionedShips(now),
       displacement: buildDemoDisplacement(now),
+      baseActivity: buildDemoBaseActivity(now),
       events: this.events,
       // No collector has ever run in demo mode, so every source is honestly NOT_CONFIGURED.
       sourceStatus: SOURCE_REGISTRY.map((s) => ({

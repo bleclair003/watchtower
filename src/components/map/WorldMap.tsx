@@ -27,6 +27,8 @@ export interface WorldMapProps {
   installations?: Installation[];
   worldInstallations?: WorldInstallation[];
   showInstallations?: boolean;
+  /** Installation keys with unusual activity this week: ringed in amber. */
+  unusualInstallations?: string[];
   /** Selection key: `dod:<name>` or `wd:<Wikidata id>`. */
   selectedInstallation?: string | null;
   onSelectInstallation?: (key: string | null) => void;
@@ -307,6 +309,15 @@ export function WorldMap(props: WorldMapProps) {
             'circle-stroke-opacity': ['interpolate', ['linear'], ['zoom'], 1, 0.45, 4, 0.9],
           },
         });
+        for (const [id, source] of [['installation-unusual', 'installations'], ['installation-world-unusual', 'installations-world']] as const) {
+          m.addLayer({
+            id,
+            type: 'circle',
+            source,
+            filter: ['in', ['get', 'key'], ['literal', []]],
+            paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 6, 6, 11], 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': '#e8b04a', 'circle-stroke-width': 1.8 },
+          });
+        }
         m.addLayer({
           id: 'installation-selected',
           type: 'circle',
@@ -671,7 +682,14 @@ export function WorldMap(props: WorldMapProps) {
     m.flyTo({ ...GLOBAL_VIEW, duration: 700 });
   }, [ready, globalViewNonce]);
 
-  const { installations, worldInstallations, showInstallations, selectedInstallation } = props;
+  const { installations, worldInstallations, showInstallations, selectedInstallation, unusualInstallations } = props;
+  const unusualKey = (unusualInstallations ?? []).join('|');
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    const keys = unusualKey ? unusualKey.split('|') : [];
+    for (const id of ['installation-unusual', 'installation-world-unusual']) m.setFilter(id, ['in', ['get', 'key'], ['literal', keys]]);
+  }, [ready, unusualKey]);
   useEffect(() => {
     const m = mapRef.current;
     if (!ready || !m) return;
@@ -707,7 +725,7 @@ export function WorldMap(props: WorldMapProps) {
   useEffect(() => {
     const m = mapRef.current;
     if (!ready || !m) return;
-    for (const id of ['installations', 'installation-labels', 'installation-selected', 'installations-world', 'installation-world-selected', 'installation-world-labels']) {
+    for (const id of ['installations', 'installation-labels', 'installation-selected', 'installation-unusual', 'installations-world', 'installation-world-selected', 'installation-world-labels', 'installation-world-unusual']) {
       m.setLayoutProperty(id, 'visibility', showInstallations ? 'visible' : 'none');
     }
   }, [ready, showInstallations]);

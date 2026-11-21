@@ -31,7 +31,8 @@ import { Panel } from '../components/ui/Panel';
 export default function GlobalOperationsPage() {
   // Re-evaluate time windows once a minute; the clock in the top bar ticks separately.
   const now = useNow(60_000).getTime();
-  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips } = useData();
+  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips, baseActivity } = useData();
+  const unusualBases = useMemo(() => (baseActivity?.items ?? []).filter((i) => i.unusual).map((i) => i.key), [baseActivity]);
   const { filters, setFilters, resetFilters, selectedEventId, selectEvent, globalViewNonce } = useDashboard();
   const { settings, update } = useSettings();
 
@@ -257,6 +258,7 @@ export default function GlobalOperationsPage() {
               worldInstallations={shownWorld}
               showInstallations={settings.installations}
               selectedInstallation={selectedBase}
+              unusualInstallations={unusualBases}
               onSelectInstallation={(key) => selectOnly('base', key)}
               aircraft={shownAircraft}
               showAircraft={settings.aircraft}
@@ -282,6 +284,7 @@ export default function GlobalOperationsPage() {
             unlocated={projection.unlocated}
             installations={settings.installations ? shownUs?.length : undefined}
             worldInstallations={settings.installations ? shownWorld?.length : undefined}
+            unusualBases={baseActivity?.flagsActive ? unusualBases.length : null}
             operatorFilter={settings.installations && operator !== ALL_OPERATORS ? countryName(operator) : undefined}
             aircraft={
               settings.aircraft && aircraft
@@ -315,7 +318,7 @@ export default function GlobalOperationsPage() {
           {!selectedListedShip && selectedStraitItem && chokepoints && <ChokepointCard item={selectedStraitItem} snapshot={chokepoints} now={now} onClose={() => setSelectedStrait(null)} />}
           {!selectedListedShip && !selectedStraitItem && selectedArea && fleet && <FleetCard area={selectedArea} snapshot={fleet} now={now} onClose={() => setSelectedFleetArea(null)} />}
           {!selectedListedShip && !selectedStraitItem && !selectedArea && selectedPlane && aircraft && <AircraftCard aircraft={selectedPlane} snapshot={aircraft} now={now} onClose={() => setSelectedAircraft(null)} />}
-          {!selectedListedShip && !selectedStraitItem && !selectedArea && !selectedPlane && bases.selected && <InstallationCard selected={bases.selected} events={events} now={now} onClose={() => setSelectedBase(null)} />}
+          {!selectedListedShip && !selectedStraitItem && !selectedArea && !selectedPlane && bases.selected && <InstallationCard selected={bases.selected} events={events} now={now} onClose={() => setSelectedBase(null)} activity={baseActivity} />}
           {bases.error && settings.installations && <p className="absolute top-2 right-2 z-10 bg-wt-panel/95 px-2 py-1 text-2xs text-wt-warn">{bases.error}</p>}
         </Panel>
 

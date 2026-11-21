@@ -1,4 +1,8 @@
 import type { IntelligenceEvent } from './types.ts';
+import { isPlaceName as isWorldPlaceName } from './geo/gazetteer.ts';
+import { isUsPlaceName } from './geo/usPlaces.ts';
+
+const isPlaceName = (s: string) => isWorldPlaceName(s) || isUsPlaceName(s);
 
 /**
  * Military installations (map layer). US data: DoD MIRTA points (public/data/installations-us.json,
@@ -84,13 +88,30 @@ const RISKY_SINGLE = new Set(
   'clear hill scott shaw moody robins dover travis pope peterson andrews luke patrick cannon vance tinker maxwell columbus wright eagle little grand mountain lake river island point harbor bay springs city falls park key western eastern northern southern central march hawaii meridian homestead cavalier arnold edwards hunter buckley fairchild grissom dobbins crane wheeler sheppard philadelphia albany newport charleston'.split(' '),
 );
 
+/** Words that make a name clearly an installation's ("Fort Bragg", "Camp Lejeune", "Ramstein Air Base"). */
+const INSTALLATION_WORDS = /\b(Fort|Camp|Base|Station|Barracks|Garrison|Arsenal|Depot|Airfield|Air Field|Kaserne|Baza|Naval|Navy Yard|Shipyard|Proving Ground|Test Range|Missile Range|Cosmodrome|Spaceport)\b/i;
+
+/**
+ * Whether the full name alone identifies the installation. A site named only after a place
+ * ("West Bank", "Manchester", "Pentagon" in the DoD list) is treated like a short name: it counts
+ * only in records about the installation's own country, as written.
+ */
+export function isDistinctiveName(name: string): boolean {
+  TYPE_WORDS.lastIndex = 0;
+  const typed = TYPE_WORDS.test(name);
+  TYPE_WORDS.lastIndex = 0;
+  return (typed || INSTALLATION_WORDS.test(name)) && !isPlaceName(name);
+}
+
 /** Names a headline might use for this installation: the full name, a short core name, and renames. */
 export function installationAliases(name: string): string[] {
-  const out = new Set<string>([name]);
+  // A site named only after a place ("Pentagon", "West Bank") is matched by location, never by name.
+  const out = new Set<string>(isDistinctiveName(name) || !isPlaceName(name) ? [name] : []);
   const core = name.replace(TYPE_WORDS, ' ').replace(/[-–]/g, ' ').replace(/\s+/g, ' ').trim();
   const meaningful = core.split(' ').filter((w) => !GENERIC.has(w.toLowerCase()) && /[A-Za-z]/.test(w));
   const singleRisky = !core.includes(' ') && RISKY_SINGLE.has(core.toLowerCase());
-  if (core && core !== name && meaningful.length > 0 && core.length >= 5 && !singleRisky) out.add(core);
+  // A short name that is just a country or city ("Kuwait" for Kuwait Naval Base, "Riyadh") would match every story about the place.
+  if (core && core !== name && meaningful.length > 0 && core.length >= 5 && !singleRisky && !isPlaceName(core)) out.add(core);
   for (const [a, b] of RENAMES) {
     if (name.includes(a)) out.add(name.replace(a, b)).add(b);
     if (name.includes(b)) out.add(name.replace(b, a)).add(a);
@@ -133,7 +154,7 @@ export function relatedRecords(inst: PlaceRef, events: IntelligenceEvent[], radi
   const aliases = installationAliases(inst.name);
   const bounded = (x: string) => `(?<![\\p{L}\\p{N}])${x}(?![\\p{L}\\p{N}])`;
   const patterns = aliases.map((a) => {
-    const full = a === inst.name;
+    const full = a === inst.name && isDistinctiveName(a);
     const single = !a.includes(' ');
     // Full names: any case. One-word short names: Capitalised or ALL CAPS only. Longer short names: any case.
     const re = full || !single ? new RegExp(bounded(escape(a)), 'iu') : new RegExp(bounded(`(?:${escape(a)}|${escape(a.toUpperCase())})`), 'u');

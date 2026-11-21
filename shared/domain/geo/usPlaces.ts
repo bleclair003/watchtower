@@ -62,6 +62,13 @@ const INSTALLATIONS: [string, string[]][] = [
   ['GU', ['Andersen Air Force Base', 'Andersen AFB']], ['TN', ['Arnold Air Force Base', 'Oak Ridge']],
 ];
 
+const US_PLACE_NAMES = new Set([...STATES.map(([, n]) => n), ...CITIES.flatMap(([, names]) => names)].map((n) => n.toLowerCase()));
+
+/** True when `s` is exactly a US state or city name in this list (installations excluded). */
+export function isUsPlaceName(s: string): boolean {
+  return US_PLACE_NAMES.has(s.trim().toLowerCase());
+}
+
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const TERMS = [
   ...STATES.map(([code, name]) => ({ code, term: name })),

@@ -12,6 +12,8 @@ interface Props {
   /** Installations shown on the map (omit when the layer is off). */
   installations?: number;
   worldInstallations?: number;
+  /** Installations flagged for unusual activity this week (null = flags not active yet). */
+  unusualBases?: number | null;
   /** Name of the operating country the bases are filtered to, if any. */
   operatorFilter?: string;
   /** Aircraft layer: count shown, snapshot age, provider (omit when the layer is off). */
@@ -27,7 +29,7 @@ interface Props {
 const BRANCH_LABEL = { army: 'Army', navy: 'Navy', 'air-force': 'Air Force', marines: 'Marines', other: 'Other DoD' } as const;
 
 /** Collapsible legend explaining symbols and location-precision handling. */
-export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
+export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
   const [open, setOpen] = useState(true);
   return (
     <div className="pointer-events-auto absolute bottom-2 left-2 z-10 max-w-[230px] border border-wt-line-strong bg-wt-panel/95 text-2xs">
@@ -93,6 +95,11 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
                   </ul>
                 </>
               )}
+              <div className="flex items-center gap-1 pt-1" title="At least 3 records from 2+ sources this week and 3× the usual week">
+                <span className="size-2.5 rounded-full border-[1.8px]" style={{ borderColor: '#e8b04a' }} aria-hidden />
+                <span>Unusual activity this week</span>
+                <span className="ml-auto text-wt-fg tabular-nums">{unusualBases === null || unusualBases === undefined ? 'building baseline' : unusualBases}</span>
+              </div>
             </div>
           )}
           {fleet && (

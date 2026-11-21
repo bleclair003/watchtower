@@ -22,6 +22,7 @@ import { formatAge } from '../../lib/time';
 import { safeExternalUrl } from '../../lib/sanitize';
 import { Tag } from '../ui/Tag';
 import { BRANCH_COLOR, OPERATION_COLOR, OPERATION_LABEL } from './WorldMap';
+import { BASE_ACTIVITY, type BaseActivitySnapshot } from '@shared/domain/baseActivity';
 
 export type SelectedSite =
   | { kind: 'dod'; site: Installation; dataset: InstallationDataset }
@@ -33,9 +34,39 @@ interface Props {
   events: IntelligenceEvent[];
   now: number;
   onClose: () => void;
+  /** Weekly activity for all installations (snapshot), if loaded. */
+  activity?: BaseActivitySnapshot | null;
 }
 
 const MAX_ROWS = 12;
+
+/** This week's records against the usual weekly level (computed by the collector over its loaded history). */
+function ActivityBlock({ activity, siteKey }: { activity: BaseActivitySnapshot; siteKey: string }) {
+  const item = activity.items.find((i) => i.key === siteKey);
+  const week = item?.week ?? 0;
+  return (
+    <div className={`border-t border-wt-line px-2 py-1 ${item?.unusual ? 'bg-wt-warn/10' : ''}`}>
+      <div className="flex items-center gap-1.5">
+        <span className="text-wt-fg-dim">ACTIVITY — LAST 7 DAYS</span>
+        {item?.unusual && <span className="border border-wt-warn px-1 text-wt-warn">UNUSUAL</span>}
+        {activity.simulated && <span className="text-wt-fg-dim">(SIMULATED)</span>}
+      </div>
+      <p className="tabular-nums">
+        {week} record{week === 1 ? '' : 's'}
+        {item ? ` (${item.named} naming it, ${item.nearby} within ${BASE_ACTIVITY.radiusKm} km; ${item.sources} source${item.sources === 1 ? '' : 's'})` : ''}
+        {' · usual '}
+        {activity.flagsActive && item?.usualPerWeek !== null && item?.usualPerWeek !== undefined
+          ? `${item.usualPerWeek} a week (${activity.baselineWeeks} earlier weeks)`
+          : activity.flagsActive
+            ? `0 a week (${activity.baselineWeeks} earlier weeks)`
+            : `not yet known (${activity.historyDays} of ${BASE_ACTIVITY.minHistoryDays} days of history)`}
+      </p>
+      <p className="text-wt-fg-dim">
+        Unusual = at least {BASE_ACTIVITY.minWeek} records from {BASE_ACTIVITY.minSources}+ sources and {BASE_ACTIVITY.ratio}× the usual week. Location matches leave out weather, earthquake, fire and disaster records.
+      </p>
+    </div>
+  );
+}
 
 function ExtLink({ href, children }: { href: string; children: ReactNode }) {
   const safe = safeExternalUrl(href);
@@ -48,7 +79,7 @@ function ExtLink({ href, children }: { href: string; children: ReactNode }) {
 }
 
 /** Facts from the source dataset, plus WATCHTOWER records that name the installation or lie within 50 km. */
-export function InstallationCard({ selected, events, now, onClose }: Props) {
+export function InstallationCard({ selected, events, now, onClose, activity }: Props) {
   const ref: PlaceRef = selected.kind === 'dod' ? dodRef(selected.site) : worldRef(selected.site);
   const related = useMemo(() => relatedRecords(ref, events), [ref.name, ref.lat, ref.lon, ref.country, events]); // eslint-disable-line react-hooks/exhaustive-deps
   const tfrs = related.filter((r) => r.event.sourceId === 'faa-tfr');
@@ -154,6 +185,7 @@ export function InstallationCard({ selected, events, now, onClose }: Props) {
         )}
       </dl>
 
+      {activity && <ActivityBlock activity={activity} siteKey={selected.kind === 'dod' ? `dod:${selected.site.name}` : `wd:${selected.site.q}`} />}
       {selected.kind === 'dod' && (
         <Section title={`FAA flight restrictions (${tfrs.length})`} empty="No current security or VIP flight restriction names this installation." rows={tfrs} now={now} />
       )}

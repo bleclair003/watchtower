@@ -324,6 +324,15 @@ export function matchGazetteer(text: string): GazetteerMatch {
   };
 }
 
+const PLACE_TERMS = new Set(
+  [...COUNTRY_TERMS, ...AREA_TERMS].flatMap(([, terms]) => (terms as (string | { term: string })[]).map((t) => (typeof t === 'string' ? t : t.term).toLowerCase())),
+);
+
+/** True when `s` is exactly a country, city or area name in the gazetteer (not an installation name). */
+export function isPlaceName(s: string): boolean {
+  return PLACE_TERMS.has(s.trim().toLowerCase());
+}
+
 /** Exact country-name lookup (for feeds whose title IS a country name, such as UK FCDO travel advice). */
 export function countryByName(name: string): string | null {
   const n = name.trim().toLowerCase();

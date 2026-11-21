@@ -6,6 +6,7 @@ import type { FleetSnapshot } from './fleet.ts';
 import type { ChokepointSnapshot } from './chokepoints.ts';
 import type { SanctionedShipsSnapshot } from './sanctionedShips.ts';
 import type { DisplacementSnapshot } from './displacement.ts';
+import type { BaseActivitySnapshot } from './baseActivity.ts';
 
 /**
  * Precomputed dashboard payload, written by the collector to
@@ -56,6 +57,8 @@ export interface DashboardSnapshot {
   sanctionedShips?: SanctionedShipsSnapshot;
   /** UNHCR displacement figures per watch-region country (latest and previous year). */
   displacement?: DisplacementSnapshot;
+  /** Records naming or near each installation this week, against its usual weekly level. */
+  baseActivity?: BaseActivitySnapshot;
 }
 
 /** Firestore collection names — single source of truth for app and collector. */

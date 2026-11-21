@@ -1,5 +1,7 @@
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../shared/domain/types.ts';
 import { getSource } from '../shared/domain/sources.ts';
+import { computeBaseActivity } from '../shared/domain/baseActivity.ts';
+import { loadBases } from './lib/bases.ts';
 import { computeHealth } from '../shared/domain/health.ts';
 import {
   SNAPSHOT_MAX_BYTES,
@@ -415,6 +417,16 @@ export async function buildSnapshot(
     const message = sanitizeError(err);
     run.errors.push({ sourceId: 'indicator-engine', message });
     log(`IWE  FAILED: ${message} (previous indicator states retained)`);
+  }
+
+  // Activity near bases: records naming or near each installation this week against earlier weeks.
+  try {
+    const { refs, matcher } = loadBases();
+    snapshot.baseActivity = computeBaseActivity(refs, loaded, now, matcher);
+    const b = snapshot.baseActivity;
+    log(`BAS  ${b.items.length} installation(s) with records this week · ${b.items.filter((i) => i.unusual).length} unusual · ${b.historyDays} d history${b.flagsActive ? '' : ' (flags start at 21 d)'}`);
+  } catch (err) {
+    log(`BAS  base activity not computed: ${sanitizeError(err)}`);
   }
 
   let events = [...loaded]

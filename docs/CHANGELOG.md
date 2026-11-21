@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.33.0] — 2026-11-21 — Activity near bases
+
+### Added
+- **Base activity** (collector, every run): for all 3,606 installations on the map, the records this week that name the installation or lie within 50 km of it, against its usual week over up to four earlier weeks of loaded history. About 20 ms per run.
+- **Unusual** = at least 3 records from 2+ sources and 3× the usual week. No flags until 21 days of history exist (1.2 days at release, so flags start around Dec. 11); until then the card says the usual level is not yet known.
+- Map: amber ring on installations with unusual activity; legend entry with the count (or "building baseline").
+- Installation card: **Activity — last 7 days** block (records, how matched, sources, usual level, UNUSUAL tag).
+
+### Changed
+- Installation name matching (card and activity): a short name that is only a country or city is no longer used ("Kuwait" for Kuwait Naval Base, "Los Angeles" for Los Angeles Air Force Base), and a site named only after a place ("Pentagon", "West Bank") is matched by location, not name.
+
+### Limits
+- Location matches count only military, unrest, aviation, maritime, diplomatic and cyber records; weather warnings, earthquakes, fire detections and disaster declarations near a base are left out.
+- A name match is a mention, not an event at the base. Bases that are often in the news have a high usual level, so they are flagged only on a real jump.
+
+
 ## [0.32.0] — 2026-11-21 — What changed
 
 ### Added
