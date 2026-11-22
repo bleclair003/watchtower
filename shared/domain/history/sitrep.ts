@@ -5,6 +5,7 @@ import type { IndicatorEvaluation, IndicatorTransition, RegionScore, ScoreHistor
 import type { AlertRecord } from '../alerts/types.ts';
 import type { Incident } from '../incidents/types.ts';
 import { mdInline, mdUrl, UNTRUSTED_SOURCE_NOTICE } from '../markdown.ts';
+import { AIRCRAFT_ROLE_LABEL, isRoutineSighting, type AircraftRole } from '../aircraft.ts';
 
 /**
  * SITREP — Situation Report (PDD §12).
@@ -60,8 +61,20 @@ function eventItem(e: IntelligenceEvent, suffix = ''): SitrepItem {
   return { text: `${e.title}${suffix} — ${e.sourceName}`, at: evTime(e), url: e.sourceUrl || undefined, eventIds: [e.id] };
 }
 
+/**
+ * Military-aircraft sightings (v0.62.0): one aircraft on ADS-B is not a development. Only exceptional ones
+ * are listed (bombers, airborne command posts, government VIP transports). Tankers, airlift and surveillance
+ * aircraft count through the air-activity indicators instead, as a volume against the usual level.
+ */
+const isAircraftSighting = (e: IntelligenceEvent) => e.sourceId === 'adsb-military' && e.metadata?.subtype === 'military-aircraft-sighting';
+
 function isSignificant(e: IntelligenceEvent): string | null {
   const m = e.metadata ?? {};
+  if (isAircraftSighting(e)) {
+    if (isRoutineSighting(e)) return null;
+    const role = m.aircraftRole as AircraftRole | undefined;
+    return role && AIRCRAFT_ROLE_LABEL[role] ? `${AIRCRAFT_ROLE_LABEL[role].toLowerCase()}` : 'bomber';
+  }
   if (m.change === 'raised') return 'advisory level raised';
   if (m.change === 'new') return 'new advisory';
   if (m.change === 'lowered') return 'advisory level lowered';
@@ -113,10 +126,21 @@ export function buildSitrep(input: SitrepInput): Sitrep {
 
   // 2. Significant developments.
   const cited = new Set(input.evaluations.filter((e) => e.state === 'TRIGGERED' || e.state === 'ELEVATED').flatMap((e) => e.evidenceEventIds));
-  const significant = published
-    .map((e) => ({ e, why: isSignificant(e) ?? (cited.has(e.id) ? 'cited by an active indicator' : null) }))
-    .filter((x) => x.why)
-    .map((x) => eventItem(x.e, ` [${x.why}]`));
+  const routineAir = new Set(published.filter((e) => isRoutineSighting(e)).map((e) => e.id));
+  const significant = [
+    // Heavy air activity: one line per active air indicator, not one per aircraft.
+    ...input.evaluations
+      .filter((ev) => (ev.state === 'TRIGGERED' || ev.state === 'ELEVATED') && ev.evidenceEventIds.some((id) => routineAir.has(id)))
+      .map((ev) => ({
+        text: `${name(ev.indicatorId)}: ${ev.state}, ${ev.matchedCount} aircraft against a usual level that puts ELEVATED at ${ev.elevatedAt} [heavy air activity]`,
+        at: ev.stateSince,
+        eventIds: ev.evidenceEventIds,
+      })),
+    ...published
+      .map((e) => ({ e, why: isSignificant(e) ?? (cited.has(e.id) && !routineAir.has(e.id) ? 'cited by an active indicator' : null) }))
+      .filter((x) => x.why)
+      .map((x) => eventItem(x.e, ` [${x.why}]`)),
+  ];
 
   // 3. Regional activity changes.
   const regional: SitrepItem[] = WATCH_REGIONS.map((r) => {
@@ -143,7 +167,8 @@ export function buildSitrep(input: SitrepInput): Sitrep {
 
   // 6. Conflicting or unverified reporting.
   const unverified: SitrepItem[] = [
-    ...published.filter((e) => e.credibility === 'unverified' || e.credibility === 'single-source').map((e) => eventItem(e, ` [${e.credibility}]`)),
+    // Aircraft sightings are sensor readings, not reports to corroborate.
+    ...published.filter((e) => (e.credibility === 'unverified' || e.credibility === 'single-source') && !isAircraftSighting(e)).map((e) => eventItem(e, ` [${e.credibility}]`)),
     ...input.incidents.flatMap((i) =>
       i.evidence
         .filter((l) => l.assessment === 'disputed')

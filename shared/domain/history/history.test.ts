@@ -118,6 +118,32 @@ describe('SITREP', () => {
     expect(s.limitations.join(' ')).toMatch(/not a probability/);
   });
 
+  it('lists only exceptional aircraft; routine sightings count as one heavy-activity line (v0.62.0)', () => {
+    const air = (id: string, metadata: Record<string, unknown>) =>
+      ev(id, T0 + 2 * H, T0 + 2 * H, { sourceId: 'adsb-military', sourceClass: 'aggregator', credibility: 'single-source', category: 'military', metadata: { subtype: 'military-aircraft-sighting', ...metadata } });
+    const tankers = ['t1', 't2', 't3'].map((id) => air(id, { aircraftClass: 'tanker' }));
+    const bomber = air('b1', { aircraftClass: 'bomber' });
+    const command = air('c1', { aircraftClass: 'other', aircraftRole: 'command' });
+    const active = {
+      indicatorId: 'middle-east.strategic-air', regionId: 'middle-east', state: 'ELEVATED' as const, reason: 'test', evaluatedAt: iso(T0 + D),
+      configVersion: 1, matchedCount: 3, distinctSources: 1, elevatedAt: 2, triggeredAt: 5, baseline: { status: 'ok' } as never,
+      evidenceEventIds: ['t1', 't2', 't3', 'b1'], lastTriggeredAt: null, stateSince: iso(T0 + 3 * H),
+    };
+    const s = buildSitrep(base({ events: [...tankers, bomber, command], evaluations: [active] }));
+    const sig = s.sections.find((x) => x.key === 'significant')!.items;
+    expect(sig).toHaveLength(3);
+    expect(sig[0].text).toMatch(/ELEVATED, 3 aircraft .*\[heavy air activity\]$/);
+    expect(sig[0].eventIds).toEqual(['t1', 't2', 't3', 'b1']);
+    expect(sig.slice(1).map((i) => i.eventIds)).toEqual([['b1'], ['c1']]);
+    expect(sig[2].text).toMatch(/\[airborne command post\] — /);
+    expect(s.sections.find((x) => x.key === 'unverified')!.items).toHaveLength(0);
+  });
+
+  it('lists no aircraft at all when only routine ones are seen and no air indicator is active', () => {
+    const t = ev('t1', T0 + 2 * H, T0 + 2 * H, { sourceId: 'adsb-military', credibility: 'single-source', metadata: { subtype: 'military-aircraft-sighting', aircraftClass: 'airlift' } });
+    expect(buildSitrep(base({ events: [t] })).sections.find((x) => x.key === 'significant')!.items).toHaveLength(0);
+  });
+
   it('exports Markdown with every section, empty-state text and limitations', () => {
     const md = sitrepToMarkdown(buildSitrep(base({ eventsTruncated: true })));
     expect(md).toMatch(/^# WATCHTOWER SITREP/);

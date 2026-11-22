@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.62.0] — 2026-11-22 — Aircraft in the SITREP
+
+### Changed
+- **A single aircraft is no longer a significant development.** The SITREP listed every tanker, transport or surveillance sighting cited by an active air indicator. Now only exceptional aircraft are listed one by one: bombers, airborne command posts (E-6B, E-4B) and government VIP transports.
+- **Heavy air activity is one line.** When an air indicator (strategic air or airlift, per region) is ELEVATED or TRIGGERED, the SITREP gives one line with the aircraft count and the ELEVATED threshold from the usual level, citing the sightings behind it.
+- Aircraft sightings are no longer listed under "Conflicting or unverified reports": they are sensor readings, not claims to corroborate.
+
 ## [0.61.1] — 2026-11-22
 
 ### Fixed
