@@ -76,7 +76,8 @@ describe('territorial claims in headlines', () => {
       category: 'military', regionIds, countryCodes: [], publishedAt: new Date(NOW - hoursAgo * 3_600_000).toISOString(), occurredAt: null, collectedAt: new Date(NOW - hoursAgo * 3_600_000).toISOString(),
       credibility: 'single-source', verificationStatus: 'unreviewed', locationPrecision: 'none',
     });
-    const claims = claimsFrom([ev('Russia says it captured Alphavka', 2), ev('Russia says it captured Alphavka', 3), ev('Russia says it captured Gammivka', 400), ev('Russia says it captured Betaville', 2, ['middle-east'])], NOW);
+    const market = { ...ev('Market odds rose: "Will Russia capture Deltivka by December 31?"', 1), sourceId: 'polymarket', sourceClass: 'aggregator' as const };
+    const claims = claimsFrom([ev('Russia says it captured Alphavka', 2), ev('Russia says it captured Alphavka', 3), ev('Russia says it captured Gammivka', 400), ev('Russia says it captured Betaville', 2, ['middle-east']), market], NOW);
     expect(claims.map((c) => [c.side, c.place])).toEqual([['russia', 'Alphavka']]);
   });
 });

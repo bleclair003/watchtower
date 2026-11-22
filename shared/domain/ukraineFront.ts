@@ -9,6 +9,7 @@
  * Front lines and areas of control need a licensed source (DeepStateMap API key requested 2026-11-22).
  */
 import type { IntelligenceEvent } from './types.ts';
+import { isNews } from './changes.ts';
 
 /** Sectors as the General Staff names them (aliases map older and alternative names). */
 export const SECTORS: { id: string; name: string; aliases: string[] }[] = [
@@ -215,6 +216,8 @@ export function claimsFrom(events: IntelligenceEvent[], now: number): Territoria
   for (const e of [...events].sort((a, b) => (b.publishedAt ?? b.collectedAt).localeCompare(a.publishedAt ?? a.collectedAt))) {
     const at = e.publishedAt ?? e.collectedAt;
     if (!e.regionIds.includes('eastern-europe') || Date.parse(at) < now - 14 * 86_400_000) continue;
+    // News headlines only: not questions (e.g. prediction-market titles) or structured feeds.
+    if (!isNews(e) || /\?/.test(e.title)) continue;
     const c = headlineClaim(e.title);
     if (!c) continue;
     const key = `${c.side}|${c.place}|${at.slice(0, 10)}`;

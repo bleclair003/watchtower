@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.53.1] — 2026-11-22
+
+### Fixed
+- Territorial claims are taken from news headlines only: a Polymarket question ("Will Russia capture … ?") had been listed as a Russian claim.
+
+
 ## [0.53.0] — 2026-11-22 — Ukraine front (Phase 21)
 
 ### Added
