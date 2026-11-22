@@ -1,7 +1,7 @@
 import type { EventCategory, IntelligenceEvent } from '@shared/domain/types';
 import { WATCH_REGIONS } from '@shared/domain/regions';
 import { isOffTopic } from '@shared/domain/relevance';
-import { isRoutineSighting } from '@shared/domain/aircraft';
+import { ROUTINE_SOURCES, isRoutineRecord } from '@shared/domain/routine';
 import { HOUR } from './time';
 
 export type SourceClassFilter = 'all' | 'official' | 'non-official';
@@ -17,8 +17,8 @@ export interface DashboardFilters {
   keyword: string;
   /** Show news items marked off-topic (sport, entertainment …). Hidden by default. */
   showOffTopic: boolean;
-  /** Show routine military-aircraft sightings (tankers, airlift, surveillance). Hidden by default. */
-  showRoutineAircraft: boolean;
+  /** Show routine records: aircraft sightings and IODA outages outside the watch regions. Hidden by default. */
+  showRoutine: boolean;
 }
 
 export const DEFAULT_FILTERS: DashboardFilters = {
@@ -29,7 +29,7 @@ export const DEFAULT_FILTERS: DashboardFilters = {
   sourceClass: 'all',
   keyword: '',
   showOffTopic: false,
-  showRoutineAircraft: false,
+  showRoutine: false,
 };
 
 export const TIME_WINDOWS: { hours: number | null; label: string }[] = [
@@ -56,8 +56,8 @@ export function applyFilters(
   return events
     .filter((e) => {
       if (!f.showOffTopic && isOffTopic(e)) return false;
-      // Shown when asked for, or when the aircraft source itself is selected.
-      if (!f.showRoutineAircraft && f.sourceId !== 'adsb-military' && isRoutineSighting(e)) return false;
+      // Shown when asked for, or when their source itself is selected.
+      if (!f.showRoutine && !(f.sourceId && ROUTINE_SOURCES.has(f.sourceId)) && isRoutineRecord(e)) return false;
       if (f.regionId && !e.regionIds.includes(f.regionId)) return false;
       if (f.categories.length && !f.categories.includes(e.category)) return false;
       if (f.sourceId && e.sourceId !== f.sourceId) return false;
@@ -81,7 +81,7 @@ export function countActiveFilters(f: DashboardFilters): number {
   if (f.sourceClass !== 'all') n++;
   if (f.keyword.trim()) n++;
   if (f.showOffTopic) n++;
-  if (f.showRoutineAircraft) n++;
+  if (f.showRoutine) n++;
   if (f.windowHours !== DEFAULT_FILTERS.windowHours) n++;
   return n;
 }

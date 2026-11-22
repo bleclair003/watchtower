@@ -88,11 +88,21 @@ describe('routine aircraft sightings', () => {
 
   it('hides tankers, airlift and surveillance sightings by default, never bombers or command / VIP aircraft', () => {
     expect(applyFilters(list, DEFAULT_FILTERS, NOW).map((e) => e.id).sort()).toEqual(['bomber', 'e4b', 'news']);
-    expect(applyFilters(list, { ...DEFAULT_FILTERS, showRoutineAircraft: true }, NOW)).toHaveLength(4);
-    expect(countActiveFilters({ ...DEFAULT_FILTERS, showRoutineAircraft: true })).toBe(1);
+    expect(applyFilters(list, { ...DEFAULT_FILTERS, showRoutine: true }, NOW)).toHaveLength(4);
+    expect(countActiveFilters({ ...DEFAULT_FILTERS, showRoutine: true })).toBe(1);
   });
 
   it('shows them when the aircraft source itself is selected', () => {
     expect(applyFilters(list, { ...DEFAULT_FILTERS, sourceId: 'adsb-military' }, NOW).map((e) => e.id).sort()).toEqual(['bomber', 'e4b', 'tanker']);
+  });
+});
+
+describe('routine IODA outages', () => {
+  const ioda = (id: string, regionIds: string[]) => ev({ id, sourceId: 'ioda-outages', category: 'cyber', regionIds, title: id });
+  const list = [ioda('nigeria', []), ioda('syria', ['middle-east']), ev({ id: 'cloudflare', sourceId: 'cloudflare-radar-outages', category: 'cyber' })];
+  it('hides IODA drops outside the watch regions; keeps those inside, and Cloudflare outages', () => {
+    expect(applyFilters(list, DEFAULT_FILTERS, NOW).map((e) => e.id).sort()).toEqual(['cloudflare', 'syria']);
+    expect(applyFilters(list, { ...DEFAULT_FILTERS, sourceId: 'ioda-outages' }, NOW).map((e) => e.id).sort()).toEqual(['nigeria', 'syria']);
+    expect(applyFilters(list, { ...DEFAULT_FILTERS, showRoutine: true }, NOW)).toHaveLength(3);
   });
 });

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.52.1] — 2026-11-22 — Routine records toggle
+
+### Changed
+- **IODA connectivity drops outside every watch region are hidden from the GOC feed and map by default** (46 of 47 at release: Nigeria, DR Congo, US Virgin Islands …; IODA states no cause). IODA outages inside a watch region, and Cloudflare outages with a stated cause, always show.
+- The AIRCRAFT toggle became **ROUTINE HIDDEN (n)**, covering routine aircraft sightings and these outages (its tooltip gives both counts). Picking either source in the source filter shows all of its records. Nothing is deleted; the CYBER page still lists all disruptions.
+
+
 ## [0.52.0] — 2026-11-22 — Quieter GOC feed
 
 ### Changed
