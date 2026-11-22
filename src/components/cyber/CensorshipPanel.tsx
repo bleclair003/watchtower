@@ -26,7 +26,7 @@ export function CensorshipPanel({ data, now }: { data: CensorshipSnapshot | null
         <table className="w-full text-2xs">
           <thead className="text-wt-fg-dim">
             <tr className="border-b border-wt-line">
-              <th className="px-2 py-1 text-left font-normal">Country</th>
+              <th className="sticky left-0 z-10 bg-wt-panel px-2 py-1 text-left font-normal">Country</th>
               {CENSOR_TARGETS.map((t) => (
                 <th key={t.id} className="px-1 py-1 text-center font-normal">
                   {t.label}
@@ -38,7 +38,7 @@ export function CensorshipPanel({ data, now }: { data: CensorshipSnapshot | null
           <tbody className="divide-y divide-wt-line">
             {countries.map((c) => (
               <tr key={c.cc}>
-                <td className="px-2 py-0.5 whitespace-nowrap text-wt-fg">
+                <td className="sticky left-0 z-10 bg-wt-panel px-2 py-0.5 whitespace-nowrap text-wt-fg">
                   <a href={`https://explorer.ooni.org/country/${c.cc}`} target="_blank" rel="noopener noreferrer nofollow" className="hover:underline">
                     {c.name}
                   </a>

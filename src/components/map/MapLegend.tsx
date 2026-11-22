@@ -41,7 +41,8 @@ const BRANCH_LABEL = { army: 'Army', navy: 'Navy', 'air-force': 'Air Force', mar
 
 /** Collapsible legend explaining symbols and location-precision handling. */
 export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, infrastructure, power, faa, radiation, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
-  const [open, setOpen] = useState(true);
+  // Closed by default on phones, where it would cover most of the map.
+  const [open, setOpen] = useState(() => typeof window === 'undefined' || window.matchMedia?.('(min-width: 768px)').matches !== false);
   return (
     <div className="pointer-events-auto absolute bottom-2 left-2 z-10 flex max-h-[calc(100%-1rem)] max-w-[230px] flex-col border border-wt-line-strong bg-wt-panel/95 text-2xs">
       <button

@@ -91,7 +91,7 @@ export default function MetersPage() {
               <table className="w-full min-w-[760px] text-2xs">
                 <thead className="text-wt-fg-dim">
                   <tr>
-                    <th className="px-2 py-1 text-left font-normal">REGION</th>
+                    <th className="sticky left-0 z-10 bg-wt-panel px-2 py-1 text-left font-normal">REGION</th>
                     {REGION_COLUMNS.map(([k, label, title]) => (
                       <th key={k} className="px-1 py-1 text-left font-normal" title={title}>
                         {label}
@@ -102,7 +102,8 @@ export default function MetersPage() {
                 <tbody className="divide-y divide-wt-line">
                   {regions.map((r) => (
                     <tr key={r.id}>
-                      <td className="px-2 py-1 whitespace-nowrap">
+                      {/* Region name stays in view while the columns scroll sideways on phones. */}
+                      <td className="sticky left-0 z-10 bg-wt-panel px-2 py-1 whitespace-nowrap">
                         <Link to={`/regions/${r.id}`} className="hover:underline">
                           {r.shortCode}
                         </Link>

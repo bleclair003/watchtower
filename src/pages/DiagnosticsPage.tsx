@@ -13,7 +13,7 @@ import type { Tone } from '../config/categories';
 
 function Row({ k, v, tone }: { k: string; v: ReactNode; tone?: Tone }) {
   return (
-    <div className="grid grid-cols-[220px_1fr] gap-3 border-b border-wt-line px-2 py-1 text-xs last:border-b-0">
+    <div className="grid grid-cols-[minmax(0,120px)_1fr] gap-3 border-b border-wt-line px-2 py-1 text-xs last:border-b-0 sm:grid-cols-[220px_1fr]">
       <span className="text-wt-fg-dim">{k}</span>
       <span className="min-w-0 break-words">{tone ? <Tag tone={tone}>{v}</Tag> : v}</span>
     </div>

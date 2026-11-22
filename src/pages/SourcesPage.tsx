@@ -29,6 +29,9 @@ const FEAS_TONE: Record<SourceDefinition['feasibility']['result'], Tone> = {
 };
 
 /** Intelligence Source Directory: every configured and prospective source. */
+/** Columns shown only from tablet width up (their values move into the row details on phones). */
+const PHONE_HIDDEN = ['ORGANIZATION', 'METHOD', 'AUTH', 'POLL', 'FEASIBILITY', 'LAST OK'];
+
 export default function SourcesPage() {
   const { sourceStatus } = useData();
   const now = useNow(60_000).getTime();
@@ -48,11 +51,14 @@ export default function SourcesPage() {
           Select a row for reliability and terms notes.
         </p>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[960px] border-collapse text-left text-xs">
+          {/* On phones only priority, source, status and the link are columns; the rest is in each row's details. */}
+          <table className="w-full border-collapse text-left text-xs md:min-w-[960px]">
             <thead className="bg-wt-bg2 text-2xs tracking-widest text-wt-fg-dim">
               <tr>
                 {['PRI', 'SOURCE', 'ORGANIZATION', 'METHOD', 'AUTH', 'POLL', 'FEASIBILITY', 'STATUS', 'LAST OK', ''].map((h) => (
-                  <th key={h} className="border-b border-wt-line px-2 py-1 font-normal">{h}</th>
+                  <th key={h} className={`border-b border-wt-line px-2 py-1 font-normal ${PHONE_HIDDEN.includes(h) ? 'hidden md:table-cell' : ''}`}>
+                    {h}
+                  </th>
                 ))}
               </tr>
             </thead>
@@ -77,12 +83,13 @@ export default function SourcesPage() {
                           {s.name}
                         </button>
                         <div className="text-2xs text-wt-fg-dim">{s.id}</div>
+                        <div className="text-2xs text-wt-fg-muted md:hidden">{s.organization}</div>
                       </td>
-                      <td className="px-2 py-1 text-wt-fg-muted">{s.organization}</td>
-                      <td className="px-2 py-1 uppercase">{s.method}</td>
-                      <td className="max-w-[160px] px-2 py-1 text-wt-fg-muted">{s.authentication}</td>
-                      <td className="px-2 py-1 tabular-nums">{s.pollIntervalMinutes ? `${s.pollIntervalMinutes}m` : '—'}</td>
-                      <td className="px-2 py-1">
+                      <td className="hidden md:table-cell px-2 py-1 text-wt-fg-muted">{s.organization}</td>
+                      <td className="hidden md:table-cell px-2 py-1 uppercase">{s.method}</td>
+                      <td className="hidden md:table-cell max-w-[160px] px-2 py-1 text-wt-fg-muted">{s.authentication}</td>
+                      <td className="hidden md:table-cell px-2 py-1 tabular-nums">{s.pollIntervalMinutes ? `${s.pollIntervalMinutes}m` : '—'}</td>
+                      <td className="hidden md:table-cell px-2 py-1">
                         <Tag tone={FEAS_TONE[s.feasibility.result]}>{s.feasibility.result}</Tag>
                       </td>
                       <td className="px-2 py-1">
@@ -93,7 +100,7 @@ export default function SourcesPage() {
                           </span>
                         )}
                       </td>
-                      <td className="px-2 py-1 text-wt-fg-muted tabular-nums">{formatUtc(st?.lastSuccessAt)}</td>
+                      <td className="hidden md:table-cell px-2 py-1 text-wt-fg-muted tabular-nums">{formatUtc(st?.lastSuccessAt)}</td>
                       <td className="px-2 py-1">
                         {site && (
                           <a
@@ -111,9 +118,21 @@ export default function SourcesPage() {
                     </tr>
                     {open && (
                       <tr className="border-b border-wt-line bg-wt-bg2/40">
-                        <td />
+                        <td className="hidden md:table-cell" />
                         <td colSpan={9} className="px-2 py-2">
-                          <dl className="grid grid-cols-[140px_1fr] gap-x-3 gap-y-1 text-2xs">
+                          <dl className="grid grid-cols-[96px_1fr] gap-x-3 gap-y-1 text-2xs md:grid-cols-[140px_1fr]">
+                            <dt className="text-wt-fg-dim md:hidden">METHOD · AUTH</dt>
+                            <dd className="md:hidden">
+                              {s.method.toUpperCase()} · {s.authentication}
+                            </dd>
+                            <dt className="text-wt-fg-dim md:hidden">POLL · LAST OK</dt>
+                            <dd className="md:hidden">
+                              {s.pollIntervalMinutes ? `every ${s.pollIntervalMinutes} min` : '—'} · {formatUtc(st?.lastSuccessAt)}
+                            </dd>
+                            <dt className="text-wt-fg-dim md:hidden">FEASIBILITY</dt>
+                            <dd className="md:hidden">
+                              <Tag tone={FEAS_TONE[s.feasibility.result]}>{s.feasibility.result}</Tag>
+                            </dd>
                             <dt className="text-wt-fg-dim">COVERAGE</dt><dd>{s.coverage}</dd>
                             <dt className="text-wt-fg-dim">ENDPOINT</dt><dd className="break-all text-wt-fg-muted">{s.endpoint ?? 'NONE IDENTIFIED'}</dd>
                             <dt className="text-wt-fg-dim">FREE ACCESS</dt><dd>{s.freeAccess}</dd>

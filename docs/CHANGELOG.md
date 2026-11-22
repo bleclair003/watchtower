@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.58.0] — 2026-11-22 — Phone layout
+
+### Changed
+- **Panel headers** wrap on phones: the title keeps its own line and the buttons move to a second line that scrolls sideways (the map's 15 layer buttons no longer squeeze the title into three lines).
+- **Map legend** starts closed on phones, where it covered most of the map; tap LEGEND to open it.
+- **Indicators** table fits a phone screen: window, since, last triggered and weight move into each row's details, and the baseline cell wraps.
+- **Sources** table fits a phone screen: priority, source (with its organisation), status and link; method, authentication, polling, feasibility and last success move into the row details.
+- The **meters region grid** and the **censorship grid** keep the region or country column pinned while the other columns scroll sideways.
+- **Touch screens:** buttons and selects are at least 24 px tall, and text fields use 16 px text so iPhones no longer zoom in when a field is tapped.
+- Diagnostics rows use a narrower label column on phones (no sideways scroll).
+
+
 ## [0.57.1] — 2026-11-22
 
 ### Fixed

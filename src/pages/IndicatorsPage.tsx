@@ -35,7 +35,9 @@ function IndicatorRow({
       <tr onClick={onToggle} className={`cursor-pointer border-b border-wt-line align-top ${open ? 'bg-wt-info/[0.06]' : 'hover:bg-wt-bg2'}`}>
         <td className="px-2 py-1">
           <span className="flex items-center gap-1.5 whitespace-nowrap">
-            <Lamp tone={INDICATOR_STATE_TONE[state]} label={state} />
+            <span className="hidden sm:inline-flex">
+              <Lamp tone={INDICATOR_STATE_TONE[state]} label={state} />
+            </span>
             <Tag tone={INDICATOR_STATE_TONE[state]}>{INDICATOR_STATE_LABEL[state]}</Tag>
           </span>
         </td>
@@ -54,8 +56,8 @@ function IndicatorRow({
             '—'
           )}
         </td>
-        <td className="px-2 py-1 tabular-nums">{def.windowHours} h</td>
-        <td className="px-2 py-1 text-2xs whitespace-nowrap">
+        <td className="hidden px-2 py-1 tabular-nums sm:table-cell">{def.windowHours} h</td>
+        <td className="px-2 py-1 text-2xs sm:whitespace-nowrap">
           {!def.baseline ? (
             <span className="text-wt-fg-dim">NONE</span>
           ) : ev?.baseline.status === 'sufficient' && ev.baseline.method === 'robust' ? (
@@ -74,17 +76,26 @@ function IndicatorRow({
             </span>
           )}
         </td>
-        <td className="px-2 py-1 text-2xs whitespace-nowrap text-wt-fg-muted">{ev ? formatAge(ev.stateSince, now) : '—'}</td>
-        <td className="px-2 py-1 text-2xs whitespace-nowrap text-wt-fg-muted">{ev?.lastTriggeredAt ? formatUtc(ev.lastTriggeredAt) : 'NEVER'}</td>
-        <td className="px-2 py-1 text-right tabular-nums text-wt-fg-muted">
+        <td className="hidden px-2 py-1 text-2xs whitespace-nowrap text-wt-fg-muted sm:table-cell">{ev ? formatAge(ev.stateSince, now) : '—'}</td>
+        <td className="hidden px-2 py-1 text-2xs whitespace-nowrap text-wt-fg-muted sm:table-cell">{ev?.lastTriggeredAt ? formatUtc(ev.lastTriggeredAt) : 'NEVER'}</td>
+        <td className="hidden px-2 py-1 text-right tabular-nums text-wt-fg-muted sm:table-cell">
           {def.experimental ? '—' : `${def.weight}·${def.severity[0].toUpperCase()}`}
         </td>
       </tr>
       {open && (
         <tr className="border-b border-wt-line bg-wt-bg2/40">
-          <td />
+          <td className="hidden sm:table-cell" />
           <td colSpan={7} className="px-2 py-2">
-            <dl className="grid grid-cols-[120px_1fr] gap-x-3 gap-y-1 text-2xs">
+            <dl className="grid grid-cols-[88px_1fr] gap-x-3 gap-y-1 text-2xs sm:grid-cols-[120px_1fr]">
+              {/* Shown here on phones, where these columns are hidden. */}
+              <dt className="text-wt-fg-dim sm:hidden">WINDOW · WEIGHT</dt>
+              <dd className="sm:hidden">
+                {def.windowHours} h · {def.experimental ? 'experimental (no weight)' : `weight ${def.weight}, ${def.severity}`}
+              </dd>
+              <dt className="text-wt-fg-dim sm:hidden">SINCE · LAST TRIGGERED</dt>
+              <dd className="sm:hidden">
+                {ev ? formatAge(ev.stateSince, now) : '—'} · {ev?.lastTriggeredAt ? formatUtc(ev.lastTriggeredAt) : 'never'}
+              </dd>
               <dt className="text-wt-fg-dim">DESCRIPTION</dt>
               <dd>{def.description}</dd>
               <dt className="text-wt-fg-dim">RATIONALE</dt>
@@ -96,7 +107,7 @@ function IndicatorRow({
                 elevated ≥ {def.elevated.countAtLeast}, triggered ≥ {def.triggered.countAtLeast}
                 {def.triggered.distinctSourcesAtLeast ? ` from ≥ ${def.triggered.distinctSourcesAtLeast} sources` : ''}
                 {def.baseline &&
-                  ` · baseline ${def.baseline.days} d: trigger also needs ≥ ${def.baseline.triggerRatio}× mean, elevated ≥ ${def.baseline.elevatedRatio}× mean`}
+                  ` · baseline ${def.baseline.days} d: elevated also needs a score of 2+ (2 typical spreads above the usual count), triggered 3+; with too little history, ${def.baseline.elevatedRatio}× / ${def.baseline.triggerRatio}× the mean`}
               </dd>
               <dt className="text-wt-fg-dim">REQUIRED SOURCES</dt>
               <dd>{def.requiredSourceIds.join(', ')}</dd>
@@ -146,11 +157,14 @@ function IndicatorTable(props: {
 }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[860px] border-collapse text-left text-xs">
+      {/* On phones the window, since, last-triggered and weight columns are hidden (they are in each row's details). */}
+      <table className="w-full border-collapse text-left text-xs sm:min-w-[860px]">
         <thead className="bg-wt-bg2 text-2xs tracking-widest text-wt-fg-dim">
           <tr>
             {['STATE', 'INDICATOR', 'MATCHED', 'WINDOW', 'BASELINE', 'SINCE', 'LAST TRIGGERED', 'WT·SEV'].map((h) => (
-              <th key={h} className="border-b border-wt-line px-2 py-1 font-normal">{h}</th>
+              <th key={h} className={`border-b border-wt-line px-2 py-1 font-normal ${['WINDOW', 'SINCE', 'LAST TRIGGERED', 'WT·SEV'].includes(h) ? 'hidden sm:table-cell' : ''}`}>
+                {h}
+              </th>
             ))}
           </tr>
         </thead>
