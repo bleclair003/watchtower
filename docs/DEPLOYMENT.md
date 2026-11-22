@@ -86,7 +86,7 @@ Emulator project ids start with `demo-`, which the Firebase tools guarantee can 
 
 ## 4. Hosting (live since Phase 7)
 
-Live at **https://watchtower-b9b2a.web.app**. The page is public, but nothing is readable without the owner sign-in: Firestore rules enforce that, not the UI.
+Live at **https://watchtower-hq.web.app**. The page is public, but nothing is readable without the owner sign-in: Firestore rules enforce that, not the UI.
 
 ```bash
 npm run build                        # needs .env.local (live web config)

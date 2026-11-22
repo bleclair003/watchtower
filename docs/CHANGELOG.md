@@ -2,6 +2,9 @@
 
 ## [0.60.0] — 2026-11-22 — Several people (Phase 26)
 
+### Address
+- The site moved to **https://watchtower-hq.web.app** (a second Firebase Hosting site in the same project; `watchtower.web.app` and `watchtower-ops.web.app` are reserved by other projects). The old address answers with a permanent redirect that keeps the path. The new address is an authorised sign-in domain; everyone signs in once there (sign-ins are kept per address). Discord briefs link to the new address.
+
 ### Added
 - **Roles.** Anyone can sign in with Google; they wait (role *pending*, no access) until the owner approves them as a **viewer** (sees everything, keeps a personal watchlist) or an **editor** (also edits incident dossiers and acknowledges or dismisses alerts). Alert rules and people stay with the **owner** (the existing `owner` claim). The owner can also remove access (*blocked*) or forget an entry.
 - **USERS page** (owner only): who has signed in, when they were last seen, and buttons to set each person's role. A waiting person's screen opens the dashboard by itself once approved.

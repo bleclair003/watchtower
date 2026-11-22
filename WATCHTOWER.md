@@ -6,7 +6,7 @@ updated: 2026-11-21
 
 # WATCHTOWER — vault home
 
-Personal OSINT early-warning console. **Live:** https://watchtower-b9b2a.web.app (owner sign-in) · **Repo:** github.com/bleclair003/watchtower (public since 2026-11-21) · **Collection:** hourly GitHub Actions run.
+Personal OSINT early-warning console. **Live:** https://watchtower-hq.web.app (owner sign-in) · **Repo:** github.com/bleclair003/watchtower (public since 2026-11-21) · **Collection:** hourly GitHub Actions run.
 
 This folder is both the git repository and the Obsidian vault. Notes and code live side by side; code files show in the file explorer (they open in your editor). Build output and `node_modules` are excluded from search and the graph.
 
