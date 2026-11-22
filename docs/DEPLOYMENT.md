@@ -8,7 +8,7 @@
 |---|---|---|
 | Static SPA | Firebase Hosting, **Spark** | No billing account → cannot be charged; quotas hard-stop |
 | Database | Cloud Firestore, **Spark** | Dashboard = **1 read per load** (snapshot doc); auto-refresh every 10 min |
-| Auth | Firebase Authentication, **Spark** | Google sign-in, single owner (custom claim) |
+| Auth | Firebase Authentication, **Spark** | Google sign-in; one owner (custom claim), plus viewers and editors the owner approves on the Users page (v0.60.0) |
 | Scheduler + collectors | GitHub Actions | Hourly cron, ~1–2 min per run |
 | Basemap | OpenFreeMap | Free, no key |
 
@@ -53,7 +53,8 @@ Do these once. Nothing here requires a credit card.
    | Secret | `FIREBASE_SERVICE_ACCOUNT` | the JSON key contents |
    | Secret | `OWNER_EMAIL` | the Google account you will sign in with |
 7. **Sign in once** — `npm run dev`, open the app, *Sign in with Google*. You'll see **ACCOUNT NOT AUTHORIZED** — expected.
-8. **Grant owner** — Actions → *Grant owner* → Run workflow. Back in the app, click **RECHECK ACCESS**.
+8. **Grant owner** — Actions → *Grant owner* → Run workflow. Back in the app, open *Are you the owner?* and click **RECHECK OWNER CLAIM**.
+9. **Add people** (optional) — send them the site address. They sign in with Google and wait; approve them as viewer or editor on **USERS**. Deploy the Firestore rules with the site (`--only hosting,firestore:rules`).
 9. **First collection** — Actions → *Collect* → Run workflow. Reload the dashboard: the DATA readout shows **LIVE** and sources turn **ONLINE**. From then on it runs hourly.
 
 ### Public or private repository?

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { IntelligenceEvent } from '@shared/domain/types';
 import type { Incident } from '@shared/domain/incidents/types';
 import { addEvidence, createIncident } from '@shared/domain/incidents/logic';
+import { useAuth } from '../../state/AuthContext';
 
 /** "+ DOSSIER" control for a feed item: attach the event to an existing dossier or start a new one. */
 export function AddToDossier({ event }: { event: IntelligenceEvent }) {
@@ -11,6 +12,7 @@ export function AddToDossier({ event }: { event: IntelligenceEvent }) {
   const [items, setItems] = useState<Incident[] | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const canEdit = useAuth().can('editIncidents');
 
   async function openPicker() {
     setOpen(true);
@@ -49,6 +51,7 @@ export function AddToDossier({ event }: { event: IntelligenceEvent }) {
     }
   }
 
+  if (!canEdit) return null;
   return (
     <div className="text-2xs">
       {!open ? (

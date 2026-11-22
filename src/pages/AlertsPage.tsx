@@ -5,6 +5,7 @@ import { describeCondition } from '@shared/domain/indicators/conditions';
 import { getIndicator } from '@shared/domain/indicators/catalog';
 import { getRegion } from '@shared/domain/regions';
 import { useData } from '../state/DataContext';
+import { useAuth } from '../state/AuthContext';
 import { useNow } from '../hooks/useNow';
 import { formatAge, formatUtc } from '../lib/time';
 import { safeExternalUrl } from '../lib/sanitize';
@@ -27,6 +28,9 @@ export default function AlertsPage() {
   const data = useData();
   const now = useNow(60_000).getTime();
   const live = data.mode !== 'demo';
+  const { can } = useAuth();
+  const canTriage = can('triageAlerts');
+  const canRules = can('manageRules');
   const [svc, setSvc] = useState<Service | null>(null);
   const [tab, setTab] = useState<'inbox' | 'rules'>('inbox');
   const [alerts, setAlerts] = useState<AlertRecord[] | null>(null);
@@ -166,10 +170,10 @@ export default function AlertsPage() {
                         <Tag tone={DELIVERY_TONE[a.delivery.discord]} title={a.delivery.error ?? undefined}>DISCORD {a.delivery.discord}</Tag>
                         {a.dismissed ? <Tag tone="inactive">DISMISSED</Tag> : a.acknowledged ? <Tag tone="inactive">ACK</Tag> : null}
                         <span className="ml-auto flex gap-2">
-                          {!a.acknowledged && (
+                          {canTriage && !a.acknowledged && (
                             <button className="text-wt-fg-muted hover:text-wt-fg" onClick={() => void act(() => svc!.acknowledgeAlert(a.id))}>[ACK]</button>
                           )}
-                          {!a.dismissed && (
+                          {canTriage && !a.dismissed && (
                             <button className="text-wt-fg-muted hover:text-wt-fg" onClick={() => void act(() => svc!.dismissAlert(a.id))}>[DISMISS]</button>
                           )}
                         </span>
@@ -198,7 +202,9 @@ export default function AlertsPage() {
 
         {(tab === 'rules' || !live) && (
           <div>
-            {editing ? (
+            {!canRules ? (
+              <p className="border-b border-wt-line px-2 py-1 text-2xs text-wt-fg-dim">Read only: alert rules are managed by the owner.</p>
+            ) : editing ? (
               <RuleBuilder
                 initial={editing === 'new' ? null : editing}
                 canSave={live && !!svc}
@@ -228,7 +234,7 @@ export default function AlertsPage() {
                           <span className={r.enabled ? '' : 'text-wt-inactive'}>{r.name}</span>
                           {!r.enabled && <Tag tone="inactive">DISABLED</Tag>}
                           {problems && <Tag tone="crit" title={problems.join('; ')}>INVALID — NOT EVALUATED</Tag>}
-                          <span className="ml-auto flex gap-2 text-2xs">
+                          {canRules && <span className="ml-auto flex gap-2 text-2xs">
                             <button
                               className="text-wt-fg-muted hover:text-wt-fg"
                               onClick={() => void act(() => svc!.saveRule({ ...r, enabled: !r.enabled, version: r.version + 1, updatedAt: new Date().toISOString() }))}
@@ -246,7 +252,7 @@ export default function AlertsPage() {
                             ) : (
                               <button className="text-wt-fg-muted hover:text-wt-crit" onClick={() => setConfirmDelete(r.id)}>[DELETE]</button>
                             )}
-                          </span>
+                          </span>}
                         </div>
                         <p className="mt-0.5 font-mono text-2xs break-words text-wt-fg-muted">{triggerSummary(r)}</p>
                         <p className="text-2xs text-wt-fg-dim">

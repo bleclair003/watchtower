@@ -3,6 +3,7 @@ import type { IndicatorEvaluation, IndicatorTransition, RegionScore } from '../.
 import { evaluateRule, validateAlertRule, type AlertCandidate } from '../../shared/domain/alerts/evaluate.ts';
 import { WATCHLIST_LIMITS, compileWatchlist, validateWatchlist, type Watchlist } from '../../shared/domain/watchlist.ts';
 import type { AlertRecord, AlertRule, AlertRuleProblem, DeliveryStatus } from '../../shared/domain/alerts/types.ts';
+import { watchlistsThatAlert } from '../../shared/domain/members.ts';
 import { contentHash } from '../lib/hash.ts';
 import type { CollectorStore } from '../store/types.ts';
 import { buildDiscordPayload, sendDiscord } from './discord.ts';
@@ -75,7 +76,9 @@ export async function runAlerting(store: CollectorStore, opts: AlertingOptions):
 
   // Watchlist items marked "alert": one alert per new record that names them.
   try {
-    for (const raw of await store.listWatchlists()) {
+    // Only the owner's and editors' watchlists alert (viewers' lists highlight in their own view only).
+    const [watchlists, members] = await Promise.all([store.listWatchlists(), store.listMembers()]);
+    for (const { data: raw } of watchlistsThatAlert(watchlists, members)) {
       const problems = validateWatchlist(raw);
       if (problems.length) {
         result.problems.push({ ruleId: 'watchlist', ruleName: 'Watchlist', problems });

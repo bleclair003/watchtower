@@ -387,3 +387,11 @@ Free sources and analysis of data already collected. Each new outside source is 
 - [ ] State-affiliated / partisan labels on publishers
 - [ ] Open-Meteo climate anomalies; abuse.ch cyber infrastructure; cables, pipelines, ports, satellites layers
 
+## Phase 26 — Several people (2026-11-22)
+
+- [x] Roles: owner (claim), editor, viewer, pending, blocked — enforced by the Firestore rules and tested on the emulator — v0.60.0
+- [x] Users page (owner only): approve, change or remove access — v0.60.0
+- [x] Only the owner's and editors' watchlists raise alerts — v0.60.0
+- [ ] Viewers: copy a dossier as Markdown (the export button is disabled with the rest of the read-only form)
+- [ ] Optional: email the owner when someone is waiting (needs a free mail route)
+

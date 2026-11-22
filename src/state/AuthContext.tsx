@@ -1,13 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { backendMode, useFirebaseEmulators } from '../config/firebase';
+import { can as roleCan, effectiveRole, type Member, type Permission, type Role } from '@shared/domain/members';
 
 /**
  * Operator authentication.
  *
  * Demo mode needs no sign-in. Live/emulator mode requires Firebase Auth (Google
- * provider) AND the `owner` custom claim, which is granted out-of-band with
- * `npm run grant-owner` (Admin SDK) — so no UID or email is hard-coded in the
- * repository or the security rules.
+ * provider) AND a role: the `owner` custom claim (granted out-of-band with
+ * `npm run grant-owner`), or a viewer / editor role the owner sets on the Users
+ * page (members/{uid}, v0.60.0). No UID or email is hard-coded in the repository
+ * or the security rules, which enforce every role.
  */
 export interface OperatorUser {
   uid: string;
@@ -22,6 +24,10 @@ interface AuthState {
   user: OperatorUser | null;
   /** True when the ID token carries owner=true. null while unknown. */
   isOwner: boolean | null;
+  /** Effective role; null while unknown (signed out or still loading). */
+  role: Role | null;
+  /** Whether the current role grants a permission (a convenience: the security rules decide). */
+  can: (p: Permission) => boolean;
   error: string | null;
   signIn: () => Promise<void>;
   /** Emulator only: signs in (creating if needed) a local email/password test account. */
@@ -49,10 +55,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<OperatorUser | null>(null);
   const [isOwner, setIsOwner] = useState<boolean | null>(required ? null : true);
   const [error, setError] = useState<string | null>(null);
+  /** The signed-in person's members/{uid} document: undefined while loading, null when missing. */
+  const [member, setMember] = useState<Member | null | undefined>(undefined);
 
   useEffect(() => {
     if (!required) return;
     let unsub = () => {};
+    let unsubMember = () => {};
     let cancelled = false;
     (async () => {
       const [{ getFirebase }, { onAuthStateChanged, getRedirectResult }] = await Promise.all([
@@ -63,17 +72,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { auth } = getFirebase();
       // Completes a redirect sign-in (if one is in flight) and surfaces its errors.
       getRedirectResult(auth).catch((err: unknown) => setError(describeAuthError(err)));
+      const members = await import('../data/membersService');
       unsub = onAuthStateChanged(auth, async (u) => {
+        unsubMember();
+        unsubMember = () => {};
         if (!u) {
           setUser(null);
           setIsOwner(null);
+          setMember(undefined);
           setStatus('signed-out');
           return;
         }
         const token = await u.getIdTokenResult();
+        const owner = token.claims.owner === true;
         setUser({ uid: u.uid, email: u.email, displayName: u.displayName });
-        setIsOwner(token.claims.owner === true);
+        setIsOwner(owner);
+        setMember(undefined);
         setStatus('signed-in');
+        // Registers the person (role "pending" the first time), then follows their role live.
+        try {
+          await members.ensureMember({ uid: u.uid, email: u.email, displayName: u.displayName }, owner);
+        } catch (err) {
+          if (!owner) setError(`Could not register this account: ${err instanceof Error ? err.message : String(err)}`);
+        }
+        if (cancelled || auth.currentUser?.uid !== u.uid) return;
+        unsubMember = members.watchMember(
+          u.uid,
+          (m) => setMember(m),
+          () => setMember(null),
+        );
       });
     })().catch((err: unknown) => {
       setError(err instanceof Error ? err.message : String(err));
@@ -82,6 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
       unsub();
+      unsubMember();
     };
   }, [required]);
 
@@ -147,18 +175,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsOwner(token.claims.owner === true);
   }, []);
 
+  // The owner claim decides at once; anyone else waits for their member document.
+  const role: Role | null = !required ? 'owner' : status !== 'signed-in' || isOwner === null ? null : isOwner ? 'owner' : member === undefined ? null : effectiveRole(false, member);
+  const can = useCallback((p: Permission) => roleCan(role, p), [role]);
+
   const value = useMemo(
     () => ({
       status,
       user,
       isOwner,
+      role,
+      can,
       error,
       signIn,
       signInEmulatorTestUser: useFirebaseEmulators ? signInEmulatorTestUser : null,
       signOut,
       refreshClaims,
     }),
-    [status, user, isOwner, error, signIn, signInEmulatorTestUser, signOut, refreshClaims],
+    [status, user, isOwner, role, can, error, signIn, signInEmulatorTestUser, signOut, refreshClaims],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -14,6 +14,7 @@ import {
 } from '@shared/domain/incidents/types';
 import { addEvidence, buildTimeline, incidentToMarkdown, suggestRelated, validateIncident, type TimelineBasis } from '@shared/domain/incidents/logic';
 import { useData } from '../state/DataContext';
+import { useAuth } from '../state/AuthContext';
 import { useNow } from '../hooks/useNow';
 import { formatAge, formatUtc } from '../lib/time';
 import { safeExternalUrl } from '../lib/sanitize';
@@ -31,6 +32,7 @@ const lag = (h: number | null) => (h === null ? null : h < 1 ? '<1 h' : h < 48 ?
 export default function DossierPage() {
   const { id = '' } = useParams();
   const data = useData();
+  const canEdit = useAuth().can('editIncidents');
   const live = data.mode !== 'demo';
   const now = useNow(60_000).getTime();
   const navigate = useNavigate();
@@ -131,10 +133,16 @@ export default function DossierPage() {
         <Link to="/dossiers" className="text-wt-fg-muted hover:text-wt-fg">[◂ DOSSIERS]</Link>
         <Tag tone={STATUS_TONE[draft.status]}>{draft.status}</Tag>
         <span className="text-wt-fg-dim">v{stored.version} · saved {formatAge(stored.updatedAt, now)} ago</span>
-        {dirty ? <Tag tone="warn">UNSAVED CHANGES</Tag> : <span className="text-wt-fg-dim">all changes saved</span>}
+        {!canEdit ? (
+          <Tag tone="inactive" title="Viewers can read dossiers; editors and the owner change them.">READ ONLY</Tag>
+        ) : dirty ? (
+          <Tag tone="warn">UNSAVED CHANGES</Tag>
+        ) : (
+          <span className="text-wt-fg-dim">all changes saved</span>
+        )}
         {problems.length > 0 && <span className="text-wt-warn">{problems[0]}</span>}
         {error && <span role="alert" className="text-wt-crit">{error}</span>}
-        <span className="ml-auto flex gap-2">
+        {canEdit && <span className="ml-auto flex gap-2">
           {dirty && (
             <button className="text-wt-fg-muted hover:text-wt-fg" onClick={() => setDraft(stored)}>[DISCARD]</button>
           )}
@@ -148,8 +156,11 @@ export default function DossierPage() {
           {error?.includes('changed elsewhere') && svc && (
             <button className="text-wt-info hover:underline" onClick={() => void load(svc)}>[RELOAD]</button>
           )}
-        </span>
+        </span>}
       </div>
+
+      {/* Viewers: every control below is disabled by this fieldset (the security rules refuse their writes anyway). */}
+      <fieldset disabled={!canEdit} className="m-0 min-w-0 space-y-1.5 border-0 p-0">
 
       {/* Header */}
       <Panel title="Dossier" designator="D5">
@@ -499,6 +510,7 @@ export default function DossierPage() {
           </Panel>
         </div>
       </div>
+      </fieldset>
     </div>
   );
 }

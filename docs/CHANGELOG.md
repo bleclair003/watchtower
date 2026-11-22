@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.60.0] — 2026-11-22 — Several people (Phase 26)
+
+### Added
+- **Roles.** Anyone can sign in with Google; they wait (role *pending*, no access) until the owner approves them as a **viewer** (sees everything, keeps a personal watchlist) or an **editor** (also edits incident dossiers and acknowledges or dismisses alerts). Alert rules and people stay with the **owner** (the existing `owner` claim). The owner can also remove access (*blocked*) or forget an entry.
+- **USERS page** (owner only): who has signed in, when they were last seen, and buttons to set each person's role. A waiting person's screen opens the dashboard by itself once approved.
+- Each person's role on the Settings page.
+
+### Changed
+- Firestore rules: collected data, alerts, alert rules (read) and dossiers (read) open to viewers and editors; dossier writes and alert triage to editors; a new `members` collection that only the owner lists or changes. Every role is checked by the rules, not just hidden in the app (6 new emulator tests).
+- Edit controls are hidden or disabled for roles that cannot use them (alert rules, ACK / DISMISS, new / edit / delete dossier, + DOSSIER).
+- The collector reads up to 50 watchlists (was 10) and raises alerts only from the owner's and editors' lists, so a viewer can never post to the shared Discord channel.
+
+### Limits
+- Rules look up the person's role on each request: one extra Firestore read per query, well inside the free quota for a handful of people.
+- Until the owner signs in once on this version, the owner's watchlist is recognised by having no member document.
+- Emails and names in `members` are visible only to the owner and to each person for their own account.
+
+
 ## [0.59.0] — 2026-11-22 — Navigational warnings, aircraft emergencies, conflict events (Phase 25)
 
 ### Added

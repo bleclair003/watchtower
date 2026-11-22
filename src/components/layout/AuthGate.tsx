@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { KeyRound, Radar, ShieldAlert } from 'lucide-react';
+import { Hourglass, KeyRound, Radar, ShieldAlert } from 'lucide-react';
 import { backendMode } from '../../config/firebase';
 import { useAuth } from '../../state/AuthContext';
 
@@ -21,11 +21,11 @@ function Frame({ children }: { children: ReactNode }) {
 }
 
 /**
- * Blocks the application until the operator is signed in AND authorized.
+ * Blocks the application until the person is signed in AND holds a role that may view (owner, editor, viewer).
  * In demo mode it renders children immediately.
  */
 export function AuthGate({ children }: { children: ReactNode }) {
-  const { status, user, isOwner, error, signIn, signInEmulatorTestUser, signOut, refreshClaims } = useAuth();
+  const { status, user, role, can, error, signIn, signInEmulatorTestUser, signOut, refreshClaims } = useAuth();
   const [testEmail, setTestEmail] = useState('operator@watchtower.test');
   const [checking, setChecking] = useState(false);
   const [recheckMsg, setRecheckMsg] = useState<string | null>(null);
@@ -46,7 +46,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
         <p className="flex items-center gap-2 tracking-widest">
           <KeyRound size={14} aria-hidden /> OPERATOR AUTHENTICATION REQUIRED
         </p>
-        <p className="text-wt-fg-muted">Access is restricted to the authorized owner account.</p>
+        <p className="text-wt-fg-muted">Access is by invitation: sign in with Google, then the owner approves your account.</p>
         <button
           onClick={() => void signIn()}
           className="w-full border border-wt-fg/60 py-2 tracking-widest hover:bg-wt-fg hover:text-wt-bg"
@@ -80,44 +80,63 @@ export function AuthGate({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!isOwner) {
+  if (role === null) {
+    return (
+      <Frame>
+        <p className="tracking-widest text-wt-fg-muted">CHECKING ACCESS…</p>
+      </Frame>
+    );
+  }
+
+  if (!can('view')) {
+    const blocked = role === 'blocked';
     return (
       <Frame>
         <p className="flex items-center gap-2 tracking-widest text-wt-warn">
-          <ShieldAlert size={14} aria-hidden /> ACCOUNT NOT AUTHORIZED
+          {blocked ? <ShieldAlert size={14} aria-hidden /> : <Hourglass size={14} aria-hidden />}
+          {blocked ? 'ACCESS REMOVED' : 'WAITING FOR APPROVAL'}
         </p>
         <dl className="grid grid-cols-[70px_1fr] gap-y-1 text-2xs">
           <dt className="text-wt-fg-dim">ACCOUNT</dt>
           <dd className="break-all">{user?.email ?? '(no email)'}</dd>
-          <dt className="text-wt-fg-dim">UID</dt>
-          <dd className="break-all text-wt-fg-muted">{user?.uid}</dd>
         </dl>
         <p className="text-wt-fg-muted">
-          This account does not carry the <code className="text-wt-fg">owner</code> claim. Grant it once with the
-          <span className="text-wt-fg"> Grant owner</span> GitHub workflow, or locally:
+          {blocked
+            ? 'The owner has removed access for this account.'
+            : 'You are signed in. Your account now shows on the owner’s Users page. This screen opens the dashboard by itself once they approve it.'}
         </p>
-        <pre className="overflow-x-auto border border-wt-line bg-wt-bg p-2 text-2xs">
-          {backendMode === 'emulator' ? 'npm run grant-owner:emulator' : 'npm run grant-owner'} -- {user?.email ?? '<email>'}
-        </pre>
+        {error && <p role="alert" className="text-wt-crit">{error}</p>}
         <div className="flex gap-2">
-          <button
-            disabled={checking}
-            onClick={async () => {
-              setChecking(true);
-              setRecheckMsg(null);
-              await refreshClaims();
-              setChecking(false);
-              setRecheckMsg('Claim not present yet.');
-            }}
-            className="flex-1 border border-wt-fg/60 py-1.5 tracking-widest hover:bg-wt-fg hover:text-wt-bg disabled:opacity-50"
-          >
-            {checking ? 'CHECKING…' : 'RECHECK ACCESS'}
-          </button>
-          <button onClick={() => void signOut()} className="border border-wt-line-strong px-3 text-wt-fg-muted hover:text-wt-fg">
+          <button onClick={() => void signOut()} className="flex-1 border border-wt-line-strong py-1.5 tracking-widest text-wt-fg-muted hover:text-wt-fg">
             SIGN OUT
           </button>
         </div>
-        {recheckMsg && <p className="text-2xs text-wt-fg-dim">{recheckMsg}</p>}
+        {!blocked && (
+          <details className="border-t border-wt-line pt-2 text-2xs text-wt-fg-dim">
+            <summary className="cursor-pointer tracking-widest">ARE YOU THE OWNER?</summary>
+            <p className="mt-1.5">
+              The owner account carries the <code className="text-wt-fg">owner</code> claim. Grant it once with the
+              <span className="text-wt-fg"> Grant owner</span> GitHub workflow, or locally:
+            </p>
+            <pre className="mt-1.5 overflow-x-auto border border-wt-line bg-wt-bg p-2">
+              {backendMode === 'emulator' ? 'npm run grant-owner:emulator' : 'npm run grant-owner'} -- {user?.email ?? '<email>'}
+            </pre>
+            <button
+              disabled={checking}
+              onClick={async () => {
+                setChecking(true);
+                setRecheckMsg(null);
+                await refreshClaims();
+                setChecking(false);
+                setRecheckMsg('Claim not present yet.');
+              }}
+              className="mt-1.5 w-full border border-wt-fg/60 py-1.5 tracking-widest text-wt-fg hover:bg-wt-fg hover:text-wt-bg disabled:opacity-50"
+            >
+              {checking ? 'CHECKING…' : 'RECHECK OWNER CLAIM'}
+            </button>
+            {recheckMsg && <p className="mt-1">{recheckMsg}</p>}
+          </details>
+        )}
       </Frame>
     );
   }

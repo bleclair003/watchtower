@@ -75,6 +75,38 @@ describe('watchlist alerts in the collector', () => {
   });
 });
 
+describe('watchlist alerts by role (v0.60.0)', () => {
+  const base = { now: NOW, transitions: [], previousScores: [], currentScores: [], currentEvaluations: [], previousEvaluatedAt: null, discordWebhookUrl: null };
+  const member = (uid: string, role: string, ownerAccount = false) => ({ uid, email: null, displayName: null, role, ownerAccount, createdAt: iso(NOW), lastSeenAt: iso(NOW) });
+  const setup = () => {
+    const store = new MemoryStore();
+    store.watchlists.set('owner-uid', list([item('Wagner', { alert: true })]));
+    store.watchlists.set('editor-uid', list([item('Kadena', { alert: true })]));
+    store.watchlists.set('viewer-uid', list([item('Ramstein', { alert: true })]));
+    store.watchlists.set('gone-uid', list([item('Incirlik', { alert: true })]));
+    return store;
+  };
+  const events = [ev('Wagner convoy'), ev('Kadena squadron'), ev('Ramstein airlift'), ev('Incirlik flights')];
+  const titles = (store: MemoryStore) => [...store.alerts.values()].map((a) => a.title).sort();
+
+  it("only the owner's and editors' lists alert; viewers', blocked and forgotten people's do not", async () => {
+    const store = setup();
+    store.members.set('owner-uid', member('owner-uid', 'pending', true));
+    store.members.set('editor-uid', member('editor-uid', 'editor'));
+    store.members.set('viewer-uid', member('viewer-uid', 'viewer'));
+    await runAlerting(store, { ...base, newEvents: events });
+    expect(titles(store)).toEqual(['Kadena squadron', 'Wagner convoy']);
+  });
+
+  it('before the owner has signed in since the upgrade, a list without a member document is the owner’s', async () => {
+    const store = setup();
+    store.members.set('editor-uid', member('editor-uid', 'editor'));
+    store.members.set('viewer-uid', member('viewer-uid', 'viewer'));
+    await runAlerting(store, { ...base, newEvents: events });
+    expect(titles(store)).toEqual(['Incirlik flights', 'Kadena squadron', 'Wagner convoy']);
+  });
+});
+
 describe('public run logs', () => {
   it('never contain watchlist terms or rule names', async () => {
     const store = new MemoryStore();

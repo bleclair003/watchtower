@@ -2,9 +2,13 @@ rules_version = '2';
 
 // WATCHTOWER Firestore security rules.
 //
-// Model: a single authorized owner, identified by the `owner: true` custom
-// claim on their Firebase Auth token (granted with `npm run grant-owner` or the
-// "Grant owner" GitHub workflow). No UID or email is stored in this file.
+// Model (v0.60.0): one owner, identified by the `owner: true` custom claim on
+// their Firebase Auth token (granted with `npm run grant-owner` or the "Grant
+// owner" GitHub workflow), plus members. Anyone who signs in with Google may
+// create their own members/{uid} document with role "pending"; only the owner
+// can change a role. Roles: viewer (read everything, own watchlist), editor
+// (viewer + incidents + acknowledge/dismiss alerts), blocked. Alert rules and
+// people stay owner-only. No UID or email is stored in this file.
 //
 // The collector writes with the Admin SDK from GitHub Actions, which bypasses
 // these rules. The browser therefore gets read-only access to collected data;
@@ -15,16 +19,24 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function isOwner() {
-      return request.auth != null && request.auth.token.owner == true;
+      return request.auth != null && request.auth.token.get('owner', false) == true;
     }
+    function memberPath() {
+      return /databases/$(database)/documents/members/$(request.auth.uid);
+    }
+    function hasRole(roles) {
+      return request.auth != null && exists(memberPath()) && get(memberPath()).data.role in roles;
+    }
+    function canView() { return isOwner() || hasRole(['viewer', 'editor']); }
+    function canEdit() { return isOwner() || hasRole(['editor']); }
 
-    // Collector-owned data: owner may read; no client may write.
-    match /snapshots/{id}       { allow read: if isOwner(); allow write: if false; }
-    match /events/{id}          { allow get, list: if isOwner(); allow write: if false; }
-    match /sourceStatus/{id}    { allow read: if isOwner(); allow write: if false; }
-    match /collectionRuns/{id}  { allow read: if isOwner(); allow write: if false; }
-    match /indicatorHistory/{id} { allow read: if isOwner(); allow write: if false; }
-    match /raiHistory/{id}      { allow read: if isOwner(); allow write: if false; }
+    // Collector-owned data: owner and members may read; no client may write.
+    match /snapshots/{id}       { allow read: if canView(); allow write: if false; }
+    match /events/{id}          { allow get, list: if canView(); allow write: if false; }
+    match /sourceStatus/{id}    { allow read: if canView(); allow write: if false; }
+    match /collectionRuns/{id}  { allow read: if canView(); allow write: if false; }
+    match /indicatorHistory/{id} { allow read: if canView(); allow write: if false; }
+    match /raiHistory/{id}      { allow read: if canView(); allow write: if false; }
 
     // Collector-internal state (ETags, advisory baselines): never exposed to clients.
     match /sourceState/{id}     { allow read, write: if false; }
@@ -48,14 +60,15 @@ service cloud.firestore {
         && d.createdAt is string && d.updatedAt is string;
     }
     match /alertRules/{id} {
-      allow read, delete: if isOwner();
+      allow read: if canView();
+      allow delete: if isOwner();
       allow create, update: if isOwner() && validRule(request.resource.data, id);
     }
 
-    // Alerts: created only by the collector; the owner may acknowledge / dismiss.
+    // Alerts: created only by the collector; the owner and editors may acknowledge / dismiss.
     match /alerts/{id} {
-      allow read: if isOwner();
-      allow update: if isOwner()
+      allow read: if canView();
+      allow update: if canEdit()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['acknowledged', 'acknowledgedAt', 'dismissed', 'dismissedAt'])
         && request.resource.data.acknowledged is bool
         && request.resource.data.dismissed is bool;
@@ -81,9 +94,10 @@ service cloud.firestore {
         && d.version is int;
     }
     match /incidents/{id} {
-      allow read, delete: if isOwner();
-      allow create: if isOwner() && validIncident(request.resource.data, id) && request.resource.data.version == 1;
-      allow update: if isOwner() && validIncident(request.resource.data, id)
+      allow read: if canView();
+      allow delete: if canEdit();
+      allow create: if canEdit() && validIncident(request.resource.data, id) && request.resource.data.version == 1;
+      allow update: if canEdit() && validIncident(request.resource.data, id)
         && request.resource.data.version == resource.data.version + 1
         && request.resource.data.createdAt == resource.data.createdAt;
     }
@@ -99,14 +113,45 @@ service cloud.firestore {
         && d.version is int;
     }
     match /watchlists/{uid} {
-      allow read, delete: if isOwner() && request.auth.uid == uid;
-      allow create: if isOwner() && request.auth.uid == uid && validWatchlist(request.resource.data) && request.resource.data.version == 1;
-      allow update: if isOwner() && request.auth.uid == uid && validWatchlist(request.resource.data)
+      allow read, delete: if canView() && request.auth.uid == uid;
+      allow create: if canView() && request.auth.uid == uid && validWatchlist(request.resource.data) && request.resource.data.version == 1;
+      allow update: if canView() && request.auth.uid == uid && validWatchlist(request.resource.data)
         && request.resource.data.version == resource.data.version + 1;
     }
 
     match /userSettings/{uid} {
-      allow read, write: if isOwner() && request.auth.uid == uid;
+      allow read, write: if canView() && request.auth.uid == uid;
+    }
+
+    // People (v0.60.0). Each person writes only their own document, only with role "pending" on
+    // creation, and afterwards only their contact fields; `ownerAccount` must match their token.
+    // Only the owner reads the list and changes roles.
+    function validMember(d, uid) {
+      return d.keys().hasOnly(['uid', 'email', 'displayName', 'role', 'ownerAccount', 'createdAt', 'lastSeenAt', 'roleSetAt'])
+        && d.keys().hasAll(['uid', 'email', 'displayName', 'role', 'ownerAccount', 'createdAt', 'lastSeenAt'])
+        && d.uid == uid
+        && (d.email == null || (d.email is string && d.email.size() <= 320))
+        && (d.displayName == null || (d.displayName is string && d.displayName.size() <= 200))
+        && d.role in ['pending', 'viewer', 'editor', 'blocked']
+        && d.ownerAccount is bool
+        && d.createdAt is string && d.createdAt.size() <= 40
+        && d.lastSeenAt is string && d.lastSeenAt.size() <= 40;
+    }
+    match /members/{uid} {
+      allow read: if isOwner() || (request.auth != null && request.auth.uid == uid);
+      allow create: if request.auth != null && request.auth.uid == uid
+        && validMember(request.resource.data, uid)
+        && request.resource.data.role == 'pending'
+        && !('roleSetAt' in request.resource.data)
+        && request.resource.data.ownerAccount == isOwner();
+      allow update: if validMember(request.resource.data, uid) && (
+        (request.auth != null && request.auth.uid == uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['email', 'displayName', 'lastSeenAt', 'ownerAccount'])
+          && request.resource.data.ownerAccount == isOwner())
+        || (isOwner()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'roleSetAt'])
+          && request.resource.data.roleSetAt is string && request.resource.data.roleSetAt.size() <= 40));
+      allow delete: if isOwner();
     }
 
     // Everything else is denied.

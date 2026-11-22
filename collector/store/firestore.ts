@@ -195,7 +195,12 @@ export class FirestoreStore implements CollectorStore {
     return snap.docs.map((d) => ({ ...d.data(), id: d.id }));
   }
   async listWatchlists() {
-    const snap = await this.db.collection(COLLECTIONS.watchlists).limit(10).get();
+    const snap = await this.db.collection(COLLECTIONS.watchlists).limit(50).get();
+    this.readCount += Math.max(1, snap.size);
+    return snap.docs.map((d) => ({ uid: d.id, data: d.data() }));
+  }
+  async listMembers() {
+    const snap = await this.db.collection(COLLECTIONS.members).limit(500).get();
     this.readCount += Math.max(1, snap.size);
     return snap.docs.map((d) => d.data());
   }

@@ -188,6 +188,96 @@ describe('watchlists', () => {
   });
 });
 
+describe('members and roles (v0.60.0)', () => {
+  const T = '2026-11-22T00:00:00Z';
+  const member = (uid: string, p: Record<string, unknown> = {}) => ({
+    uid, email: `${uid}@example.com`, displayName: 'Test Person', role: 'pending', ownerAccount: false, createdAt: T, lastSeenAt: T, ...p,
+  });
+  const as = (uid: string) => env.authenticatedContext(uid, { email: `${uid}@example.com` }).firestore();
+  const seed = (uid: string, role: string) =>
+    env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `members/${uid}`), member(uid, { role, roleSetAt: T }));
+    });
+  const incident = { id: 'i1', title: 'x', summary: '', status: 'developing', category: 'maritime', regionIds: [], evidence: [], notes: [], linkedIncidentIds: [], indicatorIds: [], createdAt: T, updatedAt: T, version: 1 };
+  const seedAlert = () =>
+    env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'alerts/a1'), { title: 'x', acknowledged: false, acknowledgedAt: null, dismissed: false, dismissedAt: null });
+    });
+
+  it('anyone signed in may create only their own pending document, without claiming the owner flag', async () => {
+    await assertSucceeds(setDoc(doc(as('new-uid'), 'members/new-uid'), member('new-uid')));
+    await assertFails(setDoc(doc(as('a-uid'), 'members/a-uid'), member('a-uid', { role: 'editor' })));
+    await assertFails(setDoc(doc(as('b-uid'), 'members/b-uid'), member('b-uid', { ownerAccount: true })));
+    await assertFails(setDoc(doc(as('c-uid'), 'members/someone-else'), member('someone-else')));
+    await assertFails(setDoc(doc(as('d-uid'), 'members/d-uid'), { ...member('d-uid'), extra: 1 }));
+    await assertFails(setDoc(doc(anon(), 'members/x'), member('x')));
+    // The owner's own document carries ownerAccount: true.
+    await assertSucceeds(setDoc(doc(owner(), 'members/owner-uid'), member('owner-uid', { ownerAccount: true })));
+    await assertFails(setDoc(doc(owner(), 'members/owner-uid'), member('owner-uid', { ownerAccount: false, lastSeenAt: '2026-11-23T00:00:00Z' })));
+  });
+
+  it('people may refresh their contact fields but never change their own role', async () => {
+    await seed('v-uid', 'pending');
+    await assertSucceeds(updateDoc(doc(as('v-uid'), 'members/v-uid'), { lastSeenAt: '2026-11-23T00:00:00Z', displayName: 'New Name' }));
+    await assertFails(updateDoc(doc(as('v-uid'), 'members/v-uid'), { role: 'viewer' }));
+    await assertFails(updateDoc(doc(as('v-uid'), 'members/v-uid'), { ownerAccount: true }));
+    await assertFails(deleteDoc(doc(as('v-uid'), 'members/v-uid')));
+    await assertSucceeds(getDoc(doc(as('v-uid'), 'members/v-uid')));
+    await assertFails(getDoc(doc(as('v-uid'), 'members/other')));
+    await assertFails(getDocs(collection(as('v-uid'), 'members')));
+  });
+
+  it('only the owner lists people, sets roles and removes documents', async () => {
+    await seed('p-uid', 'pending');
+    await assertSucceeds(getDocs(collection(owner(), 'members')));
+    await assertSucceeds(updateDoc(doc(owner(), 'members/p-uid'), { role: 'editor', roleSetAt: T }));
+    await assertFails(updateDoc(doc(owner(), 'members/p-uid'), { role: 'admin', roleSetAt: T }));
+    await assertFails(updateDoc(doc(owner(), 'members/p-uid'), { email: 'changed@example.com' }));
+    await seed('e-uid', 'editor');
+    await assertFails(updateDoc(doc(as('e-uid'), 'members/p-uid'), { role: 'blocked', roleSetAt: T }));
+    await assertSucceeds(deleteDoc(doc(owner(), 'members/p-uid')));
+  });
+
+  it('pending and blocked people see nothing', async () => {
+    await seed('p-uid', 'pending');
+    await seed('b-uid', 'blocked');
+    for (const uid of ['p-uid', 'b-uid']) {
+      await assertFails(getDoc(doc(as(uid), 'snapshots/dashboard')));
+      await assertFails(getDocs(collection(as(uid), 'events')));
+      await assertFails(setDoc(doc(as(uid), `watchlists/${uid}`), { items: [], updatedAt: T, version: 1 }));
+    }
+  });
+
+  it('viewers read everything and keep their own watchlist, but change no shared data', async () => {
+    await seed('v-uid', 'viewer');
+    await seedAlert();
+    const v = as('v-uid');
+    await assertSucceeds(getDoc(doc(v, 'snapshots/dashboard')));
+    await assertSucceeds(getDocs(collection(v, 'events')));
+    await assertSucceeds(getDoc(doc(v, 'raiHistory/p1')));
+    await assertSucceeds(getDoc(doc(v, 'alerts/a1')));
+    await assertSucceeds(getDocs(collection(v, 'alertRules')));
+    await assertSucceeds(getDocs(collection(v, 'incidents')));
+    await assertSucceeds(setDoc(doc(v, 'watchlists/v-uid'), { items: [], updatedAt: T, version: 1 }));
+    await assertFails(getDoc(doc(v, 'watchlists/owner-uid')));
+    await assertFails(updateDoc(doc(v, 'alerts/a1'), { acknowledged: true, acknowledgedAt: T }));
+    await assertFails(setDoc(doc(v, 'incidents/i1'), incident));
+    await assertFails(getDoc(doc(v, 'sourceState/cisa-kev')));
+  });
+
+  it('editors also edit incidents and triage alerts, but not alert rules', async () => {
+    await seed('e-uid', 'editor');
+    await seedAlert();
+    const e = as('e-uid');
+    await assertSucceeds(setDoc(doc(e, 'incidents/i1'), incident));
+    await assertSucceeds(setDoc(doc(e, 'incidents/i1'), { ...incident, version: 2 }));
+    await assertSucceeds(deleteDoc(doc(e, 'incidents/i1')));
+    await assertSucceeds(updateDoc(doc(e, 'alerts/a1'), { acknowledged: true, acknowledgedAt: T }));
+    await assertFails(setDoc(doc(e, 'alertRules/r1'), { id: 'r1', name: 'x', enabled: true, severity: 'WARNING', trigger: { kind: 'event' }, notify: { discord: false }, cooldownMinutes: 0, version: 1, createdAt: T, updatedAt: T }));
+    await assertFails(setDoc(doc(e, 'events/forged'), { title: 'forged' }));
+  });
+});
+
 describe('default deny', () => {
   it('unknown collections are closed', async () => {
     await assertFails(getDoc(doc(owner(), 'anything/else')));

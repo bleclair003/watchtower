@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useSettings, type OperatorSettings } from '../state/SettingsContext';
 import { useAuth } from '../state/AuthContext';
+import { ROLE_HELP, ROLE_LABEL } from '@shared/domain/members';
 import { Panel } from '../components/ui/Panel';
 import { WatchlistPanel } from '../components/watchlist/WatchlistPanel';
 
@@ -29,7 +30,7 @@ const OPTIONS: { key: BooleanSetting; label: string; help: string }[] = [
 
 export default function SettingsPage() {
   const { settings, update, reset } = useSettings();
-  const { status, user, signOut } = useAuth();
+  const { status, user, role, signOut } = useAuth();
   useEffect(() => {
     document.title = 'WATCHTOWER // SETTINGS';
   }, []);
@@ -75,6 +76,11 @@ export default function SettingsPage() {
           <div className="flex flex-wrap items-center gap-3 px-3 py-2 text-xs">
             <span className="text-wt-fg-dim">SIGNED IN AS</span>
             <span className="break-all">{user?.email}</span>
+            {role && (
+              <span className="text-2xs text-wt-fg-muted" title={ROLE_HELP[role]}>
+                ROLE <span className="text-wt-fg">{ROLE_LABEL[role].toUpperCase()}</span>
+              </span>
+            )}
             <button
               onClick={() => void signOut()}
               className="ml-auto border border-wt-line-strong px-2 py-0.5 text-2xs tracking-widest text-wt-fg-muted hover:border-wt-fg hover:text-wt-fg"

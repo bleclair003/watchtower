@@ -3,6 +3,7 @@ import { ALERT_SEVERITIES, type AlertSeverity } from '@shared/domain/alerts/type
 import { WATCHLIST_LIMITS, WATCH_KINDS, WATCH_KIND_LABEL, validateWatchlist, watchItemId, type WatchItem, type WatchKind } from '@shared/domain/watchlist';
 import { useWatchlist } from '../../state/WatchlistContext';
 import { useData } from '../../state/DataContext';
+import { useAuth } from '../../state/AuthContext';
 import { Panel } from '../ui/Panel';
 
 const input = 'border border-wt-line bg-wt-bg px-1.5 py-0.5 text-xs text-wt-fg focus:border-wt-info focus:outline-none';
@@ -10,6 +11,7 @@ const input = 'border border-wt-line bg-wt-bg px-1.5 py-0.5 text-xs text-wt-fg f
 /** Edit the watchlist: terms to highlight in the feed, optionally raising alerts. */
 export function WatchlistPanel() {
   const w = useWatchlist();
+  const canAlert = useAuth().can('watchlistAlerts');
   const { events } = useData();
   const [term, setTerm] = useState('');
   const [aliases, setAliases] = useState('');
@@ -73,6 +75,9 @@ export function WatchlistPanel() {
           People, units, bases or terms to follow. Records that name one (whole words, title or summary) are marked WATCH in the feeds. Items set to alert also raise an alert for each new matching record
           {w.storage === 'cloud' ? ' (and a Discord message when a webhook is configured; at most one message an hour per item).' : '.'}
         </p>
+        {w.storage === 'cloud' && !canAlert && (
+          <p className="text-wt-fg-dim">As a viewer, your items are marked in your feeds but do not raise alerts (alerts are shared with everyone).</p>
+        )}
         {w.storage === 'local' && <p className="text-wt-warn">Demo mode: the list is kept in this browser only, and no alerts are raised.</p>}
         {w.storage === 'unavailable' && <p className="text-wt-warn">Sign in to keep a watchlist.</p>}
         {w.loading && <p className="text-wt-fg-dim">Loading…</p>}

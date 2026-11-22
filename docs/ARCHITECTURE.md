@@ -83,6 +83,7 @@ Rule of thumb: anything that must behave identically in the browser and in colle
 ## 3a. Phase 2 implementation notes
 
 - **Auth model:** Google sign-in plus an `owner: true` **custom claim** set by the Admin SDK. Rules check the claim, so no UID or email appears in the repo. Spoofed claims (e.g. the string `"true"`) are rejected, and this is tested.
+- **People (v0.60.0):** everyone else who signs in writes their own `members/{uid}` document with role `pending`; the owner sets `viewer`, `editor` or `blocked` on the Users page. Rules read the role with `get()` (one extra document read per request) and refuse any role change not made by the owner. Viewers read everything and keep their own watchlist; editors also edit dossiers and acknowledge or dismiss alerts; alert rules and people stay owner-only. Only the owner's and editors' watchlists raise alerts.
 - **The browser is read-only** for collected data: only the Admin SDK can write events, snapshots, status and runs. Collector-internal `sourceState` (ETags, advisory baselines) is unreadable by clients.
 - **The Firebase SDK is lazy-loaded** (dynamic import), so demo mode never downloads it.
 - **Sign-in flow:** popup, falling back to redirect when the popup is blocked; redirect in emulator mode. The emulator build also offers an email/password test sign-in that does not exist in live builds.

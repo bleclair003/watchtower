@@ -129,6 +129,8 @@ export const COLLECTIONS = {
   raiHistory: 'raiHistory',
   /** Collector-only cache: one document per collection day holding that day's events (v0.9.4). Not client-readable. */
   eventDays: 'eventDays',
+  /** People and their roles (v0.60.0): `members/{uid}`. Owner and that person only. */
+  members: 'members',
 } as const;
 
 /**

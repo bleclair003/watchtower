@@ -2,12 +2,15 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { TriangleAlert } from 'lucide-react';
 import { TopBar } from './TopBar';
 import { useData } from '../../state/DataContext';
+import { useAuth } from '../../state/AuthContext';
 
 interface NavItem {
   to: string;
   label: string;
   /** Phase in which the module ships; present = not yet available. */
   phase?: number;
+  /** Shown only to the owner. */
+  ownerOnly?: boolean;
 }
 
 const NAV: NavItem[] = [
@@ -24,6 +27,7 @@ const NAV: NavItem[] = [
   { to: '/sitrep', label: 'SITREP' },
   { to: '/replay', label: 'REPLAY' },
   { to: '/signal-lab', label: 'SIGNAL LAB' },
+  { to: '/users', label: 'USERS', ownerOnly: true },
 ];
 
 function DemoStrip() {
@@ -51,6 +55,8 @@ function DemoStrip() {
 }
 
 export function AppShell() {
+  const { can } = useAuth();
+  const nav = NAV.filter((n) => !n.ownerOnly || can('manageUsers'));
   return (
     <div className="flex h-full flex-col">
       <a
@@ -62,7 +68,7 @@ export function AppShell() {
       <TopBar />
       <DemoStrip />
       <nav aria-label="Modules" className="flex h-7 shrink-0 items-stretch gap-px overflow-x-auto border-b border-wt-line bg-wt-bg px-2">
-        {NAV.map((n) =>
+        {nav.map((n) =>
           n.phase ? (
             <span
               key={n.to}

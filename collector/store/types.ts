@@ -40,8 +40,10 @@ export interface CollectorStore {
   putRaiPoint(point: ScoreHistoryPoint): Promise<void>;
   /** Raw stored rules (unvalidated: the caller validates). */
   listAlertRules(): Promise<unknown[]>;
-  /** Stored watchlists (unvalidated). */
-  listWatchlists(): Promise<unknown[]>;
+  /** Stored watchlists with their owner's uid (unvalidated). */
+  listWatchlists(): Promise<{ uid: string; data: unknown }[]>;
+  /** People and roles, `members/{uid}` (unvalidated; v0.60.0). */
+  listMembers(): Promise<unknown[]>;
   filterNewAlertIds(ids: string[]): Promise<Set<string>>;
   /** Creates alerts; must fail rather than overwrite an existing id. */
   putAlerts(alerts: AlertRecord[]): Promise<void>;

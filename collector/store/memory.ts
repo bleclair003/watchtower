@@ -17,6 +17,7 @@ export class MemoryStore implements CollectorStore {
   readonly raiPoints: ScoreHistoryPoint[] = [];
   readonly alertRules = new Map<string, unknown>();
   readonly watchlists = new Map<string, unknown>();
+  readonly members = new Map<string, unknown>();
   readonly alerts = new Map<string, AlertRecord>();
   alertingState: AlertingState | null = null;
 
@@ -87,7 +88,10 @@ export class MemoryStore implements CollectorStore {
     return [...this.alertRules.values()].map((r) => structuredClone(r));
   }
   async listWatchlists() {
-    return [...this.watchlists.values()].map((w) => structuredClone(w));
+    return [...this.watchlists].map(([uid, w]) => ({ uid, data: structuredClone(w) }));
+  }
+  async listMembers() {
+    return [...this.members.values()].map((m) => structuredClone(m));
   }
   async filterNewAlertIds(ids: string[]) {
     return new Set(ids.filter((id) => !this.alerts.has(id)));

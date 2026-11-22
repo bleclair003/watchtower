@@ -4,6 +4,7 @@ import type { Incident, IncidentStatus } from '@shared/domain/incidents/types';
 import { createIncident } from '@shared/domain/incidents/logic';
 import { getRegion } from '@shared/domain/regions';
 import { useData } from '../state/DataContext';
+import { useAuth } from '../state/AuthContext';
 import { useNow } from '../hooks/useNow';
 import { formatAge } from '../lib/time';
 import { STATUS_TONE } from '../config/incidents';
@@ -14,6 +15,7 @@ import { Tag } from '../components/ui/Tag';
 export default function DossiersPage() {
   const { mode } = useData();
   const live = mode !== 'demo';
+  const canEdit = useAuth().can('editIncidents');
   const now = useNow(60_000).getTime();
   const navigate = useNavigate();
   const [items, setItems] = useState<Incident[] | null>(null);
@@ -49,7 +51,7 @@ export default function DossiersPage() {
         title="Incident Dossiers"
         designator="D5"
         actions={
-          live && (
+          live && canEdit && (
             <button onClick={() => void create()} disabled={creating} className="text-2xs text-wt-fg hover:underline disabled:opacity-50">
               [{creating ? 'CREATING…' : '+ NEW DOSSIER'}]
             </button>

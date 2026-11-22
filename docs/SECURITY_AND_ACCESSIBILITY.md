@@ -7,6 +7,7 @@ Reviewed 2026-11-20 against v0.7.0. This is a single-operator tool. The review c
 | Asset | Who could want it | Protection |
 |---|---|---|
 | Collected archive, dossiers, alert rules | Anyone who finds the URL | Firestore rules: read only with the `owner: true` custom claim. The claim is set server-side (Admin SDK) and cannot be set by a browser. 11 rules tests, including a spoofed-claim case |
+| Roles of other people (v0.60.0) | A signed-in stranger granting themselves access; a viewer changing shared data | People create only their own `members/{uid}` document, only as `pending`, and cannot change its role or the `ownerAccount` flag (checked against their token). Only the owner lists people or sets roles. Viewers cannot write dossiers, alerts or rules, and their watchlists never alert. 19 rules tests in all |
 | Collected data integrity | A signed-in browser, including the owner's if the session is hijacked | Browsers cannot write `events`, `sourceStatus`, `snapshots`, `raiHistory` or other collected data. Only the collector's service account can |
 | Service-account key | Repo readers, CI logs | Never in the repo: stored outside it locally and as a GitHub Actions secret. `git ls-files` contains no key. The build output was scanned for `private_key` and webhook URLs |
 | Discord webhook | CI logs, alert text | Secret only; redacted from collector logs (tested); strict URL regex; mentions disabled |
