@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.61.1] — 2026-11-22
+
+### Fixed
+- The GOC map toolbar (GRID, AREAS, BASES …) ran past the map and under the intelligence feed on 1920 px screens. Panel header buttons now wrap onto a second line when they do not fit, at every width.
+
 ## [0.61.0] — 2026-11-22 — Time filters for map layers
 
 ### Added
