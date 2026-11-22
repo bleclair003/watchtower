@@ -5,7 +5,7 @@ import { levelFromScore, meter, plural } from './util.ts';
 
 /**
  * People and groups (per region): the most-mentioned tracked actors over 72 hours, which are rising
- * against their usual level (after 14 days), and new names first seen in the last 7 days.
+ * against their usual level (5+ mentions and 3+ typical spreads above usual, after 14 days), and new names first seen in the last 7 days.
  * Points: 2 per rising actor, 0.5 per new name (max 3 names) — 0.5 / 2 / 4 / 6.
  */
 export function actorsMeter(input: MeterInput, regionId: string): Meter {
@@ -18,7 +18,7 @@ export function actorsMeter(input: MeterInput, regionId: string): Meter {
   const components: MeterComponent[] = [
     ...actors.slice(0, 6).map((x) => ({
       label: x.name,
-      value: `${x.last72h} in 72 h${x.usual72h !== null ? ` (usual ${x.usual72h})` : ''} · ${x.last7d} in 7 d`,
+      value: `${x.last72h} in 72 h${x.usual72h !== null ? ` (usual ${x.usual72h}${x.score != null ? `, score ${x.score}` : ''})` : ''} · ${x.last7d} in 7 d`,
       active: x.rising,
       note: x.rising ? 'rising' : undefined,
     })),
@@ -41,6 +41,7 @@ export function actorsMeter(input: MeterInput, regionId: string): Meter {
     evidence: names.slice(0, 3).map((n) => ({ title: n.sample.title, url: n.sample.url, at: n.firstSeen, why: `new name: ${n.name}` })),
     asOf: snap?.computedAt ?? null,
     baseline: building ? 'building' : 'ok',
+    signals: rising.map((x) => ({ label: `Mentions of ${x.name} (72 h)`, group: `actor:${x.id}`, kind: 'spike' as const, score: x.score ?? 3 })),
     notes: [
       'Tracked people and groups are a curated list (shared/domain/actors.ts). New names are capitalised word runs in sentence-case headlines (BBC, Al Jazeera, UN News, NPR, Defense News, Military Times), minus places, institutions and tracked actors, shown after 2 headlines: candidates, not identifications.',
     ],

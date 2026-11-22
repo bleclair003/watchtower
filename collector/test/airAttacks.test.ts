@@ -78,7 +78,15 @@ describe('air attack meter', () => {
 
   it('compares last night with the 14 before, and a big missile salvo raises it on its own', () => {
     expect(airAttackMeter(input([night(0, 130), ...usual])).label).toBe('QUIET');
-    expect(airAttackMeter(input([night(0, 260), ...usual])).label).toBe('ELEVATED'); // 2.2×
+    expect(airAttackMeter(input([night(0, 260), ...usual])).label).toBe('HIGH'); // far outside a steady fortnight
+    // Against a jumpy fortnight the same night is only somewhat high (Phase 24 scores).
+    const jumpy = [60, 200, 90, 250, 120, 40, 220, 150, 80, 230, 100, 180, 70, 210].map((d, i) => night(i + 1, d));
+    expect(airAttackMeter(input([night(0, 260), ...jumpy])).label).toBe('LOW');
+    // A steady rise over 10 nights lifts it to at least GUARDED.
+    const rising = [200, 190, 180, 170, 160, 150, 140, 130, 120].map((d, i) => night(i + 1, d));
+    const r = airAttackMeter(input([night(0, 205), ...rising, ...usual.slice(9)]));
+    expect(r.components.find((c) => c.label.startsWith('Trend'))?.value).toMatch(/^rising/);
+    expect(['GUARDED', 'ELEVATED', 'HIGH']).toContain(r.label);
     expect(airAttackMeter(input([night(0, 100, 85), ...usual])).label).toBe('HIGH'); // 85 missiles
     expect(airAttackMeter(input([night(0, 100), night(1, 100)])).label).toBe('BUILDING BASELINE');
     expect(airAttackMeter(input([night(0, 100, 50)])).label).toBe('ELEVATED'); // salvo counts even while building

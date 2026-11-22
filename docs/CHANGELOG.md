@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.57.0] — 2026-11-22 — Anomaly detection (Phase 24)
+
+### Added
+- **How unusual is it?** A shared anomaly module (`shared/domain/anomaly.ts`) measures each reading's distance from its usual level in units of that series' own typical spread (median and median absolute deviation of earlier periods, with a floor for the natural randomness of counts). 2+ is unusual, 3+ very unusual; −2 or less is an unusual drop (only for series that are normally busy). Steady rises or falls are found with the Mann–Kendall trend test.
+- **Unusual readings** meter for each region (METERS, UNUSUAL column): how many independent kinds of measurement are unusual at the same time — spikes, drops and trends from the region's meters, and indicators scoring 2+. Several unrelated things moving together is rarer than one.
+- Ukraine front intensity and air attacks show a **10-day trend**; a steady rise lifts them to at least GUARDED.
+- Indicators page: the baseline column shows the usual count, its typical spread and the current score.
+
+### Changed
+- **Indicators with a baseline (64)** set their thresholds from earlier windows' median + 2 typical spreads (ELEVATED) and + 3 (TRIGGERED) instead of 2–3× the mean. A burst weeks ago no longer raises the bar, and small counts are judged by their natural randomness. Catalog v20.
+- **Usual-level meters** (air surge, buildup vs noise, the reporting drop in information blackout, cyber, Pentagon after-hours, rising actors) are levelled by how unusual the count is once the typical spread is known; the "N× usual" figure is still shown. Cyber is raised to at least ELEVATED by an unusual week of warnings.
+- Ukraine front and air-attack meters are scored against the spread of the previous 14 days or nights instead of a plain ratio.
+
+### Limits
+- Scores need history. Records began on 2026-11-20, so meter scores switch on with the 14-day baselines (about 2026-12-04); indicators use back-filled publication dates and score sooner. The cut-offs (2 and 3) are conventions, not yet backtested. Unusual is not the same as dangerous: holidays, a source outage or one big story can all move readings.
+
+
 ## [0.56.0] — 2026-11-22 — Internet censorship (Phase 23)
 
 ### Added

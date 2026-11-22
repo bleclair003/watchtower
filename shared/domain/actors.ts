@@ -155,6 +155,8 @@ export interface ActorStat {
   /** Mean mentions per 72 h over earlier history, or null while building (14 days). */
   usual72h: number | null;
   rising: boolean;
+  /** How unusual the last 72 h are, in typical spreads from usual (Phase 24); null while building. */
+  score?: number | null;
   /** Mentions per UTC day, oldest first, last 14 days. */
   daily: number[];
 }

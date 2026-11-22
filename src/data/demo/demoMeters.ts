@@ -15,6 +15,7 @@ export function buildDemoMeters(now: number, events: IntelligenceEvent[], data: 
     historyStart: Number.isFinite(historyStart) ? historyStart : null,
     sourceStatus: data.sourceStatus,
     regionScores: data.regionScores,
+    indicatorEvaluations: data.indicatorEvaluations,
     scoreHistory: data.scoreHistory,
     aircraft: data.aircraft,
     fleet: data.fleet,

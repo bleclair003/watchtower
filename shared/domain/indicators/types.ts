@@ -38,11 +38,14 @@ export interface Threshold {
 }
 
 export interface BaselineSpec {
-  /** Days of history before the current window used to compute the mean per window. */
+  /** Days of history before the current window that the usual level is worked out from. */
   days: number;
-  /** TRIGGERED additionally requires count ≥ ratio × baseline mean (when the baseline is sufficient). */
+  /**
+   * Fallback only (fewer than 7 earlier windows): TRIGGERED additionally requires count ≥ ratio × mean.
+   * Normally the robust rule applies instead: score ≥ 3 spreads above the median (shared/domain/anomaly.ts).
+   */
   triggerRatio: number;
-  /** ELEVATED additionally requires count ≥ ratio × baseline mean (when the baseline is sufficient). */
+  /** Fallback only: ELEVATED additionally requires count ≥ ratio × mean. Normally score ≥ 2. */
   elevatedRatio: number;
 }
 
@@ -92,6 +95,20 @@ export interface BaselineResult {
   meanPerWindow: number | null;
   /** History actually available, in days. */
   historyDays: number;
+  /**
+   * Phase 24: 'robust' = thresholds from the median and typical spread of earlier windows (score 2
+   * elevated, 3 triggered); 'ratio' = the older "N× the mean" rule, used only when too few earlier
+   * windows exist. Absent on evaluations made before Phase 24.
+   */
+  method?: 'robust' | 'ratio';
+  /** Median matching events per window in earlier windows. */
+  median?: number | null;
+  /** Typical spread around the median. */
+  spread?: number | null;
+  /** How unusual the current window is, in spreads from the median. */
+  score?: number | null;
+  /** Earlier windows compared (one per day, overlapping). */
+  samples?: number;
 }
 
 export interface IndicatorEvaluation {

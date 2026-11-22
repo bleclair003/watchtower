@@ -364,3 +364,13 @@ Free sources and analysis of data already collected. Each new outside source is 
 
 - [x] OONI censorship grid (12 countries × 7 services), new-block records, blackout meter component — v0.56.0
 - [ ] UKMTO maritime incidents — parked (branch wip/ukmto): data host refuses Node requests (bot protection); ask UKMTO (info@ukmto.org) for permission or a feed
+
+## Phase 24 — Anomaly detection (2026-11-22)
+
+- [x] Shared anomaly module: robust score (median and median absolute deviation), unusual drops, Mann–Kendall trends — v0.57.0
+- [x] Indicators with a baseline: thresholds from median + 2 / 3 typical spreads (catalog v20) — v0.57.0
+- [x] Usual-level meters scored by how unusual, not only N× usual (air surge, buildup, blackout drop, cyber, after-hours, actors) — v0.57.0
+- [x] Ukraine front and air attacks: scores against their own spread, rise/fall trends — v0.57.0
+- [x] Unusual readings meter per region: independent measurements unusual at once — v0.57.0
+- [ ] Radiation, chokepoint transits and OONI shares as signals for the unusual-readings meter
+- [ ] Backtest the score cut-offs once 60+ days of history exist

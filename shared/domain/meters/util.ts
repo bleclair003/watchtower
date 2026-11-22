@@ -3,6 +3,7 @@ import type { Meter, MeterEvidence, MeterLevel } from './types.ts';
 import { LEVEL_LABEL } from './types.ts';
 import type { MeterInput } from './input.ts';
 import { holidayName } from '../holidays.ts';
+import { compare, describe, levelFromAnomaly, type Anomaly } from '../anomaly.ts';
 
 export const H = 3_600_000;
 export const DAY = 24 * H;
@@ -37,6 +38,11 @@ export interface Usual {
   status: 'ok' | 'building';
   /** How the usual level was worked out (null while building). */
   basis: UsualBasis | null;
+  /**
+   * Phase 24: how unusual the window is — distance from the usual level in typical spreads of earlier
+   * windows of the same length (shared/domain/anomaly.ts). Null while building.
+   */
+  anomaly: Anomaly | null;
 }
 
 export interface UsualBasis {
@@ -111,9 +117,19 @@ export function usualLevel(events: IntelligenceEvent[], pred: (e: IntelligenceEv
     parts.push({ kind: name ? 'holiday' : WEEKDAY[new Date(d).getUTCDay()], fraction });
   }
 
-  if (historyStart === null || firstFull === null || now - historyStart < minDays * DAY) return { current, usual: null, ratio: null, status: 'building', basis: null };
+  if (historyStart === null || firstFull === null || now - historyStart < minDays * DAY) return { current, usual: null, ratio: null, status: 'building', basis: null, anomaly: null };
   const windows = (start - historyStart) / (windowHours * H);
-  if (windows < 1) return { current, usual: null, ratio: null, status: 'building', basis: null };
+  if (windows < 1) return { current, usual: null, ratio: null, status: 'building', basis: null, anomaly: null };
+
+  // Earlier windows of the same length (whole days, one ending each day) for the typical spread.
+  const span = Math.max(1, Math.round(windowHours / 24));
+  const totals: number[] = [];
+  for (let end = floorDay(start); end - span * DAY >= firstFull; end -= DAY) {
+    let t = 0;
+    for (let d = end - span * DAY; d < end; d += DAY) t += daily.get(dayOf(d)) ?? 0;
+    totals.push(windowHours < 24 ? (t * windowHours) / 24 : t);
+  }
+  const score = (expected: number) => compare(current, totals, { expected });
 
   // Samples per kind from whole days before the window.
   const samples = new Map<string, number[]>();
@@ -143,14 +159,30 @@ export function usualLevel(events: IntelligenceEvent[], pred: (e: IntelligenceEv
     ]
       .filter(Boolean)
       .join(' ');
-    return { current, usual: round(expected), ratio: round(current / Math.max(expected, floor)), status: 'ok', basis: { method: 'like-for-like', holidays: holidaysInWindow, text: `${text}.` } };
+    return { current, usual: round(expected), ratio: round(current / Math.max(expected, floor)), status: 'ok', basis: { method: 'like-for-like', holidays: holidaysInWindow, text: `${text}.` }, anomaly: score(expected) };
   }
 
   const earlier = matching.filter((e) => at(e) >= historyStart && at(e) < start).length;
   const usual = earlier / windows;
   const missingHoliday = holidaysInWindow.length > 0 && !enough('holiday');
   const text = `Usual level is the plain average of all earlier days (same-weekday comparison needs ${LIKE_MIN_WEEKDAYS} earlier weeks)${missingHoliday ? `; ${holidayText} falls in this window and too few earlier holidays are recorded to compare with, so expect lower counts` : ''}.`;
-  return { current, usual: round(usual), ratio: round(current / Math.max(usual, floor)), status: 'ok', basis: { method: 'all-days', holidays: holidaysInWindow, text } };
+  return { current, usual: round(usual), ratio: round(current / Math.max(usual, floor)), status: 'ok', basis: { method: 'all-days', holidays: holidaysInWindow, text }, anomaly: score(usual) };
+}
+
+/**
+ * Meter level for a usual-level comparison (Phase 24): from how unusual the count is when the typical
+ * spread is known (score 1 GUARDED, 2 ELEVATED, 3 HIGH), else from the ratio with the given cuts.
+ */
+export function levelFromUsual(u: Usual, ratioCuts: [number, number, number, number]): Exclude<MeterLevel, null> {
+  if (u.anomaly?.status === 'ok') return levelFromAnomaly(u.anomaly, u.current);
+  return levelFromScore(u.ratio ?? 0, ratioCuts);
+}
+
+/** Short reading of a usual-level comparison, e.g. "12 (usual 5, 2.4×; 2.1 spreads above normal)". */
+export function fmtUsual(u: Usual): string {
+  if (u.usual === null) return `${u.current} (usual: building)`;
+  const how = u.anomaly?.status === 'ok' ? `; ${describe(u.anomaly)}` : '';
+  return `${u.current} (usual ${u.usual}, ${u.ratio}×${how})`;
 }
 
 /** usualLevel over the meter input, with like-for-like holiday storage under `key`. */

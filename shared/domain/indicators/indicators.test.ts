@@ -182,6 +182,24 @@ describe('evaluateIndicator — baselines', () => {
     expect(r.state).not.toBe('TRIGGERED');
   });
 
+  it('sets thresholds from the median and typical spread of earlier windows (Phase 24)', () => {
+    // Steady: one event a day for 28 days (3 per 72 h window). 7 in 72 h is unusual, 9 very unusual.
+    const steady = Array.from({ length: 28 }, (_, i) => ev({}, 72 + 12 + i * 24));
+    const now7 = Array.from({ length: 7 }, () => ev());
+    const r = evaluateIndicator(def, [...steady, ...now7], [status('cisa-kev')], NOW);
+    expect(r.baseline.method).toBe('robust');
+    expect(r.baseline.median).toBe(3);
+    expect(r.baseline.samples).toBeGreaterThanOrEqual(20);
+    expect(r.elevatedAt).toBe(7); // 3 + 2 × √3
+    expect(r.triggeredAt).toBe(9); // 3 + 3 × √3
+    expect(r.state).toBe('ELEVATED');
+    expect(r.reason).toMatch(/Usually 3 per window/);
+    // A burst in the past does not raise the bar much (the median ignores it).
+    const burst = Array.from({ length: 30 }, () => ev({}, 72 + 24 * 10));
+    const r2 = evaluateIndicator(def, [...steady, ...burst, ...now7], [status('cisa-kev')], NOW);
+    expect(r2.elevatedAt).toBeLessThanOrEqual(8);
+  });
+
   it('does not apply a baseline built on too little history, and says so', () => {
     const young = status('cisa-kev', { firstSuccessAt: new Date(NOW - 12 * H).toISOString() }); // 0.5 d + 30 d backfill < 31 d needed
     const r = evaluateIndicator(def, [ev(), ev(), ev(), ev()], [young], NOW);

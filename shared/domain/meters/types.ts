@@ -1,3 +1,4 @@
+import type { AnomalySignal } from '../anomaly.ts';
 import type { SpeedReport } from '../speed.ts';
 import type { TrackRecordReport } from '../trackRecord.ts';
 /**
@@ -43,7 +44,8 @@ export type MeterKind =
   | 'coverage'
   | 'quiet'
   | 'corroboration'
-  | 'visibility';
+  | 'visibility'
+  | 'convergence';
 
 export type MeterFamily = 'region' | 'topic' | 'quality';
 
@@ -87,6 +89,8 @@ export interface Meter {
   notes: string[];
   /** How the usual level was worked out (like-for-like or plain average), when the meter uses one. */
   baselineBasis?: string | null;
+  /** Phase 24: readings this meter found unusual (spikes, drops, trends), gathered by the convergence meter. */
+  signals?: AnomalySignal[];
 }
 
 export interface DaysSinceCounter {

@@ -58,6 +58,14 @@ function IndicatorRow({
         <td className="px-2 py-1 text-2xs whitespace-nowrap">
           {!def.baseline ? (
             <span className="text-wt-fg-dim">NONE</span>
+          ) : ev?.baseline.status === 'sufficient' && ev.baseline.method === 'robust' ? (
+            <span title={`Usually ${ev.baseline.median} per window (median of ${ev.baseline.samples} earlier windows), typical spread ${ev.baseline.spread}. Score = distance from usual in spreads: 2+ unusual (elevated), 3+ very unusual (triggered).`}>
+              ~{ev.baseline.median} ± {ev.baseline.spread}{' '}
+              <span className={(ev.baseline.score ?? 0) >= 2 ? 'font-bold text-wt-warn' : 'text-wt-fg-dim'}>
+                score {(ev.baseline.score ?? 0) > 0 ? '+' : ''}
+                {ev.baseline.score}
+              </span>
+            </span>
           ) : ev?.baseline.status === 'sufficient' ? (
             <span>μ {ev.baseline.meanPerWindow ?? 0}</span>
           ) : (

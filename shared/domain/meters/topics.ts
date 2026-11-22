@@ -30,7 +30,8 @@ import {
   isWhoReport,
 } from './signals.ts';
 import { bigDecksIn, displacementRises, stressedStraits } from './region.ts';
-import { DAY, H, evidenceOf, fmtUsd, inRegion, levelFromScore, meta, meter, newest, plural, usualFor, within } from './util.ts';
+import { DAY, H, evidenceOf, fmtUsd, fmtUsual, inRegion, levelFromScore, levelFromUsual, meta, meter, newest, plural, usualFor, within } from './util.ts';
+import { describe, signalsOf } from '../anomaly.ts';
 
 const short = (r: string) => getRegion(r)?.shortCode ?? r;
 const count = (events: IntelligenceEvent[], pred: (e: IntelligenceEvent) => boolean) => events.filter(pred).length;
@@ -48,7 +49,7 @@ export function airSurge(input: MeterInput, regionId: string): Meter {
   const recent = events.filter((e) => pred(e) && within(e, now, 72));
   const by = (c: string) => recent.filter((e) => aircraftClass(e) === c).length;
   const together = by('tanker') > 0 && by('airlift') > 0;
-  const level: MeterLevel = u.status === 'building' ? null : u.current === 0 ? 0 : levelFromScore(u.ratio!, [0.01, 1.5, 2, 3]);
+  const level: MeterLevel = u.status === 'building' ? null : u.current === 0 ? 0 : levelFromUsual(u, [0.01, 1.5, 2, 3]);
   return meter({
     id: `air-surge.${regionId}`,
     kind: 'air-surge',
@@ -58,12 +59,13 @@ export function airSurge(input: MeterInput, regionId: string): Meter {
     level,
     label: u.status === 'building' ? `${u.current} IN 72 H` : undefined,
     value: u.status === 'building' ? u.current : u.ratio,
-    reading: u.status === 'building' ? `${plural(u.current, 'notable military aircraft sighting')} in 72 h; the usual level needs 14 days of history.` : `${u.current} sightings in 72 h against a usual ${u.usual} (${u.ratio}×)${together ? '; tankers and airlift together' : ''}.`,
+    reading: u.status === 'building' ? `${plural(u.current, 'notable military aircraft sighting')} in 72 h; the usual level needs 14 days of history.` : `${u.current} sightings in 72 h against a usual ${u.usual} (${u.ratio}×${u.anomaly?.status === 'ok' ? `; ${describe(u.anomaly)}` : ''})${together ? '; tankers and airlift together' : ''}.`,
     components: ['tanker', 'airlift', 'isr', 'bomber'].map((c): MeterComponent => ({ label: c === 'isr' ? 'ISR' : c[0].toUpperCase() + c.slice(1), value: String(by(c)), active: by(c) > 0 })),
     evidence: evidenceOf(recent, (e) => aircraftClass(e)),
     asOf: newest(recent),
     baseline: u.status,
     baselineBasis: u.basis?.text ?? null,
+    signals: signalsOf('Military aircraft sightings', 'aircraft', u.anomaly),
     notes: ['Only aircraft that broadcast ADS-B and are marked military by the network; many military flights do not broadcast.'],
   });
 }
@@ -348,7 +350,8 @@ export function informationBlackout(input: MeterInput, regionId: string): Meter 
   const directed = r.filter((e) => within(e, now, 72) && isDirectedOutage(e));
   const ongoing = r.filter((e) => within(e, now, 72) && isOngoingOutage(e) && !isDirectedOutage(e));
   const volume = usualFor(input, `volume.${regionId}`, (e) => inRegion(e, regionId), 24, 14, 1);
-  const drop = volume.status === 'ok' && volume.usual! >= 10 && volume.current < 0.4 * volume.usual!;
+  // Reporting drop: unusually low against the typical spread (Phase 24), else under 40% of a usual 10+.
+  const drop = volume.status === 'ok' && (volume.anomaly?.status === 'ok' ? volume.anomaly.direction === 'drop' : volume.usual! >= 10 && volume.current < 0.4 * volume.usual!);
   // New blocks of messaging apps or major sites (OONI), 7 days: 2 each, max 4.
   const newBlocks = r.filter((e) => e.sourceId === 'ooni' && within(e, now, 7 * 24) && meta(e, 'newBlock') === true);
   const score = directed.length * 3 + Math.min(2, ongoing.length) + (drop ? 2 : 0) + Math.min(4, newBlocks.length * 2);
@@ -364,13 +367,14 @@ export function informationBlackout(input: MeterInput, regionId: string): Meter 
     components: [
       { label: 'Directed or military outages (72 h)', value: String(directed.length), active: directed.length > 0 },
       { label: 'Other ongoing outages (72 h)', value: String(ongoing.length), active: ongoing.length > 0 },
-      { label: 'Records in 24 h', value: volume.usual === null ? `${volume.current} (usual: building)` : `${volume.current} (usual ${volume.usual})`, active: drop },
+      { label: 'Records in 24 h', value: fmtUsual(volume), active: drop },
       { label: 'New app or site blocks (OONI, 7 d)', value: newBlocks.length ? newBlocks.map((e) => e.title.replace(/^OONI: /, '').split(' — ')[0]).join('; ') : '0', active: newBlocks.length > 0 },
     ],
     evidence: evidenceOf([...directed, ...ongoing]),
     asOf: newest([...directed, ...ongoing]),
     baseline: volume.status,
     baselineBasis: volume.basis?.text ?? null,
+    signals: drop ? signalsOf('Records from the region (24 h)', 'volume', volume.anomaly) : [],
     notes: ['Most outages are technical or power cuts; only Cloudflare attributes causes. The reporting-drop test needs 14 days of history.'],
   });
 }
@@ -491,7 +495,9 @@ export function cyberWeather(input: MeterInput): Meter {
   const score = kev.length + ransomware.length * 2 + alerts.length * 2 + outages.length * 0.5;
   const usual = usualFor(input, 'cyber', (e) => isKev(e) || isCisaAlert(e), 7 * 24, 21, 1);
   const LABELS = ['LOW', 'LOW', 'GUARDED', 'ELEVATED', 'HIGH'];
-  const level = levelFromScore(score, [0, 10, 20, 35]);
+  // An unusual week of warnings (Phase 24) lifts the meter to at least ELEVATED.
+  const spike = usual.anomaly?.direction === 'spike';
+  const level = Math.max(levelFromScore(score, [0, 10, 20, 35]), spike ? 3 : 0) as Exclude<MeterLevel, null>;
   return meter({
     id: 'cyber',
     kind: 'cyber',
@@ -507,11 +513,13 @@ export function cyberWeather(input: MeterInput): Meter {
       { label: 'Ransomware-linked (7 d)', value: String(ransomware.length), active: ransomware.length > 0, note: '×3' },
       { label: 'Non-routine CISA alerts (7 d)', value: String(alerts.length), active: alerts.length > 0, note: '×2' },
       { label: 'Cable-cut or unexplained outages in watch regions (7 d)', value: String(outages.length), active: outages.length > 0 },
+      { label: 'KEV additions and CISA alerts against a usual week', value: fmtUsual(usual), active: spike, note: 'an unusual week raises the meter to ELEVATED' },
     ],
     evidence: evidenceOf([...ransomware, ...alerts, ...kev], (e) => (isRansomwareKev(e) ? 'ransomware-linked' : e.sourceId)),
     asOf: newest(d7.filter((e) => isKev(e) || isCisaAlert(e))),
     baseline: usual.status,
     baselineBasis: usual.basis?.text ?? null,
+    signals: signalsOf('Exploited vulnerabilities and CISA alerts (7 d)', 'cyber', usual.anomaly),
     notes: ['A weather-style summary of public US government cyber warnings; it says nothing about any particular network.'],
   });
 }

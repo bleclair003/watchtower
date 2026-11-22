@@ -20,6 +20,7 @@ import { safeExternalUrl } from '../lib/sanitize';
 const REGION_COLUMNS: [MeterKind, string, string][] = [
   ['escalation', 'LADDER', 'Escalation ladder: highest active rung'],
   ['evacuation', 'EVAC', 'Evacuation risk'],
+  ['convergence', 'UNUSUAL', 'Unusual readings: independent measurements far from their usual level at the same time'],
   ['buildup', 'BUILDUP', 'Quiet buildup vs noise'],
   ['air-surge', 'AIR', 'Air surge: tanker, airlift, ISR, bomber sightings'],
   ['diplomatic', 'DIPLO', 'Diplomatic temperature'],

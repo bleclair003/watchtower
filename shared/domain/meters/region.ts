@@ -24,7 +24,8 @@ import {
   advisoryLevel,
   aircraftClass,
 } from './signals.ts';
-import { at, evidenceOf, inRegion, levelFromScore, meter, newest, plural, usualFor, within } from './util.ts';
+import { at, evidenceOf, fmtUsual, inRegion, levelFromScore, meter, newest, plural, usualFor, within, type Usual } from './util.ts';
+import { signalsOf } from '../anomaly.ts';
 
 const short = (r: string) => getRegion(r)?.shortCode ?? r;
 
@@ -190,37 +191,56 @@ const isPostureSignal = (regionId: string) => (e: IntelligenceEvent) =>
   isNotableAircraft(e) || isFleetMove(e) || isDrawdown(e) || isAdvisoryRaise(e) || isFmsContract(e) || (regionId === 'united-states' && isSecurityTfr(e));
 
 /**
- * News volume against hard posture signals over 72 hours, each relative to its usual level:
- *  - posture ≥ 2× usual and news < 1.5×  → QUIET BUILDUP
- *  - both ≥ 2×                            → CONFIRMED SURGE
- *  - news ≥ 2× and posture < 1.2×         → NOISE (coverage without movement)
- *  - otherwise                            → IN LINE
+ * News volume against hard posture signals over 72 hours, each relative to its usual level. "High"
+ * means 2+ typical spreads above usual (Phase 24; 2× usual until the spread is known):
+ *  - posture high and news near usual (score < 1, or < 1.5×)  → QUIET BUILDUP
+ *  - both high                                               → CONFIRMED SURGE
+ *  - news high and posture flat (score < 0.5, or < 1.2×)      → NOISE (coverage without movement)
+ *  - otherwise                                               → IN LINE
  * Withheld until 14 days of history exist.
  */
+/** Well above usual: score 2+ when the typical spread is known (Phase 24), else 2× the usual level. */
+const high = (u: Usual) => (u.anomaly?.status === 'ok' ? u.anomaly.score! >= 2 : (u.ratio ?? 0) >= 2);
+/** Near usual: below the given score, else below the given ratio. */
+const calm = (u: Usual, score: number, ratio: number) => (u.anomaly?.status === 'ok' ? u.anomaly.score! < score : (u.ratio ?? 0) < ratio);
+
 export function buildupVsNoise(input: MeterInput, regionId: string): Meter {
   const { now, events } = input;
   const news = usualFor(input, `news.${regionId}`, (e) => inRegion(e, regionId) && isNews(e), 72, 14, 3);
   const posture = usualFor(input, `posture.${regionId}`, (e) => inRegion(e, regionId) && isPostureSignal(regionId)(e), 72, 14, 1);
   const base = { id: `buildup.${regionId}`, kind: 'buildup' as const, family: 'region' as const, name: `${short(regionId)} buildup vs noise`, regionId };
   const components: MeterComponent[] = [
-    { label: 'News reports (72 h)', value: news.usual === null ? String(news.current) : `${news.current} (usual ${news.usual}, ${news.ratio}×)`, active: (news.ratio ?? 0) >= 2 },
-    { label: 'Posture signals (72 h)', value: posture.usual === null ? String(posture.current) : `${posture.current} (usual ${posture.usual}, ${posture.ratio}×)`, active: (posture.ratio ?? 0) >= 2 },
+    { label: 'News reports (72 h)', value: news.usual === null ? String(news.current) : fmtUsual(news), active: news.usual !== null && high(news) },
+    { label: 'Posture signals (72 h)', value: posture.usual === null ? String(posture.current) : fmtUsual(posture), active: posture.usual !== null && high(posture) },
   ];
   const postureEvents = events.filter((e) => inRegion(e, regionId) && within(e, now, 72) && isPostureSignal(regionId)(e));
   if (news.status === 'building' || posture.status === 'building') {
     return meter({ ...base, level: null, label: 'BUILDING BASELINE', value: null, reading: `${news.current} news reports and ${posture.current} posture signals in 72 h; usual levels need 14 days of history.`, components, evidence: evidenceOf(postureEvents, () => 'posture signal', 3), asOf: newest(postureEvents), baseline: 'building', notes: ['Posture signals: notable military aircraft, fleet moves, embassy drawdowns, advisory raises, FMS contracts (and US security flight restrictions).'] });
   }
-  const n = news.ratio!;
-  const p = posture.ratio!;
   const [label, level, reading] =
-    p >= 2 && n < 1.5 && posture.current >= 2
+    high(posture) && calm(news, 1, 1.5) && posture.current >= 2
       ? (['QUIET BUILDUP', 3, 'Posture signals well above usual while news coverage is not.'] as const)
-      : p >= 2 && n >= 2 && posture.current >= 2
+      : high(posture) && high(news) && posture.current >= 2
         ? (['CONFIRMED SURGE', 4, 'Both posture signals and news coverage are well above usual.'] as const)
-        : n >= 2 && p < 1.2
+        : high(news) && calm(posture, 0.5, 1.2)
           ? (['NOISE', 1, 'News coverage well above usual without matching posture signals.'] as const)
           : (['IN LINE', 0, 'News and posture signals are near their usual levels.'] as const);
-  return meter({ ...base, level, label, value: Math.round((p - n) * 10) / 10, reading, components, evidence: evidenceOf(postureEvents, () => 'posture signal', 4), asOf: newest(postureEvents), baseline: 'ok', baselineBasis: news.basis?.text ?? null, notes: ['Value = posture ratio minus news ratio: positive means movement without matching coverage.'] });
+  const scored = news.anomaly?.status === 'ok' && posture.anomaly?.status === 'ok';
+  const value = scored ? posture.anomaly!.score! - news.anomaly!.score! : posture.ratio! - news.ratio!;
+  return meter({
+    ...base,
+    level,
+    label,
+    value: Math.round(value * 10) / 10,
+    reading,
+    components,
+    evidence: evidenceOf(postureEvents, () => 'posture signal', 4),
+    asOf: newest(postureEvents),
+    baseline: 'ok',
+    baselineBasis: news.basis?.text ?? null,
+    signals: [...signalsOf('Posture signals (72 h)', 'posture', posture.anomaly), ...signalsOf('News reports (72 h)', 'news', news.anomaly)],
+    notes: [scored ? 'Value = posture score minus news score (each in typical spreads from usual): positive means movement without matching coverage.' : 'Value = posture ratio minus news ratio: positive means movement without matching coverage.'],
+  });
 }
 
 /** Stories in a region over 72 hours (shared by the corroboration meter). */

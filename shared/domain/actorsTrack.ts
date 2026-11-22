@@ -62,7 +62,10 @@ export function computeActors(events: IntelligenceEvent[], now: number, historyS
       last72h: u.current,
       last7d: list.filter((e) => at(e) >= now - 7 * DAY).length,
       usual72h: u.usual,
-      rising: u.status === 'ok' && u.current >= 5 && (u.ratio ?? 0) >= 3,
+      // Rising (Phase 24): 5+ mentions and very unusual (3+ typical spreads above usual), or 3× usual
+      // until the typical spread is known.
+      rising: u.status === 'ok' && u.current >= 5 && (u.anomaly?.status === 'ok' ? u.anomaly.score! >= 3 : (u.ratio ?? 0) >= 3),
+      score: u.anomaly?.score ?? null,
       daily,
     });
   }

@@ -1,5 +1,5 @@
 import type { IntelligenceEvent, SourceStatus } from '../types.ts';
-import type { RegionScore, ScoreHistoryPoint } from '../indicators/types.ts';
+import type { IndicatorEvaluation, RegionScore, ScoreHistoryPoint } from '../indicators/types.ts';
 import type { AircraftSnapshot } from '../aircraft.ts';
 import type { FleetSnapshot } from '../fleet.ts';
 import type { ChokepointSnapshot } from '../chokepoints.ts';
@@ -34,6 +34,8 @@ export interface MeterInput {
   historyStart: number | null;
   sourceStatus: SourceStatus[];
   regionScores: RegionScore[];
+  /** This run's indicator evaluations (Phase 24: unusual counts feed the convergence meter). */
+  indicatorEvaluations?: IndicatorEvaluation[];
   scoreHistory: ScoreHistoryPoint[];
   aircraft?: AircraftSnapshot | null;
   fleet?: FleetSnapshot | null;

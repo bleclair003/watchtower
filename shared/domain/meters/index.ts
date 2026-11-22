@@ -36,6 +36,7 @@ import { airAttackMeter } from './airAttackMeter.ts';
 import { daysSince, upcomingCalendar } from './clocks.ts';
 import { appendShort, pointFor } from './history.ts';
 import { BASELINE_DAYS, DAY } from './util.ts';
+import { convergence } from './convergence.ts';
 
 export type { MeterInput } from './input.ts';
 export * from './types.ts';
@@ -46,7 +47,7 @@ const ABROAD = GEO_REGIONS.filter((r) => r !== 'united-states');
 
 /** Every meter, in display order. Pure: same input → same meters. */
 export function allMeters(input: MeterInput): Meter[] {
-  return [
+  const meters = [
     ...GEO_REGIONS.map((r) => escalationLadder(input, r)),
     ...ABROAD.map((r) => evacuationRisk(input, r)),
     ...GEO_REGIONS.map((r) => buildupVsNoise(input, r)),
@@ -79,6 +80,8 @@ export function allMeters(input: MeterInput): Meter[] {
     ...GEO_REGIONS.map((r) => coverageMeter(input, r)),
     ...WATCH_REGIONS.map((r) => visibility(input, r.id)),
   ];
+  // Phase 24: unusual readings per region, gathered from the meters above and the indicators.
+  return [...meters, ...GEO_REGIONS.map((r) => convergence(input, r, meters))];
 }
 
 /**

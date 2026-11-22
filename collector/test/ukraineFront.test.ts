@@ -117,7 +117,12 @@ describe('front meter', () => {
     const steady = Array.from({ length: 14 }, (_, i) => day(i + 1, 200));
     expect(frontMeter(input([day(0, 210), ...steady])).label).toBe('QUIET');
     const surge = frontMeter(input([day(0, 320), ...steady]));
-    expect([surge.label, surge.value]).toEqual(['ELEVATED', 1.6]);
-    expect(surge.components[3].value).toBe('Pokrovsk 40 (usual 20)');
+    // Phase 24: 320 against a steady 200 is 6 typical spreads (10% floor) above normal.
+    expect([surge.label, surge.value]).toEqual(['HIGH', 6]);
+    expect(surge.components.find((c) => c.label.startsWith('Sectors'))?.value).toBe('Pokrovsk 40 (usual 20)');
+    expect(surge.signals?.[0]).toMatchObject({ kind: 'spike', group: 'front' });
+    // Against a jumpy fortnight 320 is only somewhat high.
+    const jumpy = [120, 300, 150, 280, 200, 110, 310, 180, 140, 290, 160, 260, 130, 270].map((t, i) => day(i + 1, t));
+    expect(frontMeter(input([day(0, 320), ...jumpy])).label).toBe('LOW');
   });
 });

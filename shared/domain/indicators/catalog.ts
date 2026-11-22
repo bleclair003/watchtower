@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 19;
+export const CATALOG_VERSION = 20;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';

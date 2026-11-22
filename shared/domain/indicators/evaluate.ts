@@ -2,6 +2,7 @@ import type { IntelligenceEvent, SourceStatus } from '../types.ts';
 import { getSource } from '../sources.ts';
 import { computeHealth } from '../health.ts';
 import { matches } from './conditions.ts';
+import { compare, countAtScore, UNUSUAL, VERY_UNUSUAL } from '../anomaly.ts';
 import type { BaselineResult, IndicatorDefinition, IndicatorEvaluation, IndicatorState, IndicatorTransition } from './types.ts';
 
 const HOUR = 3_600_000;
@@ -13,6 +14,17 @@ export const MAX_EVIDENCE = 25;
 const FUTURE_SKEW = 6 * HOUR;
 
 const eventTime = (e: IntelligenceEvent) => Date.parse(e.publishedAt ?? e.collectedAt);
+/** Number of sorted values ≤ x. */
+const upperBound = (xs: number[], x: number) => {
+  let lo = 0;
+  let hi = xs.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (xs[mid] <= x) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+};
 
 /** Longest history any indicator needs; the collector loads this much. */
 export function requiredLookbackHours(defs: IndicatorDefinition[]): number {
@@ -94,7 +106,9 @@ export function evaluateIndicator(
   const matchedCount = inWindow.length;
   const distinctSources = new Set(inWindow.map((e) => e.sourceId)).size;
 
-  // Baseline: mean matching events per window over the preceding `days`.
+  // Baseline (Phase 24): earlier windows of the same length, one ending each day (or each window when
+  // shorter than a day) over the preceding `days`. Thresholds come from their median and typical spread:
+  // ELEVATED at a score of 2, TRIGGERED at 3. With too few earlier windows, the older ratio rule applies.
   let baseline: BaselineResult = base.baseline;
   let elevatedAt = def.elevated.countAtLeast;
   let triggeredAt = def.triggered.countAtLeast;
@@ -103,18 +117,31 @@ export function evaluateIndicator(
     const usableStart = Math.max(periodStart, gate.historyStart);
     const historyMs = Math.max(0, windowStart - usableStart);
     const windowsInHistory = historyMs / (def.windowHours * HOUR);
-    const prior = candidates.filter((e) => {
-      const t = eventTime(e);
-      return t > usableStart && t <= windowStart;
-    }).length;
+    const times = candidates.map(eventTime).sort((a, b) => a - b);
+    const countIn = (from: number, to: number) => upperBound(times, to) - upperBound(times, from);
+    const prior = countIn(usableStart, windowStart);
     const mean = windowsInHistory >= 1 ? prior / windowsInHistory : null;
     const sufficient = gate.historyStart <= periodStart;
+    const windowMs = def.windowHours * HOUR;
+    const step = Math.min(windowMs, DAY);
+    const samples: number[] = [];
+    for (let end = windowStart; end - windowMs >= usableStart - 1; end -= step) samples.push(countIn(end - windowMs, end));
+    const a = compare(matchedCount, samples);
+    const robust = sufficient && a.status === 'ok';
     baseline = {
       status: sufficient ? 'sufficient' : 'insufficient-history',
       meanPerWindow: mean === null ? null : Math.round(mean * 100) / 100,
       historyDays: Math.round((historyMs / DAY) * 10) / 10,
+      method: robust ? 'robust' : 'ratio',
+      median: a.centre,
+      spread: a.spread,
+      score: a.score,
+      samples: samples.length,
     };
-    if (sufficient && mean !== null) {
+    if (robust) {
+      triggeredAt = Math.max(triggeredAt, countAtScore(a, VERY_UNUSUAL)!);
+      elevatedAt = Math.max(elevatedAt, countAtScore(a, UNUSUAL)!);
+    } else if (sufficient && mean !== null) {
       triggeredAt = Math.max(triggeredAt, Math.ceil(def.baseline.triggerRatio * mean));
       elevatedAt = Math.max(elevatedAt, Math.ceil(def.baseline.elevatedRatio * mean));
     }
@@ -130,7 +157,11 @@ export function evaluateIndicator(
     evidenceEventIds: inWindow.slice(0, MAX_EVIDENCE).map((e) => e.id),
   };
   const baselineNote =
-    baseline.status === 'insufficient-history' ? ` Baseline not applied: only ${baseline.historyDays} d of history.` : '';
+    baseline.status === 'insufficient-history'
+      ? ` Baseline not applied: only ${baseline.historyDays} d of history.`
+      : baseline.method === 'robust'
+        ? ` Usually ${baseline.median} per window (typical spread ${baseline.spread}); this window scores ${baseline.score}.`
+        : '';
   const counts = `${matchedCount} matching in ${def.windowHours} h from ${distinctSources} source(s)`;
 
   if (matchedCount >= triggeredAt && distinctSources >= minSrc(def.triggered)) {

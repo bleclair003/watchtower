@@ -461,6 +461,7 @@ export async function runCollection(
       historyStart: Number.isFinite(historyStart) ? historyStart : null,
       sourceStatus: snapshot.sourceStatus,
       regionScores: snapshot.regionScores ?? [],
+      indicatorEvaluations: snapshot.indicatorEvaluations ?? [],
       scoreHistory: snapshot.scoreHistory ?? [],
       aircraft: snapshot.aircraft ?? null,
       fleet: snapshot.fleet ?? null,
