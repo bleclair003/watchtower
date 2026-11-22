@@ -405,3 +405,24 @@ Free sources and analysis of data already collected. Each new outside source is 
 - [ ] Grouping: 3+ strategic aircraft within ~300 km in one run, where that is rare — v0.64.0
 - [ ] Odd hours: flights in hours that are usually empty, against a 14-day hour-by-hour usual level — v0.64.0
 
+
+## Phase 28 — Radio listening links (planned 2026-11-22)
+
+WATCHTOWER links to radio; it never plays, records, transcribes or re-streams audio, and never connects to a receiver itself.
+Every frequency carries a cited source; Priyom data is credited (CC BY-NC-SA 4.0). A legal note on each radio panel:
+listening rules differ by country (UK: Wireless Telegraphy Act 2006 s.48 — broadcasts such as VOLMET only).
+
+**Listen links on records (option 1)**
+- [ ] Receiver list: the collector fetches the public KiwiSDR list (rx.linkfanel.net mirror of kiwisdr.com/public) once a day, keeps name, address, position, bands, user slots and online state; credited on the Sources page. No receiver is contacted.
+- [ ] "Tune nearby" links: nearest online KiwiSDR covering the band, opened at the frequency (`?f=8992usb`); a WebSDR fallback (`?tune=`) where one is near
+- [ ] Aircraft emergencies and aircraft records: link to LiveATC for the nearest large airport (airport table from OurAirports, public domain; LiveATC search URL checked by hand first, since its site blocks automated checks); outside its coverage the link is left out, and UK points say why (no UK feeds: UK law)
+- [ ] US records: Broadcastify state page (fixed state ID table; their terms forbid automated feed lists)
+
+**Radio reference panel per region (option 2)**
+- [ ] Hand-curated frequency list with a source for each: global (HFGCS 4724/6739/8992/11175/13200/15016 USB, Shannon VOLMET, North Atlantic HF families, maritime distress 2182/4125/6215/8291/12290/16420), Eastern Europe (UVB-76 4625, "The Pip" 5448/3756); unconfirmed frequencies are not listed
+- [ ] Panel on each region page and a global one on the GOC: what you would hear, mode, best time of day, "tune nearby" link, source link
+- [ ] Day/night hint for HF (e.g. HFGCS 11175 by day, 4724 at night) from the viewer's UTC time
+
+**Later (option 3, not started)**
+- [ ] Aircraft text messages (ACARS/VDL2/HFDL) from airframes.io once its API is live and its terms allow (non-commercial data use today)
+- [ ] HFGCS message counts from a community log, only with that log's permission, as an experimental indicator
