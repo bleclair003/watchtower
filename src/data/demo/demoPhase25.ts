@@ -34,7 +34,7 @@ export function buildDemoEmergencies(now: number): EmergencySnapshot {
   return {
     simulated: true,
     fetchedAt: new Date(now - 20 * 60_000).toISOString(),
-    aircraft: [{ hex: 'fff001', cs: 'SIM7700', reg: null, t: 'A320', la: 43.1, lo: 34.2, alt: 18000, sq: '7700', em: 'general', mil: false, regionIds: ['eastern-europe'] }],
+    aircraft: [{ hex: 'fff001', cs: 'SIM7700', reg: null, t: 'A320', la: 43.1, lo: 34.2, alt: 18000, sq: '7700', em: 'general', mil: false, regionIds: ['eastern-europe'], firstSeenAt: new Date(now - 50 * 60_000).toISOString(), notSeenAt: new Date(now - 80 * 60_000).toISOString() }],
   };
 }
 

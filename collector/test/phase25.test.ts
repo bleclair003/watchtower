@@ -10,6 +10,7 @@ import { latestCandidate, parseCsv, readCandidate } from '../../shared/domain/co
 import { isRoutineRecord } from '../../shared/domain/routine.ts';
 import { ngaMsi, NGA_EVERY_MS } from '../adapters/ngaMsi.ts';
 import { adsbEmergencies } from '../adapters/adsbEmergencies.ts';
+import { emergencyTiming } from '../../shared/domain/aircraftEmergencies.ts';
 import { ucdp } from '../adapters/ucdp.ts';
 import type { FetchResult } from '../lib/http.ts';
 
@@ -91,6 +92,31 @@ describe('aircraft emergencies', () => {
     // Not recorded again within 12 hours.
     expect((await adsbEmergencies.collect({ now: NOW + 3_600_000, state: r1.state, fetch })).events).toHaveLength(0);
     expect((await adsbEmergencies.collect({ now: NOW + 13 * 3_600_000, state: r1.state, fetch })).events).toHaveLength(1);
+  });
+
+  it('records when the code came up, as narrowly as the checks allow (v0.63.1)', async () => {
+    const quiet = async () => ok(JSON.stringify({ ac: [] }));
+    const on = async (url: string) => ok(url.endsWith('7700') ? ac({ squawk: '7700', lat: 51, lon: -30 }) : JSON.stringify({ ac: [] }));
+    const iso = (t: number) => new Date(t).toISOString();
+    // Not on the code at the 12:00 check, on it at 12:30: set between the two.
+    const r0 = await adsbEmergencies.collect({ now: NOW, state: null, fetch: quiet });
+    const r1 = await adsbEmergencies.collect({ now: NOW + 30 * 60_000, state: r0.state, fetch: on });
+    expect(r1.state.latest.aircraft[0]).toMatchObject({ firstSeenAt: iso(NOW + 30 * 60_000), notSeenAt: iso(NOW) });
+    expect(r1.events[0].occurredAt).toBe(iso(NOW + 30 * 60_000));
+    expect(r1.events[0].summary).toMatch(/so it was set between those times/);
+    // Still on it later: keeps the first-seen time.
+    const r2 = await adsbEmergencies.collect({ now: NOW + 60 * 60_000, state: r1.state, fetch: on });
+    expect(r2.state.latest.aircraft[0]).toMatchObject({ firstSeenAt: iso(NOW + 30 * 60_000), notSeenAt: iso(NOW) });
+    // No earlier check, or the earlier check is too old: no claim about when it was set.
+    const first = await adsbEmergencies.collect({ now: NOW, state: null, fetch: on });
+    expect(first.state.latest.aircraft[0].notSeenAt).toBeNull();
+    expect(emergencyTiming(first.state.latest.aircraft[0])).toMatch(/not known/);
+    const late = await adsbEmergencies.collect({ now: NOW + 3 * 3_600_000, state: r0.state, fetch: on });
+    expect(late.state.latest.aircraft[0].notSeenAt).toBeNull();
+    // The earlier check got no fresh answer for 7700: no claim either.
+    const failed = async (url: string) => (url.endsWith('7700') ? { kind: 'not-modified' as const, status: 304 as const } : ok(JSON.stringify({ ac: [] })));
+    const f0 = await adsbEmergencies.collect({ now: NOW, state: null, fetch: failed });
+    expect((await adsbEmergencies.collect({ now: NOW + 30 * 60_000, state: f0.state, fetch: on })).state.latest.aircraft[0].notSeenAt).toBeNull();
   });
 });
 

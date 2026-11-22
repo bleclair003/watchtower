@@ -5,7 +5,7 @@ import { CORROBORATION_LABEL, type Story } from '@shared/domain/stories/stories'
 import { isOpinion, offTopicReason } from '@shared/domain/relevance';
 import { getRegion } from '@shared/domain/regions';
 import { CATEGORY_STYLES, CREDIBILITY_LABELS, SOURCE_CLASS_LABELS } from '../../config/categories';
-import { formatAge, formatUtc } from '../../lib/time';
+import { formatAge, formatUtc, formatWhen, eventTime } from '../../lib/time';
 import { safeExternalUrl } from '../../lib/sanitize';
 import { CategoryGlyph } from '../ui/CategoryGlyph';
 import { Tag } from '../ui/Tag';
@@ -62,6 +62,7 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem(
   const url = safeExternalUrl(e.sourceUrl);
   const isDemo = e.dataOrigin === 'demo';
   const watch = useWatchHits(e);
+  const when = eventTime(e);
 
   return (
     <li ref={ref} className={selected ? 'bg-wt-info/[0.07]' : ''}>
@@ -77,8 +78,11 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem(
             <CategoryGlyph category={e.category} size={11} />
           </span>
           <span className={`text-xs leading-snug ${selected ? 'text-wt-info' : 'text-wt-fg'}`}>{e.title}</span>
-          <span className="ml-auto pl-1 text-2xs whitespace-nowrap text-wt-fg-muted tabular-nums" title={formatUtc(e.publishedAt)}>
-            {formatAge(e.publishedAt ?? e.collectedAt, now)}
+          <span
+            className="ml-auto pl-1 text-2xs whitespace-nowrap text-wt-fg-muted tabular-nums"
+            title={`${when.basis === 'happened' ? 'Happened' : when.basis === 'published' ? 'Published (the source gives no time it happened)' : 'Collected (the source gives no time)'} ${formatUtc(when.iso)} · published ${formatUtc(e.publishedAt)} · collected ${formatUtc(e.collectedAt)}`}
+          >
+            <span className="text-wt-fg">{formatWhen(when.iso, now)}</span> · {formatAge(when.iso, now)}
           </span>
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-1 pl-[17px]">

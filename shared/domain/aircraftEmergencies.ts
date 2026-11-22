@@ -31,12 +31,32 @@ export interface EmergencyAircraft {
   /** Marked military in the network's database. */
   mil: boolean;
   regionIds: string[];
+  /**
+   * v0.63.1: the first check that saw this aircraft on this code, in this spell (ISO). The network does not say
+   * when the crew set the code, so this is the closest WATCHTOWER can know.
+   */
+  firstSeenAt?: string;
+  /** The previous check, when that check ran for this code and did not see the aircraft on it: the code was set after this. */
+  notSeenAt?: string | null;
 }
 
 export interface EmergencySnapshot {
   fetchedAt: string;
   aircraft: EmergencyAircraft[];
+  /** Codes whose query answered on this check (v0.63.1). */
+  checkedCodes?: Squawk[];
   simulated?: boolean;
+}
+
+/** `2026-11-22 14:32Z` */
+const utc = (iso: string) => `${iso.slice(0, 10)} ${iso.slice(11, 16)}Z`;
+
+/** When the code came up, as far as the 30-minute checks can tell: "first seen …; not on it at the previous check …". */
+export function emergencyTiming(a: Pick<EmergencyAircraft, 'firstSeenAt' | 'notSeenAt'>): string | null {
+  if (!a.firstSeenAt) return null;
+  return a.notSeenAt
+    ? `First seen on this code at ${utc(a.firstSeenAt)}; not on it at the check before (${utc(a.notSeenAt)}), so it was set between those times`
+    : `First seen on this code at ${utc(a.firstSeenAt)}; when it was set is not known (no earlier check to compare)`;
 }
 
 interface RawAc {

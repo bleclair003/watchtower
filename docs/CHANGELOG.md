@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.63.1] — 2026-11-22 — Event times
+
+### Added
+- **Exact times in the feed.** Each row shows the time next to its age (`14:32Z · 3h`; older rows show the day). The time is when the record says it happened, else when it was published, else when it was collected. Hovering says which, and gives all three.
+- **When an emergency code came up.** Each check notes when it first saw an aircraft on 7500/7600/7700 and keeps that time while the aircraft stays on the code. If the previous check (no more than 75 minutes earlier) ran for that code and did not see it, the record says the code was set between the two checks. Otherwise it says the time it was set is not known. The time shows in the record's summary, as its "occurred" time, and on the map dot's hover.
+
+### Notes
+- adsb.lol does not say when a crew set a code, so the best WATCHTOWER can do is a window of about 30 minutes between checks. Emergencies already on a code before this release show the earlier check as first seen and give no window.
+
 ## [0.63.0] — 2026-11-22 — Unusual aircraft movement (Phase 27)
 
 ### Added

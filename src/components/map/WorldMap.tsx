@@ -7,7 +7,7 @@ import { unpackRings, type PowerOutageCounty } from '@shared/domain/powerOutages
 import { AIRPORT_KIND_LABEL, tfrActive, type AirportEvent, type TfrShape } from '@shared/domain/faa';
 import { ratioOf, type FlaggedStation } from '@shared/domain/radiation';
 import { NAV_KIND_LABEL, type NavWarning, type NavWarningKind } from '@shared/domain/navWarnings';
-import { SQUAWK_LABEL, emergencyLabel, type EmergencyAircraft } from '@shared/domain/aircraftEmergencies';
+import { SQUAWK_LABEL, emergencyLabel, emergencyTiming, type EmergencyAircraft } from '@shared/domain/aircraftEmergencies';
 import { VIOLENCE_LABEL, type ConflictEvent, type ViolenceType } from '@shared/domain/conflictEvents';
 import type { SanctionedShipSighting } from '@shared/domain/sanctionedShips';
 import { IMAGERY_ATTRIBUTION } from '../../lib/imagery';
@@ -807,7 +807,7 @@ export function WorldMap(props: WorldMapProps) {
           hover.setLngLat(e.lngLat).setDOMContent(el).addTo(m);
         };
         m.on('mousemove', 'nav-warnings', (e) => showHover(e, (p) => `NAV WARNING · ${String(p.kindLabel).toUpperCase()}`, (p) => `${p.key}: ${p.text}`));
-        m.on('mousemove', 'emergencies', (e) => showHover(e, (p) => `AIRCRAFT EMERGENCY · ${String(p.code).toUpperCase()}`, (p) => `${p.label}${p.type ? ` · ${p.type}` : ''}${p.mil ? ' · military' : ''}${p.sq === '7500' ? ' — 7500 is often a mis-set transponder' : ''}`));
+        m.on('mousemove', 'emergencies', (e) => showHover(e, (p) => `AIRCRAFT EMERGENCY · ${String(p.code).toUpperCase()}`, (p) => `${p.label}${p.type ? ` · ${p.type}` : ''}${p.mil ? ' · military' : ''}${p.sq === '7500' ? ' — 7500 is often a mis-set transponder' : ''}${p.when ? ` — ${p.when}` : ''}`));
         m.on('mousemove', 'conflicts', (e) => showHover(e, (p) => `UCDP CONFLICT EVENT · ${String(p.typeLabel).toUpperCase()}`, (p) => `${p.d} · ${p.country}: ${p.a} vs ${p.b} — ${p.k} deaths (best estimate)`));
         for (const id of ['nav-warnings', 'emergencies', 'conflicts']) {
           m.on('mouseleave', id, () => hover.remove());
@@ -1087,7 +1087,7 @@ export function WorldMap(props: WorldMapProps) {
       features: (emergencies ?? []).map((a) => ({
         type: 'Feature' as const,
         geometry: { type: 'Point' as const, coordinates: [a.lo, a.la] },
-        properties: { label: `${emergencyLabel(a)} · ${a.sq}`, code: SQUAWK_LABEL[a.sq], type: a.t ?? '', mil: a.mil, sq: a.sq },
+        properties: { label: `${emergencyLabel(a)} · ${a.sq}`, code: SQUAWK_LABEL[a.sq], type: a.t ?? '', mil: a.mil, sq: a.sq, when: emergencyTiming(a) ?? '' },
       })),
     });
   }, [ready, emergencies]);
