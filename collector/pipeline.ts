@@ -17,6 +17,7 @@ import {
   SNAPSHOT_MAX_EVENTS,
   SNAPSHOT_SUMMARY_CHARS,
   SNAPSHOT_SCHEMA_VERSION,
+  splitSnapshot,
   type DashboardSnapshot,
 } from '../shared/domain/snapshot.ts';
 import { CATALOG_VERSION, INDICATOR_CATALOG } from '../shared/domain/indicators/catalog.ts';
@@ -511,7 +512,7 @@ export async function runCollection(
   await store.putRun(run);
   // Layers were attached after the first trim in buildSnapshot: trim again so the document still fits.
   const trimmed = fitSnapshot(snapshot);
-  if (trimmed > 0) log(`SNAP ${trimmed} oldest record(s) left out of the snapshot to stay under ${SNAPSHOT_MAX_BYTES.toLocaleString('en-US')} bytes (map layers included)`);
+  if (trimmed > 0) log(`SNAP ${trimmed} oldest record(s) left out of the snapshot to stay under ${SNAPSHOT_MAX_BYTES.toLocaleString('en-US')} bytes (layers are stored separately)`);
   await store.putSnapshot(snapshot);
   if (meters && meterHistory) {
     try {
@@ -542,7 +543,8 @@ export const EVENT_QUERY_LIMIT = 20_000;
  */
 export function fitSnapshot(snapshot: DashboardSnapshot): number {
   const before = snapshot.events.length;
-  while (Buffer.byteLength(JSON.stringify(snapshot)) > SNAPSHOT_MAX_BYTES && snapshot.events.length > 0) {
+  // Only the dashboard document counts: layers are stored in their own document (splitSnapshot).
+  while (Buffer.byteLength(JSON.stringify(splitSnapshot(snapshot).main)) > SNAPSHOT_MAX_BYTES && snapshot.events.length > 0) {
     snapshot.events = snapshot.events.slice(0, Math.floor(snapshot.events.length * 0.9));
   }
   return before - snapshot.events.length;

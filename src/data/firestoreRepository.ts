@@ -1,6 +1,6 @@
 import { doc, getDoc, FirestoreError } from 'firebase/firestore';
 import type { MetersSnapshot } from '@shared/domain/meters/types';
-import { COLLECTIONS, SNAPSHOT_DOC_ID, METERS_DOC_ID, type DashboardSnapshot } from '@shared/domain/snapshot';
+import { COLLECTIONS, LAYERS_DOC_ID, SNAPSHOT_DOC_ID, METERS_DOC_ID, joinSnapshot, type DashboardSnapshot, type LayersSnapshot } from '@shared/domain/snapshot';
 import { getFirebase } from './firebaseClient';
 import { PermissionDeniedError, type DashboardData, type DataMode, type IntelRepository } from './repository';
 
@@ -28,9 +28,22 @@ export class FirestoreRepository implements IntelRepository {
     }
   }
 
+  /** Map and page layers live in their own document (v0.54.0); a missing one falls back to layers held inline. */
+  private async loadLayers(): Promise<LayersSnapshot | null> {
+    try {
+      const { db } = getFirebase();
+      const l = await getDoc(doc(db, COLLECTIONS.snapshots, LAYERS_DOC_ID));
+      this.reads++;
+      return l.exists() ? (l.data() as LayersSnapshot) : null;
+    } catch {
+      return null;
+    }
+  }
+
   async loadDashboard(): Promise<DashboardData> {
     const { db } = getFirebase();
     let snap;
+    const layersP = this.loadLayers();
     try {
       snap = await getDoc(doc(db, COLLECTIONS.snapshots, SNAPSHOT_DOC_ID));
       this.reads++;
@@ -42,7 +55,7 @@ export class FirestoreRepository implements IntelRepository {
       // Database reachable but the collector has never completed a run.
       return { events: [], sourceStatus: [], lastRun: null, generatedAt: null, totalEventsStored: 0, indicatorEvaluations: [], regionScores: [], scoreHistory: [], alertRuleProblems: [], activeAlertRules: null, discordConfigured: null, aircraft: null, fleet: null, chokepoints: null, sanctionedShips: null, displacement: null, baseActivity: null, meters: null, predictionMarkets: null, infrastructure: null, actors: null, powerOutages: null, tfrs: null, airportStatus: null, airspaceNotices: null, radiation: null, spaceWeather: null, cyber: null, ukraineFront: null };
     }
-    const s = snap.data() as DashboardSnapshot;
+    const s = joinSnapshot(snap.data() as DashboardSnapshot, await layersP);
     return {
       events: s.events ?? [],
       sourceStatus: s.sourceStatus ?? [],

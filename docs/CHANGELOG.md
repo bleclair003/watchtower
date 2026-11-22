@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.54.0] — 2026-11-22 — Layers in their own document
+
+### Changed
+- **Map and page layers are stored in their own document** (`snapshots/layers`): aircraft, fleet, chokepoints, sanctioned ships, displacement, base activity, prediction markets, infrastructure, actors, power outages, FAA layers, radiation, space weather, CYBER and Ukraine front data (about 145 kB). They no longer count toward the dashboard document's 900 kB budget, so the feed keeps its full 700 most recent records instead of the ~570 it had shrunk to. The website reads both documents (one extra read per load) and still accepts older snapshots with layers inline. The run log shows both sizes.
+
+
 ## [0.53.1] — 2026-11-22
 
 ### Fixed

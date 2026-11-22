@@ -2,7 +2,7 @@ import type { MetersSnapshot } from '../../shared/domain/meters/types.ts';
 import { initializeApp, applicationDefault, getApps, type App } from 'firebase-admin/app';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../../shared/domain/types.ts';
-import { METERS_DOC_ID, COLLECTIONS, SNAPSHOT_DOC_ID, type DashboardSnapshot } from '../../shared/domain/snapshot.ts';
+import { METERS_DOC_ID, COLLECTIONS, LAYERS_DOC_ID, SNAPSHOT_DOC_ID, joinSnapshot, splitSnapshot, type DashboardSnapshot, type LayersSnapshot } from '../../shared/domain/snapshot.ts';
 import type { IndicatorTransition, ScoreHistoryPoint } from '../../shared/domain/indicators/types.ts';
 import type { AlertRecord } from '../../shared/domain/alerts/types.ts';
 import type { AlertingState, CollectorStore } from './types.ts';
@@ -170,9 +170,12 @@ export class FirestoreStore implements CollectorStore {
     return agg.data().count;
   }
   async getSnapshot() {
-    const snap = await this.db.collection(COLLECTIONS.snapshots).doc(SNAPSHOT_DOC_ID).get();
-    this.readCount++;
-    return snap.exists ? (snap.data() as DashboardSnapshot) : null;
+    const [snap, layers] = await Promise.all([
+      this.db.collection(COLLECTIONS.snapshots).doc(SNAPSHOT_DOC_ID).get(),
+      this.db.collection(COLLECTIONS.snapshots).doc(LAYERS_DOC_ID).get(),
+    ]);
+    this.readCount += 2;
+    return snap.exists ? joinSnapshot(snap.data() as DashboardSnapshot, layers.exists ? (layers.data() as LayersSnapshot) : null) : null;
   }
   async putRaiPoint(p: ScoreHistoryPoint) {
     await this.db.collection(COLLECTIONS.raiHistory).doc(p.at.replace(/[:.]/g, '-')).set(p);
@@ -245,6 +248,9 @@ export class FirestoreStore implements CollectorStore {
     await this.db.collection(COLLECTIONS.collectorState).doc('alerting').set(s);
   }
   async putSnapshot(s: DashboardSnapshot) {
-    await this.db.collection(COLLECTIONS.snapshots).doc(SNAPSHOT_DOC_ID).set(s);
+    // Layers first: a page that reads both never sees new layers missing behind an old dashboard for long.
+    const { main, layers } = splitSnapshot(s);
+    await this.db.collection(COLLECTIONS.snapshots).doc(LAYERS_DOC_ID).set(layers);
+    await this.db.collection(COLLECTIONS.snapshots).doc(SNAPSHOT_DOC_ID).set(main);
   }
 }

@@ -118,3 +118,51 @@ export const COLLECTIONS = {
   /** Collector-only cache: one document per collection day holding that day's events (v0.9.4). Not client-readable. */
   eventDays: 'eventDays',
 } as const;
+
+/**
+ * Map and page layers live in their own document (v0.54.0) so they never push records out of the feed:
+ * the dashboard document keeps the events, scores and health within its size budget, and the layers
+ * document (one extra read) holds everything below.
+ */
+export const LAYERS_DOC_ID = 'layers';
+export const LAYER_KEYS = [
+  'aircraft',
+  'fleet',
+  'chokepoints',
+  'sanctionedShips',
+  'displacement',
+  'baseActivity',
+  'predictionMarkets',
+  'infrastructure',
+  'actors',
+  'powerOutages',
+  'tfrs',
+  'airportStatus',
+  'airspaceNotices',
+  'radiation',
+  'spaceWeather',
+  'cyber',
+  'ukraineFront',
+] as const satisfies readonly (keyof DashboardSnapshot)[];
+export type LayerKey = (typeof LAYER_KEYS)[number];
+export type LayersSnapshot = Partial<Pick<DashboardSnapshot, LayerKey>> & { generatedAt: string };
+
+/** Splits a snapshot into the dashboard document (no layers) and the layers document. Pure. */
+export function splitSnapshot(s: DashboardSnapshot): { main: DashboardSnapshot; layers: LayersSnapshot } {
+  const main = { ...s } as Record<string, unknown>;
+  const layers: Record<string, unknown> = { generatedAt: s.generatedAt };
+  for (const k of LAYER_KEYS) {
+    if (k in main) {
+      if (main[k] !== undefined) layers[k] = main[k];
+      delete main[k];
+    }
+  }
+  return { main: main as unknown as DashboardSnapshot, layers: layers as LayersSnapshot };
+}
+
+/** Joins them back; layers held inline by older dashboard documents are used when the layers document lacks them. */
+export function joinSnapshot(main: DashboardSnapshot, layers: LayersSnapshot | null): DashboardSnapshot {
+  if (!layers) return main;
+  const { generatedAt: _g, ...rest } = layers;
+  return { ...main, ...rest };
+}

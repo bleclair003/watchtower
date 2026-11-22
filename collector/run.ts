@@ -23,6 +23,7 @@ import { isDiscordWebhookUrl } from './alerts/discord.ts';
 import { AIS_SOURCE_ID, primeAisListening } from './adapters/aisSanctioned.ts';
 import type { CollectorStore } from './store/types.ts';
 import type { CollectionRun } from '../shared/domain/types.ts';
+import { splitSnapshot } from '../shared/domain/snapshot.ts';
 
 async function main(): Promise<number> {
   const { values } = parseArgs({
@@ -88,7 +89,8 @@ async function main(): Promise<number> {
   console.log(
     `Run ${run.id}: fetched ${run.recordsFetched} · imported ${run.recordsImported} · duplicates ${run.duplicatesSuppressed} · rejected ${run.recordsRejected} · alerts ${run.alertsCreated ?? 0} · notified ${run.notificationsSent ?? 0} · errors ${run.errors.length}`,
   );
-  console.log(`Snapshot: ${snapshot.events.length} events, ${Buffer.byteLength(JSON.stringify(snapshot))} bytes`);
+  const parts = splitSnapshot(snapshot);
+  console.log(`Snapshot: ${snapshot.events.length} events, ${Buffer.byteLength(JSON.stringify(parts.main))} bytes; layers ${Buffer.byteLength(JSON.stringify(parts.layers))} bytes`);
   if (values['dry-run']) {
     const { buildBrief } = await import('../shared/domain/brief/brief.ts');
     const { briefToText } = await import('./brief/dailyBrief.ts');

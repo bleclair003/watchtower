@@ -124,13 +124,28 @@ describe('power-outage meter', () => {
 describe('snapshot size guard', () => {
   it('drops the oldest records until the snapshot (layers included) fits', async () => {
     const { fitSnapshot } = await import('../pipeline.ts');
-    const { SNAPSHOT_MAX_BYTES } = await import('../../shared/domain/snapshot.ts');
+    const { SNAPSHOT_MAX_BYTES, splitSnapshot } = await import('../../shared/domain/snapshot.ts');
     const big = 'x'.repeat(2_000);
     const events = Array.from({ length: 600 }, (_, i) => ev(`r${i}`, i, { summary: big }));
     const snap = { events, powerOutages: { counties: [{ path: 'y'.repeat(100_000) }] } } as never as Parameters<typeof fitSnapshot>[0];
     const dropped = fitSnapshot(snap);
     expect(dropped).toBeGreaterThan(0);
-    expect(Buffer.byteLength(JSON.stringify(snap))).toBeLessThanOrEqual(SNAPSHOT_MAX_BYTES);
+    // Layers (here the power outlines) are stored apart and do not count toward the dashboard budget.
+    expect(Buffer.byteLength(JSON.stringify(splitSnapshot(snap).main))).toBeLessThanOrEqual(SNAPSHOT_MAX_BYTES);
+    expect(Buffer.byteLength(JSON.stringify(snap))).toBeGreaterThan(SNAPSHOT_MAX_BYTES);
     expect(snap.events[0].title).toBe('r0'); // newest kept
+  });
+});
+
+describe('layers document', () => {
+  it('splits the layers out of the dashboard document and joins them back', async () => {
+    const { splitSnapshot, joinSnapshot, LAYER_KEYS } = await import('../../shared/domain/snapshot.ts');
+    const snap = { generatedAt: '2026-11-22T00:00:00Z', events: [], cyber: { kev: [] }, aircraft: { aircraft: [] }, regionScores: [] } as never as Parameters<typeof splitSnapshot>[0];
+    const { main, layers } = splitSnapshot(snap);
+    expect(Object.keys(main).some((k) => (LAYER_KEYS as readonly string[]).includes(k))).toBe(false);
+    expect(Object.keys(layers).sort()).toEqual(['aircraft', 'cyber', 'generatedAt']);
+    expect(joinSnapshot(main, layers)).toEqual(snap);
+    // An older dashboard document that still holds a layer inline keeps it when the layers document lacks it.
+    expect(joinSnapshot({ ...main, fleet: { areas: [] } } as never, layers)).toHaveProperty('fleet');
   });
 });
