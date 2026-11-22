@@ -23,6 +23,7 @@ import { WhatChangedPanel } from '../components/region/WhatChangedPanel';
 import { RegionMeters } from '../components/meters/RegionMeters';
 import { MarketsPanel } from '../components/meters/MarketsPanel';
 import { ActorsPanel } from '../components/meters/ActorsPanel';
+import { UkraineFrontPanel } from '../components/region/UkraineFrontPanel';
 import { KnownDatesList } from '../components/meters/KnownDatesList';
 import { regionChanges } from '@shared/domain/changes';
 
@@ -113,6 +114,7 @@ export default function RegionPage() {
         </p>
       </Panel>
       <WhatChangedPanel changes={changes} now={now} />
+      {id === 'eastern-europe' && <UkraineFrontPanel data={data.ukraineFront} now={now} />}
       <RegionMeters regionId={id} meters={data.meters} now={now} />
       <MarketsPanel data={data.predictionMarkets} regionId={id} now={now} designator="PM" />
       <ActorsPanel data={data.actors} regionId={id} now={now} designator="PG" />

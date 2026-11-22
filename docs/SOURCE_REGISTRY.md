@@ -293,3 +293,13 @@ Rebuild with `node scripts/build-infrastructure.ts`. On 2026-11-21 the endpoint 
 | CERT-UA articles API (`cert.gov.ua/api/articles`) | official, undocumented | Articles (Ukrainian title; English title fetched once per new article), Global cybersecurity + Eastern Europe |
 | FIRST EPSS API | free, attribution to FIRST | Probability and percentile for the KEV entries of the last 30 days |
 | ransomware.live | needs a key | Not used: the free keyless API is for personal use only; API PRO needs a free key |
+
+## v0.53.0 Ukraine front — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| General Staff of the Armed Forces of Ukraine, via Ukrinform's English "War update" articles | official figures relayed by a state news agency | Per day: totals, attacks per sector, settlements named, quiet sectors (facts); link to the article |
+| Ukrinform war RSS | media (Ukraine's state news agency) | Headlines and links |
+| DeepStateMap.live | needs a key | Requested 2026-11-22; keyless internal endpoints are not used (licence s.2) |
+| ISW control-of-terrain geodata | needs written consent | "You may not use this geodata without the written consent of ISW" |
+| General Staff site, Russian MoD, TASS | refused | HTTP 403 / no response to automated requests; not worked around |

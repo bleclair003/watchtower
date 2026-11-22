@@ -12,6 +12,7 @@ import type { AirportStatusSnapshot, AirspaceNoticesSnapshot, TfrSnapshot } from
 import type { RadiationSnapshot } from '@shared/domain/radiation';
 import type { SpaceWeatherSnapshot } from '@shared/domain/spaceWeather';
 import type { CyberSnapshot } from '@shared/domain/cyber';
+import type { UkraineFrontSnapshot } from '@shared/domain/ukraineFront';
 import type { ActorsSnapshot } from '@shared/domain/actors';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '@shared/domain/types';
@@ -57,6 +58,7 @@ interface DataState {
   radiation: RadiationSnapshot | null;
   spaceWeather: SpaceWeatherSnapshot | null;
   cyber: CyberSnapshot | null;
+  ukraineFront: UkraineFrontSnapshot | null;
   actors: ActorsSnapshot | null;
   loading: boolean;
   error: string | null;
@@ -100,6 +102,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
     radiation: null as RadiationSnapshot | null,
     spaceWeather: null as SpaceWeatherSnapshot | null,
     cyber: null as CyberSnapshot | null,
+    ukraineFront: null as UkraineFrontSnapshot | null,
     actors: null as ActorsSnapshot | null,
     loadedAt: null as string | null,
     readsThisSession: null as number | null,
@@ -147,6 +150,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
         radiation: d.radiation,
         spaceWeather: d.spaceWeather,
         cyber: d.cyber,
+        ukraineFront: d.ukraineFront,
         actors: d.actors,
         loadedAt: new Date().toISOString(),
         readsThisSession: repo.readsThisSession(),

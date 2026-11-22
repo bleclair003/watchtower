@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.53.0] — 2026-11-22 — Ukraine front (Phase 21)
+
+### Added
+- **Ukraine front panel** on the Eastern Europe page: the General Staff of the Armed Forces of Ukraine's daily update — combat engagements, airstrikes, guided bombs, kamikaze drones, shelling — with a 21-day trend; a table of attacks per front sector (Pokrovsk, Kostiantynivka, Lyman, Huliaipole …) against each sector's 7-day average with a 14-day sparkline and the settlements named; the sectors with no Russian offensive action; "today so far" from the evening update; and **territorial claims in headlines** (Russian and Ukrainian, labelled by side, 14 days).
+- Sources `ua-general-staff` (the General Staff's updates as reported in English by Ukrinform — the General Staff's own site refuses automated requests; figures and settlement names are kept, not the article text; first runs back-fill about two weeks) and `ukrinform-war` (Ukrinform war news).
+- **Ukraine front intensity** meter (METERS topic monitors, Eastern Europe): the latest full day's engagements against the previous 14 days (1.1× LOW … 2× HIGH), the busiest sectors and those well above their recent mean.
+- A daily record per full day ("Ukraine General Staff, 20 Nov: 203 combat engagements — most in Pokrovsk 26, …").
+
+### Limits
+- Activity figures are Ukraine's own (one side); per-sector counts are parsed from text and approximate. Claims come from headlines and are not verified.
+- No front lines or areas of control yet: DeepStateMap's API needs a key (requested 2026-11-22); ISW's geodata needs ISW's written consent; TASS and the Russian MoD refuse automated access; ISW's site sits behind a bot challenge and is not read.
+
+
 ## [0.52.1] — 2026-11-22 — Routine records toggle
 
 ### Changed

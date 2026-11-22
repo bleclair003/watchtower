@@ -16,6 +16,7 @@ export const ROUTES = [
   { path: '/regions', title: 'REGIONS' },
   { path: '/cyber', title: 'CYBER' },
   { path: '/regions/middle-east', title: 'MIDEAST' },
+  { path: '/regions/eastern-europe', title: 'EASTEUR' },
   { path: '/regions/united-states', title: 'USA' },
 ] as const;
 

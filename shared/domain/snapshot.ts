@@ -14,6 +14,7 @@ import type { AirportStatusSnapshot, AirspaceNoticesSnapshot, TfrSnapshot } from
 import type { RadiationSnapshot } from './radiation.ts';
 import type { SpaceWeatherSnapshot } from './spaceWeather.ts';
 import type { CyberSnapshot } from './cyber.ts';
+import type { UkraineFrontSnapshot } from './ukraineFront.ts';
 import type { ActorsSnapshot } from './actors.ts';
 
 /**
@@ -87,6 +88,8 @@ export interface DashboardSnapshot {
   spaceWeather?: SpaceWeatherSnapshot;
   /** CYBER page: KEV (30 d) with EPSS, CISA advisories, national cyber agencies, internet disruptions. */
   cyber?: CyberSnapshot;
+  /** Ukraine front: General Staff daily activity per sector and territorial claims in headlines. */
+  ukraineFront?: UkraineFrontSnapshot;
   /** Tracked people and groups, and new names in headlines. */
   actors?: ActorsSnapshot;
   /** Daily sources that have gone quiet while reachable (for the brief and Diagnostics). */

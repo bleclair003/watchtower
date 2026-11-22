@@ -346,3 +346,11 @@ Free sources and analysis of data already collected. Each new outside source is 
    - [x] CYBER page: KEV (30 d) with EPSS, CISA alerts and advisories, national cyber agencies, internet disruptions, cyber meter — v0.51.0
    - [x] National cyber agencies: UK NCSC, Canadian Centre for Cyber Security, JPCERT/CC, CERT-UA — v0.51.0
    - [ ] Ransomware victims (ransomware.live API PRO, free key) — needs a key under its terms
+
+## Phase 21 — Ukraine front (2026-11-22)
+
+1. **Front activity and claims**
+   - [x] General Staff daily activity per sector (via Ukrinform), trends, quiet sectors, settlements named — v0.53.0
+   - [x] Territorial claims in headlines, by side — v0.53.0
+   - [x] Ukraine front intensity meter — v0.53.0
+   - [ ] Front lines and areas of control — DeepStateMap API key requested 2026-11-22 (reply expected within ~3 days)

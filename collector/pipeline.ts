@@ -42,6 +42,8 @@ import { DONKI_SOURCE_ID, SWPC_SOURCE_ID, type DonkiState, type SwpcState } from
 import { EPSS_SOURCE_ID, type EpssState } from './adapters/cyberAgencies.ts';
 import type { CisaKevState } from './adapters/cisaKev.ts';
 import { buildCyberSnapshot } from '../shared/domain/cyber.ts';
+import { GS_SOURCE_ID, type GeneralStaffState } from './adapters/ukraineFront.ts';
+import { claimsFrom } from '../shared/domain/ukraineFront.ts';
 import { NETWORK_SOURCE, clusterStations, type RadNetwork } from '../shared/domain/radiation.ts';
 import { UNHCR_SOURCE_ID, type UnhcrState } from './adapters/unhcr.ts';
 import { MARKETS_SOURCE_ID, type PolymarketState } from './adapters/polymarket.ts';
@@ -390,6 +392,16 @@ export async function runCollection(
   } catch (err) {
     log(`CYB  cyber page data not added to the snapshot: ${sanitizeError(err)}`);
   }
+  // Ukraine front (Phase 21): General Staff reports (state) and territorial claims in loaded headlines.
+  try {
+    const gs = tracked.includes(GS_SOURCE_ID) ? await store.getSourceState<GeneralStaffState>(GS_SOURCE_ID) : null;
+    const reports = gs?.reports ?? [];
+    const full = reports.filter((r) => r.fullDay).slice(0, 30);
+    const partial = reports.find((r) => !r.fullDay) ?? null;
+    snapshot.ukraineFront = { reports: full, today: partial && (!full[0] || partial.day > full[0].day) ? partial : null, claims: claimsFrom(loaded, Date.parse(snapshot.generatedAt)) };
+  } catch (err) {
+    log(`UAF  Ukraine front not added to the snapshot: ${sanitizeError(err)}`);
+  }
   if (tracked.includes(AIS_SOURCE_ID)) {
     try {
       const ais = await store.getSourceState<AisSanctionedState>(AIS_SOURCE_ID);
@@ -446,6 +458,7 @@ export async function runCollection(
       airspaceNotices: snapshot.airspaceNotices ?? null,
       radiation: snapshot.radiation ?? null,
       spaceWeather: snapshot.spaceWeather ?? null,
+      ukraineFront: snapshot.ukraineFront ?? null,
       sanctionedShips: snapshot.sanctionedShips ?? null,
       displacement: snapshot.displacement ?? null,
       predictionMarkets: snapshot.predictionMarkets ?? null,

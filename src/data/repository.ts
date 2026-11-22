@@ -35,6 +35,8 @@ import type { SpaceWeatherSnapshot } from '@shared/domain/spaceWeather';
 import { buildDemoSpaceWeather } from './demo/demoSpaceWeather';
 import type { CyberSnapshot } from '@shared/domain/cyber';
 import { buildDemoCyber } from './demo/demoCyber';
+import type { UkraineFrontSnapshot } from '@shared/domain/ukraineFront';
+import { buildDemoUkraineFront } from './demo/demoUkraineFront';
 import type { ActorsSnapshot } from '@shared/domain/actors';
 import { computeActors } from '@shared/domain/actorsTrack';
 
@@ -90,6 +92,8 @@ export interface DashboardData {
   spaceWeather: SpaceWeatherSnapshot | null;
   /** CYBER page data, or null. */
   cyber: CyberSnapshot | null;
+  /** Ukraine front panel data, or null. */
+  ukraineFront: UkraineFrontSnapshot | null;
   /** Tracked people and groups and new names, or null. */
   actors: ActorsSnapshot | null;
 }
@@ -144,6 +148,7 @@ export class DemoRepository implements IntelRepository {
       radiation: buildDemoRadiation(now),
       spaceWeather: buildDemoSpaceWeather(now),
       cyber: buildDemoCyber(now),
+      ukraineFront: buildDemoUkraineFront(now),
       // The real tracker over the demo records (no registry: nothing counts as new in demo mode).
       actors: { ...computeActors(this.events, now, null, null).snapshot, simulated: true },
       events: this.events,
