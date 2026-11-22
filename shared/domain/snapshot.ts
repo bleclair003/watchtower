@@ -16,6 +16,9 @@ import type { SpaceWeatherSnapshot } from './spaceWeather.ts';
 import type { CyberSnapshot } from './cyber.ts';
 import type { UkraineFrontSnapshot } from './ukraineFront.ts';
 import type { CensorshipSnapshot } from './censorship.ts';
+import type { NavWarningSnapshot } from './navWarnings.ts';
+import type { EmergencySnapshot } from './aircraftEmergencies.ts';
+import type { ConflictSnapshot } from './conflictEvents.ts';
 import type { ActorsSnapshot } from './actors.ts';
 
 /**
@@ -93,6 +96,12 @@ export interface DashboardSnapshot {
   ukraineFront?: UkraineFrontSnapshot;
   /** OONI censorship readings per watch-region country (apps and sites). */
   censorship?: CensorshipSnapshot;
+  /** Active NGA navigational warnings of notable kinds (Phase 25). */
+  navWarnings?: NavWarningSnapshot;
+  /** Aircraft squawking an emergency code (Phase 25). */
+  aircraftEmergencies?: EmergencySnapshot;
+  /** UCDP conflict events, latest monthly release (Phase 25). */
+  conflictEvents?: ConflictSnapshot;
   /** Tracked people and groups, and new names in headlines. */
   actors?: ActorsSnapshot;
   /** Daily sources that have gone quiet while reachable (for the brief and Diagnostics). */
@@ -147,6 +156,9 @@ export const LAYER_KEYS = [
   'cyber',
   'ukraineFront',
   'censorship',
+  'navWarnings',
+  'aircraftEmergencies',
+  'conflictEvents',
 ] as const satisfies readonly (keyof DashboardSnapshot)[];
 export type LayerKey = (typeof LAYER_KEYS)[number];
 export type LayersSnapshot = Partial<Pick<DashboardSnapshot, LayerKey>> & { generatedAt: string };

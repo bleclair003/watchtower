@@ -39,6 +39,10 @@ import type { UkraineFrontSnapshot } from '@shared/domain/ukraineFront';
 import { buildDemoUkraineFront } from './demo/demoUkraineFront';
 import type { CensorshipSnapshot } from '@shared/domain/censorship';
 import { buildDemoCensorship } from './demo/demoCensorship';
+import type { NavWarningSnapshot } from '@shared/domain/navWarnings';
+import type { EmergencySnapshot } from '@shared/domain/aircraftEmergencies';
+import type { ConflictSnapshot } from '@shared/domain/conflictEvents';
+import { buildDemoConflicts, buildDemoEmergencies, buildDemoNavWarnings } from './demo/demoPhase25';
 import type { ActorsSnapshot } from '@shared/domain/actors';
 import { computeActors } from '@shared/domain/actorsTrack';
 
@@ -98,6 +102,10 @@ export interface DashboardData {
   ukraineFront: UkraineFrontSnapshot | null;
   /** OONI censorship grid, or null. */
   censorship: CensorshipSnapshot | null;
+  /** Phase 25: navigational warnings, aircraft emergencies, UCDP conflict events (or null). */
+  navWarnings: NavWarningSnapshot | null;
+  aircraftEmergencies: EmergencySnapshot | null;
+  conflictEvents: ConflictSnapshot | null;
   /** Tracked people and groups and new names, or null. */
   actors: ActorsSnapshot | null;
 }
@@ -154,6 +162,9 @@ export class DemoRepository implements IntelRepository {
       cyber: buildDemoCyber(now),
       ukraineFront: buildDemoUkraineFront(now),
       censorship: buildDemoCensorship(now),
+      navWarnings: buildDemoNavWarnings(now),
+      aircraftEmergencies: buildDemoEmergencies(now),
+      conflictEvents: buildDemoConflicts(now),
       // The real tracker over the demo records (no registry: nothing counts as new in demo mode).
       actors: { ...computeActors(this.events, now, null, null).snapshot, simulated: true },
       events: this.events,

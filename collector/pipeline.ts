@@ -46,6 +46,9 @@ import { buildCyberSnapshot } from '../shared/domain/cyber.ts';
 import { GS_SOURCE_ID, type GeneralStaffState } from './adapters/ukraineFront.ts';
 import { AF_SOURCE_ID, type AirForceState } from './adapters/uaAirForce.ts';
 import { OONI_SOURCE_ID, type OoniState } from './adapters/ooni.ts';
+import { NGA_SOURCE_ID, type NgaState } from './adapters/ngaMsi.ts';
+import { EMERGENCY_SOURCE_ID, type EmergencyState } from './adapters/adsbEmergencies.ts';
+import { UCDP_SOURCE_ID, type UcdpState } from './adapters/ucdp.ts';
 import { claimsFrom } from '../shared/domain/ukraineFront.ts';
 import { NETWORK_SOURCE, clusterStations, type RadNetwork } from '../shared/domain/radiation.ts';
 import { UNHCR_SOURCE_ID, type UnhcrState } from './adapters/unhcr.ts';
@@ -414,6 +417,20 @@ export async function runCollection(
     if (oo?.countries.length) snapshot.censorship = { countries: oo.countries };
   } catch (err) {
     log(`CEN  censorship readings not added to the snapshot: ${sanitizeError(err)}`);
+  }
+  // Phase 25: navigational warnings (while fresh), aircraft emergencies (last 90 minutes) and UCDP conflict events.
+  try {
+    const [nga, emg, ged] = await Promise.all([
+      tracked.includes(NGA_SOURCE_ID) ? store.getSourceState<NgaState>(NGA_SOURCE_ID) : null,
+      tracked.includes(EMERGENCY_SOURCE_ID) ? store.getSourceState<EmergencyState>(EMERGENCY_SOURCE_ID) : null,
+      tracked.includes(UCDP_SOURCE_ID) ? store.getSourceState<UcdpState>(UCDP_SOURCE_ID) : null,
+    ]);
+    const gen = Date.parse(snapshot.generatedAt);
+    if (nga?.fetchedAt && gen - Date.parse(nga.fetchedAt) < 48 * 3_600_000) snapshot.navWarnings = { warnings: nga.warnings, activeTotal: nga.activeTotal, fetchedAt: nga.fetchedAt };
+    if (emg?.latest && gen - Date.parse(emg.latest.fetchedAt) < 90 * 60_000) snapshot.aircraftEmergencies = emg.latest;
+    if (ged?.latest) snapshot.conflictEvents = ged.latest;
+  } catch (err) {
+    log(`P25  warnings, emergencies or conflict events not added to the snapshot: ${sanitizeError(err)}`);
   }
   if (tracked.includes(AIS_SOURCE_ID)) {
     try {

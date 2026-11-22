@@ -53,7 +53,7 @@ export class FirestoreRepository implements IntelRepository {
     }
     if (!snap.exists()) {
       // Database reachable but the collector has never completed a run.
-      return { events: [], sourceStatus: [], lastRun: null, generatedAt: null, totalEventsStored: 0, indicatorEvaluations: [], regionScores: [], scoreHistory: [], alertRuleProblems: [], activeAlertRules: null, discordConfigured: null, aircraft: null, fleet: null, chokepoints: null, sanctionedShips: null, displacement: null, baseActivity: null, meters: null, predictionMarkets: null, infrastructure: null, actors: null, powerOutages: null, tfrs: null, airportStatus: null, airspaceNotices: null, radiation: null, spaceWeather: null, cyber: null, ukraineFront: null, censorship: null };
+      return { events: [], sourceStatus: [], lastRun: null, generatedAt: null, totalEventsStored: 0, indicatorEvaluations: [], regionScores: [], scoreHistory: [], alertRuleProblems: [], activeAlertRules: null, discordConfigured: null, aircraft: null, fleet: null, chokepoints: null, sanctionedShips: null, displacement: null, baseActivity: null, meters: null, predictionMarkets: null, infrastructure: null, actors: null, powerOutages: null, tfrs: null, airportStatus: null, airspaceNotices: null, radiation: null, spaceWeather: null, cyber: null, ukraineFront: null, censorship: null, navWarnings: null, aircraftEmergencies: null, conflictEvents: null };
     }
     const s = joinSnapshot(snap.data() as DashboardSnapshot, await layersP);
     return {
@@ -88,6 +88,9 @@ export class FirestoreRepository implements IntelRepository {
       cyber: s.cyber ?? null,
       ukraineFront: s.ukraineFront ?? null,
       censorship: s.censorship ?? null,
+      navWarnings: s.navWarnings ?? null,
+      aircraftEmergencies: s.aircraftEmergencies ?? null,
+      conflictEvents: s.conflictEvents ?? null,
       actors: s.actors ?? null,
       meters: await this.loadMeters(),
     };

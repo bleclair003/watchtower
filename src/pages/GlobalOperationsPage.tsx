@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Anchor, Atom, Ban, Factory, Grid3x3, Plane, PlaneLanding, Satellite, Shield, Ship, Square, Zap } from 'lucide-react';
+import { Anchor, Atom, Ban, Crosshair, Factory, Grid3x3, Plane, PlaneLanding, Satellite, Shield, Ship, Siren, Square, Zap } from 'lucide-react';
 import { useBases, useInfrastructure } from '../data/useInstallations';
 import { InfraCard } from '../components/map/InfraCard';
 import { ALL_OPERATORS, operatedBy, operatorCounts } from '@shared/domain/installations';
@@ -32,7 +32,7 @@ import { Panel } from '../components/ui/Panel';
 export default function GlobalOperationsPage() {
   // Re-evaluate time windows once a minute; the clock in the top bar ticks separately.
   const now = useNow(60_000).getTime();
-  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips, baseActivity, infrastructure, powerOutages, tfrs, airportStatus, radiation } = useData();
+  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips, baseActivity, infrastructure, powerOutages, tfrs, airportStatus, radiation, navWarnings, aircraftEmergencies, conflictEvents } = useData();
   const unusualBases = useMemo(() => (baseActivity?.items ?? []).filter((i) => i.unusual).map((i) => i.key), [baseActivity]);
   const { filters, setFilters, resetFilters, selectedEventId, selectEvent, globalViewNonce } = useDashboard();
   const { settings, update } = useSettings();
@@ -242,6 +242,22 @@ export default function GlobalOperationsPage() {
               >
                 <Atom size={10} aria-hidden /> RAD
               </button>
+              <button
+                className={toggleBtn(settings.navWarnings)}
+                aria-pressed={settings.navWarnings}
+                title="NGA navigational warnings: missile and rocket firings, live firing, military exercises, GPS interference, piracy, mines, cable work"
+                onClick={() => update({ navWarnings: !settings.navWarnings })}
+              >
+                <Siren size={10} aria-hidden /> NAVWARN
+              </button>
+              <button
+                className={toggleBtn(settings.conflicts)}
+                aria-pressed={settings.conflicts}
+                title="UCDP conflict events in the watch regions, last monthly release (about a month behind)"
+                onClick={() => update({ conflicts: !settings.conflicts })}
+              >
+                <Crosshair size={10} aria-hidden /> CONFLICT
+              </button>
               <label className={`${toggleBtn(imageryId !== 'off')} cursor-pointer`} title="Satellite imagery under the map overlays (NASA GIBS)">
                 <Satellite size={10} aria-hidden />
                 <select
@@ -329,6 +345,9 @@ export default function GlobalOperationsPage() {
               tfrs={settings.faa ? (tfrs?.items ?? []) : []}
               airports={settings.faa ? (airportStatus?.events ?? []) : []}
               radiation={settings.radiation ? (radiation?.flagged ?? []) : []}
+              navWarnings={settings.navWarnings ? (navWarnings?.warnings ?? []) : []}
+              emergencies={settings.aircraft ? (aircraftEmergencies?.aircraft ?? []) : []}
+              conflicts={settings.conflicts ? (conflictEvents?.events ?? []) : []}
             />
           <MapLegend
             plotted={projection.points.features.length}
@@ -340,6 +359,9 @@ export default function GlobalOperationsPage() {
             infrastructure={settings.infrastructure || flaggedInfra.length ? { all: settings.infrastructure ? (infraData.data?.count ?? null) : null, flagged: flaggedInfra.length, simulated: !!infrastructure?.simulated } : undefined}
             power={settings.powerOutages && powerOutages ? { total: powerOutages.totalOut, states: powerOutages.states.length, counties: powerOutages.counties.length, utilities: powerOutages.utilitiesReporting, ageMinutes: Math.max(0, Math.round((now - Date.parse(powerOutages.fetchedAt)) / 60_000)), simulated: !!powerOutages.simulated } : undefined}
             radiation={settings.radiation && radiation ? radiation : undefined}
+            navWarnings={settings.navWarnings && navWarnings ? navWarnings : undefined}
+            emergencies={settings.aircraft && aircraftEmergencies ? aircraftEmergencies : undefined}
+            conflicts={settings.conflicts && conflictEvents ? conflictEvents : undefined}
             faa={settings.faa && (tfrs || airportStatus) ? { tfrs: tfrs?.items ?? [], airports: airportStatus?.events ?? [], now, simulated: !!(tfrs?.simulated || airportStatus?.simulated) } : undefined}
             operatorFilter={settings.installations && operator !== ALL_OPERATORS ? countryName(operator) : undefined}
             aircraft={

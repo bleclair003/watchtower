@@ -375,3 +375,15 @@ Free sources and analysis of data already collected. Each new outside source is 
 - [x] Baselines ignore the time before a live-only source started (back-fill check) — v0.57.1
 - [ ] Radiation, chokepoint transits and OONI shares as signals for the unusual-readings meter
 - [ ] Backtest the score cut-offs once 60+ days of history exist
+
+## Phase 25 — Gaps from the World Monitor comparison (2026-11-22)
+
+- [x] NGA navigational warnings (missile firings, exercises, GPS interference, piracy, cables) with warned areas on the map — v0.59.0 (portal under maintenance at release; adapter untested against a live answer)
+- [x] Aircraft emergency codes 7500 / 7600 / 7700 (adsb.lol) on the map and in the feed — v0.59.0
+- [x] UCDP conflict events (monthly candidate release) on the map, per-region monthly totals — v0.59.0
+- [ ] Taiwan MND daily PLA activity and Japan Joint Staff scrambles (check terms)
+- [ ] More travel and health advisories (Australia Smartraveller, CDC, Canada)
+- [ ] GPS interference from aircraft position-quality fields
+- [ ] State-affiliated / partisan labels on publishers
+- [ ] Open-Meteo climate anomalies; abuse.ch cyber infrastructure; cables, pipelines, ports, satellites layers
+

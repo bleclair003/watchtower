@@ -124,7 +124,7 @@ test('satellite imagery: off by default, product and date selectable, credited',
   await select.selectOption('viirs');
   await expect(page.getByLabel('Imagery date')).toBeVisible();
   await expect(page.getByText(/True colour · VIIRS NOAA-20 · \d{4}-\d{2}-\d{2}/)).toBeVisible();
-  await expect(page.getByText(/NASA EOSDIS GIBS/)).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Map legend' }).getByText(/NASA EOSDIS GIBS/)).toBeVisible();
   await select.selectOption('night-2016');
   await expect(page.getByLabel('Imagery date')).toHaveCount(0); // fixed-date baseline
   await expect(page.getByText(/Black Marble 2016 · 2016-01-01/)).toBeVisible();

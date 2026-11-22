@@ -316,3 +316,12 @@ Rebuild with `node scripts/build-infrastructure.ts`. On 2026-11-21 the endpoint 
 |---|---|---|
 | OONI aggregation API (`api.ooni.io/api/v1/aggregation`) | scientific, CC BY-NC-SA 4.0 | Per country and service: failed-test share in 2 days and the 14 days before, test count, verdict; a record for new blocks |
 | UKMTO incidents (`sccd.royalnavy.mod.uk/api/ukmto/all`) | official, Open Government Licence | Not used: the host refuses Node requests (bot protection); parked pending permission |
+
+## Phase 25 — Navigational warnings, aircraft emergencies, conflict events (v0.59.0)
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| NGA MSI broadcast warnings (`msi.nga.mil/api/publications/broadcast-warn`) | official, U.S. public domain | Active warnings of notable kinds (missile/rocket firings, live firing, exercises, GPS interference, piracy, mines, cable work): key, kind, text (600 characters), positions parsed from the text; a record when first seen. Read every 3 hours. Under maintenance (HTTP 503) at release |
+| adsb.lol squawk queries (`api.adsb.lol/v2/sqk/7500`, `7600`, `7700`) | aggregator, ODbL | Aircraft broadcasting an emergency code: position, code, type, military flag; a record per aircraft and code per 12 hours (civil emergencies outside the watch regions abroad are routine) |
+| UCDP GED candidate files (`ucdp.uu.se/downloads/candidateged/GEDEvent_vYY_0_M.csv`) | scientific, CC BY 4.0 | Latest monthly release: watch-region events located to a province or better (date, position, type, sides, best death estimate) for the map, and per-region totals; one record per region per release. Source headlines are not stored. The UCDP API needs a token and is not used |
+

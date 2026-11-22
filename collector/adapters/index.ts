@@ -32,6 +32,9 @@ import { cccsCanada, certUa, firstEpss, jpcert, ncscUk } from './cyberAgencies.t
 import { uaGeneralStaff, ukrinformWar } from './ukraineFront.ts';
 import { uaAirForce } from './uaAirForce.ts';
 import { ooni } from './ooni.ts';
+import { ngaMsi } from './ngaMsi.ts';
+import { adsbEmergencies } from './adsbEmergencies.ts';
+import { ucdp } from './ucdp.ts';
 import { congress } from './congress.ts';
 
 /** Active adapters. Adding a source = write an adapter + register it here. */
@@ -93,6 +96,9 @@ export const ADAPTERS: SourceAdapter<never>[] = [
   uaGeneralStaff as SourceAdapter<never>,
   uaAirForce as SourceAdapter<never>,
   ooni as SourceAdapter<never>,
+  ngaMsi as SourceAdapter<never>,
+  adsbEmergencies as SourceAdapter<never>,
+  ucdp as SourceAdapter<never>,
   // Free-key sources: active only when their key is set.
   firms as SourceAdapter<never>,
   cloudflareRadarOutages as SourceAdapter<never>,

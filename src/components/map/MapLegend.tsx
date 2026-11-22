@@ -1,7 +1,10 @@
 import { INFRA_LABEL, INFRA_TYPES } from '@shared/domain/infrastructure';
 import { tfrActive, type AirportEvent, type TfrShape } from '@shared/domain/faa';
 import { NETWORK_LABEL, type RadiationSnapshot } from '@shared/domain/radiation';
-import { AIRCRAFT_COLOR, AIRCRAFT_PATH, AIRPORT_COLOR, RADIATION_COLOR, FLEET_COLOR, INFRA_COLOR, POWER_STEPS, TFR_COLOR, SANCTIONED_SHIP_COLOR, SHIP_PATH, BRANCH_COLOR, OPERATION_COLOR, OPERATION_LABEL } from './WorldMap';
+import { NAV_KIND_LABEL, type NavWarningKind, type NavWarningSnapshot } from '@shared/domain/navWarnings';
+import type { EmergencySnapshot } from '@shared/domain/aircraftEmergencies';
+import { VIOLENCE_LABEL, monthName, type ConflictSnapshot } from '@shared/domain/conflictEvents';
+import { CONFLICT_COLOR, EMERGENCY_COLOR, NAV_COLOR, AIRCRAFT_COLOR, AIRCRAFT_PATH, AIRPORT_COLOR, RADIATION_COLOR, FLEET_COLOR, INFRA_COLOR, POWER_STEPS, TFR_COLOR, SANCTIONED_SHIP_COLOR, SHIP_PATH, BRANCH_COLOR, OPERATION_COLOR, OPERATION_LABEL } from './WorldMap';
 import { AIRCRAFT_CLASSES, AIRCRAFT_CLASS_LABEL } from '@shared/domain/aircraft';
 import { useState } from 'react';
 import { EVENT_CATEGORIES } from '@shared/domain/types';
@@ -21,6 +24,10 @@ interface Props {
   infrastructure?: { all: number | null; flagged: number; simulated: boolean };
   /** Radiation layer (omit when off). */
   radiation?: RadiationSnapshot;
+  /** Phase 25 layers (omit when off). */
+  navWarnings?: NavWarningSnapshot;
+  emergencies?: EmergencySnapshot;
+  conflicts?: ConflictSnapshot;
   /** FAA layer (omit when off). */
   faa?: { tfrs: TfrShape[]; airports: AirportEvent[]; now: number; simulated: boolean };
   /** US power outages layer (omit when off). */
@@ -40,7 +47,7 @@ interface Props {
 const BRANCH_LABEL = { army: 'Army', navy: 'Navy', 'air-force': 'Air Force', marines: 'Marines', other: 'Other DoD' } as const;
 
 /** Collapsible legend explaining symbols and location-precision handling. */
-export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, infrastructure, power, faa, radiation, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
+export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, infrastructure, power, faa, radiation, navWarnings, emergencies, conflicts, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
   // Closed by default on phones, where it would cover most of the map.
   const [open, setOpen] = useState(() => typeof window === 'undefined' || window.matchMedia?.('(min-width: 768px)').matches !== false);
   return (
@@ -160,6 +167,52 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
                 ))}
               </ul>
               <p className="text-wt-fg-dim">Only stations above their usual level are drawn. Rain can double readings for a few hours.</p>
+            </div>
+          )}
+          {conflicts && (
+            <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
+              <div className="flex justify-between">
+                <span title="UCDP Georeferenced Event Dataset, monthly candidate release, CC BY 4.0">Conflict events (UCDP){conflicts.simulated ? ' · SIMULATED' : ''}</span>
+                <span className="text-wt-fg tabular-nums">{conflicts.events.length}</span>
+              </div>
+              <ul>
+                {([1, 2, 3] as const).map((t) => (
+                  <li key={t} className="flex items-center gap-1">
+                    <span className="size-2 rounded-full" style={{ background: CONFLICT_COLOR[t] }} aria-hidden />
+                    {VIOLENCE_LABEL[t]}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-wt-fg-dim">{monthName(conflicts.month)}, about a month behind; size = deaths (best estimate). Preliminary data.</p>
+            </div>
+          )}
+          {navWarnings && (
+            <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
+              <div className="flex justify-between">
+                <span title="NGA Maritime Safety Information broadcast warnings (NAVAREA IV/XII, HYDROLANT, HYDROPAC)">Navigational warnings{navWarnings.simulated ? ' · SIMULATED' : ''}</span>
+                <span className="text-wt-fg tabular-nums">{navWarnings.warnings.length} of {navWarnings.activeTotal}</span>
+              </div>
+              <ul className="grid grid-cols-2 gap-x-2">
+                {(['missile', 'firing', 'exercise', 'gnss', 'piracy', 'mine', 'cable'] as NavWarningKind[]).map((k) => (
+                  <li key={k} className="flex items-center gap-1">
+                    <span className="size-2 rounded-full border-2" style={{ borderColor: NAV_COLOR[k] }} aria-hidden />
+                    {NAV_KIND_LABEL[k]}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-wt-fg-dim">Active warnings of these kinds; dashed lines are the warned areas.</p>
+            </div>
+          )}
+          {emergencies && (
+            <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1" title="Aircraft squawking 7500, 7600 or 7700 (adsb.lol, ODbL)">
+                  <span className="size-2 rounded-full" style={{ background: EMERGENCY_COLOR }} aria-hidden />
+                  Aircraft emergencies{emergencies.simulated ? ' · SIMULATED' : ''}
+                </span>
+                <span className="text-wt-fg tabular-nums">{emergencies.aircraft.length}</span>
+              </div>
+              <p className="text-wt-fg-dim">Codes are set by crews, not verified; 7500 is often a mis-set transponder.</p>
             </div>
           )}
           {faa && (

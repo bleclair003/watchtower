@@ -14,6 +14,9 @@ import type { SpaceWeatherSnapshot } from '@shared/domain/spaceWeather';
 import type { CyberSnapshot } from '@shared/domain/cyber';
 import type { UkraineFrontSnapshot } from '@shared/domain/ukraineFront';
 import type { CensorshipSnapshot } from '@shared/domain/censorship';
+import type { NavWarningSnapshot } from '@shared/domain/navWarnings';
+import type { EmergencySnapshot } from '@shared/domain/aircraftEmergencies';
+import type { ConflictSnapshot } from '@shared/domain/conflictEvents';
 import type { ActorsSnapshot } from '@shared/domain/actors';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '@shared/domain/types';
@@ -61,6 +64,9 @@ interface DataState {
   cyber: CyberSnapshot | null;
   ukraineFront: UkraineFrontSnapshot | null;
   censorship: CensorshipSnapshot | null;
+  navWarnings: NavWarningSnapshot | null;
+  aircraftEmergencies: EmergencySnapshot | null;
+  conflictEvents: ConflictSnapshot | null;
   actors: ActorsSnapshot | null;
   loading: boolean;
   error: string | null;
@@ -106,6 +112,9 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
     cyber: null as CyberSnapshot | null,
     ukraineFront: null as UkraineFrontSnapshot | null,
     censorship: null as CensorshipSnapshot | null,
+    navWarnings: null as NavWarningSnapshot | null,
+    aircraftEmergencies: null as EmergencySnapshot | null,
+    conflictEvents: null as ConflictSnapshot | null,
     actors: null as ActorsSnapshot | null,
     loadedAt: null as string | null,
     readsThisSession: null as number | null,
@@ -155,6 +164,9 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
         cyber: d.cyber,
         ukraineFront: d.ukraineFront,
         censorship: d.censorship,
+        navWarnings: d.navWarnings,
+        aircraftEmergencies: d.aircraftEmergencies,
+        conflictEvents: d.conflictEvents,
         actors: d.actors,
         loadedAt: new Date().toISOString(),
         readsThisSession: repo.readsThisSession(),

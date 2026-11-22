@@ -32,6 +32,10 @@ export interface OperatorSettings {
   faa: boolean;
   /** Radiation stations above their usual level (Germany, Finland, US) on the map. */
   radiation: boolean;
+  /** NGA navigational warnings (missile firings, exercises, GPS interference …) on the map. */
+  navWarnings: boolean;
+  /** UCDP conflict events (last monthly release) on the map. */
+  conflicts: boolean;
   /** Satellite imagery product on the GOC map ('off', 'viirs', 'modis', 'night', 'night-2016'). */
   imagery: string;
   /** Imagery day (YYYY-MM-DD); empty = yesterday. */
@@ -54,6 +58,8 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   powerOutages: true,
   faa: true,
   radiation: true,
+  navWarnings: true,
+  conflicts: true,
   imagery: 'off',
   imageryDate: '',
 };

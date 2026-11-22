@@ -19,11 +19,11 @@ export function Panel({ title, designator, actions, children, className = '', bo
       aria-label={title}
       className={`flex min-h-0 flex-col border border-wt-line bg-wt-panel ${className}`}
     >
-      {/* On phones a long title and many actions wrap: the actions take their own line and scroll sideways. */}
-      <header className="flex min-h-7 shrink-0 flex-wrap items-center gap-x-2 gap-y-1 border-b border-wt-line bg-wt-bg2 px-2 py-1 md:h-7 md:flex-nowrap md:py-0">
+      {/* Below wide-desktop width a long title and many actions wrap: the actions take their own line and scroll sideways. */}
+      <header className="flex min-h-7 shrink-0 flex-wrap items-center gap-x-2 gap-y-1 border-b border-wt-line bg-wt-bg2 px-2 py-1 2xl:h-7 2xl:flex-nowrap 2xl:py-0">
         {designator && <span className="text-2xs text-wt-fg-dim">{designator}</span>}
         <h2 className="glow min-w-0 font-display text-xs tracking-[0.18em] text-wt-fg uppercase">{title}</h2>
-        {actions && <div className="ml-auto flex max-w-full min-w-0 items-center gap-1 overflow-x-auto md:overflow-visible">{actions}</div>}
+        {actions && <div className="ml-auto flex max-w-full min-w-0 items-center gap-1 overflow-x-auto 2xl:overflow-visible">{actions}</div>}
       </header>
       <div className={`min-h-0 flex-1 ${bodyClassName}`}>{children}</div>
     </section>

@@ -6,6 +6,9 @@ import type { FlaggedSite, InfraSite, InfraType } from '@shared/domain/infrastru
 import { unpackRings, type PowerOutageCounty } from '@shared/domain/powerOutages';
 import { AIRPORT_KIND_LABEL, tfrActive, type AirportEvent, type TfrShape } from '@shared/domain/faa';
 import { ratioOf, type FlaggedStation } from '@shared/domain/radiation';
+import { NAV_KIND_LABEL, type NavWarning, type NavWarningKind } from '@shared/domain/navWarnings';
+import { SQUAWK_LABEL, emergencyLabel, type EmergencyAircraft } from '@shared/domain/aircraftEmergencies';
+import { VIOLENCE_LABEL, type ConflictEvent, type ViolenceType } from '@shared/domain/conflictEvents';
 import type { SanctionedShipSighting } from '@shared/domain/sanctionedShips';
 import { IMAGERY_ATTRIBUTION } from '../../lib/imagery';
 import { componentOf, operationOf, type Branch, type Installation, type Operation, type WorldInstallation } from '@shared/domain/installations';
@@ -74,6 +77,10 @@ export interface WorldMapProps {
   airports?: AirportEvent[];
   /** Radiation stations above their usual level (empty when the layer is off). */
   radiation?: FlaggedStation[];
+  /** Phase 25: navigational warnings, aircraft emergencies, UCDP conflict events (empty when off). */
+  navWarnings?: NavWarning[];
+  emergencies?: EmergencyAircraft[];
+  conflicts?: ConflictEvent[];
 }
 
 const GLOBAL_VIEW = { center: [35, 22] as [number, number], zoom: 1.35 };
@@ -97,6 +104,21 @@ export const AIRCRAFT_COLOR: Record<AircraftClass, string> = {
 };
 /** Radiation stations above their usual level (severity colours). */
 export const RADIATION_COLOR = { elevated: '#ffb347', high: '#ff5555' } as const;
+/** Navigational warnings by kind, drawn as hollow rings and dashed areas (no red or amber). */
+export const NAV_COLOR: Record<NavWarningKind, string> = {
+  missile: '#ff9de2',
+  firing: '#e8a0c8',
+  exercise: '#69c6d5',
+  gnss: '#f2f2f2',
+  piracy: '#c8c8c8',
+  mine: '#b3a6ff',
+  cable: '#9ccc65',
+  other: '#8a958f',
+};
+/** Aircraft squawking an emergency code: red (an emergency is a severity). */
+export const EMERGENCY_COLOR = '#ff5555';
+/** UCDP conflict events by type of violence. */
+export const CONFLICT_COLOR: Record<ViolenceType, string> = { 1: '#d9654b', 2: '#c98a5a', 3: '#b07ad1' };
 /** FAA flight restrictions by type (no red or amber: those are for severity). */
 export const TFR_COLOR = { VIP: '#c8e66b', SECURITY: '#e8a0c8', SPECIAL: '#9fd3e8' } as const;
 const TFR_FILL = ['match', ['get', 'type'], 'VIP', TFR_COLOR.VIP, 'SECURITY', TFR_COLOR.SECURITY, TFR_COLOR.SPECIAL] as unknown as string;
@@ -569,6 +591,48 @@ export function WorldMap(props: WorldMapProps) {
           layout: { 'text-field': ['get', 'label'], 'text-font': font, 'text-size': 10, 'text-offset': [0, 1.1], 'text-anchor': 'top', 'text-optional': true },
           paint: { 'text-color': '#ffe3a8', 'text-halo-color': '#050a08', 'text-halo-width': 1.2 },
         });
+        // Phase 25: UCDP conflict events (sized by deaths), navigational warning areas, aircraft emergencies.
+        m.addSource('conflicts', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({
+          id: 'conflicts',
+          type: 'circle',
+          source: 'conflicts',
+          paint: {
+            'circle-radius': ['min', 14, ['+', 2.5, ['*', 1.1, ['sqrt', ['get', 'k']]]]],
+            'circle-color': ['match', ['get', 'ty'], 1, CONFLICT_COLOR[1], 2, CONFLICT_COLOR[2], CONFLICT_COLOR[3]],
+            'circle-opacity': 0.55,
+            'circle-stroke-color': '#050a08',
+            'circle-stroke-width': 0.6,
+          },
+        });
+        m.addSource('nav-warning-areas', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({
+          id: 'nav-warning-areas',
+          type: 'line',
+          source: 'nav-warning-areas',
+          paint: { 'line-color': ['get', 'color'], 'line-width': 1.2, 'line-dasharray': [2, 2], 'line-opacity': 0.9 },
+        });
+        m.addSource('nav-warnings', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({
+          id: 'nav-warnings',
+          type: 'circle',
+          source: 'nav-warnings',
+          paint: { 'circle-radius': 5, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': ['get', 'color'], 'circle-stroke-width': 2 },
+        });
+        m.addSource('emergencies', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({
+          id: 'emergencies',
+          type: 'circle',
+          source: 'emergencies',
+          paint: { 'circle-radius': 6, 'circle-color': EMERGENCY_COLOR, 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 1.5 },
+        });
+        m.addLayer({
+          id: 'emergencies-labels',
+          type: 'symbol',
+          source: 'emergencies',
+          layout: { 'text-field': ['get', 'label'], 'text-font': font, 'text-size': 10, 'text-offset': [0, 1.2], 'text-anchor': 'top', 'text-optional': true },
+          paint: { 'text-color': '#ffb3b3', 'text-halo-color': '#050a08', 'text-halo-width': 1.2 },
+        });
         // Sanctioned vessels (AIS): ship icons along their course.
         m.addSource('sanctioned-ships', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
         m.addLayer({
@@ -727,6 +791,27 @@ export function WorldMap(props: WorldMapProps) {
           m.getCanvas().style.cursor = '';
           hover.remove();
         });
+        // Phase 25 hovers: plain text only (warning text and names come from the sources).
+        const showHover = (e: MapLayerMouseEvent, kindText: (p: Record<string, unknown>) => string, titleText: (p: Record<string, unknown>) => string) => {
+          const f = e.features?.[0];
+          if (!f || m.queryRenderedFeatures(e.point, { layers: ['events'] }).length) return;
+          const p = f.properties as Record<string, unknown>;
+          const el = document.createElement('div');
+          const kind = document.createElement('div');
+          kind.className = 'text-[10px] tracking-widest text-wt-fg-dim';
+          kind.textContent = kindText(p);
+          const title = document.createElement('div');
+          title.className = 'text-xs';
+          title.textContent = titleText(p);
+          el.append(kind, title);
+          hover.setLngLat(e.lngLat).setDOMContent(el).addTo(m);
+        };
+        m.on('mousemove', 'nav-warnings', (e) => showHover(e, (p) => `NAV WARNING · ${String(p.kindLabel).toUpperCase()}`, (p) => `${p.key}: ${p.text}`));
+        m.on('mousemove', 'emergencies', (e) => showHover(e, (p) => `AIRCRAFT EMERGENCY · ${String(p.code).toUpperCase()}`, (p) => `${p.label}${p.type ? ` · ${p.type}` : ''}${p.mil ? ' · military' : ''}${p.sq === '7500' ? ' — 7500 is often a mis-set transponder' : ''}`));
+        m.on('mousemove', 'conflicts', (e) => showHover(e, (p) => `UCDP CONFLICT EVENT · ${String(p.typeLabel).toUpperCase()}`, (p) => `${p.d} · ${p.country}: ${p.a} vs ${p.b} — ${p.k} deaths (best estimate)`));
+        for (const id of ['nav-warnings', 'emergencies', 'conflicts']) {
+          m.on('mouseleave', id, () => hover.remove());
+        }
         m.on('mouseenter', 'sanctioned-ships', () => (m.getCanvas().style.cursor = 'pointer'));
         m.on('mouseleave', 'sanctioned-ships', () => (m.getCanvas().style.cursor = ''));
         for (const id of ['infrastructure', 'infrastructure-flagged']) {
@@ -968,6 +1053,56 @@ export function WorldMap(props: WorldMapProps) {
       })),
     });
   }, [ready, radiation]);
+  const { navWarnings, emergencies, conflicts } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    const list = navWarnings ?? [];
+    (m.getSource('nav-warnings') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: list
+        .filter((w) => w.lat !== null && w.lon !== null)
+        .map((w) => ({
+          type: 'Feature' as const,
+          geometry: { type: 'Point' as const, coordinates: [w.lon!, w.lat!] },
+          properties: { key: w.key, kindLabel: NAV_KIND_LABEL[w.kind], color: NAV_COLOR[w.kind], text: w.text.length > 220 ? `${w.text.slice(0, 217)}…` : w.text },
+        })),
+    });
+    (m.getSource('nav-warning-areas') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: list
+        .filter((w) => w.points.length >= 3)
+        .map((w) => ({
+          type: 'Feature' as const,
+          geometry: { type: 'LineString' as const, coordinates: [...w.points, w.points[0]].map(([la, lo]) => [lo, la]) },
+          properties: { color: NAV_COLOR[w.kind] },
+        })),
+    });
+  }, [ready, navWarnings]);
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    (m.getSource('emergencies') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (emergencies ?? []).map((a) => ({
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: [a.lo, a.la] },
+        properties: { label: `${emergencyLabel(a)} · ${a.sq}`, code: SQUAWK_LABEL[a.sq], type: a.t ?? '', mil: a.mil, sq: a.sq },
+      })),
+    });
+  }, [ready, emergencies]);
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    (m.getSource('conflicts') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (conflicts ?? []).map((c) => ({
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: [c.lo, c.la] },
+        properties: { k: c.k, ty: c.ty, typeLabel: VIOLENCE_LABEL[c.ty], d: c.d, country: c.country, a: c.a, b: c.b },
+      })),
+    });
+  }, [ready, conflicts]);
   const { tfrs, airports } = props;
   useEffect(() => {
     const m = mapRef.current;

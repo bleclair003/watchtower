@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.59.0] — 2026-11-22 — Navigational warnings, aircraft emergencies, conflict events (Phase 25)
+
+### Added
+- **Navigational warnings** (source `nga-msi`): the U.S. NGA's active broadcast warnings to shipping (NAVAREA IV/XII, HYDROLANT, HYDROPAC). Kept: missile and rocket firings, live firing, military exercises, GPS interference, piracy, mines and cable work, each with the warned area parsed from the text. A record when a warning first appears; hollow rings and dashed areas on the map (NAVWARN toggle). A warning counts for every watch region any point of its area falls in.
+- **Aircraft emergencies** (source `adsb-emergencies`): aircraft squawking 7500 (hijack code), 7600 (radio failure) or 7700 (emergency), from adsb.lol. Red markers with the callsign and code (with the AIR toggle). Military aircraft, 7500s and emergencies in a watch region abroad show in the feed; other civil emergencies (mostly medical or technical diversions) are routine and hidden by default.
+- **Conflict events** (source `ucdp-ged`): the Uppsala Conflict Data Program's monthly candidate release — coded incidents of organised violence with sides, place and deaths. Watch-region events located to a province or better on the map (CONFLICT toggle; colour = state-based, non-state or one-sided, size = deaths) and one record per region per month with its totals. October 2026 at release: 269 events and 6,237 deaths in Eastern Europe, 638 and 2,122 in the Middle East, 463 and 2,059 around the Red Sea.
+- Map legend sections for the three layers.
+
+### Changed
+- Panel headers wrap (buttons on their own scrolling line) below wide-desktop width, not only on phones: the map now has 17 layer buttons.
+
+### Limits
+- **NGA's portal was under maintenance at release** (HTTP 503 to every client: an outage, not blocking). The adapter follows the documented field layout and is tested on invented samples, but not yet on a live answer; the source shows as failing until the portal returns.
+- UCDP candidate data are preliminary and about a month behind: a picture of last month, not today. The US watch area also covers northern Mexico, so the US region only counts events UCDP codes in the United States.
+- Emergency codes are set by crews and not verified; 7500 is often a mis-set transponder. One check per 30-minute run, so short emergencies are missed.
+
+
 ## [0.58.0] — 2026-11-22 — Phone layout
 
 ### Changed
