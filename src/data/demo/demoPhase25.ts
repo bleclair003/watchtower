@@ -1,5 +1,6 @@
 import type { NavWarningSnapshot } from '@shared/domain/navWarnings';
 import type { EmergencySnapshot } from '@shared/domain/aircraftEmergencies';
+import type { RadioReceiversSnapshot } from '@shared/domain/radio';
 import type { ConflictSnapshot } from '@shared/domain/conflictEvents';
 
 /** SIMULATED navigational warnings for demo mode and tests: invented areas and text. */
@@ -61,6 +62,23 @@ export function buildDemoConflicts(now: number): ConflictSnapshot {
       { regionId: 'eastern-europe', events: 270, deaths: 1900, deathsByType: [1880, 0, 20] },
       { regionId: 'middle-east', events: 640, deaths: 1300, deathsByType: [900, 250, 150] },
       { regionId: 'red-sea', events: 470, deaths: 820, deathsByType: [700, 80, 40] },
+    ],
+  };
+}
+
+/** SIMULATED shortwave receivers for demo mode (addresses use the reserved .invalid domain, so links go nowhere). */
+export function buildDemoReceivers(now: number): RadioReceiversSnapshot {
+  const rx = (name: string, host: string, lat: number, lon: number) => ({ name: `[SIMULATED] ${name}`, url: `http://${host}.invalid:8073`, lat, lon, minKhz: 0, maxKhz: 30_000, slots: 4 });
+  return {
+    fetchedAt: new Date(now - 6 * 3_600_000).toISOString(),
+    listTime: new Date(now - 6 * 3_600_000).toISOString(),
+    simulated: true,
+    receivers: [
+      rx('Demo receiver, Kansas', 'demo-ks', 38.5, -98.0),
+      rx('Demo receiver, Ireland', 'demo-ie', 53.0, -8.0),
+      rx('Demo receiver, Finland', 'demo-fi', 61.0, 25.0),
+      rx('Demo receiver, Cyprus', 'demo-cy', 35.0, 33.0),
+      rx('Demo receiver, Japan', 'demo-jp', 35.5, 139.5),
     ],
   };
 }

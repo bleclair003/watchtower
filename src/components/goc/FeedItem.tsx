@@ -5,6 +5,7 @@ import { CORROBORATION_LABEL, type Story } from '@shared/domain/stories/stories'
 import { isOpinion, offTopicReason } from '@shared/domain/relevance';
 import { getRegion } from '@shared/domain/regions';
 import { CATEGORY_STYLES, CREDIBILITY_LABELS, SOURCE_CLASS_LABELS } from '../../config/categories';
+import { ListenLinks } from '../radio/ListenLinks';
 import { formatAge, formatUtc, formatWhen, eventTime } from '../../lib/time';
 import { safeExternalUrl } from '../../lib/sanitize';
 import { CategoryGlyph } from '../ui/CategoryGlyph';
@@ -193,6 +194,7 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem(
                 <dd className="text-wt-fg-dim">Off-topic: {offTopic}. Hidden unless OFF-TOPIC is shown.</dd>
               </>
             )}
+            <ListenLinks event={e} />
             <dt className="text-wt-fg-dim">INDICATORS</dt>
             <dd className={indicators.length ? 'text-wt-warn' : 'text-wt-fg-dim'}>
               {indicators.length ? indicators.join(' · ') : 'Not cited by any active indicator'}

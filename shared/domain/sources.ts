@@ -1431,6 +1431,25 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     priority: 'P2',
     feasibility: { checkedAt: '2026-11-22T04:00:00Z', result: 'reachable', note: 'GEDEvent_v26_0_10.csv HTTP 200, 2.0 MB, 2,418 events (October 2026).' },
   },
+  {
+    id: 'kiwisdr-receivers',
+    name: 'Public shortwave receivers (KiwiSDR list)',
+    organization: 'KiwiSDR public list (kiwisdr.com/public), mirrored by rx.linkfanel.net',
+    website: 'http://rx.linkfanel.net/',
+    endpoint: 'http://rx.linkfanel.net/kiwisdr_com.js',
+    method: 'structured-download',
+    sourceClass: 'aggregator',
+    defaultCategory: 'military',
+    coverage: 'About 850 volunteer-run shortwave receivers worldwide, with position and tuning range; used only to build "tune nearby" links (Phase 28)',
+    authentication: 'None',
+    freeAccess: 'Free public list',
+    expectedUpdateFrequency: 'Regenerated every few minutes by the mirror; fetched once a day',
+    pollIntervalMinutes: 1440,
+    reliabilityNotes: 'Makes no records. Receivers come and go and have 4–8 listener slots, so a linked receiver may be busy or gone; the panels offer the three nearest. WATCHTOWER never connects to a receiver itself.',
+    termsNotes: 'No stated terms for the list file; fetched once a day and credited. The mirror is made with the dyatlov map maker (GPLv3+); no code is reused. Receivers belong to their owners.',
+    priority: 'P3',
+    feasibility: { checkedAt: '2026-11-22T23:30:00Z', result: 'reachable', note: 'kiwisdr_com.js HTTP 200, 0.9 MB, 846 active receivers.' },
+  },
 ];
 
 export function getSource(id: string): SourceDefinition | undefined {

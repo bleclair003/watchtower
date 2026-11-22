@@ -34,6 +34,7 @@ import { uaAirForce } from './uaAirForce.ts';
 import { ooni } from './ooni.ts';
 import { ngaMsi } from './ngaMsi.ts';
 import { adsbEmergencies } from './adsbEmergencies.ts';
+import { radioReceivers } from './radioReceivers.ts';
 import { ucdp } from './ucdp.ts';
 import { congress } from './congress.ts';
 
@@ -99,6 +100,7 @@ export const ADAPTERS: SourceAdapter<never>[] = [
   ngaMsi as SourceAdapter<never>,
   adsbEmergencies as SourceAdapter<never>,
   ucdp as SourceAdapter<never>,
+  radioReceivers as SourceAdapter<never>,
   // Free-key sources: active only when their key is set.
   firms as SourceAdapter<never>,
   cloudflareRadarOutages as SourceAdapter<never>,

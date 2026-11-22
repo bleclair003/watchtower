@@ -10,6 +10,7 @@ export const ROUTES = [
   { path: '/alerts', title: 'ALERTS' },
   { path: '/dossiers', title: 'DOSSIERS' },
   { path: '/sitrep', title: 'SITREP' },
+  { path: '/radio', title: 'RADIO' },
   { path: '/replay', title: 'REPLAY' },
   { path: '/signal-lab', title: 'SIGNAL LAB' },
   { path: '/meters', title: 'METERS' },

@@ -49,6 +49,7 @@ import { OONI_SOURCE_ID, type OoniState } from './adapters/ooni.ts';
 import { NGA_SOURCE_ID, type NgaState } from './adapters/ngaMsi.ts';
 import { EMERGENCY_SOURCE_ID, type EmergencyState } from './adapters/adsbEmergencies.ts';
 import { UCDP_SOURCE_ID, type UcdpState } from './adapters/ucdp.ts';
+import { RADIO_RECEIVERS_SOURCE_ID, type RadioReceiversState } from './adapters/radioReceivers.ts';
 import { claimsFrom } from '../shared/domain/ukraineFront.ts';
 import { NETWORK_SOURCE, clusterStations, type RadNetwork } from '../shared/domain/radiation.ts';
 import { UNHCR_SOURCE_ID, type UnhcrState } from './adapters/unhcr.ts';
@@ -431,6 +432,15 @@ export async function runCollection(
     if (ged?.latest) snapshot.conflictEvents = ged.latest;
   } catch (err) {
     log(`P25  warnings, emergencies or conflict events not added to the snapshot: ${sanitizeError(err)}`);
+  }
+  // Phase 28: public shortwave receivers for "tune nearby" links (a week old at most).
+  if (tracked.includes(RADIO_RECEIVERS_SOURCE_ID)) {
+    try {
+      const rx = await store.getSourceState<RadioReceiversState>(RADIO_RECEIVERS_SOURCE_ID);
+      if (rx?.latest && Date.parse(snapshot.generatedAt) - Date.parse(rx.latest.fetchedAt) < 7 * 86_400_000) snapshot.radioReceivers = rx.latest;
+    } catch (err) {
+      log(`RAD  receiver list not added to the snapshot: ${sanitizeError(err)}`);
+    }
   }
   if (tracked.includes(AIS_SOURCE_ID)) {
     try {

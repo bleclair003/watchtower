@@ -16,6 +16,7 @@ import type { UkraineFrontSnapshot } from '@shared/domain/ukraineFront';
 import type { CensorshipSnapshot } from '@shared/domain/censorship';
 import type { NavWarningSnapshot } from '@shared/domain/navWarnings';
 import type { EmergencySnapshot } from '@shared/domain/aircraftEmergencies';
+import type { RadioReceiversSnapshot } from '@shared/domain/radio';
 import type { ConflictSnapshot } from '@shared/domain/conflictEvents';
 import type { ActorsSnapshot } from '@shared/domain/actors';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -66,6 +67,7 @@ interface DataState {
   censorship: CensorshipSnapshot | null;
   navWarnings: NavWarningSnapshot | null;
   aircraftEmergencies: EmergencySnapshot | null;
+  radioReceivers: RadioReceiversSnapshot | null;
   conflictEvents: ConflictSnapshot | null;
   actors: ActorsSnapshot | null;
   loading: boolean;
@@ -114,6 +116,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
     censorship: null as CensorshipSnapshot | null,
     navWarnings: null as NavWarningSnapshot | null,
     aircraftEmergencies: null as EmergencySnapshot | null,
+    radioReceivers: null as RadioReceiversSnapshot | null,
     conflictEvents: null as ConflictSnapshot | null,
     actors: null as ActorsSnapshot | null,
     loadedAt: null as string | null,
@@ -166,6 +169,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
         censorship: d.censorship,
         navWarnings: d.navWarnings,
         aircraftEmergencies: d.aircraftEmergencies,
+        radioReceivers: d.radioReceivers,
         conflictEvents: d.conflictEvents,
         actors: d.actors,
         loadedAt: new Date().toISOString(),
@@ -204,6 +208,11 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
+}
+
+/** Like useData, but null outside a DataProvider (for components also rendered on their own, e.g. feed rows in tests). */
+export function useOptionalData(): DataState | null {
+  return useContext(DataContext);
 }
 
 export function useData(): DataState {

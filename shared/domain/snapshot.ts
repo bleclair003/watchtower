@@ -18,6 +18,7 @@ import type { UkraineFrontSnapshot } from './ukraineFront.ts';
 import type { CensorshipSnapshot } from './censorship.ts';
 import type { NavWarningSnapshot } from './navWarnings.ts';
 import type { EmergencySnapshot } from './aircraftEmergencies.ts';
+import type { RadioReceiversSnapshot } from './radio.ts';
 import type { ConflictSnapshot } from './conflictEvents.ts';
 import type { ActorsSnapshot } from './actors.ts';
 
@@ -100,6 +101,8 @@ export interface DashboardSnapshot {
   navWarnings?: NavWarningSnapshot;
   /** Aircraft squawking an emergency code (Phase 25). */
   aircraftEmergencies?: EmergencySnapshot;
+  /** Public shortwave receivers for radio links (Phase 28). */
+  radioReceivers?: RadioReceiversSnapshot;
   /** UCDP conflict events, latest monthly release (Phase 25). */
   conflictEvents?: ConflictSnapshot;
   /** Tracked people and groups, and new names in headlines. */
@@ -161,6 +164,7 @@ export const LAYER_KEYS = [
   'navWarnings',
   'aircraftEmergencies',
   'conflictEvents',
+  'radioReceivers',
 ] as const satisfies readonly (keyof DashboardSnapshot)[];
 export type LayerKey = (typeof LAYER_KEYS)[number];
 export type LayersSnapshot = Partial<Pick<DashboardSnapshot, LayerKey>> & { generatedAt: string };

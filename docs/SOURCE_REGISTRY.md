@@ -325,3 +325,16 @@ Rebuild with `node scripts/build-infrastructure.ts`. On 2026-11-21 the endpoint 
 | adsb.lol squawk queries (`api.adsb.lol/v2/sqk/7500`, `7600`, `7700`) | aggregator, ODbL | Aircraft broadcasting an emergency code: position, code, type, military flag; a record per aircraft and code per 12 hours (civil emergencies outside the watch regions abroad are routine) |
 | UCDP GED candidate files (`ucdp.uu.se/downloads/candidateged/GEDEvent_vYY_0_M.csv`) | scientific, CC BY 4.0 | Latest monthly release: watch-region events located to a province or better (date, position, type, sides, best death estimate) for the map, and per-region totals; one record per region per release. Source headlines are not stored. The UCDP API needs a token and is not used |
 
+
+## Phase 28 — Radio listening links (v0.64.0)
+
+WATCHTOWER only links to radio. It never plays, records, transcribes or re-streams audio, and never connects to a receiver itself.
+
+| Source | Kind | How it is used |
+|---|---|---|
+| KiwiSDR public receiver list, via the rx.linkfanel.net mirror (`kiwisdr_com.js`) | aggregator, no stated terms | Fetched once a day: name, address, position, tuning range and slots of about 850 online receivers, for "tune nearby" links. Makes no records. The official kiwisdr.com/public page sits behind a click-through, which is not bypassed |
+| LiveATC.net airport pages (`/search/?icao=XXXX`) | link only | Aviation records within 200 km of an airport with scheduled service link to its page; LiveATC says there whether it is covered. Its terms forbid third-party use of the streams, so nothing is embedded; its site blocks automated checks, so the URL was checked by hand (2026-11-22) |
+| Broadcastify state pages (`/listen/stid/{FIPS}`) | link only | Located US records link to the state's page. Their terms forbid automated feed lists, scraping and AI use, so it is a fixed state table |
+| University of Twente WebSDR (`websdr.ewi.utwente.nl:8901/?tune=`) | link only | Fallback receiver when the list is unavailable |
+| OurAirports (`airports.csv`) | public domain | 3,258 large and medium airports with scheduled service (ICAO, position, region, name), built into the app and loaded only when a located record is opened |
+| Frequencies: priyom.org (CC BY-NC-SA 4.0, credited), RadioReference wiki, ab9il.net, 47 CFR 80.369, US Coast Guard NAVCEN | reference | Hand-curated list; each entry links its sources. Unconfirmed frequencies (e.g. Russian Navy, NATO) are left out |

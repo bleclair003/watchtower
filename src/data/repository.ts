@@ -41,8 +41,9 @@ import type { CensorshipSnapshot } from '@shared/domain/censorship';
 import { buildDemoCensorship } from './demo/demoCensorship';
 import type { NavWarningSnapshot } from '@shared/domain/navWarnings';
 import type { EmergencySnapshot } from '@shared/domain/aircraftEmergencies';
+import type { RadioReceiversSnapshot } from '@shared/domain/radio';
 import type { ConflictSnapshot } from '@shared/domain/conflictEvents';
-import { buildDemoConflicts, buildDemoEmergencies, buildDemoNavWarnings } from './demo/demoPhase25';
+import { buildDemoConflicts, buildDemoEmergencies, buildDemoNavWarnings, buildDemoReceivers } from './demo/demoPhase25';
 import type { ActorsSnapshot } from '@shared/domain/actors';
 import { computeActors } from '@shared/domain/actorsTrack';
 
@@ -105,6 +106,8 @@ export interface DashboardData {
   /** Phase 25: navigational warnings, aircraft emergencies, UCDP conflict events (or null). */
   navWarnings: NavWarningSnapshot | null;
   aircraftEmergencies: EmergencySnapshot | null;
+  /** Phase 28: public shortwave receivers (or null). */
+  radioReceivers: RadioReceiversSnapshot | null;
   conflictEvents: ConflictSnapshot | null;
   /** Tracked people and groups and new names, or null. */
   actors: ActorsSnapshot | null;
@@ -164,6 +167,7 @@ export class DemoRepository implements IntelRepository {
       censorship: buildDemoCensorship(now),
       navWarnings: buildDemoNavWarnings(now),
       aircraftEmergencies: buildDemoEmergencies(now),
+      radioReceivers: buildDemoReceivers(now),
       conflictEvents: buildDemoConflicts(now),
       // The real tracker over the demo records (no registry: nothing counts as new in demo mode).
       actors: { ...computeActors(this.events, now, null, null).snapshot, simulated: true },

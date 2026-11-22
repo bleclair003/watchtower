@@ -25,6 +25,7 @@ const NAV: NavItem[] = [
   { to: '/alerts', label: 'ALERTS' },
   { to: '/dossiers', label: 'DOSSIERS' },
   { to: '/sitrep', label: 'SITREP' },
+  { to: '/radio', label: 'RADIO' },
   { to: '/replay', label: 'REPLAY' },
   { to: '/signal-lab', label: 'SIGNAL LAB' },
   { to: '/users', label: 'USERS', ownerOnly: true },

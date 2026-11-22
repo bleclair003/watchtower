@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.64.0] — 2026-11-22 — Radio listening links (Phase 28)
+
+### Added
+- **RADIO page** and a radio panel on each region page. Each panel is a hand-picked list of shortwave frequencies with what you would hear, the mode, best times and the sources it comes from:
+  - US Air Force HF network (HFGCS)
+  - Shannon VOLMET
+  - North Atlantic oceanic air traffic
+  - Maritime distress channels
+  - For Eastern Europe, UVB-76 "The Buzzer" and "The Pip"
+
+  Every frequency opens the nearest public receiver already tuned to it. The panel also lists the three nearest receivers, and where the sources give a day/night pair, it marks the frequency to try now.
+- **Listen links on records.** An opened record with a location gets a LISTEN line:
+  - Aircraft records: LiveATC for the nearest airport within 200 km.
+  - Any record in the US: Broadcastify scanner feeds for the state.
+  - Aircraft far out over the North Atlantic: oceanic HF on the nearest receiver.
+  - UK points say why there is no air traffic control audio: UK law.
+- **Receiver list source** `kiwisdr-receivers`: the public KiwiSDR list (about 850 online receivers), fetched once a day. It makes no records.
+- An airport table (OurAirports, public domain, 3,258 airports). It loads only when a located record is opened.
+
+### Notes
+- WATCHTOWER only links. It never plays, records, transcribes or re-streams audio, and it never connects to a receiver. Receivers take 4–8 listeners each, so one may be busy.
+- Each panel carries a legal note. Listening rules differ by country, and in the UK (Wireless Telegraphy Act 2006 s.48) only broadcasts such as VOLMET are allowed.
+- Frequencies not confirmed by a public source (Russian Navy, NATO) are left out. Watch regions without a confirmed station of their own show the global list.
+- The unusual-aircraft work planned as v0.64 (grouping, odd hours) moves to v0.65.
+
 ## [0.63.1] — 2026-11-22 — Event times
 
 ### Added

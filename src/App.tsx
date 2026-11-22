@@ -50,6 +50,7 @@ const MetersPage = lazyPage(() => import('./pages/MetersPage'));
 const RegionsPage = lazyPage(() => import('./pages/RegionsPage'));
 const CyberPage = lazyPage(() => import('./pages/CyberPage'));
 const RegionPage = lazyPage(() => import('./pages/RegionPage'));
+const RadioPage = lazyPage(() => import('./pages/RadioPage'));
 
 function RouteLoading() {
   return (
@@ -97,6 +98,7 @@ export default function App() {
                       <Route path="dossiers" element={page(<DossiersPage />)} />
                       <Route path="dossiers/:id" element={page(<DossierPage />)} />
                       <Route path="sitrep" element={page(<SitrepPage />)} />
+                      <Route path="radio" element={page(<RadioPage />)} />
                       <Route path="replay" element={page(<ReplayPage />)} />
                       <Route path="signal-lab" element={page(<SignalLabPage />)} />
                       <Route path="users" element={page(<UsersPage />)} />

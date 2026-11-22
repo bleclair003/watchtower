@@ -20,6 +20,7 @@ import { useBases } from '../data/useInstallations';
 import { InstallationCard } from '../components/map/InstallationCard';
 import { DisplacementPanel } from '../components/region/DisplacementPanel';
 import { WhatChangedPanel } from '../components/region/WhatChangedPanel';
+import { RadioPanel } from '../components/radio/RadioPanel';
 import { RegionMeters } from '../components/meters/RegionMeters';
 import { MarketsPanel } from '../components/meters/MarketsPanel';
 import { ActorsPanel } from '../components/meters/ActorsPanel';
@@ -118,6 +119,7 @@ export default function RegionPage() {
       <RegionMeters regionId={id} meters={data.meters} now={now} />
       <MarketsPanel data={data.predictionMarkets} regionId={id} now={now} designator="PM" />
       <ActorsPanel data={data.actors} regionId={id} now={now} designator="PG" />
+      <RadioPanel regionId={id} receivers={data.radioReceivers} now={now} designator="RF" />
       {id !== 'global-cyber' && (
         <Panel title="Known dates ahead — 120 days" designator="KD">
           <KnownDatesList now={now} days={120} regionId={id} heading={false} />
