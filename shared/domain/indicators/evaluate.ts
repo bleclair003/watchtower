@@ -31,10 +31,30 @@ export function requiredLookbackHours(defs: IndicatorDefinition[]): number {
   return Math.max(...defs.map((d) => d.windowHours + (d.baseline ? d.baseline.days * 24 : 0)));
 }
 
+/**
+ * Earliest record time per source in the loaded events (memoised per events array). Used to tell
+ * whether a source really back-filled history on its first run: live-only sources (aircraft positions,
+ * satellite detections) cannot, and their "history" before the first run is empty, not quiet.
+ */
+const earliestCache = new WeakMap<IntelligenceEvent[], Map<string, number>>();
+function earliestBySource(events: IntelligenceEvent[]): Map<string, number> {
+  let m = earliestCache.get(events);
+  if (!m) {
+    m = new Map();
+    for (const e of events) {
+      const t = eventTime(e);
+      if (Number.isFinite(t) && t < (m.get(e.sourceId) ?? Infinity)) m.set(e.sourceId, t);
+    }
+    earliestCache.set(events, m);
+  }
+  return m;
+}
+
 function gateOnSources(
   def: IndicatorDefinition,
   statuses: SourceStatus[],
   now: number,
+  events: IntelligenceEvent[] = [],
 ): { state: 'DATA_UNAVAILABLE' | 'UNKNOWN'; reason: string } | { state: null; historyStart: number } {
   let historyStart = -Infinity;
   for (const id of def.requiredSourceIds) {
@@ -46,7 +66,12 @@ function gateOnSources(
     if (health === 'OFFLINE' || health === 'STALE') {
       return { state: 'UNKNOWN', reason: `Required source ${id} is ${health}; the window may be missing data.` };
     }
-    const first = Date.parse(status.firstSuccessAt ?? status.lastSuccessAt) - FIRST_RUN_BACKFILL_DAYS * DAY;
+    // History starts at the first run minus the back-fill — but only when the source's records actually
+    // reach back before its first run (Phase 24). Otherwise it starts at the first run.
+    const firstRun = Date.parse(status.firstSuccessAt ?? status.lastSuccessAt);
+    const earliest = earliestBySource(events).get(id);
+    const backfilled = earliest !== undefined && earliest < firstRun - DAY;
+    const first = backfilled ? Math.max(firstRun - FIRST_RUN_BACKFILL_DAYS * DAY, Math.min(earliest, firstRun)) : firstRun;
     historyStart = Math.max(historyStart, first);
   }
   return { state: null, historyStart };
@@ -92,7 +117,7 @@ export function evaluateIndicator(
   });
 
   if (!def.enabled) return finish('DISABLED', 'Indicator is disabled.');
-  const gate = gateOnSources(def, statuses, now);
+  const gate = gateOnSources(def, statuses, now, events);
   if (gate.state) return finish(gate.state, gate.reason);
 
   const windowStart = now - def.windowHours * HOUR;

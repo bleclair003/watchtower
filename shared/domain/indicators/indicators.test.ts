@@ -200,6 +200,16 @@ describe('evaluateIndicator — baselines', () => {
     expect(r2.elevatedAt).toBeLessThanOrEqual(8);
   });
 
+  it('does not count the time before a live-only source started as quiet history (Phase 24)', () => {
+    // First run 2 days ago and no records before it: the 30-day back-fill did not happen.
+    const live = status('cisa-kev', { firstSuccessAt: new Date(NOW - 2 * D).toISOString() });
+    const r = evaluateIndicator(def, [ev({}, 30), ev(), ev(), ev()], [live], NOW);
+    expect(r.baseline.status).toBe('insufficient-history');
+    // The same source with records reaching back 31+ days did back-fill.
+    const back = Array.from({ length: 10 }, (_, i) => ev({}, 24 * (32 - i * 3)));
+    expect(evaluateIndicator(def, [...back, ev()], [live], NOW).baseline.status).toBe('sufficient');
+  });
+
   it('does not apply a baseline built on too little history, and says so', () => {
     const young = status('cisa-kev', { firstSuccessAt: new Date(NOW - 12 * H).toISOString() }); // 0.5 d + 30 d backfill < 31 d needed
     const r = evaluateIndicator(def, [ev(), ev(), ev(), ev()], [young], NOW);

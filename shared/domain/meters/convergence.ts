@@ -5,6 +5,19 @@ import type { MeterInput } from './input.ts';
 import type { Meter, MeterLevel } from './types.ts';
 import { meter, plural } from './util.ts';
 
+/** Indicator kinds that measure the same thing as a meter share its group, so one movement counts once. */
+const SAME_AS: Record<string, string> = {
+  airlift: 'aircraft',
+  'strategic-air': 'aircraft',
+  'media-conflict-reporting': 'news',
+  'connectivity-drop': 'volume',
+  'kev-surge': 'cyber',
+};
+const groupOf = (indicatorId: string) => {
+  const kind = indicatorId.split('.').slice(1).join('.') || indicatorId;
+  return SAME_AS[kind] ?? `indicator:${kind}`;
+};
+
 /**
  * Unusual readings (Phase 24): how many independent measurements in a region are unusual at the same
  * time — spikes, drops or steady trends from the meters, and indicators whose count is 2+ typical
@@ -20,7 +33,7 @@ export function convergence(input: MeterInput, regionId: string, meters: Meter[]
     .filter((e) => (e.baseline.score ?? 0) >= 2)
     .map((e) => {
       const def = getIndicator(e.indicatorId);
-      return { label: def?.name ?? e.indicatorId, group: `indicator:${def?.family ?? 'other'}`, kind: 'spike' as const, score: e.baseline.score! };
+      return { label: def?.name ?? e.indicatorId, group: groupOf(e.indicatorId), kind: 'spike' as const, score: e.baseline.score! };
     });
   const signals = [...fromMeters, ...fromIndicators].sort((a, b) => Math.abs(b.score) - Math.abs(a.score));
   const groups = [...new Set(signals.map((s) => s.group))];

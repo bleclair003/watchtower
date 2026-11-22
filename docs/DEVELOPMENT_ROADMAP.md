@@ -372,5 +372,6 @@ Free sources and analysis of data already collected. Each new outside source is 
 - [x] Usual-level meters scored by how unusual, not only N× usual (air surge, buildup, blackout drop, cyber, after-hours, actors) — v0.57.0
 - [x] Ukraine front and air attacks: scores against their own spread, rise/fall trends — v0.57.0
 - [x] Unusual readings meter per region: independent measurements unusual at once — v0.57.0
+- [x] Baselines ignore the time before a live-only source started (back-fill check) — v0.57.1
 - [ ] Radiation, chokepoint transits and OONI shares as signals for the unusual-readings meter
 - [ ] Backtest the score cut-offs once 60+ days of history exist
