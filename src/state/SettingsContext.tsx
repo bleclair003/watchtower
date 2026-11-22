@@ -36,6 +36,10 @@ export interface OperatorSettings {
   navWarnings: boolean;
   /** UCDP conflict events (last monthly release) on the map. */
   conflicts: boolean;
+  /** Conflict events from the last N days of the release; null = whole month. */
+  conflictDays: number | null;
+  /** Navigational warnings issued in the last N days; null = any age. */
+  navWarnDays: number | null;
   /** Satellite imagery product on the GOC map ('off', 'viirs', 'modis', 'night', 'night-2016'). */
   imagery: string;
   /** Imagery day (YYYY-MM-DD); empty = yesterday. */
@@ -60,6 +64,8 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   radiation: true,
   navWarnings: true,
   conflicts: true,
+  conflictDays: null,
+  navWarnDays: null,
   imagery: 'off',
   imageryDate: '',
 };

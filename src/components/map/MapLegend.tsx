@@ -11,6 +11,8 @@ import { EVENT_CATEGORIES } from '@shared/domain/types';
 import { CATEGORY_STYLES } from '../../config/categories';
 import { CategoryGlyph } from '../ui/CategoryGlyph';
 
+const shortDay = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+
 interface Props {
   plotted: number;
   areaLevel: number;
@@ -28,6 +30,10 @@ interface Props {
   navWarnings?: NavWarningSnapshot;
   emergencies?: EmergencySnapshot;
   conflicts?: ConflictSnapshot;
+  /** Conflict time filter: days shown (null = whole month), span shown, events in the release. */
+  conflictWindow?: { from: string | null; to: string | null; days: number | null; total: number };
+  /** Navigational warnings issued within this many days (null = any age). */
+  navWarnDays?: number | null;
   /** FAA layer (omit when off). */
   faa?: { tfrs: TfrShape[]; airports: AirportEvent[]; now: number; simulated: boolean };
   /** US power outages layer (omit when off). */
@@ -47,7 +53,7 @@ interface Props {
 const BRANCH_LABEL = { army: 'Army', navy: 'Navy', 'air-force': 'Air Force', marines: 'Marines', other: 'Other DoD' } as const;
 
 /** Collapsible legend explaining symbols and location-precision handling. */
-export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, infrastructure, power, faa, radiation, navWarnings, emergencies, conflicts, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
+export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, infrastructure, power, faa, radiation, navWarnings, emergencies, conflicts, conflictWindow, navWarnDays, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
   // Closed by default on phones, where it would cover most of the map.
   const [open, setOpen] = useState(() => typeof window === 'undefined' || window.matchMedia?.('(min-width: 768px)').matches !== false);
   return (
@@ -173,7 +179,10 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
             <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
               <div className="flex justify-between">
                 <span title="UCDP Georeferenced Event Dataset, monthly candidate release, CC BY 4.0">Conflict events (UCDP){conflicts.simulated ? ' · SIMULATED' : ''}</span>
-                <span className="text-wt-fg tabular-nums">{conflicts.events.length}</span>
+                <span className="text-wt-fg tabular-nums">
+                  {conflicts.events.length}
+                  {conflictWindow && conflictWindow.days != null && ` of ${conflictWindow.total}`}
+                </span>
               </div>
               <ul>
                 {([1, 2, 3] as const).map((t) => (
@@ -183,7 +192,10 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
                   </li>
                 ))}
               </ul>
-              <p className="text-wt-fg-dim">{monthName(conflicts.month)}, about a month behind; size = deaths (best estimate). Preliminary data.</p>
+              <p className="text-wt-fg-dim">
+                {conflictWindow?.from && conflictWindow.to ? `Showing ${shortDay(conflictWindow.from)} to ${shortDay(conflictWindow.to)}` : monthName(conflicts.month)}
+                {conflictWindow?.days != null && ' (latest days of the release)'}. About a month behind; size = deaths (best estimate). Preliminary data.
+              </p>
             </div>
           )}
           {navWarnings && (
@@ -200,7 +212,9 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
                   </li>
                 ))}
               </ul>
-              <p className="text-wt-fg-dim">Active warnings of these kinds; dashed lines are the warned areas.</p>
+              <p className="text-wt-fg-dim">
+                Active warnings of these kinds{navWarnDays != null && `, issued in the last ${navWarnDays === 2 ? '48 hours' : `${navWarnDays} days`}`}; dashed lines are the warned areas.
+              </p>
             </div>
           )}
           {emergencies && (

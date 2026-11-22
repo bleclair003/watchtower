@@ -394,4 +394,5 @@ Free sources and analysis of data already collected. Each new outside source is 
 - [x] Only the owner's and editors' watchlists raise alerts — v0.60.0
 - [ ] Viewers: copy a dossier as Markdown (the export button is disabled with the rest of the read-only form)
 - [ ] Optional: email the owner when someone is waiting (needs a free mail route)
+- [x] Time filters on dated map layers (CONFLICT days of the release, NAVWARN issue age) and a 30D feed window — v0.61.0
 

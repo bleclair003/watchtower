@@ -37,6 +37,7 @@ export const TIME_WINDOWS: { hours: number | null; label: string }[] = [
   { hours: 24, label: '24H' },
   { hours: 72, label: '72H' },
   { hours: 168, label: '7D' },
+  { hours: 720, label: '30D' },
   { hours: null, label: 'ALL' },
 ];
 

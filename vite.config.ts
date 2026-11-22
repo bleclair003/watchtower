@@ -6,10 +6,11 @@ import { defineConfig } from 'vitest/config';
 
 /** The site-wide headers from firebase.json, so `vite preview` (and the E2E tests) enforce the same CSP. */
 function hostingHeaders(): Record<string, string> {
-  const cfg = JSON.parse(readFileSync(new URL('./firebase.json', import.meta.url), 'utf8')) as {
-    hosting: { headers: { source: string; headers: { key: string; value: string }[] }[] };
-  };
-  const all = cfg.hosting.headers.find((h) => h.source === '**')?.headers ?? [];
+  type Site = { site?: string; headers?: { source: string; headers: { key: string; value: string }[] }[] };
+  const cfg = JSON.parse(readFileSync(new URL('./firebase.json', import.meta.url), 'utf8')) as { hosting: Site | Site[] };
+  // hosting is a list since the app moved to watchtower-hq (the old site only redirects).
+  const app = Array.isArray(cfg.hosting) ? (cfg.hosting.find((s) => s.headers) ?? cfg.hosting[0]) : cfg.hosting;
+  const all = app.headers?.find((h) => h.source === '**')?.headers ?? [];
   // HSTS and upgrade-insecure-requests would break plain-http localhost.
   return Object.fromEntries(
     all

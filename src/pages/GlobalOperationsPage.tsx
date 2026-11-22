@@ -16,6 +16,7 @@ import { AIRCRAFT_PROVIDERS, AIRCRAFT_STALE_MINUTES } from '@shared/domain/aircr
 import { getRegion } from '@shared/domain/regions';
 import { getIndicator } from '@shared/domain/indicators/catalog';
 import { applyFilters } from '../lib/filters';
+import { CONFLICT_SPANS, NAV_AGES, recentConflicts, recentNavWarnings } from '../lib/layerTime';
 import { isOffTopic } from '@shared/domain/relevance';
 import { projectEvents } from '../lib/geo';
 import { useNow } from '../hooks/useNow';
@@ -105,6 +106,9 @@ export default function GlobalOperationsPage() {
   };
   // Region report counts ignore off-topic news (sport, entertainment …) whatever the feed toggle says.
   const relevantEvents = useMemo(() => events.filter((e) => !isOffTopic(e)), [events]);
+  // Time filters for the dated map layers (v0.61.0).
+  const conflictWindow = useMemo(() => recentConflicts(conflictEvents?.events ?? [], settings.conflictDays), [conflictEvents, settings.conflictDays]);
+  const shownNavWarnings = useMemo(() => recentNavWarnings(navWarnings?.warnings ?? [], settings.navWarnDays, now), [navWarnings, settings.navWarnDays, now]);
   const projection = useMemo(() => projectEvents(filtered), [filtered]);
   const areaLevel = Object.values(projection.regionalCounts).reduce((a, b) => a + b, 0);
   const focusRegion = filters.regionId ? getRegion(filters.regionId) : undefined;
@@ -250,6 +254,21 @@ export default function GlobalOperationsPage() {
               >
                 <Siren size={10} aria-hidden /> NAVWARN
               </button>
+              {settings.navWarnings && (
+                <select
+                  aria-label="Navigational warnings issued within"
+                  title="Show only warnings issued recently. Warnings with no issue date are hidden when a limit is set."
+                  value={settings.navWarnDays ?? ''}
+                  onChange={(e) => update({ navWarnDays: e.target.value ? Number(e.target.value) : null })}
+                  className="h-5 border border-wt-line-strong bg-wt-bg px-1 text-2xs text-wt-fg"
+                >
+                  {NAV_AGES.map((o) => (
+                    <option key={o.label} value={o.days ?? ''}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              )}
               <button
                 className={toggleBtn(settings.conflicts)}
                 aria-pressed={settings.conflicts}
@@ -258,6 +277,21 @@ export default function GlobalOperationsPage() {
               >
                 <Crosshair size={10} aria-hidden /> CONFLICT
               </button>
+              {settings.conflicts && (
+                <select
+                  aria-label="Conflict events shown"
+                  title="UCDP runs about a month behind, so recent means the last days of the latest release, not the last days before today."
+                  value={settings.conflictDays ?? ''}
+                  onChange={(e) => update({ conflictDays: e.target.value ? Number(e.target.value) : null })}
+                  className="h-5 border border-wt-line-strong bg-wt-bg px-1 text-2xs text-wt-fg"
+                >
+                  {CONFLICT_SPANS.map((o) => (
+                    <option key={o.label} value={o.days ?? ''}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              )}
               <label className={`${toggleBtn(imageryId !== 'off')} cursor-pointer`} title="Satellite imagery under the map overlays (NASA GIBS)">
                 <Satellite size={10} aria-hidden />
                 <select
@@ -345,9 +379,9 @@ export default function GlobalOperationsPage() {
               tfrs={settings.faa ? (tfrs?.items ?? []) : []}
               airports={settings.faa ? (airportStatus?.events ?? []) : []}
               radiation={settings.radiation ? (radiation?.flagged ?? []) : []}
-              navWarnings={settings.navWarnings ? (navWarnings?.warnings ?? []) : []}
+              navWarnings={settings.navWarnings ? shownNavWarnings : []}
               emergencies={settings.aircraft ? (aircraftEmergencies?.aircraft ?? []) : []}
-              conflicts={settings.conflicts ? (conflictEvents?.events ?? []) : []}
+              conflicts={settings.conflicts ? conflictWindow.events : []}
             />
           <MapLegend
             plotted={projection.points.features.length}
@@ -359,9 +393,11 @@ export default function GlobalOperationsPage() {
             infrastructure={settings.infrastructure || flaggedInfra.length ? { all: settings.infrastructure ? (infraData.data?.count ?? null) : null, flagged: flaggedInfra.length, simulated: !!infrastructure?.simulated } : undefined}
             power={settings.powerOutages && powerOutages ? { total: powerOutages.totalOut, states: powerOutages.states.length, counties: powerOutages.counties.length, utilities: powerOutages.utilitiesReporting, ageMinutes: Math.max(0, Math.round((now - Date.parse(powerOutages.fetchedAt)) / 60_000)), simulated: !!powerOutages.simulated } : undefined}
             radiation={settings.radiation && radiation ? radiation : undefined}
-            navWarnings={settings.navWarnings && navWarnings ? navWarnings : undefined}
+            navWarnings={settings.navWarnings && navWarnings ? { ...navWarnings, warnings: shownNavWarnings } : undefined}
+            navWarnDays={settings.navWarnDays}
             emergencies={settings.aircraft && aircraftEmergencies ? aircraftEmergencies : undefined}
-            conflicts={settings.conflicts && conflictEvents ? conflictEvents : undefined}
+            conflicts={settings.conflicts && conflictEvents ? { ...conflictEvents, events: conflictWindow.events } : undefined}
+            conflictWindow={settings.conflicts && conflictEvents ? { from: conflictWindow.from, to: conflictWindow.to, days: settings.conflictDays, total: conflictEvents.events.length } : undefined}
             faa={settings.faa && (tfrs || airportStatus) ? { tfrs: tfrs?.items ?? [], airports: airportStatus?.events ?? [], now, simulated: !!(tfrs?.simulated || airportStatus?.simulated) } : undefined}
             operatorFilter={settings.installations && operator !== ALL_OPERATORS ? countryName(operator) : undefined}
             aircraft={
