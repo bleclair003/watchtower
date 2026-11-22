@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { buildStories, groupFeed } from '@shared/domain/stories/stories';
 import { isOffTopic } from '@shared/domain/relevance';
+import { isRoutineSighting } from '@shared/domain/aircraft';
 import type { IntelligenceEvent } from '@shared/domain/types';
 import type { DashboardFilters } from '../../lib/filters';
 import { Panel } from '../ui/Panel';
@@ -28,6 +29,7 @@ export function IntelFeed(props: Props) {
   const itemRefs = useRef(new Map<string, HTMLLIElement>());
   const [grouped, setGrouped] = useState(true);
   const offTopicCount = useMemo(() => props.allEvents.filter(isOffTopic).length, [props.allEvents]);
+  const routineAirCount = useMemo(() => props.allEvents.filter(isRoutineSighting).length, [props.allEvents]);
   // Stories are built from the filtered list, so a story's lead is always visible.
   const stories = useMemo(() => buildStories(events), [events]);
   const byId = useMemo(() => new Map(events.map((e) => [e.id, e])), [events]);
@@ -72,6 +74,16 @@ export function IntelFeed(props: Props) {
               className={`border px-1.5 ${props.filters.showOffTopic ? 'border-wt-warn text-wt-warn' : 'border-wt-line-strong text-wt-fg-muted hover:text-wt-fg'}`}
             >
               OFF-TOPIC {props.filters.showOffTopic ? 'SHOWN' : 'HIDDEN'} ({offTopicCount})
+            </button>
+          )}
+          {routineAirCount > 0 && (
+            <button
+              aria-pressed={props.filters.showRoutineAircraft}
+              onClick={() => props.onFiltersChange({ showRoutineAircraft: !props.filters.showRoutineAircraft })}
+              title="Routine military-aircraft sightings on ADS-B (tankers, airlift, surveillance). Hidden by default; bombers and command or VIP aircraft always show. They still count in the air-surge meters, and live positions are on the AIR map layer."
+              className={`border px-1.5 ${props.filters.showRoutineAircraft ? 'border-wt-warn text-wt-warn' : 'border-wt-line-strong text-wt-fg-muted hover:text-wt-fg'}`}
+            >
+              AIRCRAFT {props.filters.showRoutineAircraft ? 'SHOWN' : 'HIDDEN'} ({routineAirCount})
             </button>
           )}
           <button

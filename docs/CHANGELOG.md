@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.52.0] — 2026-11-22 — Quieter GOC feed
+
+### Changed
+- **Routine military-aircraft sightings are hidden from the GOC feed and map by default** (about 35 a day: tankers, airlift and surveillance aircraft on ADS-B). A new **AIRCRAFT HIDDEN (n)** toggle next to OFF-TOPIC shows them; they also show when the aircraft source is selected in the source filter. Bombers and command or VIP aircraft (E-4B, E-6B, SAM/Air Force One callsigns) always show. Nothing is deleted: the sightings still feed the air-surge meters, region pages and alerts, and live positions stay on the AIR layer.
+
+
 ## [0.51.1] — 2026-11-22
 
 ### Fixed

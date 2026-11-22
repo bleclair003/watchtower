@@ -81,3 +81,18 @@ describe('computeRegionStats', () => {
     expect(computeRegionStats(EVENTS, NOW).find((s) => s.regionId === 'korean-peninsula')!.latestAt).toBeNull();
   });
 });
+
+describe('routine aircraft sightings', () => {
+  const air = (id: string, metadata: Record<string, unknown>) => ev({ id, sourceId: 'adsb-military', title: id, metadata: { subtype: 'military-aircraft-sighting', ...metadata } });
+  const list = [air('tanker', { aircraftClass: 'tanker' }), air('bomber', { aircraftClass: 'bomber' }), air('e4b', { aircraftClass: 'isr', aircraftRole: 'command' }), ev({ id: 'news' })];
+
+  it('hides tankers, airlift and surveillance sightings by default, never bombers or command / VIP aircraft', () => {
+    expect(applyFilters(list, DEFAULT_FILTERS, NOW).map((e) => e.id).sort()).toEqual(['bomber', 'e4b', 'news']);
+    expect(applyFilters(list, { ...DEFAULT_FILTERS, showRoutineAircraft: true }, NOW)).toHaveLength(4);
+    expect(countActiveFilters({ ...DEFAULT_FILTERS, showRoutineAircraft: true })).toBe(1);
+  });
+
+  it('shows them when the aircraft source itself is selected', () => {
+    expect(applyFilters(list, { ...DEFAULT_FILTERS, sourceId: 'adsb-military' }, NOW).map((e) => e.id).sort()).toEqual(['bomber', 'e4b', 'tanker']);
+  });
+});

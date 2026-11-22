@@ -208,3 +208,13 @@ export const AIRCRAFT_STALE_MINUTES = 90;
 export function aircraftLabel(a: Pick<AircraftPosition, 'cs' | 'reg' | 'hex'>): string {
   return a.cs || a.reg || a.hex.toUpperCase();
 }
+
+/**
+ * A routine ADS-B sighting: a tanker, airlift, surveillance or other military aircraft seen in a watch
+ * area. Dozens a day, so the GOC feed hides them by default (the air-surge meters and the AIR layer
+ * still use them). Bombers and command or VIP aircraft are not routine.
+ */
+export function isRoutineSighting(e: { sourceId: string; metadata?: Record<string, unknown> }): boolean {
+  const m = e.metadata ?? {};
+  return e.sourceId === 'adsb-military' && m.subtype === 'military-aircraft-sighting' && m.aircraftClass !== 'bomber' && !m.aircraftRole;
+}
