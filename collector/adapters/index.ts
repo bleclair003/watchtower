@@ -31,6 +31,7 @@ import { nasaDonki, noaaSwpc } from './spaceWeather.ts';
 import { cccsCanada, certUa, firstEpss, jpcert, ncscUk } from './cyberAgencies.ts';
 import { uaGeneralStaff, ukrinformWar } from './ukraineFront.ts';
 import { uaAirForce } from './uaAirForce.ts';
+import { ooni } from './ooni.ts';
 import { congress } from './congress.ts';
 
 /** Active adapters. Adding a source = write an adapter + register it here. */
@@ -91,6 +92,7 @@ export const ADAPTERS: SourceAdapter<never>[] = [
   ukrinformWar as SourceAdapter<never>,
   uaGeneralStaff as SourceAdapter<never>,
   uaAirForce as SourceAdapter<never>,
+  ooni as SourceAdapter<never>,
   // Free-key sources: active only when their key is set.
   firms as SourceAdapter<never>,
   cloudflareRadarOutages as SourceAdapter<never>,

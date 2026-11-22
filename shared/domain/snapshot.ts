@@ -15,6 +15,7 @@ import type { RadiationSnapshot } from './radiation.ts';
 import type { SpaceWeatherSnapshot } from './spaceWeather.ts';
 import type { CyberSnapshot } from './cyber.ts';
 import type { UkraineFrontSnapshot } from './ukraineFront.ts';
+import type { CensorshipSnapshot } from './censorship.ts';
 import type { ActorsSnapshot } from './actors.ts';
 
 /**
@@ -90,6 +91,8 @@ export interface DashboardSnapshot {
   cyber?: CyberSnapshot;
   /** Ukraine front: General Staff daily activity per sector and territorial claims in headlines. */
   ukraineFront?: UkraineFrontSnapshot;
+  /** OONI censorship readings per watch-region country (apps and sites). */
+  censorship?: CensorshipSnapshot;
   /** Tracked people and groups, and new names in headlines. */
   actors?: ActorsSnapshot;
   /** Daily sources that have gone quiet while reachable (for the brief and Diagnostics). */
@@ -143,6 +146,7 @@ export const LAYER_KEYS = [
   'spaceWeather',
   'cyber',
   'ukraineFront',
+  'censorship',
 ] as const satisfies readonly (keyof DashboardSnapshot)[];
 export type LayerKey = (typeof LAYER_KEYS)[number];
 export type LayersSnapshot = Partial<Pick<DashboardSnapshot, LayerKey>> & { generatedAt: string };

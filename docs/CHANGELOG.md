@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.56.0] — 2026-11-22 — Internet censorship (Phase 23)
+
+### Added
+- **OONI censorship measurements** (source `ooni`): whether WhatsApp, Telegram, Signal, YouTube, Instagram, X/Twitter and Facebook are reachable in 12 watch-region countries (Russia, Belarus, Ukraine, Iran, Iraq, Syria, Yemen, Egypt, Saudi Arabia, Turkey, China, Vietnam), from volunteers' tests. Two countries are read per run (each about every three hours) to stay within the API's fair use.
+- **Internet censorship grid** on the CYBER page (C5): blocked (50%+ of tests failed in 2 days), partial (20–50%), ok or no data, with a NEW tag when a service is at least 25 points worse than the 14 days before.
+- A record when a service **becomes** blocked ("OONI: Telegram looks blocked in Iraq — 100% of 52 tests failed (usually 27%)"); new blocks raise the region's **information blackout** meter (2 each, max 4).
+
+### Not done
+- **UKMTO maritime incidents**: the UKMTO incident list is public and under the Open Government Licence, but its data host answers command-line tools and refuses Node requests (HTTP 403 bot protection). WATCHTOWER does not work around bot protection; the work is parked on a local branch pending UKMTO's permission or a feed.
+
+### Limits
+- Failures can come from network faults as well as blocking; China, Syria and Yemen have few tests. OONI data is CC BY-NC-SA 4.0 (non-commercial, attribution, same licence for derived data).
+
+
 ## [0.55.0] — 2026-11-22 — Overnight air attacks on Ukraine (Phase 22)
 
 ### Added

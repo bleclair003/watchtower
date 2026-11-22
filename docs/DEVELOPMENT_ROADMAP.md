@@ -359,3 +359,8 @@ Free sources and analysis of data already collected. Each new outside source is 
 
 - [x] Overnight drones and missiles launched / shot down / hit locations (Ukrainian Air Force via Ukrinform), panel section, meter, records — v0.55.0
 - [x] Map and page layers moved to their own snapshot document (feed back to 700 records) — v0.54.0
+
+## Phase 23 — Censorship and maritime security (2026-11-22)
+
+- [x] OONI censorship grid (12 countries × 7 services), new-block records, blackout meter component — v0.56.0
+- [ ] UKMTO maritime incidents — parked (branch wip/ukmto): data host refuses Node requests (bot protection); ask UKMTO (info@ukmto.org) for permission or a feed

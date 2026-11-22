@@ -45,6 +45,7 @@ import type { CisaKevState } from './adapters/cisaKev.ts';
 import { buildCyberSnapshot } from '../shared/domain/cyber.ts';
 import { GS_SOURCE_ID, type GeneralStaffState } from './adapters/ukraineFront.ts';
 import { AF_SOURCE_ID, type AirForceState } from './adapters/uaAirForce.ts';
+import { OONI_SOURCE_ID, type OoniState } from './adapters/ooni.ts';
 import { claimsFrom } from '../shared/domain/ukraineFront.ts';
 import { NETWORK_SOURCE, clusterStations, type RadNetwork } from '../shared/domain/radiation.ts';
 import { UNHCR_SOURCE_ID, type UnhcrState } from './adapters/unhcr.ts';
@@ -406,6 +407,13 @@ export async function runCollection(
     snapshot.ukraineFront = { reports: full, today: partial && (!full[0] || partial.day > full[0].day) ? partial : null, claims: claimsFrom(loaded, Date.parse(snapshot.generatedAt)), air: (af?.reports ?? []).slice(0, 30) };
   } catch (err) {
     log(`UAF  Ukraine front not added to the snapshot: ${sanitizeError(err)}`);
+  }
+  // OONI censorship readings (Phase 23).
+  try {
+    const oo = tracked.includes(OONI_SOURCE_ID) ? await store.getSourceState<OoniState>(OONI_SOURCE_ID) : null;
+    if (oo?.countries.length) snapshot.censorship = { countries: oo.countries };
+  } catch (err) {
+    log(`CEN  censorship readings not added to the snapshot: ${sanitizeError(err)}`);
   }
   if (tracked.includes(AIS_SOURCE_ID)) {
     try {

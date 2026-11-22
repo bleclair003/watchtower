@@ -349,7 +349,9 @@ export function informationBlackout(input: MeterInput, regionId: string): Meter 
   const ongoing = r.filter((e) => within(e, now, 72) && isOngoingOutage(e) && !isDirectedOutage(e));
   const volume = usualFor(input, `volume.${regionId}`, (e) => inRegion(e, regionId), 24, 14, 1);
   const drop = volume.status === 'ok' && volume.usual! >= 10 && volume.current < 0.4 * volume.usual!;
-  const score = directed.length * 3 + Math.min(2, ongoing.length) + (drop ? 2 : 0);
+  // New blocks of messaging apps or major sites (OONI), 7 days: 2 each, max 4.
+  const newBlocks = r.filter((e) => e.sourceId === 'ooni' && within(e, now, 7 * 24) && meta(e, 'newBlock') === true);
+  const score = directed.length * 3 + Math.min(2, ongoing.length) + (drop ? 2 : 0) + Math.min(4, newBlocks.length * 2);
   return meter({
     id: `blackout.${regionId}`,
     kind: 'blackout',
@@ -363,6 +365,7 @@ export function informationBlackout(input: MeterInput, regionId: string): Meter 
       { label: 'Directed or military outages (72 h)', value: String(directed.length), active: directed.length > 0 },
       { label: 'Other ongoing outages (72 h)', value: String(ongoing.length), active: ongoing.length > 0 },
       { label: 'Records in 24 h', value: volume.usual === null ? `${volume.current} (usual: building)` : `${volume.current} (usual ${volume.usual})`, active: drop },
+      { label: 'New app or site blocks (OONI, 7 d)', value: newBlocks.length ? newBlocks.map((e) => e.title.replace(/^OONI: /, '').split(' — ')[0]).join('; ') : '0', active: newBlocks.length > 0 },
     ],
     evidence: evidenceOf([...directed, ...ongoing]),
     asOf: newest([...directed, ...ongoing]),

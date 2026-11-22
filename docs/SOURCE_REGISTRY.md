@@ -309,3 +309,10 @@ Rebuild with `node scripts/build-infrastructure.ts`. On 2026-11-21 the endpoint 
 | Source | Kind | What WATCHTOWER keeps |
 |---|---|---|
 | Ukrainian Air Force overnight reports, via Ukrinform's English "Air defense …" articles | official figures relayed by a state news agency | Per night: drones, missiles (ballistic), shot down or suppressed, hit and debris locations (facts); link |
+
+## v0.56.0 Censorship — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| OONI aggregation API (`api.ooni.io/api/v1/aggregation`) | scientific, CC BY-NC-SA 4.0 | Per country and service: failed-test share in 2 days and the 14 days before, test count, verdict; a record for new blocks |
+| UKMTO incidents (`sccd.royalnavy.mod.uk/api/ukmto/all`) | official, Open Government Licence | Not used: the host refuses Node requests (bot protection); parked pending permission |

@@ -1370,6 +1370,27 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     priority: 'P2',
     feasibility: { checkedAt: '2026-11-22T02:00:00Z', result: 'reachable', note: 'Eight nights parsed (12–21 Nov), e.g. 404 drones and 84 missiles on 20 Nov.' },
   },
+  // ------------------------------------------------------------ Phase 23 ---
+  {
+    id: 'ooni',
+    name: 'Internet censorship measurements',
+    organization: 'OONI — Open Observatory of Network Interference',
+    website: 'https://explorer.ooni.org/',
+    endpoint: 'https://api.ooni.io/api/v1/aggregation',
+    method: 'api',
+    sourceClass: 'scientific',
+    defaultCategory: 'cyber',
+    coverage: 'Reachability of WhatsApp, Telegram, Signal, YouTube, Instagram, X/Twitter and Facebook in 12 watch-region countries (Russia, Belarus, Ukraine, Iran, Iraq, Syria, Yemen, Egypt, Saudi Arabia, Turkey, China, Vietnam), from volunteers\' tests',
+    authentication: 'None',
+    freeAccess: 'Free API (rate-limited, not for bulk transfers)',
+    expectedUpdateFrequency: 'Continuous; each country read about every three hours (two per run)',
+    pollIntervalMinutes: 30,
+    reliabilityNotes:
+      'Volunteer tests: anomalies can come from network faults as well as blocking; few tests in some countries (China, Syria, Yemen) mean "no data" verdicts. Records only when a service becomes clearly more blocked than in the 14 days before.',
+    termsNotes: 'CC BY-NC-SA 4.0 (non-commercial; attribution to OONI; derived data under the same licence). Small aggregation queries only, as the API asks.',
+    priority: 'P2',
+    feasibility: { checkedAt: '2026-11-22T03:00:00Z', result: 'reachable', note: 'Aggregation API HTTP 200 from Node; Iran apps ~90% failed, Russia YouTube 59%, Ukraine 0% (matches known blocking).' },
+  },
 ];
 
 export function getSource(id: string): SourceDefinition | undefined {
