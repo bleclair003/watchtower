@@ -32,6 +32,7 @@ import { airspaceMeter } from './airspace.ts';
 import { radiationMeter } from './radiationMeter.ts';
 import { spaceWeatherMeter } from './spaceWeatherMeter.ts';
 import { frontMeter } from './frontMeter.ts';
+import { airAttackMeter } from './airAttackMeter.ts';
 import { daysSince, upcomingCalendar } from './clocks.ts';
 import { appendShort, pointFor } from './history.ts';
 import { BASELINE_DAYS, DAY } from './util.ts';
@@ -72,6 +73,7 @@ export function allMeters(input: MeterInput): Meter[] {
     radiationMeter(input),
     spaceWeatherMeter(input),
     frontMeter(input),
+    airAttackMeter(input),
     quietMeter(input),
     ...GEO_REGIONS.map((r) => corroboration(input, r)),
     ...GEO_REGIONS.map((r) => coverageMeter(input, r)),

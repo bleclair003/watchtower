@@ -21,6 +21,7 @@ export function buildDemoUkraineFront(now: number): UkraineFrontSnapshot {
     simulated: true,
     reports: Array.from({ length: 14 }, (_, i) => report(i + 1, i === 0 ? 260 : 170 + (i % 4) * 10, i === 0 ? 48 : 22 + (i % 3), 10)),
     today: { ...report(0, 95, 18, 6), fullDay: false, asOf: new Date(now - 2 * 3_600_000).toISOString() },
+    air: Array.from({ length: 10 }, (_, i) => ({ day: day(i), drones: i === 0 ? 420 : 120 + (i % 3) * 20, missiles: i === 0 ? 60 : 2, ballistic: i === 0 ? 8 : null, dronesDown: i === 0 ? 390 : 100, missilesDown: i === 0 ? 50 : 1, hitLocations: i === 0 ? 30 : 8, debrisLocations: 5, url: 'https://example.invalid/air-force' })),
     claims: [{ at: new Date(now - 30 * 3_600_000).toISOString(), side: 'russia', place: 'Demo-A', title: '[SIMULATED] Russia says it captured Demo-A', url: 'https://example.invalid/claim', source: 'Demo News' }],
   };
 }

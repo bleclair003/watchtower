@@ -47,7 +47,10 @@ export function articleText(html: string): { title: string; text: string; publis
   const i = html.indexOf('class="newsText"');
   const j = html.indexOf('class="analiticBody"', i);
   const seg = i >= 0 ? html.slice(i, j > i ? j : undefined) : '';
-  const text = [...seg.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/g)].map((m) => decodeEntities(m[1].replace(/<[^>]+>/g, ' '))).join(' ');
+  // Paragraphs and list items in document order (weapon lists are bulleted); a list item ends like a sentence.
+  const text = [...seg.matchAll(/<(p|li)[^>]*>([\s\S]*?)<\/\1>/g)]
+    .map((m) => decodeEntities(m[2].replace(/<[^>]+>/g, ' ')).trim() + (m[1] === 'li' ? ';' : ''))
+    .join(' ');
   const pub = html.match(/"datePublished":\s*"(\d{4}-\d{2}-\d{2}T[^"]+)"/)?.[1] ?? null;
   return { title, text, publishedAt: pub && !Number.isNaN(Date.parse(pub)) ? new Date(Date.parse(pub)).toISOString() : null };
 }

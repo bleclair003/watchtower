@@ -354,3 +354,8 @@ Free sources and analysis of data already collected. Each new outside source is 
    - [x] Territorial claims in headlines, by side — v0.53.0
    - [x] Ukraine front intensity meter — v0.53.0
    - [ ] Front lines and areas of control — DeepStateMap API key requested 2026-11-22 (reply expected within ~3 days)
+
+## Phase 22 — Air attacks on Ukraine (2026-11-22)
+
+- [x] Overnight drones and missiles launched / shot down / hit locations (Ukrainian Air Force via Ukrinform), panel section, meter, records — v0.55.0
+- [x] Map and page layers moved to their own snapshot document (feed back to 700 records) — v0.54.0

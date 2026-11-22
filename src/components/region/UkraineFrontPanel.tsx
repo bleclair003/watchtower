@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { SECTORS, sectorName, type UkraineFrontSnapshot } from '@shared/domain/ukraineFront';
+import { interceptRate } from '@shared/domain/airAttacks';
 import { formatAge } from '../../lib/time';
 import { safeExternalUrl } from '../../lib/sanitize';
 import { Panel } from '../ui/Panel';
@@ -97,6 +98,63 @@ export function UkraineFrontPanel({ data, now }: { data: UkraineFrontSnapshot | 
           </>
         ) : (
           <p className="text-wt-fg-muted">No General Staff report read yet; the first runs fill in the last two weeks.</p>
+        )}
+
+        {(data.air?.length ?? 0) > 0 && (
+          <div>
+            <h3 className="text-wt-fg-dim">OVERNIGHT AIR ATTACKS (UKRAINIAN AIR FORCE)</h3>
+            {(() => {
+              const nights = data.air!;
+              const last = nights[0];
+              const rate = interceptRate(last);
+              const trend = [...nights].reverse().slice(-21).map((r) => ({ t: Date.parse(`${r.day}T06:00:00Z`), v: (r.drones ?? 0) + (r.missiles ?? 0) }));
+              return (
+                <>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className="text-wt-fg">
+                      Night to {fmtDay(last.day)}: <span className="text-sm tabular-nums">{last.drones ?? '?'}</span> drones,{' '}
+                      <span className={`text-sm tabular-nums ${(last.missiles ?? 0) >= 40 ? 'text-wt-warn' : ''}`}>{last.missiles ?? 0}</span> missiles
+                      {last.ballistic ? ` (${last.ballistic} ballistic)` : ''}
+                    </span>
+                    <span className="text-wt-fg-muted tabular-nums">
+                      {rate !== null && `${Math.round(rate * 100)}% shot down or suppressed`}
+                      {last.hitLocations !== null && ` · hits at ${last.hitLocations} locations`}
+                    </span>
+                    <Sparkline points={trend} width={120} height={22} emptyText="" />
+                  </div>
+                  <table className="mt-1 w-full tabular-nums">
+                    <thead className="text-wt-fg-dim">
+                      <tr className="border-b border-wt-line">
+                        <th className="py-0.5 pr-2 text-left font-normal">Night to</th>
+                        <th className="py-0.5 pr-2 text-right font-normal">Drones</th>
+                        <th className="py-0.5 pr-2 text-right font-normal">Missiles</th>
+                        <th className="py-0.5 pr-2 text-right font-normal">Down</th>
+                        <th className="py-0.5 text-right font-normal">Hit locations</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-wt-line">
+                      {nights.slice(0, 7).map((r) => {
+                        const rr = interceptRate(r);
+                        return (
+                          <tr key={r.day}>
+                            <td className="py-0.5 pr-2">
+                              <a href={safeExternalUrl(r.url) ?? undefined} target="_blank" rel="noopener noreferrer nofollow" className="hover:underline">
+                                {fmtDay(r.day)}
+                              </a>
+                            </td>
+                            <td className="py-0.5 pr-2 text-right">{r.drones ?? '—'}</td>
+                            <td className="py-0.5 pr-2 text-right">{r.missiles ?? '—'}</td>
+                            <td className="py-0.5 pr-2 text-right text-wt-fg-muted">{rr === null ? '—' : `${Math.round(rr * 100)}%`}</td>
+                            <td className="py-0.5 text-right text-wt-fg-muted">{r.hitLocations ?? '—'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </>
+              );
+            })()}
+          </div>
         )}
 
         <div>

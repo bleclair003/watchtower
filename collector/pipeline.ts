@@ -44,6 +44,7 @@ import { EPSS_SOURCE_ID, type EpssState } from './adapters/cyberAgencies.ts';
 import type { CisaKevState } from './adapters/cisaKev.ts';
 import { buildCyberSnapshot } from '../shared/domain/cyber.ts';
 import { GS_SOURCE_ID, type GeneralStaffState } from './adapters/ukraineFront.ts';
+import { AF_SOURCE_ID, type AirForceState } from './adapters/uaAirForce.ts';
 import { claimsFrom } from '../shared/domain/ukraineFront.ts';
 import { NETWORK_SOURCE, clusterStations, type RadNetwork } from '../shared/domain/radiation.ts';
 import { UNHCR_SOURCE_ID, type UnhcrState } from './adapters/unhcr.ts';
@@ -395,11 +396,14 @@ export async function runCollection(
   }
   // Ukraine front (Phase 21): General Staff reports (state) and territorial claims in loaded headlines.
   try {
-    const gs = tracked.includes(GS_SOURCE_ID) ? await store.getSourceState<GeneralStaffState>(GS_SOURCE_ID) : null;
+    const [gs, af] = await Promise.all([
+      tracked.includes(GS_SOURCE_ID) ? store.getSourceState<GeneralStaffState>(GS_SOURCE_ID) : null,
+      tracked.includes(AF_SOURCE_ID) ? store.getSourceState<AirForceState>(AF_SOURCE_ID) : null,
+    ]);
     const reports = gs?.reports ?? [];
     const full = reports.filter((r) => r.fullDay).slice(0, 30);
     const partial = reports.find((r) => !r.fullDay) ?? null;
-    snapshot.ukraineFront = { reports: full, today: partial && (!full[0] || partial.day > full[0].day) ? partial : null, claims: claimsFrom(loaded, Date.parse(snapshot.generatedAt)) };
+    snapshot.ukraineFront = { reports: full, today: partial && (!full[0] || partial.day > full[0].day) ? partial : null, claims: claimsFrom(loaded, Date.parse(snapshot.generatedAt)), air: (af?.reports ?? []).slice(0, 30) };
   } catch (err) {
     log(`UAF  Ukraine front not added to the snapshot: ${sanitizeError(err)}`);
   }

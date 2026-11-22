@@ -1349,6 +1349,27 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     priority: 'P2',
     feasibility: { checkedAt: '2026-11-22T00:30:00Z', result: 'reachable', note: 'RSS HTTP 200, 30 items (~14 hours).' },
   },
+  // ------------------------------------------------------------ Phase 22 ---
+  {
+    id: 'ua-air-force',
+    name: 'Overnight air attack reports (via Ukrinform)',
+    organization: 'Ukrainian Air Force, as reported in English by Ukrinform',
+    website: 'https://www.ukrinform.net/rubric-ato',
+    endpoint: 'https://www.ukrinform.net/rss/rubric-ato (and the "Air defense …" articles)',
+    method: 'page-parse',
+    sourceClass: 'official',
+    defaultCategory: 'military',
+    coverage: 'Each night: drones and missiles launched by Russia (ballistic counted separately), shot down or suppressed, locations hit and debris locations',
+    authentication: 'None',
+    freeAccess: 'Free RSS and articles',
+    expectedUpdateFrequency: 'Every morning',
+    pollIntervalMinutes: 30,
+    reliabilityNotes:
+      "Ukraine's own figures (one side). The Air Force posts on Telegram; Ukrinform's English reports are read instead. Counts are parsed from text with fixed rules (headline figures preferred, dates and model numbers such as S-400 ignored) and are approximate; some nights give no missile count. First runs back-fill about two weeks.",
+    termsNotes: 'Ukrinform robots.txt allows the pages read. Figures (facts) and links only; the article text is not stored or shown.',
+    priority: 'P2',
+    feasibility: { checkedAt: '2026-11-22T02:00:00Z', result: 'reachable', note: 'Eight nights parsed (12–21 Nov), e.g. 404 drones and 84 missiles on 20 Nov.' },
+  },
 ];
 
 export function getSource(id: string): SourceDefinition | undefined {

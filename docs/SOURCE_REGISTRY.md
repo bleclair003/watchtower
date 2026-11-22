@@ -303,3 +303,9 @@ Rebuild with `node scripts/build-infrastructure.ts`. On 2026-11-21 the endpoint 
 | DeepStateMap.live | needs a key | Requested 2026-11-22; keyless internal endpoints are not used (licence s.2) |
 | ISW control-of-terrain geodata | needs written consent | "You may not use this geodata without the written consent of ISW" |
 | General Staff site, Russian MoD, TASS | refused | HTTP 403 / no response to automated requests; not worked around |
+
+## v0.55.0 Air attacks — implemented ✅
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| Ukrainian Air Force overnight reports, via Ukrinform's English "Air defense …" articles | official figures relayed by a state news agency | Per night: drones, missiles (ballistic), shot down or suppressed, hit and debris locations (facts); link |

@@ -10,6 +10,7 @@
  */
 import type { IntelligenceEvent } from './types.ts';
 import { isNews } from './changes.ts';
+import type { AirReport } from './airAttacks.ts';
 
 /** Sectors as the General Staff names them (aliases map older and alternative names). */
 export const SECTORS: { id: string; name: string; aliases: string[] }[] = [
@@ -65,6 +66,8 @@ export interface UkraineFrontSnapshot {
   today: FrontReport | null;
   /** Territorial claims in headlines, newest first (14 days). */
   claims: TerritorialClaim[];
+  /** Overnight air attacks (Ukrainian Air Force), newest first (up to 30 nights). */
+  air?: AirReport[];
   simulated?: boolean;
 }
 

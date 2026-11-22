@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.55.0] — 2026-11-22 — Overnight air attacks on Ukraine (Phase 22)
+
+### Added
+- **Air attack tracker** (source `ua-air-force`): the Ukrainian Air Force's morning report as published in English by Ukrinform — drones and missiles launched (ballistic separately), shot down or suppressed, hit and debris locations. Figures and a link only. Back-fills about two weeks.
+- **Overnight air attacks** section in the Ukraine front panel (Eastern Europe page): last night's figures with the share shot down, a 21-night trend and a table of the last 7 nights.
+- **Air attacks on Ukraine** meter (METERS topic monitors, Eastern Europe): last night's launches against the previous 14 nights (1.2× LOW … 3× HIGH); 40+ missiles in a night is ELEVATED and 80+ HIGH on its own.
+- A record per night ("Overnight attack on Ukraine (night to 20 Nov): 404 drones, 84 missiles; 380 drones, 82 missiles shot down or suppressed").
+- The Ukrinform article reader now includes list items (weapon lists are bulleted).
+
+### Limits
+- Ukraine's own figures (one side); counts are parsed from text (headline figures preferred; dates and model numbers such as S-400 ignored) and are approximate. Some nights give no missile count, and nights whose report is titled differently are missed (four of the 14 back-filled nights at release).
+
+
 ## [0.54.0] — 2026-11-22 — Layers in their own document
 
 ### Changed
