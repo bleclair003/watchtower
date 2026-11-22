@@ -3,7 +3,7 @@
 ## [0.61.0] — 2026-11-22 — Time filters for map layers
 
 ### Added
-- **CONFLICT time filter** on the GOC map: whole month, or the last 14, 7 or 3 days. UCDP runs about a month behind, so the days are counted back from the newest day in the release, not from today (a window from today would always be empty). The legend shows the dates on screen and "N of M" when a filter is on.
+- **CONFLICT time filter** on the GOC map: last 30 days (the whole monthly release), or the last 14, 7 or 3 days. UCDP runs about a month behind, so the days are counted back from the newest day in the release, not from today (a window from today would always be empty). The legend shows the dates on screen and "N of M" when a filter is on.
 - **NAVWARN age filter**: any age, or issued within 30 days, 7 days or 48 hours. Warnings without an issue date are hidden when a limit is set; the legend says which limit is on.
 - **30D** button on the intelligence feed's time window (feed records and their map dots).
 - Both map choices are remembered in this browser with the other map settings.

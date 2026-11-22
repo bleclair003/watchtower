@@ -12,7 +12,7 @@ import type { NavWarning } from '@shared/domain/navWarnings';
 const DAY = 86_400_000;
 
 export const CONFLICT_SPANS: { days: number | null; label: string }[] = [
-  { days: null, label: 'WHOLE MONTH' },
+  { days: null, label: 'LAST 30 DAYS' },
   { days: 14, label: 'LAST 14 DAYS' },
   { days: 7, label: 'LAST 7 DAYS' },
   { days: 3, label: 'LAST 3 DAYS' },
