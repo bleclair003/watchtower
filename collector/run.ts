@@ -24,6 +24,7 @@ import { AIS_SOURCE_ID, primeAisListening } from './adapters/aisSanctioned.ts';
 import type { CollectorStore } from './store/types.ts';
 import type { CollectionRun } from '../shared/domain/types.ts';
 import { splitSnapshot } from '../shared/domain/snapshot.ts';
+import { getSource } from '../shared/domain/sources.ts';
 
 async function main(): Promise<number> {
   const { values } = parseArgs({
@@ -106,7 +107,11 @@ async function main(): Promise<number> {
   for (const s of snapshot.regionScores ?? []) {
     console.log(`  RAI ${s.regionId.padEnd(18)} ${s.score === null ? 'N/E' : String(s.score).padStart(3)} ${s.band ?? ''} · coverage ${Math.round(s.coverage * 100)}%`);
   }
-  return reports.every((r) => r.ok) && run.errors.length === 0 ? 0 : 2;
+  // A source with a known outage (shared/domain/sources.ts knownOutage) still shows as failing in its
+  // health but does not fail the run, so a red run always means something new went wrong.
+  const tolerated = (id: string) => !!getSource(id)?.knownOutage;
+  for (const r of reports.filter((x) => !x.ok && tolerated(x.sourceId))) console.log(`NOTE ${r.sourceId}: known outage — ${getSource(r.sourceId)?.knownOutage}`);
+  return reports.every((r) => r.ok || tolerated(r.sourceId)) && run.errors.every((e) => tolerated(e.sourceId)) ? 0 : 2;
 }
 
 main().then(

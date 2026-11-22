@@ -172,6 +172,11 @@ export interface SourceDefinition {
     result: 'reachable' | 'reachable-empty' | 'rate-limited' | 'blocked' | 'unavailable' | 'no-feed';
     note: string;
   };
+  /**
+   * A known outage at the source (e.g. a portal under maintenance). The source still shows as failing in
+   * its health, but its failure does not mark the whole collection run as failed. Remove once it returns.
+   */
+  knownOutage?: string;
 }
 
 export interface SourceStatus {

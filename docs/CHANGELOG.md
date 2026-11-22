@@ -14,6 +14,7 @@
 ### Limits
 - **NGA's portal was under maintenance at release** (HTTP 503 to every client: an outage, not blocking). The adapter follows the documented field layout and is tested on invented samples, but not yet on a live answer; the source shows as failing until the portal returns.
 - UCDP candidate data are preliminary and about a month behind: a picture of last month, not today. The US watch area also covers northern Mexico, so the US region only counts events UCDP codes in the United States.
+- A source can be marked with a **known outage** (`knownOutage` in the registry): it still shows as failing in source health, but no longer turns the whole collection run red. NGA is marked so while its portal is under maintenance.
 - Emergency codes are set by crews and not verified; 7500 is often a mis-set transponder. One check per 30-minute run, so short emergencies are missed.
 
 
