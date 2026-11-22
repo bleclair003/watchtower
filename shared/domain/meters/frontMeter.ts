@@ -49,7 +49,7 @@ export function frontMeter(input: MeterInput): Meter {
     level: building ? null : level,
     label: building ? 'BUILDING BASELINE' : undefined,
     value: a.score ?? ratio,
-    reading: `${latest.total} combat engagements on ${latest.day}${mean !== null ? ` against a ${prior.length}-day mean of ${Math.round(mean)} (${ratio}×${a.status === 'ok' ? `; ${describe(a)}` : ''})` : ''}${top[0] ? `; most in ${sectorName(top[0][0])} (${top[0][1]})` : ''}.`,
+    reading: `${latest.total} combat engagements on ${latest.day}${a.status === 'ok' ? ` against a usual ${Math.round(a.centre!)} (median of ${prior.length} days; ${describe(a)})` : mean !== null ? ` against a ${prior.length}-day mean of ${Math.round(mean)} (${ratio}×)` : ''}${top[0] ? `; most in ${sectorName(top[0][0])} (${top[0][1]})` : ''}.`,
     components,
     evidence: [{ title: `General Staff update for ${latest.day}`, url: latest.url, at: latest.asOf, why: 'source report' }],
     asOf: latest.asOf,

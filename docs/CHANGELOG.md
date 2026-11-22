@@ -4,6 +4,7 @@
 
 ### Fixed
 - **Indicator baselines no longer count time before a source existed as quiet history.** The engine assumed every source back-filled 30 days on its first run. Live-only sources (aircraft positions, satellite fire detections, the media-volume count) cannot, so their "history" was empty and any activity looked very unusual — under the old ratio rule too. A source now counts as back-filled only when its records reach back before its first run, and history starts at its earliest record. At release this leaves 1 of the 64 baseline indicators with a full 28-day history (CISA's exploited-vulnerability catalog); the rest use their fixed thresholds and say "Baseline not applied" until about 2026-12-21.
+- Ukraine front and air-attack readings quote the usual level (median) the score is measured from, not the mean.
 - Unusual readings: indicators that measure the same thing as a meter (airlift and strategic aircraft, media volume, connectivity, KEV) count in the meter's group, so one movement counts once.
 
 

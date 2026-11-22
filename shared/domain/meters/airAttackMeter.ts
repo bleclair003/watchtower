@@ -34,7 +34,7 @@ export function airAttackMeter(input: MeterInput): Meter {
     level: building && !salvo ? null : level,
     label: building && !salvo ? 'BUILDING BASELINE' : undefined,
     value: a.score ?? ratio,
-    reading: `Night to ${last.day}: ${last.drones ?? '?'} drones and ${last.missiles ?? 0} missiles${mean !== null ? ` against a ${prior.length}-night mean of ${Math.round(mean)}${a.status === 'ok' ? ` (${describe(a)})` : ''}` : ''}${rate !== null ? `; ${Math.round(rate * 100)}% shot down or suppressed` : ''}.`,
+    reading: `Night to ${last.day}: ${last.drones ?? '?'} drones and ${last.missiles ?? 0} missiles${a.status === 'ok' ? ` against a usual ${Math.round(a.centre!)} (median of ${prior.length} nights; ${describe(a)})` : mean !== null ? ` against a ${prior.length}-night mean of ${Math.round(mean)}` : ''}${rate !== null ? `; ${Math.round(rate * 100)}% shot down or suppressed` : ''}.`,
     components: [
       { label: 'Drones launched', value: String(last.drones ?? '—'), active: false },
       { label: 'Missiles launched (ballistic)', value: `${last.missiles ?? '—'}${last.ballistic ? ` (${last.ballistic})` : ''}`, active: salvo > 0, note: '40+ in a night raises the meter on its own' },
