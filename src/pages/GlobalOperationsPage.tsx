@@ -13,6 +13,7 @@ import { sightingKey } from '../components/map/WorldMap';
 import { IMAGERY, defaultImageryDate, imageryTiles, type ImageryId } from '../lib/imagery';
 import { FLEET_STALE_DAYS, isBigDeck } from '@shared/domain/fleet';
 import { AIRCRAFT_PROVIDERS, AIRCRAFT_STALE_MINUTES } from '@shared/domain/aircraft';
+import { PATTERN_LEARNING_DAYS } from '@shared/domain/aircraftPatterns';
 import { getRegion } from '@shared/domain/regions';
 import { getIndicator } from '@shared/domain/indicators/catalog';
 import { applyFilters } from '../lib/filters';
@@ -402,7 +403,7 @@ export default function GlobalOperationsPage() {
             operatorFilter={settings.installations && operator !== ALL_OPERATORS ? countryName(operator) : undefined}
             aircraft={
               settings.aircraft && aircraft
-                ? { count: aircraft.aircraft.length, ageMinutes: aircraftAgeMin, stale: aircraftStale, provider: AIRCRAFT_PROVIDERS[aircraft.provider].name, simulated: !!aircraft.simulated }
+                ? { count: aircraft.aircraft.length, ageMinutes: aircraftAgeMin, stale: aircraftStale, provider: AIRCRAFT_PROVIDERS[aircraft.provider].name, simulated: !!aircraft.simulated, patternsFrom: aircraft.patternMemorySince ? new Date(Date.parse(aircraft.patternMemorySince) + PATTERN_LEARNING_DAYS * 86_400_000).toISOString() : null, now }
                 : undefined
             }
             imagery={imagery && imageryId !== 'off' ? { label: IMAGERY[imageryId as Exclude<ImageryId, 'off'>].label, date: imagery.date, note: IMAGERY[imageryId as Exclude<ImageryId, 'off'>].note } : undefined}

@@ -14,6 +14,7 @@ import {
   type AircraftSnapshot,
 } from '../../shared/domain/aircraft.ts';
 import { regionsForSeaOrWatchCountry } from '../geo/countries.ts';
+import { detectPatterns, type PatternMemory } from './aircraftPatterns.ts';
 import { contentHash } from '../lib/hash.ts';
 import { LIMITS, truncate } from '../lib/text.ts';
 import type { AdapterContext, AdapterResult, SourceAdapter } from './types.ts';
@@ -34,6 +35,8 @@ const SKIP_CLASSES_BY_REGION: Record<string, string[]> = { 'united-states': ['ai
 export interface MilitaryAircraftState {
   latest: AircraftSnapshot;
   firstRunAt: string;
+  /** Unusual-movement memory (v0.63.0). */
+  patterns?: PatternMemory;
 }
 
 interface RawAircraft {
@@ -183,13 +186,15 @@ export const militaryAircraft: SourceAdapter<MilitaryAircraftState> = {
         if (res.kind !== 'ok') throw new Error('unexpected 304');
         const parsed = parseMilitaryAircraft(res.body);
         const fetchedAt = new Date(ctx.now).toISOString();
-        const latest: AircraftSnapshot = { fetchedAt, provider: ep.provider, totalMarked: parsed.totalMarked, aircraft: parsed.aircraft };
+        const base: AircraftSnapshot = { fetchedAt, provider: ep.provider, totalMarked: parsed.totalMarked, aircraft: parsed.aircraft };
+        const found = detectPatterns(base, ctx.now, ctx.state?.patterns ?? null);
+        const latest: AircraftSnapshot = { ...base, patternMemorySince: found.memory.since };
         return {
-          events: aircraftEvents(latest, ctx.now),
+          events: [...aircraftEvents(latest, ctx.now), ...found.events],
           rejected: [],
           itemsSeen: parsed.totalMarked,
           notModified: false,
-          state: { latest, firstRunAt: ctx.state?.firstRunAt ?? fetchedAt },
+          state: { latest, firstRunAt: ctx.state?.firstRunAt ?? fetchedAt, patterns: found.memory },
         };
       } catch (err) {
         errors.push(`${ep.provider}: ${err instanceof Error ? err.message : String(err)}`);

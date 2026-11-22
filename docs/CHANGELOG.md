@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.63.0] — 2026-11-22 — Unusual aircraft movement (Phase 27)
+
+### Added
+- **Holds.** The aircraft collector keeps each tanker's, surveillance or command aircraft's, bomber's and VIP transport's last 4 hours of positions. An aircraft that stays within 60 km for an hour or more (three 30-minute samples) above 10,000 ft is holding. A record is made when no aircraft of that kind has held in that 1° square in 30 days.
+- **First appearances.** A record is made when an aircraft type is seen in a watch area for the first time in 30 days (tankers, surveillance, bombers, airlift, command posts, VIP transports; airlift not in the US).
+- **Learning period.** Nothing is flagged until the memory is 14 days old (from 6 Dec 2026), because before that every hold and type would look new. The map legend's aircraft section says when flagging starts.
+- **Indicator** "unusual aircraft movement" per region: experimental, weight 0, ELEVATED at 1 record in 72 h, TRIGGERED at 3.
+- The SITREP lists these records under Significant developments ("unusual hold", "first appearance").
+
+### Notes
+- The records do not carry `aircraftClass`, so the tanker/surveillance/bomber and airlift volume indicators do not count them twice.
+- Positions are stored as short text per aircraft (Firestore cannot store arrays inside arrays). Memory older than 60 days is dropped.
+- Limits: a 30-minute sample misses short orbits; only aircraft that broadcast are seen.
+
 ## [0.62.0] — 2026-11-22 — Aircraft in the SITREP
 
 ### Changed

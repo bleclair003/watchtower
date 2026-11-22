@@ -81,7 +81,7 @@ The **United States (domestic)** region covers events *inside* the US, with emph
 
 | Source | Kind | What WATCHTOWER keeps |
 |---|---|---|
-| adsb.lol `/v2/mil` (fallback adsb.fi `/v2/mil`) | aggregator | Every run: positions of aircraft the network flags as military (airborne, position under 2 minutes old) for the map. Records: tankers, surveillance/command, bombers and airlift inside watch areas, once per aircraft, area and day |
+| adsb.lol `/v2/mil` (fallback adsb.fi `/v2/mil`) | aggregator | Every run: positions of aircraft the network flags as military (airborne, position under 2 minutes old) for the map. Records: tankers, surveillance/command, bombers and airlift inside watch areas, once per aircraft, area and day. Since v0.63.0 also *unusual movement* records: holds (1 h+ within 60 km at 10,000 ft+) where that kind has not held in 30 days, and types new to a watch area in 30 days; from a 4-hour position history and 60-day memory in the source state, flagging only after 14 days of memory |
 
 - **Terms:** adsb.lol data is ODbL 1.0 (credit adsb.lol); 500 requests a day without a key, and WATCHTOWER uses 48. adsb.fi is personal, non-commercial use and must be cited with a link; it is only a fallback.
 - **Not used:** airplanes.live (asks API users to contact them first, HTTP 403 without).

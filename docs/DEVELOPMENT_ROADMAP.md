@@ -395,4 +395,13 @@ Free sources and analysis of data already collected. Each new outside source is 
 - [ ] Viewers: copy a dossier as Markdown (the export button is disabled with the rest of the read-only form)
 - [ ] Optional: email the owner when someone is waiting (needs a free mail route)
 - [x] Time filters on dated map layers (CONFLICT days of the release, NAVWARN issue age) and a 30D feed window — v0.61.0
+- [x] SITREP: single aircraft listed only when exceptional; heavy air activity as one line per indicator — v0.62.0
+
+## Phase 27 — Unusual aircraft movement
+
+- [x] Short position history per tanker, surveillance aircraft, bomber, command post and VIP transport (4 h, in the source state) — v0.63.0
+- [x] Holds where that kind has not held in 30 days; types new to a watch area in 30 days; 14-day learning period — v0.63.0
+- [x] Experimental indicator per region; SITREP lists them as significant — v0.63.0
+- [ ] Grouping: 3+ strategic aircraft within ~300 km in one run, where that is rare — v0.64.0
+- [ ] Odd hours: flights in hours that are usually empty, against a 14-day hour-by-hour usual level — v0.64.0
 

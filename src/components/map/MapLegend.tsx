@@ -41,7 +41,7 @@ interface Props {
   /** Name of the operating country the bases are filtered to, if any. */
   operatorFilter?: string;
   /** Aircraft layer: count shown, snapshot age, provider (omit when the layer is off). */
-  aircraft?: { count: number; ageMinutes: number; stale: boolean; provider: string; simulated: boolean };
+  aircraft?: { count: number; ageMinutes: number; stale: boolean; provider: string; simulated: boolean; patternsFrom?: string | null; now?: number };
   /** Fleet layer: big decks listed, tracker date (omit when the layer is off). */
   fleet?: { bigDecks: number; ships: number; asOf: string; stale: boolean; simulated: boolean };
   /** Sanctioned vessels layer (omit when off). */
@@ -342,6 +342,13 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
                   </li>
                 ))}
               </ul>
+              {aircraft.patternsFrom && (
+                <p className="text-wt-fg-dim" title="Holds where that kind of aircraft has not held in 30 days, and aircraft types new to a watch area in 30 days. They appear in the feed as military records.">
+                  {aircraft.now !== undefined && aircraft.now < Date.parse(aircraft.patternsFrom)
+                    ? `Unusual movement: learning what is usual, flags from ${shortDay(aircraft.patternsFrom.slice(0, 10))}.`
+                    : 'Unusual movement: watching for new holds and new types.'}
+                </p>
+              )}
             </div>
           )}
         </div>

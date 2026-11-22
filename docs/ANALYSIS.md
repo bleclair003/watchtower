@@ -15,7 +15,7 @@ Choose 6 h, 24 h, 7 d or a custom period, then **GENERATE**. The eight sections:
 | # | Section | What goes in it |
 |---|---|---|
 | 1 | Executive summary | Counts only |
-| 2 | Significant developments | Advisory raised/new/lowered, ransomware-linked KEV, non-routine CISA advisories, exceptional aircraft (bombers, airborne command posts, government VIP transports), or anything cited by an active indicator. Routine aircraft (tankers, airlift, surveillance) are never listed one by one: an active air indicator gives one *heavy air activity* line with its count instead. Aircraft sightings are also left out of section 6 (they are sensor readings, not reports) |
+| 2 | Significant developments | Advisory raised/new/lowered, ransomware-linked KEV, non-routine CISA advisories, exceptional aircraft (bombers, airborne command posts, government VIP transports), unusual aircraft movement (new holds, types new to an area; v0.63.0), or anything cited by an active indicator. Routine aircraft (tankers, airlift, surveillance) are never listed one by one: an active air indicator gives one *heavy air activity* line with its count instead. Aircraft sightings are also left out of section 6 (they are sensor readings, not reports) |
 | 3 | Regional activity changes | RAI at the start of the period vs now, from `raiHistory`; "no comparison" when no point is near the start |
 | 4 | New official warnings | Travel-advisory level changes |
 | 5 | Indicator changes | Transitions from `indicatorHistory` |

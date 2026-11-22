@@ -9,6 +9,7 @@ import { meter, plural } from './util.ts';
 const SAME_AS: Record<string, string> = {
   airlift: 'aircraft',
   'strategic-air': 'aircraft',
+  'air-patterns': 'aircraft',
   'media-conflict-reporting': 'news',
   'connectivity-drop': 'volume',
   'kev-surge': 'cyber',

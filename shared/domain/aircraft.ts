@@ -198,6 +198,8 @@ export interface AircraftSnapshot {
   /** Aircraft the network marked military (with or without a position). */
   totalMarked: number;
   aircraft: AircraftPosition[];
+  /** When the unusual-movement memory started (v0.63.0); patterns are flagged from 14 days after. */
+  patternMemorySince?: string;
   /** Demo fixtures only: the UI labels these SIMULATED. */
   simulated?: boolean;
 }

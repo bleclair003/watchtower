@@ -621,6 +621,40 @@ const aircraftIndicators: IndicatorDefinition[] = ADVISORY_REGIONS.flatMap((r): 
           },
         },
       ] satisfies IndicatorDefinition[])),
+  {
+    id: `${r.id}.air-patterns`,
+    name: `${r.shortCode} unusual aircraft movement`,
+    description: `Unusual movement by military aircraft on ADS-B in the ${r.name} watch area within 72 hours: a tanker, surveillance aircraft or bomber holding where that kind has not held in 30 days, or an aircraft type not seen in the area in 30 days.`,
+    family: 'experimental',
+    regionId: r.id,
+    requiredSourceIds: [AIR],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: AIR },
+        { field: 'regionIds', op: 'contains', value: r.id },
+        { field: 'metadata.subtype', op: 'eq', value: 'aircraft-pattern' },
+      ],
+    },
+    windowHours: 72,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 3 },
+    baseline: null,
+    weight: 0,
+    severity: 'low',
+    experimental: true,
+    enabled: true,
+    configVersion: 1,
+    rationale:
+      'Volume indicators count how many aircraft are seen; this one looks at what they do. A new orbit or a type that has not been in the area for a month is the kind of change open-source analysts look for. It flags nothing for the first 14 days of collection, while WATCHTOWER learns what is usual.',
+    research: {
+      hypothesis: 'New holding areas and newly arrived aircraft types precede or accompany air operations and deployments.',
+      expectedRelationship: 'Records would cluster before or during strikes, exercises or deployments reported by other sources.',
+      historicalExamples: 'None in WATCHTOWER data yet (pattern detection started 2026-11-22; flags from 2026-12-06).',
+      ...AIR_RESEARCH,
+      baselinePeriod: 'None: each record is already a comparison with the last 30 days of positions.',
+      falsePositives: 'Likely: new training areas, exercises, one-off ferry flights, and receiver coverage changing where aircraft can be seen.',
+    },
+  },
 ]);
 
 const FLEET = 'usni-fleet-tracker';

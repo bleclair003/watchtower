@@ -64,6 +64,7 @@ For each indicator, at time `now`:
 | United States (v5) | FEMA major disaster or NWS Extreme alert | 72 h | 1 / 3 | — | 1 · medium |
 | each of 7 geographic regions, experimental (v6) | Tankers, surveillance/command aircraft and bombers seen on ADS-B (each aircraft once a day) | 24 h | 3 / 6 | 14 d, ×2 / ×3 | 0 · never in the RAI |
 | each of 6 geographic regions (not the US), experimental (v6) | Military airlift seen on ADS-B | 24 h | 4 / 8 | 14 d, ×2 / ×3 | 0 · never in the RAI |
+| each of 7 regions, experimental (v0.63.0) | Unusual aircraft movement: a tanker, surveillance aircraft or bomber holding where that kind has not held in 30 days, or a type new to the area in 30 days | 72 h | 1 / 3 | none (each record is already a 30-day comparison) | 0 · never in the RAI |
 | Middle East, Red Sea, Eastern Europe, South China Sea, Taiwan Strait, Korean Peninsula (v7) | US carrier or big-deck amphibious ship newly listed in the region's sea areas by the USNI News Fleet Tracker | 21 d | 1 / 2 | — | 2 · medium |
 | Middle East, Red Sea, Eastern Europe, Taiwan Strait (v8) | Chokepoint traffic reduced: 7-day transits under 70% of the 2025 average (IMF PortWatch; Hormuz, Bab el-Mandeb, Bosporus, Taiwan Strait) | 8 d | 1 / 2 | — | 1 · medium |
 | Middle East, Red Sea, Eastern Europe, Taiwan Strait (v8) | Chokepoint traffic severely reduced (under 40%) or 40% below the previous four weeks | 8 d | 1 / 1 | — | 3 · high |

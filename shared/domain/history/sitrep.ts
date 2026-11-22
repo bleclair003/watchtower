@@ -6,6 +6,7 @@ import type { AlertRecord } from '../alerts/types.ts';
 import type { Incident } from '../incidents/types.ts';
 import { mdInline, mdUrl, UNTRUSTED_SOURCE_NOTICE } from '../markdown.ts';
 import { AIRCRAFT_ROLE_LABEL, isRoutineSighting, type AircraftRole } from '../aircraft.ts';
+import { AIRCRAFT_PATTERN_LABEL, isAircraftPattern, type AircraftPattern } from '../aircraftPatterns.ts';
 
 /**
  * SITREP — Situation Report (PDD §12).
@@ -70,6 +71,7 @@ const isAircraftSighting = (e: IntelligenceEvent) => e.sourceId === 'adsb-milita
 
 function isSignificant(e: IntelligenceEvent): string | null {
   const m = e.metadata ?? {};
+  if (isAircraftPattern(e)) return AIRCRAFT_PATTERN_LABEL[m.pattern as AircraftPattern] ?? 'unusual aircraft movement';
   if (isAircraftSighting(e)) {
     if (isRoutineSighting(e)) return null;
     const role = m.aircraftRole as AircraftRole | undefined;
@@ -168,7 +170,7 @@ export function buildSitrep(input: SitrepInput): Sitrep {
   // 6. Conflicting or unverified reporting.
   const unverified: SitrepItem[] = [
     // Aircraft sightings are sensor readings, not reports to corroborate.
-    ...published.filter((e) => (e.credibility === 'unverified' || e.credibility === 'single-source') && !isAircraftSighting(e)).map((e) => eventItem(e, ` [${e.credibility}]`)),
+    ...published.filter((e) => (e.credibility === 'unverified' || e.credibility === 'single-source') && e.sourceId !== 'adsb-military').map((e) => eventItem(e, ` [${e.credibility}]`)),
     ...input.incidents.flatMap((i) =>
       i.evidence
         .filter((l) => l.assessment === 'disputed')

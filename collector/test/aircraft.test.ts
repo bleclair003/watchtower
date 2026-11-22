@@ -169,7 +169,7 @@ describe('air-activity indicators', () => {
   it('are valid, experimental (no RAI weight), and there is no airlift indicator for the US', () => {
     const defs = INDICATOR_CATALOG.filter((d) => d.requiredSourceIds.includes(AIRCRAFT_SOURCE_ID));
     expect(validateCatalog(defs)).toEqual([]);
-    expect(defs.length).toBe(13);
+    expect(defs.length).toBe(20); // 7 strategic-air, 6 airlift, 7 air-patterns (v0.63.0)
     expect(defs.every((d) => d.experimental && d.weight === 0)).toBe(true);
     expect(defs.some((d) => d.id === 'united-states.airlift')).toBe(false);
   });
