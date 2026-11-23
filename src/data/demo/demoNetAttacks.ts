@@ -10,6 +10,12 @@ export function buildDemoNetAttacks(now: number): NetAttackSnapshot {
     fetchedAt: at(0.5),
     hijacks: [
       {
+        id: 900002, from: at(30), to: at(29), confidence: 8,
+        hijacker: { asn: 64530, org: '[SIMULATED] Example Local ISP', country: 'UA' },
+        victims: [{ asn: 64531, org: '[SIMULATED] Example Customer', country: 'UA' }], victimCountries: ['UA'],
+        prefixes: ['203.0.113.0/24'], prefixCount: 1, stale: true, tags: [],
+      },
+      {
         id: 900001, from: at(6), to: at(2), confidence: 9,
         hijacker: { asn: 64512, org: '[SIMULATED] Example Transit', country: 'RU' },
         victims: [{ asn: 64513, org: '[SIMULATED] Example Telecom', country: 'UA' }], victimCountries: ['UA'],
@@ -23,9 +29,9 @@ export function buildDemoNetAttacks(now: number): NetAttackSnapshot {
       fetchedAt: at(3),
       noData: ['KP', 'ER'],
       countries: [
-        { country: 'IL', values: series(0.2, 0.95), day: day(1), latest: 0.95, centre: 0.21, score: 18.4, ratio: 4.5 },
-        { country: 'UA', values: series(0.4, 0.5), day: day(1), latest: 0.5, centre: 0.42, score: 1.6, ratio: 1.2 },
-        { country: 'TW', values: series(0.3, 0.28), day: day(1), latest: 0.28, centre: 0.31, score: -0.6, ratio: 0.9 },
+        { country: 'IL', values: series(0.02, 0.95), day: day(1), latest: 0.95, peakShare: 1, peakDay: day(1), activeDays: 1 },
+        { country: 'UA', values: [...series(0.01, 0.3).slice(0, 20), 1, ...series(0.01, 0.3).slice(21)], day: day(1), latest: 0.3, peakShare: 0.3, peakDay: day(8), activeDays: 2 },
+        { country: 'TW', values: series(0.01, 0.01), day: day(1), latest: 0.01, peakShare: 0.25, peakDay: day(3), activeDays: 0 },
       ],
     },
   };

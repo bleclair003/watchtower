@@ -229,7 +229,12 @@ test('CYBER page: simulated route hijack, large leak, and DDoS levels with a sur
   await page.goto('/cyber');
   await expect(page.getByText(/AS64512 \[SIMULATED\] Example Transit \(RU\) announced 2 blocks/)).toBeVisible();
   await expect(page.getByText(/leaked 340 blocks from 12 networks to 4 peers/)).toBeVisible();
-  await expect(page.getByText('SURGE 18.4')).toBeVisible();
+  await expect(page.getByText('SURGE 100%')).toBeVisible();
+  // The same-country hijack is routine: hidden until asked for.
+  await expect(page.getByText(/Example Local ISP/)).toHaveCount(0);
+  // The CISA panel above has its own routine button; the routing panel's is the last one.
+  await page.getByRole('button', { name: 'show 1 routine' }).last().click();
+  await expect(page.getByText(/Example Local ISP/)).toBeVisible();
   await expect(page.getByText(/No data: KP, ER/)).toBeVisible();
   expect(problems).toEqual([]);
 });

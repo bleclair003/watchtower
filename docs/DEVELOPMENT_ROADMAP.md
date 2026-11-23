@@ -477,8 +477,8 @@ From the feature audit (category 5, items 1, 2 and 6; category 1 item 6 left ope
 
 From the feature audit (category 7, items 2, 6 and 7).
 
-- [x] Route hijacks (Cloudflare Radar, confidence 8+ of 10) and route leaks involving networks registered in watch-region countries (not the US), read hourly; records, leaks under 100 blocks routine — v0.70.0
-- [x] DDoS: daily network-layer attack traffic aimed at each watch-region country, 28 days, the last day scored against the earlier median; records for surges (3× and 3+ spreads) — v0.70.0
+- [x] Route hijacks (Cloudflare Radar, confidence 8+ of 10) and route leaks involving networks registered in watch-region countries (not the US), read hourly; notable only across a border between two watch-region countries (v0.70.1), leaks under 100 blocks routine — v0.70.0
+- [x] DDoS: daily network-layer attack traffic aimed at each watch-region country, 28 days; a surge is half the four-week peak or more (median rule replaced in v0.70.1: attacks are bursty) — v0.70.0
 - [x] CYBER page panels (C6 routing, C7 DDoS with 28-day lines); experimental indicators per region: route hijack, DDoS surge (catalog v23) — v0.70.0
 - [ ] Add hijacks and DDoS surges to the cyber meter once they have history
 - [ ] Application-layer (layer 7) attacks, once Cloudflare documents whether its location filter is the target or the origin

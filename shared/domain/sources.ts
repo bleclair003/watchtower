@@ -1427,10 +1427,10 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     expectedUpdateFrequency: 'Read hourly (last 2 days of events)',
     pollIntervalMinutes: 60,
     reliabilityNotes:
-      'Detections are automated from public routing data. A hijack can be an attack or a misconfiguration; leaks are usually mistakes, and leaks under 100 address blocks are marked routine. Countries are where the networks are registered, not where their users are.',
+      'Detections are automated from public routing data. A hijack can be an attack or a misconfiguration; most are between networks in one country. Only hijacks across a border between two watch-region countries are notable; leaks under 100 address blocks are routine. Countries are where the networks are registered, not where their users are.',
     termsNotes: 'CC BY-NC 4.0: personal, non-commercial use; attribute Cloudflare Radar.',
     priority: 'P2',
-    feasibility: { checkedAt: '2026-11-23T23:00:00Z', result: 'reachable', note: 'Endpoints and fields from the Cloudflare API reference (GET /radar/bgp/hijacks/events, /radar/bgp/leaks/events). Untested with the token until the first collection run.' },
+    feasibility: { checkedAt: '2026-11-23T23:00:00Z', result: 'reachable', note: 'Endpoints and fields from the Cloudflare API reference (GET /radar/bgp/hijacks/events, /radar/bgp/leaks/events). First live read 2026-11-23: 973 events in 7 days, 100+ high-confidence hijacks involving watch-region networks, mostly within one country.' },
   },
   {
     id: 'cloudflare-radar-ddos',
@@ -1447,10 +1447,10 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     expectedUpdateFrequency: 'Once a day, after the UTC day ends (one request per country)',
     pollIntervalMinutes: 1440,
     reliabilityNotes:
-      'Only attacks on networks Cloudflare protects are seen, so this is a sample, not a national total. Values are relative within each country (Cloudflare normalises them), so countries are not compared with each other. A record needs 3+ typical spreads above the median of the previous days and 3× that median.',
+      'Only attacks on networks Cloudflare protects are seen, so this is a sample, not a national total. Values are relative within each country (Cloudflare normalises them), so countries are not compared with each other. Attacks are bursty, so a day is measured against the biggest day of the four weeks; a surge is half that peak or more.',
     termsNotes: 'CC BY-NC 4.0: personal, non-commercial use; attribute Cloudflare Radar.',
     priority: 'P2',
-    feasibility: { checkedAt: '2026-11-23T23:00:00Z', result: 'reachable', note: 'Endpoint and parameters (location, direction=TARGET, dateRange, aggInterval) from the Cloudflare API reference. Untested with the token until the first collection run.' },
+    feasibility: { checkedAt: '2026-11-23T23:00:00Z', result: 'reachable', note: 'Endpoint and parameters (location, direction=TARGET, dateRange, aggInterval) from the Cloudflare API reference. First live read 2026-11-23: all 33 countries answered, values scaled 0-1 per country, most days near 0.' },
   },
   // ------------------------------------------------------------ v0.69.0 ---
   {

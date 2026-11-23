@@ -29,6 +29,8 @@ afterEach(() => {
   delete process.env.CLOUDFLARE_RADAR_TOKEN;
 });
 
+const urlsBefore = (u: string[]) => u.length;
+
 describe('routing events', () => {
   it('parses hijacks and leaks with network names from asn_info', () => {
     const [h] = parseHijacks({ asn_info: asnInfo, events: [hijack(1, 64512, 'RU', [64513], ['UA'])] });
@@ -47,7 +49,7 @@ describe('routing events', () => {
       urls.push(u);
       headers.push(h ?? {});
       if (u.includes('/hijacks/')) {
-        return ok({ success: true, result: { asn_info: asnInfo, events: [hijack(1, 64512, 'RU', [64513], ['UA']), hijack(2, 64514, 'DE', [64515], ['FR'])] }, result_info: { total_count: 2 } });
+        return ok({ success: true, result: { asn_info: asnInfo, events: [hijack(1, 64512, 'RU', [64513], ['UA']), hijack(2, 64514, 'DE', [64515], ['FR']), hijack(3, 64513, 'UA', [64513], ['UA'])] }, result_info: { total_count: 3 } });
       }
       return ok({
         success: true,
@@ -65,9 +67,12 @@ describe('routing events', () => {
     expect(urls[0]).toContain('/radar/bgp/hijacks/events?dateRange=7d&minConfidence=8');
     expect(urls[0]).toContain('&page=1&per_page=100');
     expect(headers[0]).toEqual({ Authorization: 'Bearer test-token' });
-    expect(r.state.hijacks.map((h) => h.id)).toEqual([1]);
+    expect(r.state.hijacks.map((h) => h.id).sort()).toEqual([1, 3]);
+    // Cross-border between watch-region countries is notable; within one country is routine.
+    expect(r.events.find((e) => e.metadata?.radarId === 1)?.metadata?.routine).toBe(false);
+    expect(r.events.find((e) => e.metadata?.radarId === 3)?.metadata?.routine).toBe(true);
     expect(r.state.leaks.map((l) => l.id)).toEqual([7]);
-    const hj = r.events.find((e) => e.metadata?.subtype === 'bgp-hijack')!;
+    const hj = r.events.find((e) => e.metadata?.radarId === 1)!;
     expect(hj.title).toBe('Route hijack: AS64512 Test Transit (RU) announced 1 address block of AS64513 Test Telecom (UA)');
     expect(hj).toMatchObject({ countryCodes: ['RU', 'UA'], regionIds: ['eastern-europe'], category: 'cyber', sourceUrl: 'https://radar.cloudflare.com/as64512' });
     expect(validateEvent(hj, NOW)).toBeNull();
@@ -77,6 +82,12 @@ describe('routing events', () => {
     expect(validateEvent(lk, NOW)).toBeNull();
     const again = await radarBgp.collect({ now: NOW + 10 * 60_000, state: r.state, fetch });
     expect(again.notModified).toBe(true);
+    // State from the first version (no recordsVersion) re-reads 7 days at once to rewrite its records.
+    const { recordsVersion: _v, ...legacy } = r.state;
+    const n = urlsBefore(urls);
+    const redo = await radarBgp.collect({ now: NOW + 10 * 60_000, state: legacy, fetch });
+    expect(redo.notModified).toBe(false);
+    expect(urls[n]).toContain('dateRange=7d');
   });
 
   it('follows pages and drops events older than 7 days from the kept list', async () => {
@@ -88,11 +99,11 @@ describe('routing events', () => {
       if (u.includes('/hijacks/')) return ok({ success: true, result: { asn_info: asnInfo, events: [hijack(999, 64512, 'RU', [64513], ['UA'])] }, result_info: { total_count: 101 } });
       return ok({ success: true, result: { events: [] }, result_info: { total_count: 0 } });
     };
-    const old: BgpState = { hijacks: [{ ...parseHijacks({ events: [hijack(5, 64512, 'RU', [], [])] })[0], from: '2026-11-10T00:00:00.000Z' }], leaks: [], fetchedAt: '2026-11-24T04:00:00.000Z', firstRunAt: '2026-11-20T00:00:00.000Z' };
+    const old: BgpState = { hijacks: [{ ...parseHijacks({ events: [hijack(5, 64512, 'RU', [], [])] })[0], from: '2026-11-10T00:00:00.000Z' }], leaks: [], fetchedAt: '2026-11-24T04:00:00.000Z', firstRunAt: '2026-11-20T00:00:00.000Z', recordsVersion: 2 };
     const r = await radarBgp.collect({ now: NOW, state: old, fetch });
     expect(urls.filter((u) => u.includes('/hijacks/'))).toHaveLength(2);
     expect(urls[0]).toContain('dateRange=2d');
-    expect(r.state.hijacks).toHaveLength(100);
+    expect(r.state.hijacks).toHaveLength(101);
     expect(r.state.hijacks.some((h) => h.id === 5)).toBe(false);
   });
 
@@ -120,9 +131,10 @@ describe('DDoS levels', () => {
     expect(days).toHaveLength(28);
     expect(days.at(-1)).toBe('2026-11-23');
     const c = scoreDdos('IL', days, values)!;
-    expect(c).toMatchObject({ country: 'IL', day: '2026-11-23', latest: 0.9 });
-    expect(c.ratio).toBeGreaterThan(4);
-    expect(c.score).toBeGreaterThan(3);
+    expect(c).toMatchObject({ country: 'IL', day: '2026-11-23', latest: 0.9, peakShare: 1, peakDay: '2026-11-23' });
+    // Spiky series: a quiet day is a small share of the peak, whatever the median.
+    const quiet = scoreDdos('UA', ['a', 'b', 'c', 'd'], [0, 1, 0, 0.1])!;
+    expect(quiet).toMatchObject({ peakShare: 0.1, peakDay: 'b', activeDays: 2 });
     expect(scoreDdos('IL', [], [])).toBeNull();
   });
 
@@ -132,18 +144,30 @@ describe('DDoS levels', () => {
       urls.push(u);
       if (u.includes('location=IL&')) return ok({ success: true, result: series(0.9) });
       if (u.includes('location=KP&')) return ok({ success: false, errors: [{ message: 'no data' }] });
-      return ok({ success: true, result: series(0.21) });
+      return ok({ success: true, result: series(0.05) });
     };
     const r = await radarDdos.collect({ now: NOW, state: null, fetch });
     expect(urls[0]).toMatch(/\/radar\/attacks\/layer3\/timeseries\?location=[A-Z]{2}&direction=TARGET&dateRange=29d&aggInterval=1d&format=JSON/);
     expect(r.events.map((e) => e.countryCodes[0])).toEqual(['IL']);
     const ev = r.events[0];
-    expect(ev.title).toMatch(/^DDoS surge: network-layer attacks on targets in IL at [0-9.]+× the usual level on 2026-11-23$/);
+    expect(ev.title).toBe('DDoS surge: biggest day of attacks on targets in IL in 28 days (2026-11-23)');
+    expect(ev.metadata).toMatchObject({ routine: false, peakShare: 1 });
     expect(ev.regionIds).toEqual(['middle-east']);
     expect(validateEvent(ev, NOW)).toBeNull();
     expect(r.state.noData).toContain('KP');
     expect(r.state.day).toBe('2026-11-23');
     const later = await radarDdos.collect({ now: NOW + 3 * 3_600_000, state: r.state as DdosState, fetch });
     expect(later.notModified).toBe(true);
+  });
+
+  it('re-reads once to rewrite records the first version made under its median rule', async () => {
+    const fetch = async (u: string) => ok({ success: true, result: series(u.includes('location=IL&') ? 0.9 : 0.05) });
+    const legacy = { fetchedAt: '2026-11-24T01:00:00.000Z', day: '2026-11-23', noData: [], countries: [{ country: 'KR', day: '2026-11-23', score: 77, ratio: 115 }] } as unknown as DdosState;
+    const r = await radarDdos.collect({ now: NOW, state: legacy, fetch });
+    expect(r.notModified).toBe(false);
+    const kr = r.events.find((e) => e.countryCodes[0] === 'KR')!;
+    expect(kr.metadata).toMatchObject({ routine: true, revisionKey: 'v2:true' });
+    expect(r.events.find((e) => e.countryCodes[0] === 'IL')?.metadata?.routine).toBe(false);
+    expect(r.state.recordsVersion).toBe(2);
   });
 });

@@ -1,10 +1,12 @@
 import type { IntelligenceEvent } from '../../shared/domain/types.ts';
 import { regionsForCountry } from '../../shared/domain/regions.ts';
-import { compare, median, VERY_UNUSUAL } from '../../shared/domain/anomaly.ts';
 import {
   BGP_SOURCE_ID,
+  DDOS_ACTIVE_SHARE,
   DDOS_DAYS,
   DDOS_SOURCE_ID,
+  ddosSurge,
+  hijackNotable,
   HIJACK_MIN_CONFIDENCE,
   LEAK_NOTABLE_PREFIXES,
   NET_WATCH_COUNTRIES,
@@ -28,8 +30,11 @@ const KEEP_MS = 7 * 86_400_000;
 const PAGE = 100;
 const MAX_PAGES = 5;
 export const BGP_EVERY_MS = 55 * 60_000;
-/** A DDoS surge is recorded at this score or more and at least this many times the usual level. */
-export const DDOS_MIN_RATIO = 3;
+/**
+ * v0.70.0 first runs recorded every hijack, leak and a median-based DDoS rule. State from before this
+ * version re-reads its first window once and rewrites those records (revisable) with the rules below.
+ */
+export const NET_RECORDS_VERSION = 2;
 
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : typeof v === 'string' && v.trim() !== '' && Number.isFinite(Number(v)) ? Number(v) : null);
 const iso2 = (v: unknown): string | null => (typeof v === 'string' && /^[A-Za-z]{2}$/.test(v) ? v.toUpperCase() : null);
@@ -56,6 +61,7 @@ export interface BgpState {
   leaks: BgpLeak[];
   fetchedAt: string;
   firstRunAt: string;
+  recordsVersion?: number;
 }
 
 function asnIndex(result: Record<string, unknown>): Map<number, { org: string | null; country: string | null }> {
@@ -147,7 +153,8 @@ export function hijackRecord(h: BgpHijack, nowIso: string): IntelligenceEvent {
     summary: truncate(
       `Cloudflare Radar detected a route hijack (confidence ${h.confidence} of 10): ${asnLabel(h.hijacker)} announced ${h.prefixes.slice(0, 4).join(', ')}${h.prefixCount > 4 ? ' and more' : ''}, ` +
         `which belong to ${victims}${h.victimCountries.length ? ` (${h.victimCountries.join(', ')})` : ''}. Seen from ${h.from}${h.to ? ` to ${h.to}` : ''}. ` +
-        'Traffic for those addresses could be diverted, intercepted or dropped. Hijacks are also caused by misconfiguration; the detection does not say which.',
+        'Traffic for those addresses could be diverted, intercepted or dropped. Hijacks are also caused by misconfiguration; the detection does not say which.' +
+        (hijackNotable(h) ? '' : ' Routine: both networks are in one country, or one side is outside the watch regions.'),
       LIMITS.summary,
     ),
     category: 'cyber',
@@ -159,7 +166,10 @@ export function hijackRecord(h: BgpHijack, nowIso: string): IntelligenceEvent {
     credibility: 'single-source',
     verificationStatus: 'unreviewed',
     locationPrecision: cs.length ? 'country' : 'none',
-    metadata: { subtype: 'bgp-hijack', radarId: h.id, confidence: h.confidence, hijackerAsn: h.hijacker.asn, victimAsns: h.victims.map((v) => v.asn), geoBasis: 'source-country (network registration)', licence: LICENCE },
+    metadata: {
+      subtype: 'bgp-hijack', radarId: h.id, confidence: h.confidence, hijackerAsn: h.hijacker.asn, victimAsns: h.victims.map((v) => v.asn),
+      routine: !hijackNotable(h), revisionKey: `v${NET_RECORDS_VERSION}:${hijackNotable(h)}`, geoBasis: 'source-country (network registration)', licence: LICENCE,
+    },
   };
 }
 
@@ -189,7 +199,10 @@ export function leakRecord(l: BgpLeak, nowIso: string): IntelligenceEvent {
     credibility: 'single-source',
     verificationStatus: 'unreviewed',
     locationPrecision: cs.length ? 'country' : 'none',
-    metadata: { subtype: 'bgp-leak', radarId: l.id, prefixes: l.prefixCount, routine: l.prefixCount < LEAK_NOTABLE_PREFIXES, geoBasis: 'source-country (network registration)', licence: LICENCE },
+    metadata: {
+      subtype: 'bgp-leak', radarId: l.id, prefixes: l.prefixCount, routine: l.prefixCount < LEAK_NOTABLE_PREFIXES,
+      revisionKey: `v${NET_RECORDS_VERSION}:${l.prefixCount >= LEAK_NOTABLE_PREFIXES}`, geoBasis: 'source-country (network registration)', licence: LICENCE,
+    },
   };
 }
 
@@ -208,19 +221,21 @@ async function pages(ctx: AdapterContext<unknown>, path: string, auth: string): 
 export const radarBgp: SourceAdapter<BgpState> = {
   sourceId: BGP_SOURCE_ID,
   requiredEnv: [RADAR_TOKEN_ENV],
+  revisable: true,
   async collect(ctx) {
     const prev = ctx.state;
-    if (prev && ctx.now - Date.parse(prev.fetchedAt) < BGP_EVERY_MS) return { events: [], rejected: [], itemsSeen: 0, notModified: true, state: prev };
+    const current = prev?.recordsVersion === NET_RECORDS_VERSION;
+    if (prev && current && ctx.now - Date.parse(prev.fetchedAt) < BGP_EVERY_MS) return { events: [], rejected: [], itemsSeen: 0, notModified: true, state: prev };
     const auth = token();
     const nowIso = new Date(ctx.now).toISOString();
-    const range = prev ? '2d' : '7d';
+    const range = prev && current ? '2d' : '7d';
     const hj = (await pages(ctx as AdapterContext<unknown>, `/bgp/hijacks/events?dateRange=${range}&minConfidence=${HIJACK_MIN_CONFIDENCE}&sortBy=TIME&sortOrder=DESC&format=JSON`, auth)).flatMap(parseHijacks);
     const lk = (await pages(ctx as AdapterContext<unknown>, `/bgp/leaks/events?dateRange=${range}&sortBy=TIME&sortOrder=DESC&format=JSON`, auth)).flatMap(parseLeaks);
     const hijacks = hj.filter((h) => involvesWatch(hijackCountries(h)));
     const leaks = lk.filter((l) => involvesWatch(leakCountries(l)));
     const keep = <T extends { id: number }>(now: T[], before: T[], at: (x: T) => string) => {
       const ids = new Set(now.map((x) => x.id));
-      return [...now, ...before.filter((x) => !ids.has(x.id))].filter((x) => ctx.now - Date.parse(at(x)) <= KEEP_MS).sort((a, b) => at(b).localeCompare(at(a))).slice(0, 100);
+      return [...now, ...before.filter((x) => !ids.has(x.id))].filter((x) => ctx.now - Date.parse(at(x)) <= KEEP_MS).sort((a, b) => at(b).localeCompare(at(a))).slice(0, 150);
     };
     const events = [...hijacks.map((h) => hijackRecord(h, nowIso)), ...leaks.map((l) => leakRecord(l, nowIso))];
     return {
@@ -233,6 +248,7 @@ export const radarBgp: SourceAdapter<BgpState> = {
         leaks: keep(leaks, prev?.leaks ?? [], (l) => l.at),
         fetchedAt: nowIso,
         firstRunAt: prev?.firstRunAt ?? nowIso,
+        recordsVersion: NET_RECORDS_VERSION,
       },
     };
   },
@@ -246,6 +262,7 @@ export interface DdosState {
   day: string;
   countries: DdosCountry[];
   noData: string[];
+  recordsVersion?: number;
 }
 
 /** Daily series from a Radar timeseries result: serie_0 (or the first serie_*), without today's partial day. */
@@ -269,28 +286,25 @@ export function parseDaily(result: Record<string, unknown>, now: number): { days
 
 export function scoreDdos(country: string, days: string[], values: number[]): DdosCountry | null {
   if (!values.length) return null;
+  const r3 = (x: number) => Math.round(x * 1000) / 1000;
+  const max = Math.max(...values);
+  const peakAt = values.indexOf(max);
   const latest = values[values.length - 1];
-  // Cloudflare's values are scaled 0–1; the anomaly floor assumes larger numbers, so score them with
-  // the earlier days' median as 100 (the score and ratio do not depend on the scale).
-  const earlier = values.slice(0, -1);
-  const med = median(earlier.filter((v) => v > 0));
-  const k = Number.isFinite(med) && med > 0 ? 100 / med : 1;
-  const raw = compare(latest * k, earlier.map((v) => v * k), { kind: 'measure' });
-  const a = { ...raw, centre: raw.centre == null ? null : raw.centre / k };
-  const r2 = (x: number) => Math.round(x * 1000) / 1000;
   return {
     country,
-    values: values.map(r2),
+    values: values.map(r3),
     day: days[days.length - 1],
-    latest: r2(latest),
-    centre: a.centre == null ? null : r2(a.centre),
-    score: a.score,
-    ratio: a.centre && a.centre > 0 ? Math.round((latest / a.centre) * 10) / 10 : null,
+    latest: r3(latest),
+    peakShare: max > 0 ? r3(latest / max) : 0,
+    peakDay: days[peakAt],
+    activeDays: max > 0 ? values.filter((v) => v >= DDOS_ACTIVE_SHARE * max).length : 0,
   };
 }
 
-export function ddosRecord(c: DdosCountry, nowIso: string): IntelligenceEvent {
+export function ddosRecord(c: DdosCountry, nowIso: string, routine = false): IntelligenceEvent {
   const key = contentHash(DDOS_SOURCE_ID, c.country, c.day);
+  const pct = Math.round(c.peakShare * 100);
+  const isPeak = c.peakDay === c.day;
   return {
     id: key,
     contentHash: key,
@@ -299,10 +313,16 @@ export function ddosRecord(c: DdosCountry, nowIso: string): IntelligenceEvent {
     sourceName: 'Cloudflare Radar — DDoS attacks',
     sourceClass: 'scientific',
     sourceUrl: `https://radar.cloudflare.com/${c.country.toLowerCase()}`,
-    title: truncate(`DDoS surge: network-layer attacks on targets in ${c.country} at ${c.ratio}× the usual level on ${c.day}`, LIMITS.title),
+    title: truncate(
+      isPeak
+        ? `DDoS surge: biggest day of attacks on targets in ${c.country} in ${c.values.length} days (${c.day})`
+        : `DDoS surge: attacks on targets in ${c.country} on ${c.day} reached ${pct}% of the biggest day in ${c.values.length} days`,
+      LIMITS.title,
+    ),
     summary: truncate(
-      `Attack traffic that Cloudflare's network saw aimed at targets in ${c.country} on ${c.day} was ${c.ratio}× the median of the previous ${c.values.length - 1} days (${c.score} typical spreads above normal). ` +
-        'Cloudflare only sees attacks on networks it protects, so this is a sample of attacks on the country, not a total; it does not say who attacked.',
+      `Network-layer DDoS traffic that Cloudflare's network saw aimed at targets in ${c.country} on ${c.day} was ${isPeak ? 'the largest' : `${pct}% of the largest (${c.peakDay})`} of the last ${c.values.length} days; ` +
+        `${c.activeDays} of those days had attack traffic of 5% of the peak or more. Cloudflare only sees attacks on networks it protects and gives relative values, so this is a sample whose size is not known, and it does not say who attacked.` +
+        (routine ? ' Rewritten under the v0.70.0 rule: below half of the peak, so routine.' : ''),
       LIMITS.summary,
     ),
     category: 'cyber',
@@ -314,18 +334,31 @@ export function ddosRecord(c: DdosCountry, nowIso: string): IntelligenceEvent {
     credibility: 'single-source',
     verificationStatus: 'unreviewed',
     locationPrecision: 'country',
-    metadata: { subtype: 'ddos-surge', ratio: c.ratio, score: c.score, day: c.day, geoBasis: 'source-country (attack target)', licence: LICENCE },
+    metadata: {
+      subtype: 'ddos-surge', peakShare: c.peakShare, peakDay: c.peakDay, activeDays: c.activeDays, day: c.day, routine,
+      revisionKey: `v${NET_RECORDS_VERSION}:${routine}`, geoBasis: 'source-country (attack target)', licence: LICENCE,
+    },
   };
 }
 
 export const radarDdos: SourceAdapter<DdosState> = {
   sourceId: DDOS_SOURCE_ID,
   requiredEnv: [RADAR_TOKEN_ENV],
+  revisable: true,
   async collect(ctx) {
     const prev = ctx.state;
+    const current = prev?.recordsVersion === NET_RECORDS_VERSION;
     const yesterday = new Date(ctx.now - 86_400_000).toISOString().slice(0, 10);
     // Daily values: once yesterday is complete and read, nothing changes until tomorrow.
-    if (prev && prev.day >= yesterday) return { events: [], rejected: [], itemsSeen: 0, notModified: true, state: prev };
+    if (prev && current && prev.day >= yesterday) return { events: [], rejected: [], itemsSeen: 0, notModified: true, state: prev };
+    // Records the first version made under its median rule, to rewrite (country → day).
+    const legacy = new Map(
+      current || !prev
+        ? []
+        : (prev.countries as unknown as { country: string; day: string; score?: number | null; ratio?: number | null }[])
+            .filter((c) => (c.score ?? 0) >= 3 && (c.ratio ?? 0) >= 3)
+            .map((c) => [c.country, c.day] as const),
+    );
     const auth = token();
     const nowIso = new Date(ctx.now).toISOString();
     const countries: DdosCountry[] = [];
@@ -347,9 +380,12 @@ export const radarDdos: SourceAdapter<DdosState> = {
     }
     if (failures === NET_WATCH_COUNTRIES.length) throw new Error(`No country could be read: ${truncate(lastError, 200)}`);
     const day = countries.reduce((d, c) => (c.day > d ? c.day : d), '');
-    const events = countries
-      .filter((c) => c.day === day && c.score != null && c.score >= VERY_UNUSUAL && (c.ratio ?? 0) >= DDOS_MIN_RATIO)
-      .map((c) => ddosRecord(c, nowIso));
-    return { events, rejected: [], itemsSeen: countries.length, notModified: false, state: { fetchedAt: nowIso, day: day || yesterday, countries, noData } };
+    const events = countries.flatMap((c) => {
+      if (c.day === day && ddosSurge(c)) return [ddosRecord(c, nowIso)];
+      // A record the first version made for this country and day that no longer qualifies: rewrite as routine.
+      if (legacy.get(c.country) === c.day) return [ddosRecord(c, nowIso, true)];
+      return [];
+    });
+    return { events, rejected: [], itemsSeen: countries.length, notModified: false, state: { fetchedAt: nowIso, day: day || yesterday, countries, noData, recordsVersion: NET_RECORDS_VERSION } };
   },
 };

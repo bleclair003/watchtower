@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.70.1] — 2026-11-23 — Routing and DDoS rules fixed after the first live read
+
+### Fixed
+- **Route hijacks.** The first live read found over 100 high-confidence hijacks in a week. Most were between neighbouring networks in one country (Ukrainian ISP to Ukrainian ISP), usually misconfiguration.
+  - Only hijacks across a border between two watch-region countries are now notable (for example a Russian network announcing Ukrainian addresses). The rest are routine: hidden from the feed by default, shown on the CYBER page with "show routine".
+  - Leaks under 100 address blocks stay routine.
+  - The region indicators count notable hijacks only.
+- **DDoS.** Attack traffic is spiky: most days are near zero, with a few large days. Comparing a day with the median gave ratios in the thousands (3,113× for the UAE).
+  - A day is now measured against the biggest day of the four weeks, and a surge is half that peak or more.
+  - The panel shows the share of the peak, the peak day, and how many days had attack traffic.
+- **The first run's records were rewritten, not deleted.** Its 265 routing records and 4 DDoS records were re-read once and rewritten under these rules (routine where they no longer qualify).
+
 ## [0.70.0] — 2026-11-23 — Routing and DDoS (Phase 33)
 
 ### Added
