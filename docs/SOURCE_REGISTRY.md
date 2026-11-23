@@ -355,3 +355,10 @@ Links only, as in Phase 28. Both sources make no records; they are stored in the
 |---|---|---|
 | adsb.lol circle queries (`api.adsb.lol/v2/point/{lat}/{lon}/250`; adsb.fi `opendata.adsb.fi/api/v2/lat/{lat}/lon/{lon}/dist/250` per circle when adsb.lol fails) | aggregator, ODbL (adsb.fi: personal, non-commercial) | Ten circles once an hour. No aircraft list is stored: only counts per 1° square and hour for 48 hours (sightings, degraded NACp below 8, GPS lost), and for 24 hours the last good position, time and callsign of aircraft flagged as having lost GPS. About 240 requests a day against adsb.lol's 500 a day per address |
 
+### v0.70.0 — Routing and DDoS (Cloudflare Radar, same token)
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| Cloudflare Radar route hijacks (`/radar/bgp/hijacks/events`, minConfidence 8) and leaks (`/radar/bgp/leaks/events`) | scientific, CC BY-NC 4.0 | Read hourly, last 2 days, up to 5 pages of 100. Events involving networks registered in watch-region countries (not the US), 7 days: networks (AS number, name, country), prefixes (up to 10), times, confidence. A record per event; leaks under 100 blocks are routine |
+| Cloudflare Radar layer-3 attacks (`/radar/attacks/layer3/timeseries`, `location`, `direction=TARGET`, `aggInterval=1d`) | scientific, CC BY-NC 4.0 | Once a day, one request per watch-region country: 28 complete days as Cloudflare scales them, the last scored against the earlier median. A record for a surge (3× the median and 3+ typical spreads) |
+

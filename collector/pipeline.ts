@@ -50,6 +50,7 @@ import { NGA_SOURCE_ID, type NgaState } from './adapters/ngaMsi.ts';
 import { EMERGENCY_SOURCE_ID, type EmergencyState } from './adapters/adsbEmergencies.ts';
 import { UCDP_SOURCE_ID, type UcdpState } from './adapters/ucdp.ts';
 import { GNSS_SOURCE_ID, type GnssState } from './adapters/gnssInterference.ts';
+import { BGP_SOURCE_ID, DDOS_SOURCE_ID, type BgpState, type DdosState } from './adapters/radarNet.ts';
 import { RADIO_RECEIVERS_SOURCE_ID, type RadioReceiversState } from './adapters/radioReceivers.ts';
 import { SHORTWAVE_SOURCE_ID, type ShortwaveState } from './adapters/shortwaveSchedule.ts';
 import { LOCAL_RADIO_SOURCE_ID, type LocalRadioState } from './adapters/localRadio.ts';
@@ -439,6 +440,25 @@ export async function runCollection(
     if (gnss?.latest && gen - Date.parse(gnss.latest.fetchedAt) < 3 * 3_600_000) snapshot.gnss = gnss.latest;
   } catch (err) {
     log(`P25  warnings, emergencies or conflict events not added to the snapshot: ${sanitizeError(err)}`);
+  }
+  // v0.70.0: route hijacks and leaks (last 7 days) and DDoS levels (last daily read, under 3 days old).
+  try {
+    const [bgp, ddos] = await Promise.all([
+      tracked.includes(BGP_SOURCE_ID) ? store.getSourceState<BgpState>(BGP_SOURCE_ID) : null,
+      tracked.includes(DDOS_SOURCE_ID) ? store.getSourceState<DdosState>(DDOS_SOURCE_ID) : null,
+    ]);
+    const gen = Date.parse(snapshot.generatedAt);
+    const ddosFresh = ddos && gen - Date.parse(ddos.fetchedAt) < 3 * 86_400_000 ? ddos : null;
+    if (bgp || ddosFresh) {
+      snapshot.netAttacks = {
+        fetchedAt: bgp?.fetchedAt ?? null,
+        hijacks: bgp?.hijacks ?? [],
+        leaks: bgp?.leaks ?? [],
+        ddos: ddosFresh ? { fetchedAt: ddosFresh.fetchedAt, countries: ddosFresh.countries, noData: ddosFresh.noData } : null,
+      };
+    }
+  } catch (err) {
+    log(`NET  routing or DDoS data not added to the snapshot: ${sanitizeError(err)}`);
   }
   // Phase 28: public shortwave receivers for "tune nearby" links (a week old at most).
   if (tracked.includes(RADIO_RECEIVERS_SOURCE_ID)) {

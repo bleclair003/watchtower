@@ -35,6 +35,7 @@ import { ooni } from './ooni.ts';
 import { ngaMsi } from './ngaMsi.ts';
 import { adsbEmergencies } from './adsbEmergencies.ts';
 import { gnssInterference } from './gnssInterference.ts';
+import { radarBgp, radarDdos } from './radarNet.ts';
 import { radioReceivers } from './radioReceivers.ts';
 import { shortwaveSchedule } from './shortwaveSchedule.ts';
 import { localRadio } from './localRadio.ts';
@@ -110,6 +111,8 @@ export const ADAPTERS: SourceAdapter<never>[] = [
   // Free-key sources: active only when their key is set.
   firms as SourceAdapter<never>,
   cloudflareRadarOutages as SourceAdapter<never>,
+  radarBgp as SourceAdapter<never>,
+  radarDdos as SourceAdapter<never>,
   congress as SourceAdapter<never>,
   // Last: it awaits the AIS window that listened while the sources above were collected.
   aisSanctionedShips as SourceAdapter<never>,

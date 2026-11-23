@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.70.0] — 2026-11-23 — Routing and DDoS (Phase 33)
+
+### Added
+- **Route hijacks and leaks (CYBER page, panel C6, and the feed).** Every hour the collector reads Cloudflare Radar's route-hijack detections with confidence 8 or more out of 10, and its route-leak detections. It keeps those involving networks registered in watch-region countries; the United States is left out because its routing changes so often.
+  - A hijack is a network announcing address blocks that belong to another, so their traffic can be diverted, intercepted or dropped.
+  - A leak passes on routes it should not; it is usually a mistake. Leaks under 100 blocks are marked routine.
+  - Each event becomes a record naming both networks and the address blocks.
+- **DDoS levels (panel C7).** Once a day, for each watch-region country, the collector reads the network-layer attack traffic that Cloudflare saw aimed at targets there over the last 28 days.
+  - Each country gets a 28-day line on its own scale.
+  - Yesterday is compared with that country's usual level. A surge (3× the median and 3+ typical spreads above it) becomes a record.
+- **Indicators per region** "route hijack" and "DDoS surge": experimental, weighted 0. Catalog v23.
+
+### Notes
+- These detections say what happened, not who did it. Hijacks are often misconfigurations.
+- Cloudflare only sees attacks on networks it protects, so the DDoS lines are a sample, not a national total. Countries are not compared with each other.
+- The endpoints follow Cloudflare's API reference. The first collection run with the token is the first live test.
+
 ## [0.69.0] — 2026-11-23 — GPS interference (Phase 32)
 
 ### Added

@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 22;
+export const CATALOG_VERSION = 23;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -889,6 +889,62 @@ const gnssIndicators: IndicatorDefinition[] = ADVISORY_REGIONS.filter((r) => GNS
   }),
 );
 
+const NET_RESEARCH = (what: string) => ({
+  hypothesis: `${what} against a region's networks accompanies political crises and military operations.`,
+  dataAvailability: 'Cloudflare Radar API since 2026-11-23.',
+  baselinePeriod: 'None yet.',
+  expectedRelationship: 'Rises around elections, protests, strikes and conflict escalation.',
+  historicalExamples: 'None in WATCHTOWER data yet.',
+  confounders: 'Misconfigurations (routing), Cloudflare customer mix and sampling (DDoS), large events unrelated to politics.',
+  falsePositives: 'Routing mistakes scored as hijacks; a single large attack on one commercial customer.',
+  retrospectiveResults: 'Insufficient history.',
+  evidenceQuality: 'none' as const,
+});
+
+/** v0.70.0: route hijacks and DDoS surges per region (experimental: no history yet). */
+const netIndicators: IndicatorDefinition[] = STATE_DEPT_REGIONS.flatMap((r): IndicatorDefinition[] => [
+  {
+    id: `${r.id}.bgp-hijack`,
+    name: `${r.shortCode} route hijack`,
+    description: `A high-confidence route hijack (Cloudflare Radar, 8+ of 10) involving a network registered in a ${r.name} country, within 72 hours. Three or more is triggered.`,
+    family: 'experimental',
+    regionId: r.id,
+    requiredSourceIds: ['cloudflare-radar-bgp'],
+    match: { all: [{ field: 'sourceId', op: 'eq', value: 'cloudflare-radar-bgp' }, { field: 'metadata.subtype', op: 'eq', value: 'bgp-hijack' }, { field: 'regionIds', op: 'contains', value: r.id }] },
+    windowHours: 72,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 3 },
+    baseline: null,
+    weight: 0,
+    severity: 'medium',
+    experimental: true,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'Hijacked routes divert or black-hole traffic; states have used them for censorship and interception. Many are mistakes, so it is weighted 0 until there is history.',
+    research: NET_RESEARCH('Route hijacking'),
+  },
+  {
+    id: `${r.id}.ddos-surge`,
+    name: `${r.shortCode} DDoS surge`,
+    description: `Network-layer DDoS traffic aimed at targets in a ${r.name} country was 3× its 4-week median and 3+ typical spreads above it on a day, within 72 hours. Two or more is triggered.`,
+    family: 'experimental',
+    regionId: r.id,
+    requiredSourceIds: ['cloudflare-radar-ddos'],
+    match: { all: [{ field: 'sourceId', op: 'eq', value: 'cloudflare-radar-ddos' }, { field: 'metadata.subtype', op: 'eq', value: 'ddos-surge' }, { field: 'regionIds', op: 'contains', value: r.id }] },
+    windowHours: 72,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 2 },
+    baseline: null,
+    weight: 0,
+    severity: 'medium',
+    experimental: true,
+    enabled: true,
+    configVersion: 1,
+    rationale: 'Hacktivist and state-linked DDoS campaigns cluster around political events. Cloudflare sees only its customers, so a surge is a signal, not a total.',
+    research: NET_RESEARCH('DDoS'),
+  },
+]);
+
 const UNSC = 'un-security-council';
 
 /** Phase 13 item 5: UN Security Council attention and failed drafts (not for the US region). */
@@ -1434,6 +1490,7 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...sanctionsIndicators,
   ...sanctionedShipIndicators,
   ...gnssIndicators,
+  ...netIndicators,
   ...unscIndicators,
   ...missileIndicators,
   ...embassyIndicators,

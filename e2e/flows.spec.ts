@@ -224,3 +224,12 @@ test('GPS interference layer: simulated squares, legend, and a card with nearby 
   await expect(page).toHaveURL(/layers=ga(&|$)/);
   expect(problems).toEqual([]);
 });
+
+test('CYBER page: simulated route hijack, large leak, and DDoS levels with a surge', async ({ page, problems }) => {
+  await page.goto('/cyber');
+  await expect(page.getByText(/AS64512 \[SIMULATED\] Example Transit \(RU\) announced 2 blocks/)).toBeVisible();
+  await expect(page.getByText(/leaked 340 blocks from 12 networks to 4 peers/)).toBeVisible();
+  await expect(page.getByText('SURGE 18.4')).toBeVisible();
+  await expect(page.getByText(/No data: KP, ER/)).toBeVisible();
+  expect(problems).toEqual([]);
+});

@@ -473,3 +473,13 @@ From the feature audit (category 5, items 1, 2 and 6; category 1 item 6 left ope
 - [ ] Tell landings from coverage loss (audit 1.6)
 - [ ] GPS interference in the SITREP and the unusual-readings meter once a baseline exists
 
+## Phase 33 — Routing and DDoS (2026-11-23)
+
+From the feature audit (category 7, items 2, 6 and 7).
+
+- [x] Route hijacks (Cloudflare Radar, confidence 8+ of 10) and route leaks involving networks registered in watch-region countries (not the US), read hourly; records, leaks under 100 blocks routine — v0.70.0
+- [x] DDoS: daily network-layer attack traffic aimed at each watch-region country, 28 days, the last day scored against the earlier median; records for surges (3× and 3+ spreads) — v0.70.0
+- [x] CYBER page panels (C6 routing, C7 DDoS with 28-day lines); experimental indicators per region: route hijack, DDoS surge (catalog v23) — v0.70.0
+- [ ] Add hijacks and DDoS surges to the cyber meter once they have history
+- [ ] Application-layer (layer 7) attacks, once Cloudflare documents whether its location filter is the target or the origin
+

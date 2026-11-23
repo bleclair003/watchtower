@@ -19,6 +19,7 @@ import type { CensorshipSnapshot } from './censorship.ts';
 import type { NavWarningSnapshot } from './navWarnings.ts';
 import type { EmergencySnapshot } from './aircraftEmergencies.ts';
 import type { GnssSnapshot } from './gnss.ts';
+import type { NetAttackSnapshot } from './netAttacks.ts';
 import type { RadioReceiversSnapshot } from './radio.ts';
 import type { ConflictSnapshot } from './conflictEvents.ts';
 import type { ActorsSnapshot } from './actors.ts';
@@ -106,6 +107,8 @@ export interface DashboardSnapshot {
   aircraftEmergencies?: EmergencySnapshot;
   /** GPS interference from aircraft position accuracy, last 24 hours (v0.69.0). */
   gnss?: GnssSnapshot;
+  /** Route hijacks and leaks involving watch-region countries, and DDoS levels per country (v0.70.0). */
+  netAttacks?: NetAttackSnapshot;
   /** Public shortwave receivers for radio links (Phase 28). */
   radioReceivers?: RadioReceiversSnapshot;
   /** UCDP conflict events, latest monthly release (Phase 25). */
@@ -171,6 +174,7 @@ export const LAYER_KEYS = [
   'navWarnings',
   'aircraftEmergencies',
   'gnss',
+  'netAttacks',
   'conflictEvents',
   'radioReceivers',
 ] as const satisfies readonly (keyof DashboardSnapshot)[];

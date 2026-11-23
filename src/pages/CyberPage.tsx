@@ -10,6 +10,7 @@ import { Panel } from '../components/ui/Panel';
 import { Tag } from '../components/ui/Tag';
 import { MeterCard } from '../components/meters/MeterCard';
 import { CensorshipPanel } from '../components/cyber/CensorshipPanel';
+import { DdosPanel, RoutingPanel } from '../components/cyber/NetAttackPanels';
 
 const NVD = (cve: string) => `https://nvd.nist.gov/vuln/detail/${encodeURIComponent(cve)}`;
 const pct = (p: number) => `${p >= 0.1 ? Math.round(p * 100) : (p * 100).toFixed(1)}%`;
@@ -98,7 +99,7 @@ function KevTable({ kev }: { kev: KevItem[] }) {
 
 /** CYBER: exploited vulnerabilities, CISA and national cyber agencies, internet disruptions, the cyber meter. */
 export default function CyberPage() {
-  const { cyber, meters, mode, censorship } = useData();
+  const { cyber, meters, mode, censorship, netAttacks } = useData();
   const now = useNow(60_000).getTime();
   const [showRoutine, setShowRoutine] = useState(false);
   useEffect(() => {
@@ -145,7 +146,7 @@ export default function CyberPage() {
           </div>
         )}
         <p className="border-t border-wt-line px-2 py-1 text-2xs text-wt-fg-dim">
-          Official sources: CISA (US), UK NCSC, Canadian Centre for Cyber Security, JPCERT/CC (Japan), CERT-UA (Ukraine), with FIRST EPSS scores, internet disruptions from Cloudflare Radar and IODA, and censorship measurements from OONI. Cyber records also appear in the feed under{' '}
+          Official sources: CISA (US), UK NCSC, Canadian Centre for Cyber Security, JPCERT/CC (Japan), CERT-UA (Ukraine), with FIRST EPSS scores, internet disruptions, route hijacks and leaks and DDoS levels from Cloudflare Radar, disruptions from IODA, and censorship measurements from OONI. Cyber records also appear in the feed under{' '}
           <Link to="/regions/global-cyber" className="text-wt-info underline">
             Global cybersecurity
           </Link>
@@ -184,6 +185,12 @@ export default function CyberPage() {
           </Panel>
         </div>
       </div>
+      {netAttacks && (
+        <div className="grid gap-1.5 xl:grid-cols-2">
+          <RoutingPanel data={netAttacks} now={now} />
+          <DdosPanel data={netAttacks} now={now} />
+        </div>
+      )}
       <CensorshipPanel data={censorship} now={now} />
     </div>
   );
