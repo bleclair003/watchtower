@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.66.0] — 2026-11-23 — Aircraft grouping and unusual hours (Phase 27, completed)
+
+### Added
+- **Groups.** Each check looks for 3 or more tankers, surveillance or command aircraft and bombers flying together (all above 10,000 ft, within 300 km of each other). It makes a record when no such group has been seen in that 3° square of the watch area in 30 days. The record names each aircraft and the spread, e.g. "3 strategic aircraft together — MIDEAST watch area: 1 tanker, 1 surveillance, 1 bomber". VIP transports are not counted.
+- **Unusual hours.** For every watch area, each check notes how many notable aircraft (tankers, surveillance, bombers, transports, command posts, VIP transports) are airborne in that UTC hour. A record is made when 2 or more are up in an hour that had none on all but one of the last 14 days, with at least 12 of those days checked.
+- Both feed each region's experimental "unusual aircraft movement" indicator (description updated, weight still 0), and SITREP lists them as "unusual grouping" and "unusual hour".
+
+### Notes
+- Both need history. Grouping has its own 14-day learning period from today, so it flags from about 2026-12-07; unusual hours needs 12 days of checks at each hour, so it starts flagging around 2026-12-05.
+- Over the US, transports are left out of the hour counts, as for the other aircraft records. Aircraft below 1,000 ft are not counted, so aircraft parked at a base with transponders on do not count as flights.
+- Likely false alarms: exercises, ferry flights (often in groups and at odd hours), and receiver coverage changing what can be seen.
+
 ## [0.65.0] — 2026-11-23 — Conflict-region radio (Phase 29)
 
 ### Added

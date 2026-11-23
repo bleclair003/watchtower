@@ -3,10 +3,12 @@
  * aircraft does something WATCHTOWER has not seen recently. See collector/adapters/aircraftPatterns.ts.
  */
 export const AIRCRAFT_PATTERN_SUBTYPE = 'aircraft-pattern';
-export type AircraftPattern = 'hold' | 'first-appearance';
+export type AircraftPattern = 'hold' | 'first-appearance' | 'group' | 'odd-hour';
 export const AIRCRAFT_PATTERN_LABEL: Record<AircraftPattern, string> = {
   hold: 'unusual hold',
   'first-appearance': 'first appearance',
+  group: 'unusual grouping',
+  'odd-hour': 'unusual hour',
 };
 /** "Not seen recently" means not in this many days. */
 export const PATTERN_NOVELTY_DAYS = 30;

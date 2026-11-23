@@ -21,7 +21,11 @@ import { LIMITS, truncate } from '../lib/text.ts';
  * Unusual aircraft movement (v0.63.0). Works from the 30-minute ADS-B snapshots:
  *  - hold: a tanker, surveillance/command aircraft or bomber stays within HOLD_RADIUS_KM for at least
  *    HOLD_MIN_MINUTES at altitude, in a 1° grid square where that class has not held for 30 days;
- *  - first appearance: an aircraft type seen in a watch area for the first time in 30 days.
+ *  - first appearance: an aircraft type seen in a watch area for the first time in 30 days;
+ *  - group (v0.66.0): GROUP_MIN_SIZE or more tankers, surveillance/command aircraft or bombers at altitude
+ *    within GROUP_RADIUS_KM of each other, in a 3° square of a watch area with no such group for 30 days;
+ *  - odd hour (v0.66.0): ODD_HOUR_MIN_AIRCRAFT or more notable aircraft in a watch area in a UTC hour that
+ *    had none on all but ODD_HOUR_MAX_BUSY_DAYS of the last 14 days (at least ODD_HOUR_MIN_DAYS checked).
  * Memory is kept in the source state. Nothing is flagged until the memory is PATTERN_LEARNING_DAYS old,
  * because before that every hold and type would look new.
  */
@@ -36,6 +40,17 @@ const TRACK_KEEP_MINUTES = 4 * 60;
 /** Memory entries older than this are dropped. */
 const MEMORY_KEEP_DAYS = 60;
 const HOLD_CLASSES: AircraftClass[] = ['tanker', 'isr', 'bomber'];
+export const GROUP_RADIUS_KM = 300;
+export const GROUP_MIN_SIZE = 3;
+const GROUP_CELL_DEG = 3;
+export const ODD_HOUR_MIN_AIRCRAFT = 2;
+export const ODD_HOUR_LOOKBACK_DAYS = 14;
+/** Days of the lookback that must have been checked at this hour. */
+export const ODD_HOUR_MIN_DAYS = 12;
+/** "Usually empty": notable aircraft at this hour on at most this many of those days. */
+export const ODD_HOUR_MAX_BUSY_DAYS = 1;
+/** Below this altitude an aircraft may be on the ground at a base: not counted for hours. */
+const AIRBORNE_FT = 1_000;
 /** Airlift over the US is constant, as in the sighting records. */
 const SKIP_CLASSES_BY_REGION: Record<string, string[]> = { 'united-states': ['airlift'] };
 
@@ -51,6 +66,12 @@ export interface PatternMemory {
   holds: Record<string, MemoryEntry>;
   /** "region|type" → last day seen; flagged and before as for holds. */
   types: Record<string, MemoryEntry>;
+  /** v0.66.0: "region|lat|lon" (3° square) → last day a group was there. Absent in older memory. */
+  groups?: Record<string, MemoryEntry>;
+  /** When group memory started (it learns on its own 14 days). */
+  groupsSince?: string;
+  /** v0.66.0: region → "YYYYMMDDHH:count;…", the most notable aircraft airborne in the area at once in each UTC hour checked. */
+  hours?: Record<string, string>;
 }
 
 interface MemoryEntry {
@@ -70,7 +91,34 @@ export function unpackTrack(s: string | undefined): TrackPoint[] {
   });
 }
 
-export const emptyMemory = (nowIso: string): PatternMemory => ({ since: nowIso, tracks: {}, holds: {}, types: {} });
+export const emptyMemory = (nowIso: string): PatternMemory => ({ since: nowIso, tracks: {}, holds: {}, types: {}, groups: {}, groupsSince: nowIso, hours: {} });
+
+export function unpackHours(s: string | undefined): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const part of (s ?? '').split(';')) {
+    const [k, v] = part.split(':');
+    if (/^\d{10}$/.test(k ?? '') && Number.isFinite(Number(v))) out.set(k, Number(v));
+  }
+  return out;
+}
+const packHours = (m: Map<string, number>) => [...m].map(([k, v]) => `${k}:${v}`).join(';');
+export const hourKey = (ms: number) => new Date(ms).toISOString().slice(0, 13).replace(/[-T]/g, '');
+
+/** Greedy clusters: the aircraft with most neighbours within the radius, with those neighbours, repeatedly. */
+export function findGroups<T extends { la: number; lo: number }>(items: T[], radiusKm = GROUP_RADIUS_KM, minSize = GROUP_MIN_SIZE): T[][] {
+  let left = [...items];
+  const groups: T[][] = [];
+  for (;;) {
+    let best: T[] = [];
+    for (const a of left) {
+      const near = left.filter((b) => distanceKm(a.la, a.lo, b.la, b.lo) <= radiusKm);
+      if (near.length > best.length) best = near;
+    }
+    if (best.length < minSize) return groups;
+    groups.push(best);
+    left = left.filter((x) => !best.includes(x));
+  }
+}
 
 export function distanceKm(aLat: number, aLon: number, bLat: number, bLon: number): number {
   const r = Math.PI / 180;
@@ -191,7 +239,15 @@ export function detectPatterns(
   const today = dayOf(nowMs);
   const minute = Math.round(nowMs / MIN);
   const mem: PatternMemory = prev
-    ? { since: prev.since, tracks: { ...prev.tracks }, holds: { ...prev.holds }, types: { ...prev.types } }
+    ? {
+        since: prev.since,
+        tracks: { ...prev.tracks },
+        holds: { ...prev.holds },
+        types: { ...prev.types },
+        groups: { ...(prev.groups ?? {}) },
+        groupsSince: prev.groupsSince ?? nowIso,
+        hours: { ...(prev.hours ?? {}) },
+      }
     : emptyMemory(nowIso);
   const learning = nowMs - Date.parse(mem.since) < PATTERN_LEARNING_DAYS * DAY;
   const memoryDays = Math.floor((nowMs - Date.parse(mem.since)) / DAY);
@@ -259,12 +315,122 @@ export function detectPatterns(
     mem.holds[cell] = nextEntry(entry, today, !learning && novel);
   }
 
+  events.push(...detectGroups(snapshot, nowMs, mem));
+  events.push(...detectOddHours(snapshot, nowMs, mem));
+
   // Forget aircraft not seen for an hour (one missed sample is tolerated) and stale memory.
   for (const [hex, packed] of Object.entries(mem.tracks)) {
     const last = unpackTrack(packed).at(-1);
     if (!seenHex.has(hex) && (!last || minute - last[0] > 60)) delete mem.tracks[hex];
   }
-  for (const book of [mem.holds, mem.types]) for (const [k, v] of Object.entries(book)) if (daysBetween(v.last, today) > MEMORY_KEEP_DAYS) delete book[k];
+  for (const book of [mem.holds, mem.types, mem.groups ?? {}]) for (const [k, v] of Object.entries(book)) if (daysBetween(v.last, today) > MEMORY_KEEP_DAYS) delete book[k];
 
   return { events, memory: mem, learning };
+}
+
+const DAY_WORD = (n: number) => `${n} day${n === 1 ? '' : 's'}`;
+
+function describeMix(list: AircraftPosition[]): string {
+  const counts = new Map<string, number>();
+  for (const a of list) {
+    const role = aircraftRole(a);
+    const k = role ? AIRCRAFT_ROLE_LABEL[role].toLowerCase() : AIRCRAFT_CLASS_LABEL[a.cls].toLowerCase();
+    counts.set(k, (counts.get(k) ?? 0) + 1);
+  }
+  return [...counts].sort((x, y) => y[1] - x[1]).map(([k, n]) => `${n} ${k}`).join(', ');
+}
+
+const memberList = (list: AircraftPosition[]) => list.map((a) => `${aircraftTypeName(a.t) ?? a.t ?? 'unknown type'} ${a.cs ?? a.reg ?? a.hex}`).join('; ');
+const members = (list: AircraftPosition[]) => list.map((a) => ({ hex: a.hex, type: a.t, callsign: a.cs, cls: a.cls }));
+const typeList = (list: AircraftPosition[]) => [...new Set(list.map((a) => a.t ?? '?'))].join(', ');
+
+/** Groups of strategic aircraft at altitude where no group has been seen for 30 days. Updates mem.groups. */
+function detectGroups(snapshot: AircraftSnapshot, nowMs: number, mem: PatternMemory): IntelligenceEvent[] {
+  const nowIso = new Date(nowMs).toISOString();
+  const today = dayOf(nowMs);
+  const book = (mem.groups ??= {});
+  const since = mem.groupsSince ?? nowIso;
+  const learning = nowMs - Date.parse(since) < PATTERN_LEARNING_DAYS * DAY;
+  const memoryDays = Math.floor((nowMs - Date.parse(since)) / DAY);
+  const strategic = snapshot.aircraft.filter((a) => {
+    const role = aircraftRole(a);
+    return (HOLD_CLASSES.includes(a.cls) || role === 'command') && role !== 'vip' && a.alt !== null && a.alt >= HOLD_MIN_ALT_FT;
+  });
+  const events: IntelligenceEvent[] = [];
+  for (const g of findGroups(strategic)) {
+    const lat = g.reduce((s, a) => s + a.la, 0) / g.length;
+    const lon = g.reduce((s, a) => s + a.lo, 0) / g.length;
+    const at = regionsForSeaOrWatchCountry(lat, lon);
+    const regionId = at.regionIds[0];
+    if (!regionId) continue;
+    const cell = `${regionId}|${Math.floor(lat / GROUP_CELL_DEG) * GROUP_CELL_DEG}|${Math.floor(lon / GROUP_CELL_DEG) * GROUP_CELL_DEG}`;
+    const entry = book[cell];
+    const novel = isNovel(entry, today);
+    if (!learning && novel) {
+      const region = WATCH_REGIONS.find((r) => r.id === regionId)!;
+      const span = Math.round(Math.max(...g.flatMap((a) => g.map((b) => distanceKm(a.la, a.lo, b.la, b.lo)))));
+      const short = memoryDays >= PATTERN_NOVELTY_DAYS ? `${PATTERN_NOVELTY_DAYS} days` : DAY_WORD(memoryDays);
+      const period = memoryDays >= PATTERN_NOVELTY_DAYS ? `${PATTERN_NOVELTY_DAYS} days` : `the ${DAY_WORD(memoryDays)} WATCHTOWER has been watching`;
+      events.push(
+        record(
+          snapshot, nowIso, g[0], regionId, 'group', [cell, today],
+          `${g.length} strategic aircraft together — ${region.shortCode} watch area: ${describeMix(g)}; no such group there in ${short}`,
+          `${g.length} tankers, surveillance or command aircraft and bombers were airborne within ${span} km of each other around ${lat.toFixed(2)}, ${lon.toFixed(2)}${at.country ? `, over ${at.country}` : ''}: ${memberList(g)}. No group of ${GROUP_MIN_SIZE} or more within ${GROUP_RADIUS_KM} km has been seen in this ${GROUP_CELL_DEG}° square in ${period}. Aircraft flying together can mean refuelling for a strike package, an exercise or a deployment.`,
+          lat, lon, at.country,
+          { groupSize: g.length, spanKm: span, cell, members: members(g), aircraftType: typeList(g), callsign: null, registration: null, lastGroupBefore: seenBefore(entry, today), memoryDays },
+        ),
+      );
+    }
+    book[cell] = nextEntry(entry, today, !learning && novel);
+  }
+  return events;
+}
+
+/** Notable aircraft in a watch area in an hour that is usually empty there. Updates mem.hours. */
+function detectOddHours(snapshot: AircraftSnapshot, nowMs: number, mem: PatternMemory): IntelligenceEvent[] {
+  const nowIso = new Date(nowMs).toISOString();
+  const hours = (mem.hours ??= {});
+  const key = hourKey(nowMs);
+  const oldest = hourKey(nowMs - (ODD_HOUR_LOOKBACK_DAYS + 1) * DAY);
+  const byRegion = new Map<string, AircraftPosition[]>();
+  for (const a of snapshot.aircraft) {
+    const role = aircraftRole(a);
+    if (!(NOTABLE_AIRCRAFT_CLASSES.includes(a.cls) || role) || a.alt === null || a.alt < AIRBORNE_FT) continue;
+    for (const regionId of where(a, role).regionIds) {
+      const list = byRegion.get(regionId) ?? [];
+      list.push(a);
+      byRegion.set(regionId, list);
+    }
+  }
+  const events: IntelligenceEvent[] = [];
+  for (const region of WATCH_REGIONS) {
+    if (!region.countryCodes.length) continue;
+    const here = byRegion.get(region.id) ?? [];
+    const seen = unpackHours(hours[region.id]);
+    // The usual level: this UTC hour on each of the last 14 days, as checked then.
+    const past: number[] = [];
+    for (let d = 1; d <= ODD_HOUR_LOOKBACK_DAYS; d++) {
+      const v = seen.get(hourKey(nowMs - d * DAY));
+      if (v !== undefined) past.push(v);
+    }
+    seen.set(key, Math.max(seen.get(key) ?? 0, here.length));
+    for (const k of [...seen.keys()]) if (k < oldest) seen.delete(k);
+    hours[region.id] = packHours(seen);
+    const busy = past.filter((v) => v > 0).length;
+    if (here.length < ODD_HOUR_MIN_AIRCRAFT || past.length < ODD_HOUR_MIN_DAYS || busy > ODD_HOUR_MAX_BUSY_DAYS) continue;
+    const hh = key.slice(8);
+    const lat = here.reduce((s, a) => s + a.la, 0) / here.length;
+    const lon = here.reduce((s, a) => s + a.lo, 0) / here.length;
+    const country = regionsForSeaOrWatchCountry(here[0].la, here[0].lo).country;
+    events.push(
+      record(
+        snapshot, nowIso, here[0], region.id, 'odd-hour', [region.id, key],
+        `${here.length} military aircraft at ${hh}:00Z — ${region.shortCode} watch area, an hour with none on ${past.length - busy} of the last ${past.length} days: ${describeMix(here)}`,
+        `${here.length} notable military aircraft (tankers, surveillance aircraft, bombers, transports, command posts or VIP transports) were airborne in the ${region.name} watch area in the ${hh}:00–${hh}:59 UTC hour: ${memberList(here)}. On the last ${past.length} days WATCHTOWER checked at this hour, it saw any there on ${busy === 0 ? 'none' : DAY_WORD(busy)}. Flights at unusual hours can mean an operation, a deployment or an exercise; they can also be a one-off ferry flight.`,
+        lat, lon, country,
+        { aircraftCount: here.length, hourUtc: Number(hh), daysChecked: past.length, busyDays: busy, members: members(here), aircraftType: typeList(here), callsign: null, registration: null },
+      ),
+    );
+  }
+  return events;
 }

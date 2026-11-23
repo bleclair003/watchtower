@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 20;
+export const CATALOG_VERSION = 21;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -624,7 +624,7 @@ const aircraftIndicators: IndicatorDefinition[] = ADVISORY_REGIONS.flatMap((r): 
   {
     id: `${r.id}.air-patterns`,
     name: `${r.shortCode} unusual aircraft movement`,
-    description: `Unusual movement by military aircraft on ADS-B in the ${r.name} watch area within 72 hours: a tanker, surveillance aircraft or bomber holding where that kind has not held in 30 days, or an aircraft type not seen in the area in 30 days.`,
+    description: `Unusual movement by military aircraft on ADS-B in the ${r.name} watch area within 72 hours: a tanker, surveillance aircraft or bomber holding where that kind has not held in 30 days, an aircraft type not seen in the area in 30 days, three or more strategic aircraft together where no such group has been seen in 30 days, or military aircraft in an hour that has been empty on nearly all of the last 14 days.`,
     family: 'experimental',
     regionId: r.id,
     requiredSourceIds: [AIR],
@@ -643,16 +643,16 @@ const aircraftIndicators: IndicatorDefinition[] = ADVISORY_REGIONS.flatMap((r): 
     severity: 'low',
     experimental: true,
     enabled: true,
-    configVersion: 1,
+    configVersion: 2,
     rationale:
       'Volume indicators count how many aircraft are seen; this one looks at what they do. A new orbit or a type that has not been in the area for a month is the kind of change open-source analysts look for. It flags nothing for the first 14 days of collection, while WATCHTOWER learns what is usual.',
     research: {
       hypothesis: 'New holding areas and newly arrived aircraft types precede or accompany air operations and deployments.',
       expectedRelationship: 'Records would cluster before or during strikes, exercises or deployments reported by other sources.',
-      historicalExamples: 'None in WATCHTOWER data yet (pattern detection started 2026-11-22; flags from 2026-12-06).',
+      historicalExamples: 'None in WATCHTOWER data yet (pattern detection started 2026-11-22; holds and types flag from 2026-12-06; groups and unusual hours, added 2026-11-23, from about 2026-12-07).',
       ...AIR_RESEARCH,
       baselinePeriod: 'None: each record is already a comparison with the last 30 days of positions.',
-      falsePositives: 'Likely: new training areas, exercises, one-off ferry flights, and receiver coverage changing where aircraft can be seen.',
+      falsePositives: 'Likely: new training areas, exercises, one-off ferry flights (often in groups, at odd hours), and receiver coverage changing where aircraft can be seen.',
     },
   },
 ]);

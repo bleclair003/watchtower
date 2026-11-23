@@ -402,8 +402,8 @@ Free sources and analysis of data already collected. Each new outside source is 
 - [x] Short position history per tanker, surveillance aircraft, bomber, command post and VIP transport (4 h, in the source state) — v0.63.0
 - [x] Holds where that kind has not held in 30 days; types new to a watch area in 30 days; 14-day learning period — v0.63.0
 - [x] Experimental indicator per region; SITREP lists them as significant — v0.63.0
-- [ ] Grouping: 3+ strategic aircraft within ~300 km in one run, where that is rare — v0.66.0
-- [ ] Odd hours: flights in hours that are usually empty, against a 14-day hour-by-hour usual level — v0.66.0
+- [x] Grouping: 3+ strategic aircraft at altitude within 300 km in one run, in a 3° square with no such group in 30 days (own 14-day learning period) — v0.66.0
+- [x] Odd hours: 2+ notable aircraft airborne in a watch area in a UTC hour that had none on all but one of the last 14 days (12+ days checked) — v0.66.0
 
 
 ## Phase 28 — Radio listening links (2026-11-22)
