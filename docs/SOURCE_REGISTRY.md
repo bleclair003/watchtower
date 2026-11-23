@@ -337,7 +337,7 @@ WATCHTOWER only links to radio. It never plays, records, transcribes or re-strea
 | Broadcastify state pages (`/listen/stid/{FIPS}`) | link only | Located US records link to the state's page. Their terms forbid automated feed lists, scraping and AI use, so it is a fixed state table |
 | University of Twente WebSDR (`websdr.ewi.utwente.nl:8901/?tune=`) | link only | Fallback receiver when the list is unavailable |
 | OurAirports (`airports.csv`) | public domain | 3,258 large and medium airports with scheduled service (ICAO, position, region, name), built into the app and loaded only when a located record is opened |
-| Frequencies: priyom.org (CC BY-NC-SA 4.0, credited), RadioReference wiki, ab9il.net, 47 CFR 80.369, US Coast Guard NAVCEN | reference | Hand-curated list; each entry links its sources. Unconfirmed frequencies (e.g. Russian Navy, NATO) are left out |
+| Frequencies: priyom.org (CC BY-NC-SA 4.0, credited), RadioReference wiki, HFUnderground wiki (MWARA, from v0.66.1), ab9il.net, 47 CFR 80.369, US Coast Guard NAVCEN | reference | Hand-curated list; each entry links its sources. Unconfirmed frequencies (e.g. Russian Navy, NATO) are left out |
 
 
 ## Phase 29 — Conflict-region radio (v0.65.0)

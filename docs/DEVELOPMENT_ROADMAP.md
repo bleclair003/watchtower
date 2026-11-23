@@ -435,4 +435,5 @@ The radio data lives in its own Firestore document (`snapshots/radio`), read onl
 - [x] Shortwave schedules: the EiBi season list (free to use and redistribute), fetched once a day, kept to transmissions aimed at or based in a watch region; language and country names from its README — v0.65.0
 - [x] Region panel: aimed at the region / from stations in it, "on the schedule now" filter, broadcasters and military/numbers/utility stations apart, each frequency tuned on the receiver nearest the region — v0.65.0
 - [x] Local radio: Radio Browser's open directory, searched once a day per watch-region country, news and talk first; region panel and a LISTEN link on records with a country — v0.65.0
-- [ ] More hand-checked utility frequencies per region (Middle East and Africa HF air traffic families, numbers stations) where a public source confirms them
+- [x] Regional HF air traffic and VOLMET families with a public source each: Middle East (MID HF, MID VOLMET), Red Sea (AFI HF, AFI VOLMET), Korea and Taiwan (EA HF, West Pacific VOLMET), South China Sea (SEA-2 HF, SEA VOLMET) — v0.66.1
+- [ ] Numbers stations per region beyond those in the EiBi schedule, where a public source confirms them

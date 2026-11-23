@@ -971,10 +971,10 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     freeAccess: 'Free public API',
     expectedUpdateFrequency: 'Several new warnings a day; read every 3 hours',
     pollIntervalMinutes: 180,
-    reliabilityNotes: 'Positions are parsed from the warning text (degrees-minutes); warnings without positions are listed but not mapped. The portal was under maintenance (HTTP 503 from Node and curl) on 2026-11-20 and 2026-11-22; the source shows as failing until it returns.',
+    reliabilityNotes: 'Positions are parsed from the warning text (degrees-minutes); warnings without positions are listed but not mapped. The portal has been under maintenance (HTTP 503) since about 2026-11-20. While the API fails, the collector reads the plain-text in-force lists (DailyMemIV/XII/LAN/PAC/ARC.txt) linked from NGA\'s maintenance page; the map legend then says so and gives their in-force time, and warnings issued after it are missing.',
     termsNotes: 'U.S. government work (public domain).',
     priority: 'P2',
-    feasibility: { checkedAt: '2026-11-22T04:00:00Z', result: 'unavailable', note: 'HTTP 503 "MSI is currently under maintenance" (Node and curl alike: an outage, not blocking). Adapter built from the documented field layout; untested against a live answer.' },
+    feasibility: { checkedAt: '2026-11-23T11:00:00Z', result: 'reachable', note: 'API still HTTP 503 (maintenance). The daily in-force files are HTTP 200: 413 warnings in force as of 21 Nov 22:45Z, 80 of the mapped kinds. The API route remains untested against a live answer.' },
     knownOutage: 'MSI portal under maintenance since 2026-11-20 (HTTP 503 to every client).',
   },
   {

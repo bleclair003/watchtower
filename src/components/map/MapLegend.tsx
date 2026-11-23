@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { EVENT_CATEGORIES } from '@shared/domain/types';
 import { CATEGORY_STYLES } from '../../config/categories';
 import { CategoryGlyph } from '../ui/CategoryGlyph';
+import { formatUtc } from '../../lib/time';
 
 const shortDay = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 
@@ -201,7 +202,7 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
           {navWarnings && (
             <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
               <div className="flex justify-between">
-                <span title="NGA Maritime Safety Information broadcast warnings (NAVAREA IV/XII, HYDROLANT, HYDROPAC)">Navigational warnings{navWarnings.simulated ? ' · SIMULATED' : ''}</span>
+                <span title="NGA Maritime Safety Information broadcast warnings (NAVAREA IV/XII, HYDROLANT, HYDROPAC, HYDROARC)">Navigational warnings{navWarnings.simulated ? ' · SIMULATED' : ''}</span>
                 <span className="text-wt-fg tabular-nums">{navWarnings.warnings.length} of {navWarnings.activeTotal}</span>
               </div>
               <ul className="grid grid-cols-2 gap-x-2">
@@ -215,6 +216,12 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
               <p className="text-wt-fg-dim">
                 Active warnings of these kinds{navWarnDays != null && `, issued in the last ${navWarnDays === 2 ? '48 hours' : `${navWarnDays} days`}`}; dashed lines are the warned areas.
               </p>
+              {navWarnings.via === 'daily-files' && (
+                <p className="text-wt-warn">
+                  NGA's portal is down for maintenance: read from the daily in-force lists it posts instead
+                  {navWarnings.asOf ? `, in force as of ${formatUtc(navWarnings.asOf)}` : ''}. Warnings issued since then are missing.
+                </p>
+              )}
             </div>
           )}
           {emergencies && (

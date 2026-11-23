@@ -74,7 +74,9 @@ describe('frequencies', () => {
   it('shows global entries everywhere and regional ones only in their region', () => {
     expect(frequenciesFor(null).some((f) => f.id === 'uvb-76')).toBe(false);
     expect(frequenciesFor('eastern-europe').some((f) => f.id === 'uvb-76')).toBe(true);
-    expect(frequenciesFor('middle-east').every((f) => f.regions === 'global')).toBe(true);
+    expect(frequenciesFor('middle-east').filter((f) => f.regions !== 'global').map((f) => f.id)).toEqual(['mid-hf', 'mid-volmet']);
+    for (const r of ['red-sea', 'korean-peninsula', 'taiwan-strait', 'south-china-sea']) expect(frequenciesFor(r).some((f) => f.regions !== 'global')).toBe(true);
+    expect(frequenciesFor('united-states').every((f) => f.regions === 'global')).toBe(true);
     const ship = RADIO_FREQUENCIES.find((f) => f.id === 'maritime-distress')!;
     expect(listenPoint(ship, 'red-sea')).toEqual([19.25, 42]);
   });

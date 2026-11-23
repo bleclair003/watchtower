@@ -58,10 +58,14 @@ export interface NavWarningSnapshot {
   /** All active warnings read, of any kind. */
   activeTotal: number;
   fetchedAt: string;
+  /** v0.66.1: "in force as of" time of the NGA list read (the daily files say it; the API does not). */
+  asOf?: string | null;
+  /** v0.66.1: where the list came from: the MSI API, or the daily in-force files NGA posts while the portal is down. */
+  via?: 'api' | 'daily-files';
   simulated?: boolean;
 }
 
-const SERIES: Record<string, string> = { '4': 'NAVAREA IV', '12': 'NAVAREA XII', A: 'HYDROLANT', P: 'HYDROPAC', IV: 'NAVAREA IV', XII: 'NAVAREA XII' };
+const SERIES: Record<string, string> = { '4': 'NAVAREA IV', '12': 'NAVAREA XII', A: 'HYDROLANT', P: 'HYDROPAC', IV: 'NAVAREA IV', XII: 'NAVAREA XII', ARC: 'HYDROARC' };
 export const seriesName = (navArea: string | undefined) => SERIES[String(navArea ?? '').toUpperCase()] ?? `NAVAREA ${navArea ?? '?'}`;
 
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
@@ -96,7 +100,7 @@ export function classifyWarning(text: string): NavWarningKind {
   const t = text.toUpperCase();
   if (/\bMISSILE|ROCKET (LAUNCH|FIRING|OPERATIONS)|SPACE (DEBRIS|VEHICLE)|LAUNCH (OPERATIONS|AREA)|RE-?ENTRY/.test(t)) return 'missile';
   if (/\bGPS\b|\bGNSS\b|NAVIGATION(AL)? SIGNAL|(JAMMING|INTERFERENCE|SPOOFING)/.test(t) && /\bGPS\b|\bGNSS\b|SATELLITE NAVIGATION|POSITIONING/.test(t)) return 'gnss';
-  if (/PIRACY|PIRATE|ARMED ROBBERY|HIJACK|SUSPICIOUS APPROACH|ATTACKED|BOARDED|UNMANNED (SURFACE|AERIAL) VEHICLE ATTACK/.test(t)) return 'piracy';
+  if (/PIRACY|PIRATE|ARMED ROBBERY|HIJACK|SUSPICIOUS APPROACH|ATTACKED|BOARDED|UNMANNED (SURFACE|AERIAL) VEHICLE ATTACK|SECURITY INCIDENT|STRUCK BY (AN? )?(PROJECTILE|MISSILE|DRONE|UNKNOWN)/.test(t)) return 'piracy';
   if (/\bMINES?\b|MINEFIELD|UNEXPLODED|EXPLOSIVE ORDNANCE|\bUXO\b|DERELICT ORDNANCE/.test(t)) return 'mine';
   if (/GUNNERY|LIVE FIRE|FIRING (EXERCISE|PRACTICE|OPERATIONS)|HAZARDOUS OPERATIONS|AIR TO SURFACE|SURFACE TO AIR|ORDNANCE DISPOSAL|DEMOLITION/.test(t)) return 'firing';
   if (/(MILITARY|NAVAL|SUBMARINE|NATO|JOINT) (EXERCISE|OPERATIONS|TRAINING)|EXERCISE AREA|SUBMARINE OPERATIONS/.test(t)) return 'exercise';
@@ -135,4 +139,43 @@ export function warningsFromBody(body: unknown): NgaWarningRaw[] {
   if (Array.isArray(body)) return body as NgaWarningRaw[];
   const list = (body as Record<string, unknown> | null)?.['broadcast-warn'];
   return Array.isArray(list) ? (list as NgaWarningRaw[]) : [];
+}
+
+// ── Daily in-force files (v0.66.1) ─────────────────────────────────────────
+
+/** Series heading in the daily files → the API's navArea code. */
+const MEMO_SERIES: Record<string, string> = { HYDROLANT: 'A', HYDROPAC: 'P', HYDROARC: 'ARC', 'NAVAREA IV': '4', 'NAVAREA XII': '12' };
+const MEMO_DATE = /^(\d{6}Z)\s+([A-Z]{3})\s+(\d{2}|\d{4})\.?$/;
+const MEMO_ID = /^(HYDROLANT|HYDROPAC|HYDROARC|NAVAREA IV|NAVAREA XII)\s+(\d{1,5})\/(\d{2})(?:\s*\([A-Z0-9 ,]*\))?\.?$/;
+const fullYear = (y: string) => (y.length === 2 ? `20${y}` : y);
+
+/**
+ * Reads one of the plain-text "in force" files NGA posts (DailyMemLAN.txt etc.): a heading with the
+ * in-force time, then warnings, each a date line ("211454Z NOV 26"), an id line ("HYDROPAC 3431/26") and text.
+ */
+export function parseDailyMemo(body: string): { asOf: string | null; warnings: NgaWarningRaw[] } {
+  const lines = body.replace(/\r/g, '').split('\n').map((l) => l.trim());
+  const head = /IN FORCE AS OF\s+(\d{6}Z)\s+([A-Z]{3})\s+(\d{2,4})/.exec(lines.slice(0, 5).join(' ').toUpperCase());
+  const asOf = head ? parseIssueDate(`${head[1]} ${head[2]} ${fullYear(head[3])}`) : null;
+  const warnings: NgaWarningRaw[] = [];
+  let cur: NgaWarningRaw | null = null;
+  let text: string[] = [];
+  const flush = () => {
+    if (cur) warnings.push({ ...cur, text: text.join(' ').trim() });
+    cur = null;
+    text = [];
+  };
+  for (let i = 0; i < lines.length; i++) {
+    const d = MEMO_DATE.exec(lines[i].toUpperCase());
+    const id = d && i + 1 < lines.length ? MEMO_ID.exec(lines[i + 1].toUpperCase()) : null;
+    if (d && id) {
+      flush();
+      cur = { msgYear: fullYear(id[3]), msgNumber: id[2], navArea: MEMO_SERIES[id[1]], issueDate: `${d[1]} ${d[2]} ${fullYear(d[3])}`, status: 'A' };
+      i++;
+      continue;
+    }
+    if (cur && lines[i]) text.push(lines[i]);
+  }
+  flush();
+  return { asOf, warnings };
 }

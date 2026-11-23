@@ -430,7 +430,7 @@ export async function runCollection(
       tracked.includes(UCDP_SOURCE_ID) ? store.getSourceState<UcdpState>(UCDP_SOURCE_ID) : null,
     ]);
     const gen = Date.parse(snapshot.generatedAt);
-    if (nga?.fetchedAt && gen - Date.parse(nga.fetchedAt) < 48 * 3_600_000) snapshot.navWarnings = { warnings: nga.warnings, activeTotal: nga.activeTotal, fetchedAt: nga.fetchedAt };
+    if (nga?.fetchedAt && gen - Date.parse(nga.fetchedAt) < 48 * 3_600_000) snapshot.navWarnings = { warnings: nga.warnings, activeTotal: nga.activeTotal, fetchedAt: nga.fetchedAt, asOf: nga.asOf ?? null, via: nga.via ?? 'api' };
     if (emg?.latest && gen - Date.parse(emg.latest.fetchedAt) < 90 * 60_000) snapshot.aircraftEmergencies = emg.latest;
     if (ged?.latest) snapshot.conflictEvents = ged.latest;
   } catch (err) {

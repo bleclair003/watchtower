@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.66.1] — 2026-11-23 — Navigational warnings back; regional radio frequencies
+
+### Fixed
+- **Navigational warnings are back on the map.** NGA's portal has been down for maintenance since about 20 November, so the source failed on every run. NGA's maintenance page posts the warnings in force as plain-text files (NAVAREA IV and XII, HYDROLANT, HYDROPAC, HYDROARC). When the API fails, the collector now reads those instead. The map legend then says so and gives the time the list was in force: 21 Nov 22:45Z in the first read, with 413 warnings, 80 of the kinds mapped. Records link to the file they came from.
+- **Ships hit in a "security incident"** (struck, on fire, sunk) are now classed as attacks on shipping, not "other". The first read has four such vessels in the Strait of Hormuz.
+
+### Added
+- **Regional frequencies.** The region radio panels now list the HF air traffic and VOLMET (aviation weather) families for:
+  - **Middle East:** MID HF and MID VOLMET
+  - **Red Sea:** Africa HF and Africa VOLMET
+  - **Korea and Taiwan:** East Asia HF and West Pacific VOLMET
+  - **South China Sea:** SEA-2 HF and Southeast Asia VOLMET
+
+  Each entry links its source: the RadioReference and HFUnderground frequency lists. Taiwan also gets SEA-2.
+
+### Notes
+- The daily files are only as fresh as NGA makes them; they had not changed in about 36 hours when first read. Warnings issued after their in-force time are missing until NGA updates them or the portal returns. The API route is still untested against a live answer.
+- Frequencies that a public source could not confirm (Middle East military, Iranian navy) are still left out.
+
 ## [0.66.0] — 2026-11-23 — Aircraft grouping and unusual hours (Phase 27, completed)
 
 ### Added
