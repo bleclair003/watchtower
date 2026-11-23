@@ -1,3 +1,4 @@
+import type { RadioGuide } from '@shared/domain/shortwave';
 import type { NavWarningSnapshot } from '@shared/domain/navWarnings';
 import type { EmergencySnapshot } from '@shared/domain/aircraftEmergencies';
 import type { RadioReceiversSnapshot } from '@shared/domain/radio';
@@ -80,5 +81,53 @@ export function buildDemoReceivers(now: number): RadioReceiversSnapshot {
       rx('Demo receiver, Cyprus', 'demo-cy', 35.0, 33.0),
       rx('Demo receiver, Japan', 'demo-jp', 35.5, 139.5),
     ],
+  };
+}
+
+/** Phase 29 demo radio guide: invented stations and schedules, all marked SIMULATED. */
+export function buildDemoRadioGuide(now: number): RadioGuide {
+  const at = new Date(now - 5 * 3_600_000).toISOString();
+  const sw = (station: string, kHz: number[], start: string, end: string, itu: string, target: string, lang: string, utility = false, days = '') =>
+    ({ kHz, start, end, days, itu, station: `[SIMULATED] ${station}`, lang, target, site: '', utility });
+  const st = (cc: string, name: string, news: boolean, clicks: number) => ({
+    uuid: `demo-${cc}-${clicks}`,
+    name: `[SIMULATED] ${name}`,
+    cc,
+    homepage: `https://demo-${cc.toLowerCase()}-${clicks}.invalid/`,
+    stream: `https://demo-${cc.toLowerCase()}-${clicks}.invalid/stream`,
+    news,
+    clicks,
+  });
+  return {
+    generatedAt: at,
+    shortwave: {
+      fetchedAt: at,
+      season: 'B26',
+      sourceUrl: 'http://www.eibispace.de/dx/sked-b26.csv',
+      simulated: true,
+      broadcasts: [
+        sw('Demo World Service', [9500, 11800], '0000', '2400', 'ROU', 'EEu', 'UK'),
+        sw('Demo Overseas Radio', [7300], '1600', '1800', 'USA', 'UKR', 'R', false, 'Mo-Fr'),
+        sw('Demo Channel Marker', [4700, 6900], '0000', '2400', 'RUS', 'RUS', '-CW', true),
+        sw('Demo Numbers Station', [5100], '0700', '0730', 'RUS', 'Eu', 'R', true, 'irr'),
+        sw('Demo Regional Voice', [6100], '0000', '2400', 'IRN', 'ME', 'A'),
+        sw('Demo Gulf Service', [13700], '1200', '1400', 'USA', 'ME', 'FS'),
+        sw('Demo Peninsula Radio', [3250, 6100], '0000', '2400', 'KRE', 'KRE', 'K'),
+      ],
+      languages: { UK: 'Ukrainian', R: 'Russian', '-CW': 'Morse Station', A: 'Arabic', FS: 'Farsi / Iranian Persian', K: 'Korean' },
+      countries: { ROU: 'Romania', USA: 'United States of America', RUS: 'Russian Federation', UKR: 'Ukraine', IRN: 'Iran', KRE: 'Korea, North' },
+    },
+    localRadio: {
+      fetchedAt: at,
+      sourceUrl: 'https://de1.api.radio-browser.info/',
+      simulated: true,
+      stations: [
+        st('UA', 'Demo News Radio Kyiv', true, 900),
+        st('UA', 'Demo Hits FM', false, 500),
+        st('IL', 'Demo News Radio', true, 800),
+        st('LB', 'Demo Beirut Talk', true, 300),
+        st('KR', 'Demo Seoul News', true, 400),
+      ],
+    },
   };
 }

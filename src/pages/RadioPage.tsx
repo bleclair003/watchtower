@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { WATCH_REGIONS } from '@shared/domain/regions';
 import { RadioPanel } from '../components/radio/RadioPanel';
+import { RadioGuideSection } from '../components/radio/RadioGuidePanels';
 import { useData } from '../state/DataContext';
 
 /** Phase 28: radio reference — global frequencies, and each region's with receivers near it. */
@@ -35,9 +36,16 @@ export default function RadioPage() {
             </option>
           ))}
         </select>
-        <span className="text-wt-fg-dim">A region adds its own stations and finds ship-channel receivers near it; other stations use receivers near their transmitters. Links open public receivers run by volunteers, already tuned. Nothing plays or is recorded here.</span>
+        <span className="text-wt-fg-dim">A region adds its own frequencies, shortwave schedules and local stations, and finds receivers near it. Links open public receivers run by volunteers, already tuned. Nothing plays or is recorded here.</span>
       </div>
       <RadioPanel regionId={regionId} receivers={radioReceivers} now={now} designator="RF" />
+      {regionId ? (
+        <RadioGuideSection regionId={regionId} receivers={radioReceivers} now={now} />
+      ) : (
+        <p className="border border-wt-line bg-wt-panel px-2 py-1 text-2xs text-wt-fg-dim">
+          Pick a region above for the shortwave broadcasts aimed at it (and from it), its military and utility stations, and its local radio stations.
+        </p>
+      )}
     </div>
   );
 }

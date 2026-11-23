@@ -1,4 +1,5 @@
 import type { MetersSnapshot } from '../../shared/domain/meters/types.ts';
+import type { RadioGuide } from '../../shared/domain/shortwave.ts';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../../shared/domain/types.ts';
 import type { DashboardSnapshot } from '../../shared/domain/snapshot.ts';
 import type { IndicatorTransition, ScoreHistoryPoint } from '../../shared/domain/indicators/types.ts';
@@ -26,6 +27,9 @@ export interface CollectorStore {
   putCollectorState(key: string, value: unknown): Promise<void>;
   getMetersSnapshot(): Promise<MetersSnapshot | null>;
   putMetersSnapshot(m: MetersSnapshot): Promise<void>;
+  /** Radio guide (Phase 29): snapshots/radio. */
+  getRadioGuide(): Promise<RadioGuide | null>;
+  putRadioGuide(g: RadioGuide): Promise<void>;
   /** Stored events by id (missing ids are omitted). Used only for revisable sources. */
   getEvents(ids: string[]): Promise<IntelligenceEvent[]>;
   /** Overwrites existing events (revisions of revisable sources). */

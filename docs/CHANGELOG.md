@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.65.0] — 2026-11-23 — Conflict-region radio (Phase 29)
+
+### Added
+- **Shortwave panel** on each region page, and on the RADIO page once a region is picked. It lists transmissions from the EiBi schedule:
+  - **Aimed at the region**, e.g. foreign broadcasters' services in its languages.
+  - **From stations in the region**, e.g. state broadcasters' foreign services.
+  - **Military, numbers and other utility stations** in their own section: Russian channel markers, numbers stations, VOLMETs.
+
+  By default only what the schedule lists for this hour is shown. Each row gives its times, days, language, origin or target and relay site. Each frequency opens the public receiver nearest the region, already tuned.
+- **Local radio panel**: up to 8 internet radio stations per country in the region from the Radio Browser directory, news and talk first. Each links to the station's own page and stream.
+- **Local radio on records.** An opened record with a country gets a LISTEN line with that country's top two stations.
+- Two daily sources, `eibi-schedules` and `radio-browser-stations`. Neither makes records.
+
+### Notes
+- The radio data has its own document (`snapshots/radio`, about 380 KB), so the dashboard and map layers do not grow. It is read once per visit, only where a radio panel or LISTEN line needs it.
+- A schedule is not a log. "On now" means listed for now; outages, frequency changes and jamming do not show. Station entries are community-submitted and can be wrong or dead.
+- Short-range military radio near front lines (VHF/UHF, often encrypted) is out of reach and out of scope. Utility-station sections carry the same legal note as Phase 28.
+- The unusual-aircraft grouping and odd-hours work moves to v0.66.
+
 ## [0.64.0] — 2026-11-22 — Radio listening links (Phase 28)
 
 ### Added

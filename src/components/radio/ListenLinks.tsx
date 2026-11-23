@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 import type { IntelligenceEvent } from '@shared/domain/types';
-import { listenLinks, unpackAirports, type Airport } from '@shared/domain/radio';
+import { listenLinks, unpackAirports, type Airport, type ListenLink } from '@shared/domain/radio';
+import { localListenLinks } from '@shared/domain/shortwave';
+import { useRadioGuide } from '../../data/useRadioGuide';
 import { useOptionalData } from '../../state/DataContext';
 import { safeExternalUrl } from '../../lib/sanitize';
 
@@ -20,6 +22,8 @@ export function ListenLinks({ event: e }: { event: IntelligenceEvent }) {
   const radioReceivers = useOptionalData()?.radioReceivers ?? null;
   const [airports, setAirports] = useState<Airport[] | null>(null);
   const located = typeof e.latitude === 'number' && typeof e.longitude === 'number' && e.locationPrecision !== 'none';
+  const countries = e.countryCodes ?? [];
+  const { guide } = useRadioGuide(countries.length > 0);
   useEffect(() => {
     if (!located) return;
     let live = true;
@@ -28,8 +32,10 @@ export function ListenLinks({ event: e }: { event: IntelligenceEvent }) {
       live = false;
     };
   }, [located]);
-  if (!located || !airports) return null;
-  const links = listenLinks({ lat: e.latitude!, lon: e.longitude!, aviation: isAviationRecord(e) }, airports, radioReceivers?.receivers ?? []);
+  const links: ListenLink[] = [
+    ...(located && airports ? listenLinks({ lat: e.latitude!, lon: e.longitude!, aviation: isAviationRecord(e) }, airports, radioReceivers?.receivers ?? []) : []),
+    ...(guide?.localRadio ? localListenLinks(guide.localRadio.stations, countries) : []),
+  ];
   if (links.length === 0) return null;
   return (
     <>

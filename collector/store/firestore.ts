@@ -2,7 +2,8 @@ import type { MetersSnapshot } from '../../shared/domain/meters/types.ts';
 import { initializeApp, applicationDefault, getApps, type App } from 'firebase-admin/app';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../../shared/domain/types.ts';
-import { METERS_DOC_ID, COLLECTIONS, LAYERS_DOC_ID, SNAPSHOT_DOC_ID, joinSnapshot, splitSnapshot, type DashboardSnapshot, type LayersSnapshot } from '../../shared/domain/snapshot.ts';
+import type { RadioGuide } from '../../shared/domain/shortwave.ts';
+import { RADIO_GUIDE_DOC_ID, METERS_DOC_ID, COLLECTIONS, LAYERS_DOC_ID, SNAPSHOT_DOC_ID, joinSnapshot, splitSnapshot, type DashboardSnapshot, type LayersSnapshot } from '../../shared/domain/snapshot.ts';
 import type { IndicatorTransition, ScoreHistoryPoint } from '../../shared/domain/indicators/types.ts';
 import type { AlertRecord } from '../../shared/domain/alerts/types.ts';
 import type { AlertingState, CollectorStore } from './types.ts';
@@ -243,6 +244,14 @@ export class FirestoreStore implements CollectorStore {
   }
   async putMetersSnapshot(m: MetersSnapshot) {
     await this.db.collection(COLLECTIONS.snapshots).doc(METERS_DOC_ID).set(m);
+  }
+  async getRadioGuide() {
+    const snap = await this.db.collection(COLLECTIONS.snapshots).doc(RADIO_GUIDE_DOC_ID).get();
+    this.readCount++;
+    return snap.exists ? (snap.data() as RadioGuide) : null;
+  }
+  async putRadioGuide(g: RadioGuide) {
+    await this.db.collection(COLLECTIONS.snapshots).doc(RADIO_GUIDE_DOC_ID).set(g);
   }
   async getAlertingState() {
     const snap = await this.db.collection(COLLECTIONS.collectorState).doc('alerting').get();

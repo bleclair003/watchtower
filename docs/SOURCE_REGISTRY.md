@@ -338,3 +338,14 @@ WATCHTOWER only links to radio. It never plays, records, transcribes or re-strea
 | University of Twente WebSDR (`websdr.ewi.utwente.nl:8901/?tune=`) | link only | Fallback receiver when the list is unavailable |
 | OurAirports (`airports.csv`) | public domain | 3,258 large and medium airports with scheduled service (ICAO, position, region, name), built into the app and loaded only when a located record is opened |
 | Frequencies: priyom.org (CC BY-NC-SA 4.0, credited), RadioReference wiki, ab9il.net, 47 CFR 80.369, US Coast Guard NAVCEN | reference | Hand-curated list; each entry links its sources. Unconfirmed frequencies (e.g. Russian Navy, NATO) are left out |
+
+
+## Phase 29 — Conflict-region radio (v0.65.0)
+
+Links only, as in Phase 28. Both sources make no records; they are stored in the `snapshots/radio` document, rewritten only when one changes.
+
+| Source | Kind | How it is used |
+|---|---|---|
+| EiBi shortwave schedules (`eibispace.de/dx/sked-<season>.csv`, `README.TXT`) | aggregator; free to download, use, copy and distribute (README "Conditions of use") | Fetched once a day; the current season's file, or the previous one while a new season's is not out. Kept: transmissions aimed at or based in a watch region (about 2,000 merged rows in B26), including utility stations (military channel markers, numbers stations, VOLMET). Alternates, harmonics and inactive rows are dropped. A schedule, not a log |
+| Radio Browser (`<server>.api.radio-browser.info/json/stations/search`) | community directory; free open API | One search per watch-region country once a day, from a server the directory itself lists; up to 8 working stations each, news and talk first, then the most played. Only each station's own page and stream are linked |
+

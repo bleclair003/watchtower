@@ -50,6 +50,9 @@ import { NGA_SOURCE_ID, type NgaState } from './adapters/ngaMsi.ts';
 import { EMERGENCY_SOURCE_ID, type EmergencyState } from './adapters/adsbEmergencies.ts';
 import { UCDP_SOURCE_ID, type UcdpState } from './adapters/ucdp.ts';
 import { RADIO_RECEIVERS_SOURCE_ID, type RadioReceiversState } from './adapters/radioReceivers.ts';
+import { SHORTWAVE_SOURCE_ID, type ShortwaveState } from './adapters/shortwaveSchedule.ts';
+import { LOCAL_RADIO_SOURCE_ID, type LocalRadioState } from './adapters/localRadio.ts';
+import { RADIO_GUIDE_MAX_AGE_MS, type RadioGuide } from '../shared/domain/shortwave.ts';
 import { claimsFrom } from '../shared/domain/ukraineFront.ts';
 import { NETWORK_SOURCE, clusterStations, type RadNetwork } from '../shared/domain/radiation.ts';
 import { UNHCR_SOURCE_ID, type UnhcrState } from './adapters/unhcr.ts';
@@ -561,6 +564,28 @@ export async function runCollection(
       if (holidayCounts) await store.putCollectorState(HOLIDAY_COUNTS_KEY, { packed: JSON.stringify(holidayCounts), updatedAt: run.finishedAt });
     } catch (err) {
       log(`MTR  meters not written: ${sanitizeError(err)}`);
+    }
+  }
+  // Radio guide (Phase 29): its own document, rewritten only when a part changed.
+  if (tracked.includes(SHORTWAVE_SOURCE_ID) || tracked.includes(LOCAL_RADIO_SOURCE_ID)) {
+    try {
+      const fresh = (iso: string | undefined) => !!iso && Date.parse(run.finishedAt!) - Date.parse(iso) < RADIO_GUIDE_MAX_AGE_MS;
+      const [sw, lr, stored] = await Promise.all([
+        tracked.includes(SHORTWAVE_SOURCE_ID) ? store.getSourceState<ShortwaveState>(SHORTWAVE_SOURCE_ID) : null,
+        tracked.includes(LOCAL_RADIO_SOURCE_ID) ? store.getSourceState<LocalRadioState>(LOCAL_RADIO_SOURCE_ID) : null,
+        store.getRadioGuide(),
+      ]);
+      const guide: RadioGuide = {
+        generatedAt: run.finishedAt!,
+        shortwave: sw?.latest && fresh(sw.latest.fetchedAt) ? sw.latest : null,
+        localRadio: lr?.latest && fresh(lr.latest.fetchedAt) ? lr.latest : null,
+      };
+      if (!stored || stored.shortwave?.fetchedAt !== guide.shortwave?.fetchedAt || stored.localRadio?.fetchedAt !== guide.localRadio?.fetchedAt) {
+        await store.putRadioGuide(guide);
+        log(`RAD  radio guide written: ${guide.shortwave?.broadcasts.length ?? 0} shortwave rows, ${guide.localRadio?.stations.length ?? 0} local stations, ${Buffer.byteLength(JSON.stringify(guide)).toLocaleString('en-US')} bytes`);
+      }
+    } catch (err) {
+      log(`RAD  radio guide not written: ${sanitizeError(err)}`);
     }
   }
   phases.push(['final writes', clock() - tWrite]);

@@ -268,6 +268,11 @@ export function frequenciesFor(regionId: string | null): RadioFrequency[] {
 /** Where to look for a receiver for this frequency when viewing a region (or the world). */
 export function listenPoint(f: RadioFrequency, regionId: string | null): [number, number] {
   if (f.listenNear !== 'region') return f.listenNear;
+  return regionCentre(regionId);
+}
+
+/** Centre of a region's watch box, or western Europe (dense with receivers) when it has none. */
+export function regionCentre(regionId: string | null): [number, number] {
   const r = regionId ? getRegion(regionId) : undefined;
   if (!r?.bbox) return [50, 5];
   const [w, s, e, n] = r.bbox;
@@ -316,7 +321,7 @@ export function nearestAirport(airports: Airport[], lat: number, lon: number, ma
 export const inNorthAtlantic = (lat: number, lon: number) => lat >= 35 && lat <= 70 && lon >= -55 && lon <= -12;
 
 export interface ListenLink {
-  kind: 'atc' | 'scanner' | 'hf';
+  kind: 'atc' | 'scanner' | 'hf' | 'local';
   label: string;
   url: string;
   note?: string;

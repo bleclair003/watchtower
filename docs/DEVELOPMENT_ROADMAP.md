@@ -402,8 +402,8 @@ Free sources and analysis of data already collected. Each new outside source is 
 - [x] Short position history per tanker, surveillance aircraft, bomber, command post and VIP transport (4 h, in the source state) — v0.63.0
 - [x] Holds where that kind has not held in 30 days; types new to a watch area in 30 days; 14-day learning period — v0.63.0
 - [x] Experimental indicator per region; SITREP lists them as significant — v0.63.0
-- [ ] Grouping: 3+ strategic aircraft within ~300 km in one run, where that is rare — v0.65.0
-- [ ] Odd hours: flights in hours that are usually empty, against a 14-day hour-by-hour usual level — v0.65.0
+- [ ] Grouping: 3+ strategic aircraft within ~300 km in one run, where that is rare — v0.66.0
+- [ ] Odd hours: flights in hours that are usually empty, against a 14-day hour-by-hour usual level — v0.66.0
 
 
 ## Phase 28 — Radio listening links (2026-11-22)
@@ -426,3 +426,13 @@ listening rules differ by country (UK: Wireless Telegraphy Act 2006 s.48 — bro
 **Later (option 3, not started)**
 - [ ] Aircraft text messages (ACARS/VDL2/HFDL) from airframes.io once its API is live and its terms allow (non-commercial data use today)
 - [ ] HFGCS message counts from a community log, only with that log's permission, as an experimental indicator
+
+## Phase 29 — Conflict-region radio (2026-11-23)
+
+Same rule as Phase 28: links only. Front-line tactical radio (short-range VHF/UHF, often encrypted) is out of reach and out of scope.
+The radio data lives in its own Firestore document (`snapshots/radio`), read only by the radio panels and LISTEN links.
+
+- [x] Shortwave schedules: the EiBi season list (free to use and redistribute), fetched once a day, kept to transmissions aimed at or based in a watch region; language and country names from its README — v0.65.0
+- [x] Region panel: aimed at the region / from stations in it, "on the schedule now" filter, broadcasters and military/numbers/utility stations apart, each frequency tuned on the receiver nearest the region — v0.65.0
+- [x] Local radio: Radio Browser's open directory, searched once a day per watch-region country, news and talk first; region panel and a LISTEN link on records with a country — v0.65.0
+- [ ] More hand-checked utility frequencies per region (Middle East and Africa HF air traffic families, numbers stations) where a public source confirms them
