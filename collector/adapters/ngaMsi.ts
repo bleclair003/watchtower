@@ -31,7 +31,15 @@ export interface NgaState {
   /** v0.66.1: in-force time of the list read, and which route it came from. */
   asOf?: string | null;
   via?: 'api' | 'daily-files';
+  /** Records made under this version; older state's "seen" list is ignored once (see RECORDS_VERSION). */
+  recordsVersion?: number;
 }
+
+/**
+ * v0.66.1: records before this version put coordinates at "region" precision and were all rejected, yet
+ * marked seen. State from before it is treated as a first run, so active warnings get recorded once.
+ */
+export const RECORDS_VERSION = 2;
 
 /** The in-force lists from the daily files; throws when none can be read. */
 async function readDailyFiles(ctx: AdapterContext<NgaState>, apiError: string): Promise<{ raw: NgaWarningRaw[]; asOf: string | null }> {
@@ -85,7 +93,7 @@ export function warningRecord(w: NavWarning, nowIso: string, via: 'api' | 'daily
     collectedAt: nowIso,
     credibility: 'official',
     verificationStatus: 'unreviewed',
-    ...(w.lat !== null && w.lon !== null ? { latitude: w.lat, longitude: w.lon, locationPrecision: 'region' as const } : { locationPrecision: 'none' as const }),
+    ...(w.lat !== null && w.lon !== null ? { latitude: w.lat, longitude: w.lon, locationPrecision: 'city' as const } : { locationPrecision: 'none' as const }),
     metadata: { subtype: 'nav-warning', navKind: w.kind, warningKey: w.key, points: w.points.length, geoBasis: w.lat !== null ? 'warning-area-centre' : 'none' },
   };
 }
@@ -94,7 +102,8 @@ export const ngaMsi: SourceAdapter<NgaState> = {
   sourceId: NGA_SOURCE_ID,
   async collect(ctx: AdapterContext<NgaState>): Promise<AdapterResult<NgaState>> {
     const nowIso = new Date(ctx.now).toISOString();
-    if (ctx.state && ctx.now - Date.parse(ctx.state.fetchedAt) < NGA_EVERY_MS) return { events: [], rejected: [], itemsSeen: 0, notModified: true, state: ctx.state };
+    const current = ctx.state?.recordsVersion === RECORDS_VERSION;
+    if (ctx.state && current && ctx.now - Date.parse(ctx.state.fetchedAt) < NGA_EVERY_MS) return { events: [], rejected: [], itemsSeen: 0, notModified: true, state: ctx.state };
     let raw: NgaWarningRaw[];
     let asOf: string | null = null;
     let via: 'api' | 'daily-files' = 'api';
@@ -122,8 +131,8 @@ export const ngaMsi: SourceAdapter<NgaState> = {
       else rejected.push({ ref: `${r.navArea ?? '?'} ${r.msgNumber ?? '?'}/${r.msgYear ?? '?'}`, reason: 'no number, year or text' });
     }
     const notable = all.filter((w) => w.kind !== 'other');
-    const seen = new Set(ctx.state?.seen ?? []);
-    const firstRun = !ctx.state;
+    const seen = new Set(current ? (ctx.state?.seen ?? []) : []);
+    const firstRun = !current;
     const events: IntelligenceEvent[] = [];
     for (const w of notable) {
       if (seen.has(w.key)) continue;
@@ -133,6 +142,6 @@ export const ngaMsi: SourceAdapter<NgaState> = {
     }
     const activeKeys = new Set(all.map((w) => w.key));
     const nextSeen = [...new Set([...seen, ...notable.map((w) => w.key)])].filter((k) => activeKeys.has(k));
-    return { events, rejected, itemsSeen: raw.length, notModified: false, state: { warnings: notable, activeTotal: all.length, fetchedAt: nowIso, seen: nextSeen, asOf, via } };
+    return { events, rejected, itemsSeen: raw.length, notModified: false, state: { warnings: notable, activeTotal: all.length, fetchedAt: nowIso, seen: nextSeen, asOf, via, recordsVersion: RECORDS_VERSION } };
   },
 };

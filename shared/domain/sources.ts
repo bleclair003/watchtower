@@ -975,7 +975,6 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     termsNotes: 'U.S. government work (public domain).',
     priority: 'P2',
     feasibility: { checkedAt: '2026-11-23T11:00:00Z', result: 'reachable', note: 'API still HTTP 503 (maintenance). The daily in-force files are HTTP 200: 413 warnings in force as of 21 Nov 22:45Z, 80 of the mapped kinds. The API route remains untested against a live answer.' },
-    knownOutage: 'MSI portal under maintenance since 2026-11-20 (HTTP 503 to every client).',
   },
   {
     id: 'nato-news',

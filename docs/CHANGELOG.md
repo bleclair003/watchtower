@@ -4,6 +4,8 @@
 
 ### Fixed
 - **Navigational warnings are back on the map.** NGA's portal has been down for maintenance since about 20 November, so the source failed on every run. NGA's maintenance page posts the warnings in force as plain-text files (NAVAREA IV and XII, HYDROLANT, HYDROPAC, HYDROARC). When the API fails, the collector now reads those instead. The map legend then says so and gives the time the list was in force: 21 Nov 22:45Z in the first read, with 413 warnings, 80 of the kinds mapped. Records link to the file they came from.
+- **Warning records were all rejected.** Their positions (the centre of the warned area) were marked as region-level, which the validator does not allow with coordinates. They are now city-level. The first daily-file run had marked those warnings as seen; the source ignores that list once, so active warnings issued in the last week get recorded.
+- The NGA source is no longer flagged as a known outage. If both the API and the daily files fail, the run shows red.
 - **Ships hit in a "security incident"** (struck, on fire, sunk) are now classed as attacks on shipping, not "other". The first read has four such vessels in the Strait of Hormuz.
 
 ### Added

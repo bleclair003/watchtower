@@ -2,7 +2,8 @@
 /** NGA daily in-force files (v0.66.1). Warning texts are invented, in the NGA layout. */
 import { describe, expect, it } from 'vitest';
 import { classifyWarning, parseDailyMemo, readWarning } from '../../shared/domain/navWarnings.ts';
-import { ngaMsi, NGA_DAILY_BASE, NGA_DAILY_FILES, NGA_URL } from '../adapters/ngaMsi.ts';
+import { ngaMsi, NGA_DAILY_BASE, NGA_DAILY_FILES, NGA_URL, RECORDS_VERSION } from '../adapters/ngaMsi.ts';
+import { validateEvent } from '../lib/validate.ts';
 import { HttpError, type FetchResult } from '../lib/http.ts';
 
 const NOW = Date.parse('2026-11-23T10:00:00Z');
@@ -70,6 +71,22 @@ describe('daily in-force files', () => {
     const rec = r.events.find((e) => e.title.startsWith('HYDROPAC 9001/26'))!;
     expect(rec.sourceUrl).toBe(NGA_DAILY_BASE + 'DailyMemPAC.txt');
     expect(rec.summary).toMatch(/daily in-force list NGA posts while its portal is down/);
+    expect(validateEvent(rec, NOW)).toBeNull();
+    expect(rec.locationPrecision).toBe('city');
+  });
+
+  it('ignores the seen list of state from before the precision fix, once', async () => {
+    const fetch = async (u: string) => {
+      if (u === NGA_URL) throw new HttpError('HTTP 503', 503);
+      return ok(u.endsWith('DailyMemPAC.txt') ? MEMO : 'HYDROLANT IN FORCE AS OF 220100Z NOV 26.\n');
+    };
+    const old = { warnings: [], activeTotal: 0, fetchedAt: new Date(NOW - 60_000).toISOString(), seen: ['HYDROPAC 9001/26'] };
+    const r = await ngaMsi.collect({ now: NOW, state: old, fetch });
+    expect(r.notModified).toBe(false);
+    expect(r.events.map((e) => e.title.slice(0, 16))).toEqual(['HYDROPAC 9001/26']);
+    expect(r.state.recordsVersion).toBe(RECORDS_VERSION);
+    const again = await ngaMsi.collect({ now: NOW + 60_000, state: r.state, fetch });
+    expect(again.notModified).toBe(true);
   });
 
   it('fails when neither the API nor any daily file answers', async () => {
