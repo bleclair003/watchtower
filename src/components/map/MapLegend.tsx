@@ -1,6 +1,8 @@
 import { INFRA_LABEL, INFRA_TYPES } from '@shared/domain/infrastructure';
 import { tfrActive, type AirportEvent, type TfrShape } from '@shared/domain/faa';
 import { NETWORK_LABEL, type RadiationSnapshot } from '@shared/domain/radiation';
+import { GNSS_LEVEL_LABEL, type GnssSnapshot } from '@shared/domain/gnss';
+import { GNSS_COLOR } from './WorldMap';
 import { NAV_KIND_LABEL, type NavWarningKind, type NavWarningSnapshot } from '@shared/domain/navWarnings';
 import type { EmergencySnapshot } from '@shared/domain/aircraftEmergencies';
 import { VIOLENCE_LABEL, monthName, type ConflictSnapshot } from '@shared/domain/conflictEvents';
@@ -27,6 +29,7 @@ interface Props {
   infrastructure?: { all: number | null; flagged: number; simulated: boolean };
   /** Radiation layer (omit when off). */
   radiation?: RadiationSnapshot;
+  gnss?: GnssSnapshot & { ageMinutes: number };
   /** Phase 25 layers (omit when off). */
   navWarnings?: NavWarningSnapshot;
   emergencies?: EmergencySnapshot;
@@ -54,7 +57,7 @@ interface Props {
 const BRANCH_LABEL = { army: 'Army', navy: 'Navy', 'air-force': 'Air Force', marines: 'Marines', other: 'Other DoD' } as const;
 
 /** Collapsible legend explaining symbols and location-precision handling. */
-export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, infrastructure, power, faa, radiation, navWarnings, emergencies, conflicts, conflictWindow, navWarnDays, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
+export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, infrastructure, power, faa, radiation, gnss, navWarnings, emergencies, conflicts, conflictWindow, navWarnDays, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
   // Closed by default on phones, where it would cover most of the map.
   const [open, setOpen] = useState(() => typeof window === 'undefined' || window.matchMedia?.('(min-width: 768px)').matches !== false);
   return (
@@ -149,6 +152,32 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
                 <span>Records near or naming it (72 h)</span>
                 <span className="ml-auto text-wt-fg tabular-nums">{infrastructure.flagged}</span>
               </div>
+            </div>
+          )}
+          {gnss && (
+            <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
+              <div className="flex justify-between">
+                <span title="Share of aircraft reporting degraded GPS accuracy per 1° square, last 24 hours">GPS interference{gnss.simulated ? ' · SIMULATED' : ''}</span>
+                <span className="text-wt-fg tabular-nums">{gnss.cells.filter((c) => c.level === 'high').length} high</span>
+              </div>
+              <ul className="space-y-0.5">
+                {(['high', 'medium', 'low'] as const).map((k) => (
+                  <li key={k} className="flex items-center gap-1">
+                    <span className="size-2" style={{ background: GNSS_COLOR[k], opacity: k === 'low' ? 0.6 : 1 }} aria-hidden />
+                    <span className="flex-1">{GNSS_LEVEL_LABEL[k]}</span>
+                    <span className="tabular-nums">{gnss.cells.filter((c) => c.level === k).length}</span>
+                  </li>
+                ))}
+                <li className="flex items-center gap-1">
+                  <span className="size-2 rounded-full border" style={{ borderColor: GNSS_COLOR.high }} aria-hidden />
+                  <span className="flex-1">GPS lost here (last good position)</span>
+                  <span className="tabular-nums">{gnss.lost.length}</span>
+                </li>
+              </ul>
+              <p className="text-wt-fg-dim">
+                {gnss.degraded.toLocaleString('en-US')} of {gnss.sightings.toLocaleString('en-US')} aircraft sightings degraded, last {gnss.windowHours} h. Sampled hourly in {gnss.circles.length} circles (dotted); last sample {gnss.ageMinutes} min ago
+                {gnss.failed.length > 0 && <span className="text-wt-warn"> · {gnss.failed.length} circle(s) not sampled</span>}. Says where, not who.
+              </p>
             </div>
           )}
           {radiation && (

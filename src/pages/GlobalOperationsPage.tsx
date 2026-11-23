@@ -9,7 +9,8 @@ import { IMAGERY_ATTRIBUTION } from '../lib/imagery';
 import { readStorage, writeStorage } from '../lib/storage';
 import { formatUtc } from '../lib/time';
 import { unpackAirports, type Airport } from '@shared/domain/radio';
-import { Anchor, Atom, Ban, Crosshair, Factory, Grid3x3, Plane, PlaneLanding, Satellite, Shield, Ship, Siren, Square, Zap } from 'lucide-react';
+import { Anchor, Atom, Ban, Crosshair, Factory, Grid3x3, LocateOff, Plane, PlaneLanding, Satellite, Shield, Ship, Siren, Square, Zap } from 'lucide-react';
+import { GnssCard } from '../components/map/GnssCard';
 import { useBases, useInfrastructure } from '../data/useInstallations';
 import { InfraCard } from '../components/map/InfraCard';
 import { ALL_OPERATORS, operatedBy, operatorCounts } from '@shared/domain/installations';
@@ -44,7 +45,7 @@ import { Panel } from '../components/ui/Panel';
 export default function GlobalOperationsPage() {
   // Re-evaluate time windows once a minute; the clock in the top bar ticks separately.
   const now = useNow(60_000).getTime();
-  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips, baseActivity, infrastructure, powerOutages, tfrs, airportStatus, radiation, navWarnings, aircraftEmergencies, conflictEvents } = useData();
+  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips, baseActivity, infrastructure, powerOutages, tfrs, airportStatus, radiation, navWarnings, aircraftEmergencies, conflictEvents, gnss } = useData();
   const unusualBases = useMemo(() => (baseActivity?.items ?? []).filter((i) => i.unusual).map((i) => i.key), [baseActivity]);
   const { filters, setFilters, resetFilters, selectedEventId, selectEvent, globalViewNonce } = useDashboard();
   const { settings, update } = useSettings();
@@ -106,8 +107,13 @@ export default function GlobalOperationsPage() {
   const flaggedInfra = infrastructure?.flagged ?? [];
   const selectedInfraSite = selectedInfra ? (infraData.data?.sites.find((s) => s.id === selectedInfra) ?? null) : null;
   const selectedInfraFlag = selectedInfra ? (flaggedInfra.find((f) => f.id === selectedInfra) ?? null) : null;
-  // One map card at a time: selecting a base, aircraft, fleet area, chokepoint, vessel or site clears the others.
-  const selectOnly = (kind: 'base' | 'air' | 'fleet' | 'strait' | 'listed' | 'infra', key: string | null) => {
+  // GPS interference squares (v0.69.0): the last hourly sample while under three hours old (the collector enforces it).
+  const [selectedGnss, setSelectedGnss] = useState<string | null>(null);
+  const shownGnss = settings.gnss && gnss ? gnss : null;
+  const selectedGnssCell = selectedGnss ? (shownGnss?.cells.find((c) => c.k === selectedGnss) ?? null) : null;
+  // One map card at a time: selecting a base, aircraft, fleet area, chokepoint, vessel, site or square clears the others.
+  const selectOnly = (kind: 'base' | 'air' | 'fleet' | 'strait' | 'listed' | 'infra' | 'gnss', key: string | null) => {
+    setSelectedGnss(kind === 'gnss' ? key : null);
     setSelectedInfra(kind === 'infra' ? key : null);
     setSelectedListed(kind === 'listed' ? key : null);
     setSelectedBase(kind === 'base' ? key : null);
@@ -134,12 +140,14 @@ export default function GlobalOperationsPage() {
     const s = link.selection;
     if (s?.kind === 'event') selectEvent(s.key);
     else if (s) {
-      const kind = ({ base: 'base', air: 'air', fleet: 'fleet', strait: 'strait', listed: 'listed', infra: 'infra' } as const)[s.kind];
+      const kind = ({ base: 'base', air: 'air', fleet: 'fleet', strait: 'strait', listed: 'listed', infra: 'infra', gnss: 'gnss' } as const)[s.kind];
       selectOnly(kind, s.key);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- apply the opening link once
   }, []);
-  const selection: MapSelection | null = selectedInfra
+  const selection: MapSelection | null = selectedGnss
+    ? { kind: 'gnss', key: selectedGnss }
+    : selectedInfra
     ? { kind: 'infra', key: selectedInfra }
     : selectedListed
       ? { kind: 'listed', key: selectedListed }
@@ -228,6 +236,7 @@ export default function GlobalOperationsPage() {
       [settings.radiation, 'RAD'],
       [settings.navWarnings, 'NAVWARN'],
       [settings.conflicts, 'CONFLICT'],
+      [shownGnss, 'GPS'],
     ] as [unknown, string][]
   )
     .filter(([on]) => !!on)
@@ -419,6 +428,17 @@ export default function GlobalOperationsPage() {
                 </select>
               )}
               <button
+                className={toggleBtn(settings.gnss)}
+                aria-pressed={settings.gnss}
+                title="GPS interference: share of aircraft reporting degraded GPS accuracy per 1° square, last 24 hours (adsb.lol, sampled hourly)"
+                onClick={() => {
+                  update({ gnss: !settings.gnss });
+                  setSelectedGnss(null);
+                }}
+              >
+                <LocateOff size={10} aria-hidden /> GPS
+              </button>
+              <button
                 className={toggleBtn(settings.conflicts)}
                 aria-pressed={settings.conflicts}
                 title="UCDP conflict events in the watch regions, last monthly release (about a month behind)"
@@ -531,6 +551,11 @@ export default function GlobalOperationsPage() {
               navWarnings={settings.navWarnings ? shownNavWarnings : []}
               emergencies={settings.aircraft ? (aircraftEmergencies?.aircraft ?? []) : []}
               conflicts={settings.conflicts ? conflictWindow.events : []}
+              gnssCells={shownGnss?.cells ?? []}
+              gnssLost={shownGnss?.lost ?? []}
+              gnssCircles={shownGnss?.circles ?? []}
+              selectedGnss={selectedGnssCell ? selectedGnss : null}
+              onSelectGnss={(k) => selectOnly('gnss', k)}
               initialView={initialView}
               onViewChange={onViewChange}
               measuring={measuring}
@@ -562,6 +587,7 @@ export default function GlobalOperationsPage() {
             infrastructure={settings.infrastructure || flaggedInfra.length ? { all: settings.infrastructure ? (infraData.data?.count ?? null) : null, flagged: flaggedInfra.length, simulated: !!infrastructure?.simulated } : undefined}
             power={settings.powerOutages && powerOutages ? { total: powerOutages.totalOut, states: powerOutages.states.length, counties: powerOutages.counties.length, utilities: powerOutages.utilitiesReporting, ageMinutes: Math.max(0, Math.round((now - Date.parse(powerOutages.fetchedAt)) / 60_000)), simulated: !!powerOutages.simulated } : undefined}
             radiation={settings.radiation && radiation ? radiation : undefined}
+            gnss={shownGnss ? { ...shownGnss, ageMinutes: Math.max(0, Math.round((now - Date.parse(shownGnss.fetchedAt)) / 60_000)) } : undefined}
             navWarnings={settings.navWarnings && navWarnings ? { ...navWarnings, warnings: shownNavWarnings } : undefined}
             navWarnDays={settings.navWarnDays}
             emergencies={settings.aircraft && aircraftEmergencies ? aircraftEmergencies : undefined}
@@ -597,6 +623,7 @@ export default function GlobalOperationsPage() {
                 : undefined
             }
           />
+          {selectedGnssCell && shownGnss && <GnssCard cell={selectedGnssCell} snapshot={shownGnss} warnings={navWarnings?.warnings ?? []} now={now} onClose={() => setSelectedGnss(null)} />}
           {(selectedInfraSite || selectedInfraFlag) && <InfraCard site={selectedInfraSite} flagged={selectedInfraFlag} dataset={infraData.data} now={now} onClose={() => setSelectedInfra(null)} />}
           {!selectedInfra && selectedListedShip && sanctionedShips && <SanctionedShipCard ship={selectedListedShip} snapshot={sanctionedShips} now={now} onClose={() => setSelectedListed(null)} />}
           {!selectedInfra && !selectedListedShip && selectedStraitItem && chokepoints && <ChokepointCard item={selectedStraitItem} snapshot={chokepoints} now={now} onClose={() => setSelectedStrait(null)} />}

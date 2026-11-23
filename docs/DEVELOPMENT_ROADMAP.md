@@ -383,7 +383,7 @@ Free sources and analysis of data already collected. Each new outside source is 
 - [x] UCDP conflict events (monthly candidate release) on the map, per-region monthly totals — v0.59.0
 - [ ] Taiwan MND daily PLA activity and Japan Joint Staff scrambles (check terms)
 - [ ] More travel and health advisories (Australia Smartraveller, CDC, Canada)
-- [ ] GPS interference from aircraft position-quality fields
+- [x] GPS interference from aircraft position-quality fields — v0.69.0 (Phase 32)
 - [ ] State-affiliated / partisan labels on publishers
 - [ ] Open-Meteo climate anomalies; abuse.ch cyber infrastructure; cables, pipelines, ports, satellites layers
 
@@ -461,4 +461,15 @@ From the feature audit (category 12, items 2, 7, 8 and 9; category 23 item 3).
 - [x] PNG snapshot with time, layers, feed window, centre, ruler, the link and map credits — v0.68.0
 - [ ] Draw an area of interest and alert on activity inside it (audit 12.1)
 - [ ] Links for region pages and the replay
+
+## Phase 32 — GPS interference (2026-11-23)
+
+From the feature audit (category 5, items 1, 2 and 6; category 1 item 6 left open).
+
+- [x] Hourly samples of ten 250 nm circles over the watch regions (adsb.lol, adsb.fi per circle when adsb.lol fails); per 1° square and hour: aircraft sightings, degraded (NACp below 8) and GPS lost (readsb gpsOkBefore) — v0.69.0
+- [x] GPS map layer: squares by degraded share over 24 hours (under 2%, 2–10%, 10%+), last good positions before GPS was lost, the sampled circles; a card per square with NGA GPS-interference warnings within 500 km and links to adsb.lol and GPSJam — v0.69.0
+- [x] Records: a square high in an hourly sample of the last 6 hours that was not high over the 24 hours before, per region, once a day, after a day of history; experimental indicator per region (catalog v22) — v0.69.0
+- [ ] Position jumps (aircraft far from where their speed allows): needs consecutive positions of the same aircraft
+- [ ] Tell landings from coverage loss (audit 1.6)
+- [ ] GPS interference in the SITREP and the unusual-readings meter once a baseline exists
 

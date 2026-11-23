@@ -349,3 +349,9 @@ Links only, as in Phase 28. Both sources make no records; they are stored in the
 | EiBi shortwave schedules (`eibispace.de/dx/sked-<season>.csv`, `README.TXT`) | aggregator; free to download, use, copy and distribute (README "Conditions of use") | Fetched once a day; the current season's file, or the previous one while a new season's is not out. Kept: transmissions aimed at or based in a watch region (about 2,000 merged rows in B26), including utility stations (military channel markers, numbers stations, VOLMET). Alternates, harmonics and inactive rows are dropped. A schedule, not a log |
 | Radio Browser (`<server>.api.radio-browser.info/json/stations/search`) | community directory; free open API | One search per watch-region country once a day, from a server the directory itself lists; up to 8 working stations each, news and talk first, then the most played. Only each station's own page and stream are linked |
 
+### v0.69.0 — GPS interference
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| adsb.lol circle queries (`api.adsb.lol/v2/point/{lat}/{lon}/250`; adsb.fi `opendata.adsb.fi/api/v2/lat/{lat}/lon/{lon}/dist/250` per circle when adsb.lol fails) | aggregator, ODbL (adsb.fi: personal, non-commercial) | Ten circles once an hour. No aircraft list is stored: only counts per 1° square and hour for 48 hours (sightings, degraded NACp below 8, GPS lost), and for 24 hours the last good position, time and callsign of aircraft flagged as having lost GPS. About 240 requests a day against adsb.lol's 500 a day per address |
+

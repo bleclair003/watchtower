@@ -210,3 +210,17 @@ test('map tools: a link restores region and ruler, search finds a base and updat
   await expect(page.getByText(/Click again to start a new measurement/)).toHaveCount(0);
   expect(problems).toEqual([]);
 });
+
+test('GPS interference layer: simulated squares, legend, and a card with nearby NGA warnings', async ({ page, problems }) => {
+  await page.goto('/?at=55,21,4.5&layers=gaj&sel=gnss:54|19');
+  const card = page.getByRole('region', { name: /GPS interference square/ });
+  await expect(card).toContainText('34% degraded: 41 of 120 aircraft sightings');
+  await expect(card).toContainText('HYDROLANT 9003/26');
+  await expect(card).toContainText('SIMULATED');
+  await expect(page).toHaveURL(/sel=gnss:54\|19/);
+  await card.getByRole('button', { name: 'Close GPS interference details' }).click();
+  await expect(page).not.toHaveURL(/sel=gnss/);
+  await page.getByRole('button', { name: 'GPS', exact: true }).click();
+  await expect(page).toHaveURL(/layers=ga(&|$)/);
+  expect(problems).toEqual([]);
+});

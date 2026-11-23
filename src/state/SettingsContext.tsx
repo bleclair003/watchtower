@@ -36,6 +36,8 @@ export interface OperatorSettings {
   navWarnings: boolean;
   /** UCDP conflict events (last monthly release) on the map. */
   conflicts: boolean;
+  /** GPS interference squares and lost-GPS points (aircraft position accuracy) on the map. */
+  gnss: boolean;
   /** Conflict events from the last N days of the release; null = whole month. */
   conflictDays: number | null;
   /** Navigational warnings issued in the last N days; null = any age. */
@@ -64,6 +66,7 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   radiation: true,
   navWarnings: true,
   conflicts: true,
+  gnss: true,
   conflictDays: null,
   navWarnDays: null,
   imagery: 'off',

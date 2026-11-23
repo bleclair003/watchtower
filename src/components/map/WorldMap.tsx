@@ -19,7 +19,8 @@ import { WATCH_REGIONS, getRegion } from '@shared/domain/regions';
 import { CATEGORY_STYLES } from '../../config/categories';
 import { BASEMAP_STYLE_URL, findTextFont, militarizeStyle } from '../../lib/mapStyle';
 import { graticule, isPlottable, projectEvents, regionAreas } from '../../lib/geo';
-import { greatCirclePath, type LonLat } from '../../lib/measure';
+import { circleRing, greatCirclePath, KM_PER_NM, type LonLat } from '../../lib/measure';
+import { cellBounds, GNSS_RADIUS_NM, type GnssCell, type GnssCircle, type GnssLevel, type GnssLostPoint } from '@shared/domain/gnss';
 import type { MapView } from '../../lib/mapLink';
 
 /** Imperative handle for map tools (v0.68.0): fly somewhere, or capture the current frame. */
@@ -31,6 +32,8 @@ export interface WorldMapHandle {
   view: () => MapView;
 }
 export const RULER_COLOR = '#ffd166';
+/** GPS interference squares by level (v0.69.0); lost-GPS points use the high colour. */
+export const GNSS_COLOR: Record<GnssLevel, string> = { low: '#2f6a4c', medium: '#ffb347', high: '#ff4d6d' };
 
 export interface WorldMapProps {
   events: IntelligenceEvent[];
@@ -50,6 +53,12 @@ export interface WorldMapProps {
   measuring?: boolean;
   ruler?: LonLat[];
   onRulerPoint?: (p: LonLat) => void;
+  /** GPS interference (v0.69.0): 1° squares, last-good positions before GPS was lost, and the sampled circles. */
+  gnssCells?: GnssCell[];
+  gnssLost?: GnssLostPoint[];
+  gnssCircles?: GnssCircle[];
+  selectedGnss?: string | null;
+  onSelectGnss?: (key: string | null) => void;
   /** A marked location (search result without its own marker, such as an airport). */
   pin?: { lat: number; lon: number } | null;
   handleRef?: { current: WorldMapHandle | null };
@@ -293,6 +302,35 @@ export function WorldMap(props: WorldMapProps) {
           type: 'line',
           source: 'graticule',
           paint: { 'line-color': '#123323', 'line-width': 0.6, 'line-dasharray': [2, 3] },
+        });
+
+        // GPS interference (v0.69.0): sampled circles, 1° squares coloured by degraded share, lost-GPS points.
+        const none = { type: 'FeatureCollection' as const, features: [] };
+        m.addSource('gnss-circles', { type: 'geojson', data: none });
+        m.addLayer({ id: 'gnss-circles', type: 'line', source: 'gnss-circles', paint: { 'line-color': '#3d5a4a', 'line-width': 0.8, 'line-dasharray': [1, 3] } });
+        m.addSource('gnss', { type: 'geojson', data: none });
+        m.addLayer({
+          id: 'gnss-fill',
+          type: 'fill',
+          source: 'gnss',
+          paint: {
+            'fill-color': ['match', ['get', 'level'], 'high', GNSS_COLOR.high, 'medium', GNSS_COLOR.medium, GNSS_COLOR.low],
+            'fill-opacity': ['match', ['get', 'level'], 'high', 0.38, 'medium', 0.24, 0.04],
+          },
+        });
+        m.addLayer({
+          id: 'gnss-outline',
+          type: 'line',
+          source: 'gnss',
+          paint: { 'line-color': ['match', ['get', 'level'], 'high', GNSS_COLOR.high, 'medium', GNSS_COLOR.medium, GNSS_COLOR.low], 'line-width': 0.6, 'line-opacity': 0.8 },
+        });
+        m.addLayer({ id: 'gnss-selected', type: 'line', source: 'gnss', filter: ['==', ['get', 'k'], '__none__'], paint: { 'line-color': '#ffffff', 'line-width': 2 } });
+        m.addSource('gnss-lost', { type: 'geojson', data: none });
+        m.addLayer({
+          id: 'gnss-lost',
+          type: 'circle',
+          source: 'gnss-lost',
+          paint: { 'circle-radius': 3, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': GNSS_COLOR.high, 'circle-stroke-width': 1.2 },
         });
 
         const empty = regionAreas({}, null);
@@ -930,6 +968,11 @@ export function WorldMap(props: WorldMapProps) {
             return;
           }
           const clusters = m.queryRenderedFeatures(e.point, { layers: ['clusters'] });
+          const gnssHit = clusters[0] ? [] : m.queryRenderedFeatures(e.point, { layers: ['gnss-fill'] });
+          if (gnssHit[0] && cb.current.onSelectGnss) {
+            cb.current.onSelectGnss(String(gnssHit[0].properties.k));
+            return;
+          }
           if (clusters[0]) {
             const src = m.getSource('events') as GeoJSONSource;
             const zoom = await src.getClusterExpansionZoom(clusters[0].properties.cluster_id as number);
@@ -1319,6 +1362,41 @@ export function WorldMap(props: WorldMapProps) {
     if (a) m.easeTo({ center: [a.lo, a.la], zoom: Math.max(m.getZoom(), 5), duration: 600 });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to selection changes
   }, [ready, selectedAircraft]);
+
+  // ------------------------------------------------------- GPS interference --
+  const { gnssCells, gnssLost, gnssCircles, selectedGnss } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    (m.getSource('gnss') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (gnssCells ?? []).map((c) => {
+        const [w, s, e, n] = cellBounds(c.k);
+        return {
+          type: 'Feature' as const,
+          geometry: { type: 'Polygon' as const, coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]] },
+          properties: { k: c.k, level: c.level },
+        };
+      }),
+    });
+    (m.getSource('gnss-lost') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (gnssLost ?? []).map((p) => ({ type: 'Feature' as const, geometry: { type: 'Point' as const, coordinates: [p.lo, p.la] }, properties: {} })),
+    });
+    (m.getSource('gnss-circles') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (gnssCircles ?? []).map((c) => ({
+        type: 'Feature' as const,
+        geometry: { type: 'LineString' as const, coordinates: circleRing(c.lat, c.lon, GNSS_RADIUS_NM * KM_PER_NM) },
+        properties: { id: c.id },
+      })),
+    });
+  }, [ready, gnssCells, gnssLost, gnssCircles]);
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    m.setFilter('gnss-selected', ['==', ['get', 'k'], selectedGnss ?? '__none__']);
+  }, [ready, selectedGnss]);
 
   // ------------------------------------------------------------ map tools --
   const { measuring, ruler, pin, handleRef } = props;

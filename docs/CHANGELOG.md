@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.69.0] — 2026-11-23 — GPS interference (Phase 32)
+
+### Added
+- **GPS interference layer (GPS button).** Once an hour the collector samples ten 250 nm circles over the watch regions: the Baltic, Gulf of Finland, Black Sea, Eastern Mediterranean, Iraq and the northern Gulf, Hormuz, the Red Sea, Korea, the Taiwan Strait and the South China Sea. It counts the aircraft reporting degraded GPS accuracy. The data is from adsb.lol, with adsb.fi used for any circle where adsb.lol fails.
+  - **Degraded** means an ADS-B version 2 aircraft, flying at 1,000 ft or more, reporting position accuracy (NACp) below 8, about 93 m. An aircraft the network flags as having lost GPS that was working before also counts.
+  - Each 1° square with 10 or more sightings in the last 24 hours is coloured by the share degraded: under 2%, 2–10%, or 10% or more.
+  - Red rings mark the last good positions before aircraft lost GPS, where interference begins.
+  - Dotted circles show what is sampled.
+  - Clicking a square shows its counts, the lost-GPS points in it, and any NGA GPS-interference warnings within 500 km. It links to adsb.lol and to GPSJam for the same day, for comparison.
+- **Records:** a region gets a record when a square there reaches high (10% or more, with at least 5 degraded sightings) in an hourly sample of the last 6 hours, and was not high over the 24 hours before. Records are made at most once a day per region, and only after a day of history, so areas jammed every day do not repeat.
+- **Indicator** "GPS interference spreading", per region: elevated at one such record in 72 hours, triggered at three. It is experimental, weighted 0. Catalog v22.
+
+### Notes
+- First live sample (22:35Z, night in Europe): 378 aircraft in all ten circles, 10 of 257 counted sightings degraded, 6 aircraft flagged as having lost GPS near the southern Baltic. Squares fill in over the first day.
+- The layer shows where aircraft see interference, not who causes it. A badly installed transponder can colour a quiet square, and hourly samples miss short episodes. Areas without receivers (Iran, much of Russia, open ocean) have no data.
+- About 240 requests a day to adsb.lol, within its limit of 500 a day per address.
+
 ## [0.68.0] — 2026-11-23 — Map tools (Phase 31)
 
 ### Added

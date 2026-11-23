@@ -41,9 +41,11 @@ import type { CensorshipSnapshot } from '@shared/domain/censorship';
 import { buildDemoCensorship } from './demo/demoCensorship';
 import type { NavWarningSnapshot } from '@shared/domain/navWarnings';
 import type { EmergencySnapshot } from '@shared/domain/aircraftEmergencies';
+import type { GnssSnapshot } from '@shared/domain/gnss';
 import type { RadioReceiversSnapshot } from '@shared/domain/radio';
 import type { ConflictSnapshot } from '@shared/domain/conflictEvents';
 import { buildDemoConflicts, buildDemoEmergencies, buildDemoNavWarnings, buildDemoReceivers } from './demo/demoPhase25';
+import { buildDemoGnss } from './demo/demoGnss';
 import type { ActorsSnapshot } from '@shared/domain/actors';
 import { computeActors } from '@shared/domain/actorsTrack';
 
@@ -106,6 +108,7 @@ export interface DashboardData {
   /** Phase 25: navigational warnings, aircraft emergencies, UCDP conflict events (or null). */
   navWarnings: NavWarningSnapshot | null;
   aircraftEmergencies: EmergencySnapshot | null;
+  gnss: GnssSnapshot | null;
   /** Phase 28: public shortwave receivers (or null). */
   radioReceivers: RadioReceiversSnapshot | null;
   conflictEvents: ConflictSnapshot | null;
@@ -167,6 +170,7 @@ export class DemoRepository implements IntelRepository {
       censorship: buildDemoCensorship(now),
       navWarnings: buildDemoNavWarnings(now),
       aircraftEmergencies: buildDemoEmergencies(now),
+      gnss: buildDemoGnss(now),
       radioReceivers: buildDemoReceivers(now),
       conflictEvents: buildDemoConflicts(now),
       // The real tracker over the demo records (no registry: nothing counts as new in demo mode).

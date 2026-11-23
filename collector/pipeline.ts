@@ -49,6 +49,7 @@ import { OONI_SOURCE_ID, type OoniState } from './adapters/ooni.ts';
 import { NGA_SOURCE_ID, type NgaState } from './adapters/ngaMsi.ts';
 import { EMERGENCY_SOURCE_ID, type EmergencyState } from './adapters/adsbEmergencies.ts';
 import { UCDP_SOURCE_ID, type UcdpState } from './adapters/ucdp.ts';
+import { GNSS_SOURCE_ID, type GnssState } from './adapters/gnssInterference.ts';
 import { RADIO_RECEIVERS_SOURCE_ID, type RadioReceiversState } from './adapters/radioReceivers.ts';
 import { SHORTWAVE_SOURCE_ID, type ShortwaveState } from './adapters/shortwaveSchedule.ts';
 import { LOCAL_RADIO_SOURCE_ID, type LocalRadioState } from './adapters/localRadio.ts';
@@ -424,15 +425,18 @@ export async function runCollection(
   }
   // Phase 25: navigational warnings (while fresh), aircraft emergencies (last 90 minutes) and UCDP conflict events.
   try {
-    const [nga, emg, ged] = await Promise.all([
+    const [nga, emg, ged, gnss] = await Promise.all([
       tracked.includes(NGA_SOURCE_ID) ? store.getSourceState<NgaState>(NGA_SOURCE_ID) : null,
       tracked.includes(EMERGENCY_SOURCE_ID) ? store.getSourceState<EmergencyState>(EMERGENCY_SOURCE_ID) : null,
       tracked.includes(UCDP_SOURCE_ID) ? store.getSourceState<UcdpState>(UCDP_SOURCE_ID) : null,
+      tracked.includes(GNSS_SOURCE_ID) ? store.getSourceState<GnssState>(GNSS_SOURCE_ID) : null,
     ]);
     const gen = Date.parse(snapshot.generatedAt);
     if (nga?.fetchedAt && gen - Date.parse(nga.fetchedAt) < 48 * 3_600_000) snapshot.navWarnings = { warnings: nga.warnings, activeTotal: nga.activeTotal, fetchedAt: nga.fetchedAt, asOf: nga.asOf ?? null, via: nga.via ?? 'api' };
     if (emg?.latest && gen - Date.parse(emg.latest.fetchedAt) < 90 * 60_000) snapshot.aircraftEmergencies = emg.latest;
     if (ged?.latest) snapshot.conflictEvents = ged.latest;
+    // GPS interference: the last hourly sample, while under three hours old.
+    if (gnss?.latest && gen - Date.parse(gnss.latest.fetchedAt) < 3 * 3_600_000) snapshot.gnss = gnss.latest;
   } catch (err) {
     log(`P25  warnings, emergencies or conflict events not added to the snapshot: ${sanitizeError(err)}`);
   }

@@ -74,3 +74,18 @@ export function formatLonLat([lon, lat]: LonLat): string {
   const L = ((((lon + 180) % 360) + 360) % 360) - 180;
   return `${Math.abs(lat).toFixed(3)}°${lat >= 0 ? 'N' : 'S'} ${Math.abs(L).toFixed(3)}°${L >= 0 ? 'E' : 'W'}`;
 }
+
+/** A closed ring approximating a circle of `radiusKm` around a point (for drawing sample areas). */
+export function circleRing(lat: number, lon: number, radiusKm: number, steps = 64): LonLat[] {
+  const d = radiusKm / EARTH_RADIUS_KM;
+  const la1 = rad(lat);
+  const lo1 = rad(lon);
+  const out: LonLat[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const b = rad((i / steps) * 360);
+    const la2 = Math.asin(Math.sin(la1) * Math.cos(d) + Math.cos(la1) * Math.sin(d) * Math.cos(b));
+    const lo2 = lo1 + Math.atan2(Math.sin(b) * Math.sin(d) * Math.cos(la1), Math.cos(d) - Math.sin(la1) * Math.sin(la2));
+    out.push([deg(lo2), deg(la2)]);
+  }
+  return out;
+}

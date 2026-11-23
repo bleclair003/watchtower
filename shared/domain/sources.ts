@@ -1411,6 +1411,31 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     priority: 'P2',
     feasibility: { checkedAt: '2026-11-22T04:00:00Z', result: 'reachable', note: 'GET /v2/sqk/7700 HTTP 200 from Node ({ ac: [] } at the time).' },
   },
+  // ------------------------------------------------------------ v0.69.0 ---
+  {
+    id: 'adsb-gnss',
+    name: 'GPS interference (aircraft position accuracy)',
+    organization: 'adsb.lol (community ADS-B network); adsb.fi as fallback',
+    website: 'https://adsb.lol/',
+    endpoint: 'https://api.adsb.lol/v2/point/{lat}/{lon}/250',
+    method: 'api',
+    sourceClass: 'aggregator',
+    defaultCategory: 'aviation',
+    coverage: 'Ten 250 nm circles over the watch regions (Baltic, Gulf of Finland, Black Sea, Eastern Mediterranean, Iraq and the northern Gulf, Hormuz, Red Sea, Korea, Taiwan Strait, South China Sea), where aircraft fly and volunteers run receivers',
+    authentication: 'None',
+    freeAccess: 'Free API (ODbL); adsb.fi fallback for personal, non-commercial use',
+    expectedUpdateFrequency: 'One sample an hour (ten requests); squares show the last 24 hours',
+    pollIntervalMinutes: 60,
+    reliabilityNotes:
+      'Counts ADS-B version 2 aircraft at 1,000 ft or more reporting position accuracy (NACp) below 8, or flagged by readsb as having lost GPS that worked before (gpsOkBefore, an experimental field). A share of many aircraft is the signal; a single badly installed transponder can colour a quiet square. Hourly samples miss short episodes; no receivers, no data (Iran, much of Russia, open ocean). Shows where, not who.',
+    termsNotes: 'adsb.lol: ODbL 1.0, credit adsb.lol. adsb.fi (fallback only): personal, non-commercial use; cite adsb.fi with a link.',
+    priority: 'P2',
+    feasibility: {
+      checkedAt: '2026-11-23T22:30:00Z',
+      result: 'reachable',
+      note: 'GET /v2/point/56.5/21/250 HTTP 200, x-ratelimit-limit 500 per day: 44 aircraft with nic and nac_p; 7 carried gpsOkBefore with gpsOkLat/gpsOkLon (NACp 0), over the southern Baltic.',
+    },
+  },
   {
     id: 'ucdp-ged',
     name: 'UCDP conflict events (monthly candidate)',

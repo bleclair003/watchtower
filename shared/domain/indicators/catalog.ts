@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 21;
+export const CATALOG_VERSION = 22;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -845,6 +845,50 @@ const sanctionedShipIndicators: IndicatorDefinition[] = [
   },
 ];
 
+const GNSS = 'adsb-gnss';
+const GNSS_REGIONS = ['eastern-europe', 'middle-east', 'red-sea', 'korean-peninsula', 'taiwan-strait', 'south-china-sea'];
+
+/** v0.69.0: GPS interference from aircraft position accuracy (experimental: no history yet). */
+const gnssIndicators: IndicatorDefinition[] = ADVISORY_REGIONS.filter((r) => GNSS_REGIONS.includes(r.id)).map(
+  (r): IndicatorDefinition => ({
+    id: `${r.id}.gnss-interference`,
+    name: `${r.shortCode} GPS interference spreading`,
+    description: `A 1° square over ${r.name} reached 10%+ of aircraft reporting degraded GPS accuracy (5+ sightings) after not being high the day before, within 72 hours. Three such days is triggered.`,
+    family: 'experimental',
+    regionId: r.id,
+    requiredSourceIds: [GNSS],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: GNSS },
+        { field: 'metadata.subtype', op: 'eq', value: 'gnss-interference' },
+        { field: 'regionIds', op: 'contains', value: r.id },
+      ],
+    },
+    windowHours: 72,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 3 },
+    baseline: null,
+    weight: 0,
+    severity: 'medium',
+    experimental: true,
+    enabled: true,
+    configVersion: 1,
+    rationale:
+      'Jamming and spoofing switch on with military activity: air defence around bases, drone and missile defence, and electronic warfare. Interference that appears where it was not the day before is the change worth noticing; areas jammed every day (Kaliningrad, parts of the Eastern Mediterranean) only count when new squares light up. Weighted 0 until there is history.',
+    research: {
+      hypothesis: 'New areas of degraded aircraft GPS accuracy mark new electronic-warfare activity in or near the region.',
+      dataAvailability: 'adsb.lol circle queries, hourly since 2026-11-23; squares kept for 48 hours.',
+      baselinePeriod: 'None yet: each square is compared with its own previous 24 hours.',
+      expectedRelationship: 'Rises with air-defence alerts, drone and missile attacks, exercises with electronic warfare.',
+      historicalExamples: 'None in WATCHTOWER data yet. Public GPS-jamming maps have shown persistent interference around Kaliningrad, Israel and Lebanon, and Iraq since 2023.',
+      confounders: 'Receiver coverage, traffic volume (night), rerouted flights, badly installed transponders, hourly sampling.',
+      falsePositives: 'A few aircraft with faulty transponders in a quiet square; test transmissions announced by NOTAM.',
+      retrospectiveResults: 'Insufficient history.',
+      evidenceQuality: 'none',
+    },
+  }),
+);
+
 const UNSC = 'un-security-council';
 
 /** Phase 13 item 5: UN Security Council attention and failed drafts (not for the US region). */
@@ -1389,6 +1433,7 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...chokepointIndicators,
   ...sanctionsIndicators,
   ...sanctionedShipIndicators,
+  ...gnssIndicators,
   ...unscIndicators,
   ...missileIndicators,
   ...embassyIndicators,

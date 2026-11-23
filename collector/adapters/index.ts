@@ -34,6 +34,7 @@ import { uaAirForce } from './uaAirForce.ts';
 import { ooni } from './ooni.ts';
 import { ngaMsi } from './ngaMsi.ts';
 import { adsbEmergencies } from './adsbEmergencies.ts';
+import { gnssInterference } from './gnssInterference.ts';
 import { radioReceivers } from './radioReceivers.ts';
 import { shortwaveSchedule } from './shortwaveSchedule.ts';
 import { localRadio } from './localRadio.ts';
@@ -101,6 +102,7 @@ export const ADAPTERS: SourceAdapter<never>[] = [
   ooni as SourceAdapter<never>,
   ngaMsi as SourceAdapter<never>,
   adsbEmergencies as SourceAdapter<never>,
+  gnssInterference as SourceAdapter<never>,
   ucdp as SourceAdapter<never>,
   radioReceivers as SourceAdapter<never>,
   shortwaveSchedule as SourceAdapter<never>,
