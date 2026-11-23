@@ -19,6 +19,18 @@ import { WATCH_REGIONS, getRegion } from '@shared/domain/regions';
 import { CATEGORY_STYLES } from '../../config/categories';
 import { BASEMAP_STYLE_URL, findTextFont, militarizeStyle } from '../../lib/mapStyle';
 import { graticule, isPlottable, projectEvents, regionAreas } from '../../lib/geo';
+import { greatCirclePath, type LonLat } from '../../lib/measure';
+import type { MapView } from '../../lib/mapLink';
+
+/** Imperative handle for map tools (v0.68.0): fly somewhere, or capture the current frame. */
+export interface WorldMapHandle {
+  flyTo: (lat: number, lon: number, zoom?: number) => void;
+  fitBounds: (bbox: [number, number, number, number]) => void;
+  /** The map canvas as drawn in the next frame (overlays included, HTML cards and legend not). */
+  capture: () => Promise<HTMLCanvasElement>;
+  view: () => MapView;
+}
+export const RULER_COLOR = '#ffd166';
 
 export interface WorldMapProps {
   events: IntelligenceEvent[];
@@ -30,6 +42,17 @@ export interface WorldMapProps {
   showRegions: boolean;
   /** Increment to fly back to the global view. */
   globalViewNonce: number;
+  /** v0.68.0 map tools. The view to open on (read once, at start-up); a region focus does not override it. */
+  initialView?: MapView | null;
+  /** Called when the map stops moving. */
+  onViewChange?: (v: MapView) => void;
+  /** Ruler mode: clicks add ruler points (snapped to a marker under the pointer) instead of selecting. */
+  measuring?: boolean;
+  ruler?: LonLat[];
+  onRulerPoint?: (p: LonLat) => void;
+  /** A marked location (search result without its own marker, such as an airport). */
+  pin?: { lat: number; lon: number } | null;
+  handleRef?: { current: WorldMapHandle | null };
   /** Military installations layer (optional): DoD sites (US) and worldwide sites (Wikidata). */
   installations?: Installation[];
   worldInstallations?: WorldInstallation[];
@@ -204,6 +227,8 @@ export function WorldMap(props: WorldMapProps) {
   // Keep latest callbacks without rebinding map listeners.
   const cb = useRef(props);
   cb.current = props;
+  // A link or remembered view wins over the first region focus.
+  const skipFocus = useRef(false);
 
   // ---------------------------------------------------------------- init --
   useEffect(() => {
@@ -230,10 +255,12 @@ export function WorldMap(props: WorldMapProps) {
       if (abort.signal.aborted || !containerRef.current) return;
       const font = findTextFont(style);
 
+      const start = cb.current.initialView;
+      skipFocus.current = !!start;
       const m = new MLMap({
         container: containerRef.current,
         style,
-        ...GLOBAL_VIEW,
+        ...(start ? { center: [start.lon, start.lat] as [number, number], zoom: start.zoom } : GLOBAL_VIEW),
         minZoom: 0.8,
         maxZoom: 12,
         attributionControl: { compact: true },
@@ -827,7 +854,34 @@ export function WorldMap(props: WorldMapProps) {
           m.on('mouseleave', layer, () => (m.getCanvas().style.cursor = ''));
         }
 
+        // Ruler (v0.68.0) and search pin, drawn above everything else.
+        m.addSource('ruler', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({ id: 'ruler-line', type: 'line', source: 'ruler', filter: ['==', ['geometry-type'], 'LineString'], paint: { 'line-color': RULER_COLOR, 'line-width': 2, 'line-dasharray': [2, 1] } });
+        m.addLayer({
+          id: 'ruler-points',
+          type: 'circle',
+          source: 'ruler',
+          filter: ['==', ['geometry-type'], 'Point'],
+          paint: { 'circle-radius': 4, 'circle-color': '#000000', 'circle-stroke-color': RULER_COLOR, 'circle-stroke-width': 2 },
+        });
+        m.addSource('pin', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({ id: 'pin', type: 'circle', source: 'pin', paint: { 'circle-radius': 9, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': RULER_COLOR, 'circle-stroke-width': 2 } });
+        m.on('moveend', () => {
+          const c = m.getCenter();
+          cb.current.onViewChange?.({ lat: c.lat, lon: c.lng, zoom: m.getZoom() });
+        });
+
         m.on('click', async (e) => {
+          if (cb.current.measuring) {
+            // Snap to a marker under the pointer, so "from this base to that aircraft" is exact.
+            const snapLayers = ['aircraft', 'sanctioned-ships', 'infrastructure-flagged', 'infrastructure', 'chokepoints', 'fleet', 'installations', 'installations-world', 'events', 'pin'].filter(
+              (id) => m.getLayer(id) && m.getLayoutProperty(id, 'visibility') !== 'none',
+            );
+            const hit = m.queryRenderedFeatures([[e.point.x - 6, e.point.y - 6], [e.point.x + 6, e.point.y + 6]], { layers: snapLayers }).find((f) => f.geometry.type === 'Point');
+            const at = hit ? ((hit.geometry as GeoJSON.Point).coordinates as LonLat) : ([e.lngLat.lng, e.lngLat.lat] as LonLat);
+            cb.current.onRulerPoint?.(at);
+            return;
+          }
           const pts = m.queryRenderedFeatures(e.point, { layers: ['events'] });
           if (pts[0]) {
             cb.current.onSelectEvent(String(pts[0].properties.id));
@@ -927,6 +981,10 @@ export function WorldMap(props: WorldMapProps) {
   useEffect(() => {
     const m = mapRef.current;
     if (!ready || !m || !focusRegionId) return;
+    if (skipFocus.current) {
+      skipFocus.current = false;
+      return;
+    }
     const bbox = getRegion(focusRegionId)?.bbox;
     if (bbox) m.fitBounds(bbox, { padding: 48, duration: 700, maxZoom: 6 });
   }, [ready, focusRegionId]);
@@ -1262,6 +1320,63 @@ export function WorldMap(props: WorldMapProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to selection changes
   }, [ready, selectedAircraft]);
 
+  // ------------------------------------------------------------ map tools --
+  const { measuring, ruler, pin, handleRef } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    m.getCanvas().style.cursor = measuring ? 'crosshair' : '';
+  }, [ready, measuring]);
+
+  const rulerKey = JSON.stringify(ruler ?? []);
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    const pts = JSON.parse(rulerKey) as LonLat[];
+    const features: GeoJSON.Feature[] = pts.map((c) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: c }, properties: {} }));
+    if (pts.length === 2) features.unshift({ type: 'Feature', geometry: { type: 'LineString', coordinates: greatCirclePath(pts[0], pts[1]) }, properties: {} });
+    (m.getSource('ruler') as GeoJSONSource).setData({ type: 'FeatureCollection', features });
+  }, [ready, rulerKey]);
+
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    (m.getSource('pin') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: pin ? [{ type: 'Feature', geometry: { type: 'Point', coordinates: [pin.lon, pin.lat] }, properties: {} }] : [],
+    });
+  }, [ready, pin]);
+
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!handleRef) return;
+    if (!ready || !m) {
+      handleRef.current = null;
+      return;
+    }
+    handleRef.current = {
+      flyTo: (lat, lon, zoom) => m.flyTo({ center: [lon, lat], zoom: zoom ?? Math.max(m.getZoom(), 6), duration: 700 }),
+      fitBounds: (bbox) => m.fitBounds(bbox, { padding: 48, duration: 700, maxZoom: 6 }),
+      view: () => ({ lat: m.getCenter().lat, lon: m.getCenter().lng, zoom: m.getZoom() }),
+      capture: () =>
+        new Promise((resolve) => {
+          // The WebGL buffer is only readable during the frame it was drawn in, so copy it on render.
+          m.once('render', () => {
+            const src = m.getCanvas();
+            const out = document.createElement('canvas');
+            out.width = src.width;
+            out.height = src.height;
+            out.getContext('2d')!.drawImage(src, 0, 0);
+            resolve(out);
+          });
+          m.triggerRepaint();
+        }),
+    };
+    return () => {
+      handleRef.current = null;
+    };
+  }, [ready, handleRef]);
+
   useEffect(() => {
     const m = mapRef.current;
     if (!ready || !m) return;
@@ -1290,7 +1405,7 @@ export function WorldMap(props: WorldMapProps) {
       {mapErrors > 0 && !failure && (
         <div
           role="status"
-          className="absolute top-2 left-2 z-10 border border-wt-warn/60 bg-wt-panel px-1.5 py-0.5 text-2xs text-wt-warn"
+          className="absolute top-10 left-2 z-10 border border-wt-warn/60 bg-wt-panel px-1.5 py-0.5 text-2xs text-wt-warn"
           title="See browser console for details"
         >
           MAP ERRORS: {mapErrors}

@@ -193,3 +193,20 @@ test('alert scorecard: simulated in demo mode, with shares, a noisy rule and the
   await expect(page.getByText(/runs in the last 7 days/)).toBeVisible();
   expect(problems).toEqual([]);
 });
+
+test('map tools: a link restores region and ruler, search finds a base and updates the link', async ({ page, problems }) => {
+  await page.goto('/?at=26.5,56.3,5&region=middle-east&ruler=55.1,25.2;57.4,26.6');
+  await expect(page.getByText('THEATRE // MIDDLE EAST', { exact: false })).toBeVisible();
+  await expect(page.getByText(/278 km · 150 nm · bearing 055° \(NE\)/)).toBeVisible();
+  const search = page.getByRole('combobox', { name: /find on map/i });
+  await search.fill('ramstein');
+  await expect(page.getByRole('listbox', { name: 'Map search results' }).getByRole('option').first()).toContainText('Ramstein');
+  await search.press('Enter');
+  await expect(page).toHaveURL(/sel=base:/);
+  await expect(page).toHaveURL(/ruler=55\.1,25\.2;57\.4,26\.6/);
+  await page.getByRole('button', { name: 'RULER' }).click();
+  await expect(page.getByText(/Click again to start a new measurement/)).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByText(/Click again to start a new measurement/)).toHaveCount(0);
+  expect(problems).toEqual([]);
+});

@@ -1,4 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { MapTools } from '../components/map/MapTools';
+import { decodeMapLink, encodeMapLink, validView, VIEW_STORAGE_KEY, type MapSelection, type MapView } from '../lib/mapLink';
+import type { SearchItem } from '../lib/mapSearch';
+import { formatLonLat, formatMeasurement, measure, type LonLat } from '../lib/measure';
+import { BASEMAP_CREDIT, composeSnapshot, downloadCanvas, snapshotFileName } from '../lib/mapSnapshot';
+import { IMAGERY_ATTRIBUTION } from '../lib/imagery';
+import { readStorage, writeStorage } from '../lib/storage';
+import { formatUtc } from '../lib/time';
+import { unpackAirports, type Airport } from '@shared/domain/radio';
 import { Anchor, Atom, Ban, Crosshair, Factory, Grid3x3, Plane, PlaneLanding, Satellite, Shield, Ship, Siren, Square, Zap } from 'lucide-react';
 import { useBases, useInfrastructure } from '../data/useInstallations';
 import { InfraCard } from '../components/map/InfraCard';
@@ -24,7 +34,7 @@ import { useNow } from '../hooks/useNow';
 import { useData } from '../state/DataContext';
 import { useDashboard } from '../state/DashboardContext';
 import { useSettings } from '../state/SettingsContext';
-import { WorldMap } from '../components/map/WorldMap';
+import { WorldMap, type WorldMapHandle } from '../components/map/WorldMap';
 import { MapLegend } from '../components/map/MapLegend';
 import { RegionalWatchlist } from '../components/goc/RegionalWatchlist';
 import { IntelFeed } from '../components/goc/IntelFeed';
@@ -65,10 +75,10 @@ export default function GlobalOperationsPage() {
   const shownWorld = useMemo(() => bases.world.data?.installations.filter((w) => operatedBy(w, operator)), [operator, bases.world.data]);
   // A selected base that the operator filter hides is deselected.
   useEffect(() => {
-    if (!selectedBase) return;
+    if (!selectedBase || !bases.us.data || !bases.world.data) return;
     const visible = selectedBase.startsWith('dod:') ? (shownUs ?? []).some((i) => `dod:${i.name}` === selectedBase) : (shownWorld ?? []).some((w) => `wd:${w.q}` === selectedBase);
     if (!visible) setSelectedBase(null);
-  }, [selectedBase, shownUs, shownWorld]);
+  }, [selectedBase, shownUs, shownWorld, bases.us.data, bases.world.data]);
   // Aircraft: a snapshot from the last collection run; not drawn once it is out of date.
   const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null);
   const aircraftAgeMin = aircraft ? Math.max(0, Math.round((now - Date.parse(aircraft.fetchedAt)) / 60_000)) : 0;
@@ -105,6 +115,144 @@ export default function GlobalOperationsPage() {
     setSelectedFleetArea(kind === 'fleet' ? key : null);
     setSelectedStrait(kind === 'strait' ? key : null);
   };
+  // ------------------------------------------------------ map tools (v0.68.0) --
+  const location = useLocation();
+  const navigate = useNavigate();
+  // A link's state is read once, when the page opens; after that the page writes the address bar.
+  const [link] = useState(() => decodeMapLink(location.search));
+  const [initialView] = useState<MapView | null>(() => link?.view ?? validView(readStorage<unknown>(VIEW_STORAGE_KEY, null)));
+  const [view, setView] = useState<MapView | null>(initialView);
+  const [measuring, setMeasuring] = useState(false);
+  const [ruler, setRuler] = useState<LonLat[]>(() => link?.ruler ?? []);
+  const [pin, setPin] = useState<{ lat: number; lon: number } | null>(null);
+  const [airports, setAirports] = useState<Airport[] | undefined>(undefined);
+  const mapHandle = useRef<WorldMapHandle | null>(null);
+  useEffect(() => {
+    if (!link) return;
+    if (Object.keys(link.settings).length) update(link.settings);
+    if (Object.keys(link.filters).length) setFilters(link.filters);
+    const s = link.selection;
+    if (s?.kind === 'event') selectEvent(s.key);
+    else if (s) {
+      const kind = ({ base: 'base', air: 'air', fleet: 'fleet', strait: 'strait', listed: 'listed', infra: 'infra' } as const)[s.kind];
+      selectOnly(kind, s.key);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- apply the opening link once
+  }, []);
+  const selection: MapSelection | null = selectedInfra
+    ? { kind: 'infra', key: selectedInfra }
+    : selectedListed
+      ? { kind: 'listed', key: selectedListed }
+      : selectedStrait
+        ? { kind: 'strait', key: selectedStrait }
+        : selectedFleetArea
+          ? { kind: 'fleet', key: selectedFleetArea }
+          : selectedAircraft
+            ? { kind: 'air', key: selectedAircraft }
+            : selectedBase
+              ? { kind: 'base', key: selectedBase }
+              : selectedEventId
+                ? { kind: 'event', key: selectedEventId }
+                : null;
+  const search = encodeMapLink({ view, settings, filters, selection, ruler: ruler.length === 2 ? [ruler[0], ruler[1]] : null });
+  useEffect(() => {
+    if (`?${search}` !== location.search) navigate({ search: `?${search}` }, { replace: true });
+  }, [search, location.search, navigate]);
+  const onViewChange = useCallback((v: MapView) => {
+    setView(v);
+    writeStorage(VIEW_STORAGE_KEY, v);
+  }, []);
+  const onRulerPoint = useCallback((p: LonLat) => setRuler((r) => (r.length >= 2 ? [p] : [...r, p])), []);
+  useEffect(() => {
+    if (!measuring) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMeasuring(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [measuring]);
+  const loadAirports = useCallback(() => {
+    import('@shared/domain/airportsData').then((m) => setAirports(unpackAirports(m.AIRPORTS_PACKED)), () => setAirports([]));
+  }, []);
+  const searchSources = useMemo(
+    () => ({
+      bases: settings.installations ? shownUs : undefined,
+      worldBases: settings.installations ? shownWorld : undefined,
+      aircraft: shownAircraft,
+      ships: shownListed,
+      fleet: shownFleet,
+      straits: shownStraits,
+      infra: settings.infrastructure ? infraData.data?.sites : undefined,
+      flaggedInfra,
+      airports,
+    }),
+    [settings.installations, settings.infrastructure, shownUs, shownWorld, shownAircraft, shownListed, shownFleet, shownStraits, infraData.data, flaggedInfra, airports],
+  );
+  const notSearched = [
+    !settings.installations && 'BASES',
+    !shownAircraft && 'AIR',
+    !shownListed && 'SANCTIONED',
+    !shownFleet && 'FLEET',
+    !shownStraits && 'STRAITS',
+    !settings.infrastructure && 'INFRA (flagged sites only)',
+  ].filter((x): x is string => !!x);
+  const onPick = (it: SearchItem) => {
+    setPin(null);
+    if (it.kind === 'region' && it.regionId) {
+      setFilters({ regionId: it.regionId });
+      return;
+    }
+    if (it.select && it.select.kind !== 'event') selectOnly(it.select.kind, it.select.key);
+    else setPin({ lat: it.lat, lon: it.lon });
+    mapHandle.current?.flyTo(it.lat, it.lon, it.kind === 'airport' ? 8 : undefined);
+  };
+  const copyLink = async (): Promise<string | null> => {
+    const url = window.location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      return null;
+    } catch {
+      return url;
+    }
+  };
+  const layerNames = (
+    [
+      [settings.installations, 'BASES'],
+      [shownAircraft, 'AIR'],
+      [settings.fleet, 'FLEET'],
+      [settings.chokepoints, 'STRAITS'],
+      [settings.sanctionedShips, 'SANCTIONED'],
+      [settings.infrastructure, 'INFRA'],
+      [settings.powerOutages, 'POWER'],
+      [settings.faa, 'FAA'],
+      [settings.radiation, 'RAD'],
+      [settings.navWarnings, 'NAVWARN'],
+      [settings.conflicts, 'CONFLICT'],
+    ] as [unknown, string][]
+  )
+    .filter(([on]) => !!on)
+    .map(([, n]) => n);
+  const takeSnapshot = async (): Promise<string | null> => {
+    const h = mapHandle.current;
+    if (!h) return 'MAP NOT READY';
+    try {
+      const frame = await h.capture();
+      const v = h.view();
+      const when = new Date();
+      const m = ruler.length === 2 ? measure(ruler[0], ruler[1]) : null;
+      const header = [
+        `WATCHTOWER · GOC MAP · ${formatUtc(when.toISOString())}${mode === 'demo' ? ' · DEMO DATA (SIMULATED)' : ''}`,
+        `Layers: ${layerNames.join(', ') || 'none'} · Feed: ${projection.points.features.length} plotted, window ${filters.windowHours == null ? 'all' : `${filters.windowHours} h`}${focusRegion ? ` · Region: ${focusRegion.name}` : ''}`,
+        `Centre ${formatLonLat([v.lon, v.lat])} · zoom ${v.zoom.toFixed(1)}${m ? ` · Ruler ${formatLonLat(ruler[0])} → ${formatLonLat(ruler[1])}: ${formatMeasurement(m)}` : ''}`,
+      ];
+      const footer = [BASEMAP_CREDIT + (imagery ? ` · ${IMAGERY_ATTRIBUTION}` : ''), `Link: ${window.location.href}`];
+      const out = composeSnapshot(frame, header, footer, window.devicePixelRatio || 1);
+      return (await downloadCanvas(out, snapshotFileName(when))) ? null : 'SNAPSHOT FAILED';
+    } catch (e) {
+      return `SNAPSHOT FAILED: ${e instanceof Error ? e.message : String(e)}`;
+    }
+  };
+
   // Region report counts ignore off-topic news (sport, entertainment …) whatever the feed toggle says.
   const relevantEvents = useMemo(() => events.filter((e) => !isOffTopic(e)), [events]);
   // Time filters for the dated map layers (v0.61.0).
@@ -383,7 +531,27 @@ export default function GlobalOperationsPage() {
               navWarnings={settings.navWarnings ? shownNavWarnings : []}
               emergencies={settings.aircraft ? (aircraftEmergencies?.aircraft ?? []) : []}
               conflicts={settings.conflicts ? conflictWindow.events : []}
+              initialView={initialView}
+              onViewChange={onViewChange}
+              measuring={measuring}
+              ruler={ruler}
+              onRulerPoint={onRulerPoint}
+              pin={pin}
+              handleRef={mapHandle}
             />
+          <MapTools
+            sources={searchSources}
+            notSearched={notSearched}
+            onPick={onPick}
+            onSearchCleared={() => setPin(null)}
+            onNeedAirports={loadAirports}
+            measuring={measuring}
+            onMeasuring={setMeasuring}
+            ruler={ruler}
+            onClearRuler={() => setRuler([])}
+            onCopyLink={copyLink}
+            onSnapshot={takeSnapshot}
+          />
           <MapLegend
             plotted={projection.points.features.length}
             areaLevel={areaLevel}

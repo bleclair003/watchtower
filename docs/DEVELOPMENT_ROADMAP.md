@@ -450,3 +450,15 @@ From the feature audit (categories 11 and 26).
 - [ ] Suggest rule changes from verdicts (for example a NOISY rule's commonest irrelevant terms)
 - [ ] Use missed incidents as test cases when rules or sources change
 
+## Phase 31 — Map tools (2026-11-23)
+
+From the feature audit (category 12, items 2, 7, 8 and 9; category 23 item 3).
+
+- [x] Shareable links: the address bar holds map position, layers, feed filters, the selected item and a ruler measurement; reloading or bookmarking restores them; every value read from a link is checked — v0.68.0
+- [x] The map reopens where you left it (this browser) — v0.68.0
+- [x] Map search over what is loaded: regions, bases, aircraft (callsign, registration, hex, type), sanctioned ships (name, IMO, MMSI, destination), US Navy areas and ship names, straits, infrastructure sites, airports; says which layers are off and so not searched — v0.68.0
+- [x] Ruler: great-circle distance (km, nm) and bearings between two clicks, snapping to markers — v0.68.0
+- [x] PNG snapshot with time, layers, feed window, centre, ruler, the link and map credits — v0.68.0
+- [ ] Draw an area of interest and alert on activity inside it (audit 12.1)
+- [ ] Links for region pages and the replay
+

@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.68.0] — 2026-11-23 — Map tools (Phase 31)
+
+### Added
+- **Shareable links.** The GOC address bar now holds the map position and zoom, the layers (and their time and operator filters, and imagery), the feed filters, the selected item and a ruler measurement. Reloading, bookmarking or sending the link brings the same view back. **LINK** copies it. Opening a link applies its layers to your saved layer settings.
+- **The map reopens where you left it**, in this browser.
+- **FIND ON MAP** searches what is loaded on the map, so it costs no reads: watch regions, bases, aircraft by callsign, registration, hex or type, sanctioned ships by name, IMO, MMSI or destination, US Navy areas and ship names, straits, infrastructure sites and 3,258 airports (loaded on first use). Picking a result flies there and opens its card; an airport gets a ring. Layers that are off are not searched, and the results say which.
+- **RULER**: click two points for the great-circle distance in km and nautical miles, the bearing and the back bearing. A click on a marker measures from its exact position. Esc or DONE ends it; the measurement stays in the link.
+- **PNG** saves the map with a header (time, layers, feed window, region, centre, ruler) and a footer (map and imagery credits, the link). Demo snapshots say DEMO DATA (SIMULATED). Cards and the legend are not in the image.
+
+### Notes
+- Distances use a spherical Earth, within about 0.5% of the true figure.
 ## [0.67.0] — 2026-11-23 — Alert feedback and scorecard (Phase 30)
 
 ### Added
