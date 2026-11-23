@@ -124,6 +124,45 @@ describe('alert rules and alerts', () => {
     await assertFails(getDoc(doc(stranger(), 'alerts/a1')));
     await assertFails(getDoc(doc(owner(), 'collectorState/alerting')));
   });
+
+  it('alerts: feedback must be a known verdict with a short note, and can be cleared', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'alerts/a2'), { title: 'x', acknowledged: false, acknowledgedAt: null, dismissed: false, dismissedAt: null });
+    });
+    const fb = (p: Record<string, unknown> = {}) => ({ feedback: { verdict: 'useful', note: '', at: '2026-11-23T12:00:00.000Z', ...p } });
+    await assertSucceeds(updateDoc(doc(owner(), 'alerts/a2'), fb()));
+    await assertSucceeds(updateDoc(doc(owner(), 'alerts/a2'), fb({ verdict: 'false-positive', note: 'Exercise, announced a week ago.' })));
+    await assertSucceeds(updateDoc(doc(owner(), 'alerts/a2'), { feedback: null }));
+    await assertFails(updateDoc(doc(owner(), 'alerts/a2'), fb({ verdict: 'great' })));
+    await assertFails(updateDoc(doc(owner(), 'alerts/a2'), fb({ note: 'x'.repeat(501) })));
+    await assertFails(updateDoc(doc(owner(), 'alerts/a2'), fb({ by: 'someone' })));
+    await assertFails(updateDoc(doc(owner(), 'alerts/a2'), { feedback: 'useful' }));
+    await assertFails(updateDoc(doc(owner(), 'alerts/a2'), { ...fb(), title: 'changed' }));
+  });
+});
+
+describe('missed incidents', () => {
+  const T = '2026-11-23T12:00:00.000Z';
+  const missed = (p: Record<string, unknown> = {}) => ({
+    id: 'm1', title: 'Test incident', occurredAt: T, kind: 'missed', lateHours: null, regionIds: ['red-sea'], category: 'maritime',
+    url: 'https://example.com/report', note: '', createdAt: T, updatedAt: T, version: 1, ...p,
+  });
+  it('owner logs, edits (version + 1) and deletes; shape is enforced', async () => {
+    await assertSucceeds(setDoc(doc(owner(), 'missedIncidents/m1'), missed()));
+    await assertSucceeds(getDocs(collection(owner(), 'missedIncidents')));
+    await assertSucceeds(setDoc(doc(owner(), 'missedIncidents/m1'), missed({ kind: 'late', lateHours: 6.5, version: 2 })));
+    await assertFails(setDoc(doc(owner(), 'missedIncidents/m1'), missed({ version: 2 })));
+    await assertFails(setDoc(doc(owner(), 'missedIncidents/m1'), missed({ version: 3, createdAt: '2026-01-01T00:00:00.000Z' })));
+    await assertSucceeds(deleteDoc(doc(owner(), 'missedIncidents/m1')));
+    await assertFails(setDoc(doc(owner(), 'missedIncidents/m2'), missed({ id: 'm2', url: 'javascript:alert(1)' })));
+    await assertFails(setDoc(doc(owner(), 'missedIncidents/m2'), missed({ id: 'm2', kind: 'ignored' })));
+    await assertFails(setDoc(doc(owner(), 'missedIncidents/m2'), missed({ id: 'm2', lateHours: -1 })));
+    await assertFails(setDoc(doc(owner(), 'missedIncidents/m2'), missed({ id: 'm2', extra: 1 })));
+    await assertFails(setDoc(doc(owner(), 'missedIncidents/m3'), missed({ id: 'm2' })));
+    await assertFails(setDoc(doc(owner(), 'missedIncidents/m2'), missed({ id: 'm2', version: 2 })));
+    await assertFails(setDoc(doc(stranger(), 'missedIncidents/m2'), missed({ id: 'm2' })));
+    await assertFails(getDocs(collection(stranger(), 'missedIncidents')));
+  });
 });
 
 describe('incidents', () => {
@@ -261,6 +300,9 @@ describe('members and roles (v0.60.0)', () => {
     await assertSucceeds(setDoc(doc(v, 'watchlists/v-uid'), { items: [], updatedAt: T, version: 1 }));
     await assertFails(getDoc(doc(v, 'watchlists/owner-uid')));
     await assertFails(updateDoc(doc(v, 'alerts/a1'), { acknowledged: true, acknowledgedAt: T }));
+    await assertFails(updateDoc(doc(v, 'alerts/a1'), { feedback: { verdict: 'useful', note: '', at: T } }));
+    await assertSucceeds(getDocs(collection(v, 'missedIncidents')));
+    await assertFails(setDoc(doc(v, 'missedIncidents/m1'), { id: 'm1', title: 'x', occurredAt: T, kind: 'missed', lateHours: null, regionIds: [], category: 'general', url: '', note: '', createdAt: T, updatedAt: T, version: 1 }));
     await assertFails(setDoc(doc(v, 'incidents/i1'), incident));
     await assertFails(getDoc(doc(v, 'sourceState/cisa-kev')));
   });
@@ -273,6 +315,8 @@ describe('members and roles (v0.60.0)', () => {
     await assertSucceeds(setDoc(doc(e, 'incidents/i1'), { ...incident, version: 2 }));
     await assertSucceeds(deleteDoc(doc(e, 'incidents/i1')));
     await assertSucceeds(updateDoc(doc(e, 'alerts/a1'), { acknowledged: true, acknowledgedAt: T }));
+    await assertSucceeds(updateDoc(doc(e, 'alerts/a1'), { feedback: { verdict: 'irrelevant', note: '', at: T } }));
+    await assertSucceeds(setDoc(doc(e, 'missedIncidents/m1'), { id: 'm1', title: 'x', occurredAt: T, kind: 'missed', lateHours: null, regionIds: [], category: 'general', url: '', note: '', createdAt: T, updatedAt: T, version: 1 }));
     await assertFails(setDoc(doc(e, 'alertRules/r1'), { id: 'r1', name: 'x', enabled: true, severity: 'WARNING', trigger: { kind: 'event' }, notify: { discord: false }, cooldownMinutes: 0, version: 1, createdAt: T, updatedAt: T }));
     await assertFails(setDoc(doc(e, 'events/forged'), { title: 'forged' }));
   });

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { IntelligenceEvent } from '../types.ts';
 import type { IndicatorTransition, RegionScore } from '../indicators/types.ts';
 import { evaluateRule, previewRule, validateAlertRule, type AlertContext } from './evaluate.ts';
+import { CATALOG_VERSION } from '../indicators/catalog.ts';
 import type { AlertRule } from './types.ts';
 
 const NOW = Date.parse('2026-12-20T12:00:00Z');
@@ -57,7 +58,7 @@ describe('event rules', () => {
   it('fire once per new matching event, with the source link and a content-based dedupe key', () => {
     const out = evaluateRule(rule(), ctx({ newEvents: [ev('a'), ev('b', { regionIds: ['korean-peninsula'] })] }));
     expect(out).toHaveLength(1);
-    expect(out[0]).toMatchObject({ title: 'Event a', url: 'https://travel.state.gov/a', dedupeKey: 'event:h-a', severity: 'WARNING', evidenceEventIds: ['a'] });
+    expect(out[0]).toMatchObject({ title: 'Event a', url: 'https://travel.state.gov/a', dedupeKey: 'event:h-a', severity: 'WARNING', evidenceEventIds: ['a'], ruleVersion: 1, catalogVersion: CATALOG_VERSION });
   });
 
   it('ignore events collected before the rule existed, and disabled rules', () => {

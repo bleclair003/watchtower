@@ -12,7 +12,9 @@ import {
   where,
 } from 'firebase/firestore';
 import { COLLECTIONS } from '@shared/domain/snapshot';
-import type { AlertRecord, AlertRule } from '@shared/domain/alerts/types';
+import type { AlertFeedback, AlertRecord, AlertRule } from '@shared/domain/alerts/types';
+import type { MissedIncident } from '@shared/domain/alerts/scorecard';
+import type { CollectionRun } from '@shared/domain/types';
 import { getFirebase } from './firebaseClient';
 
 /**
@@ -50,6 +52,50 @@ export async function dismissAlert(id: string): Promise<void> {
   const { db } = getFirebase();
   const at = new Date().toISOString();
   await updateDoc(doc(db, COLLECTIONS.alerts, id), { dismissed: true, dismissedAt: at, acknowledged: true, acknowledgedAt: at });
+  notify();
+}
+
+/** Set or clear (null) the feedback on an alert. Feedback does not acknowledge the alert. */
+export async function setAlertFeedback(id: string, feedback: AlertFeedback | null): Promise<void> {
+  const { db } = getFirebase();
+  await updateDoc(doc(db, COLLECTIONS.alerts, id), { feedback });
+  notify();
+}
+
+/** Scorecard window cap: alerts beyond this many in the window are not loaded (the scorecard says so). */
+export const SCORECARD_ALERT_CAP = 1000;
+
+/** Alerts created since `sinceIso`, newest first, up to the cap. */
+export async function listAlertsSince(sinceIso: string): Promise<{ alerts: AlertRecord[]; capped: boolean }> {
+  const { db } = getFirebase();
+  const snap = await getDocs(
+    query(collection(db, COLLECTIONS.alerts), where('createdAt', '>=', sinceIso), orderBy('createdAt', 'desc'), limit(SCORECARD_ALERT_CAP)),
+  );
+  return { alerts: snap.docs.map((d) => ({ ...(d.data() as AlertRecord), id: d.id })), capped: snap.size >= SCORECARD_ALERT_CAP };
+}
+
+/** Collection runs since `sinceIso` (an hourly schedule: about 24 reads a day). */
+export async function listRunsSince(sinceIso: string): Promise<CollectionRun[]> {
+  const { db } = getFirebase();
+  const snap = await getDocs(query(collection(db, COLLECTIONS.collectionRuns), where('startedAt', '>=', sinceIso), orderBy('startedAt', 'desc'), limit(400)));
+  return snap.docs.map((d) => ({ ...(d.data() as CollectionRun), id: d.id }));
+}
+
+export async function listMissed(): Promise<MissedIncident[]> {
+  const { db } = getFirebase();
+  const snap = await getDocs(query(collection(db, COLLECTIONS.missedIncidents), orderBy('occurredAt', 'desc'), limit(500)));
+  return snap.docs.map((d) => ({ ...(d.data() as MissedIncident), id: d.id }));
+}
+
+export async function saveMissed(m: MissedIncident): Promise<void> {
+  const { db } = getFirebase();
+  await setDoc(doc(db, COLLECTIONS.missedIncidents, m.id), m);
+  notify();
+}
+
+export async function deleteMissed(id: string): Promise<void> {
+  const { db } = getFirebase();
+  await deleteDoc(doc(db, COLLECTIONS.missedIncidents, id));
   notify();
 }
 

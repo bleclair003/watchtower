@@ -65,14 +65,48 @@ service cloud.firestore {
       allow create, update: if isOwner() && validRule(request.resource.data, id);
     }
 
-    // Alerts: created only by the collector; the owner and editors may acknowledge / dismiss.
+    // Alerts: created only by the collector; the owner and editors may acknowledge / dismiss
+    // and, from v0.67.0, give feedback (a verdict and a short note) or clear it.
+    function validFeedback(f) {
+      return f == null || (f is map
+        && f.keys().hasOnly(['verdict', 'note', 'at']) && f.keys().hasAll(['verdict', 'note', 'at'])
+        && f.verdict in ['useful', 'irrelevant', 'false-positive', 'miscategorised']
+        && f.note is string && f.note.size() <= 500
+        && f.at is string && f.at.size() <= 40);
+    }
     match /alerts/{id} {
       allow read: if canView();
       allow update: if canEdit()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['acknowledged', 'acknowledgedAt', 'dismissed', 'dismissedAt'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['acknowledged', 'acknowledgedAt', 'dismissed', 'dismissedAt', 'feedback'])
         && request.resource.data.acknowledged is bool
-        && request.resource.data.dismissed is bool;
+        && request.resource.data.dismissed is bool
+        && validFeedback(request.resource.data.get('feedback', null));
       allow create, delete: if false;
+    }
+
+    // Missed or late incidents (v0.67.0): logged by the owner and editors for the scorecard.
+    function validMissed(d, id) {
+      return d.keys().hasOnly(['id', 'title', 'occurredAt', 'kind', 'lateHours', 'regionIds', 'category', 'url', 'note', 'createdAt', 'updatedAt', 'version'])
+        && d.keys().hasAll(['id', 'title', 'occurredAt', 'kind', 'lateHours', 'regionIds', 'category', 'url', 'note', 'createdAt', 'updatedAt', 'version'])
+        && d.id == id
+        && d.title is string && d.title.size() > 0 && d.title.size() <= 160
+        && d.occurredAt is string && d.occurredAt.size() <= 40
+        && d.kind in ['missed', 'late']
+        && (d.lateHours == null || ((d.lateHours is int || d.lateHours is float) && d.lateHours > 0 && d.lateHours <= 2160))
+        && d.regionIds is list && d.regionIds.size() <= 8
+        && d.category is string && d.category.size() <= 20
+        && d.url is string && d.url.size() <= 500 && (d.url == '' || d.url.matches('https://[^ ]+'))
+        && d.note is string && d.note.size() <= 1000
+        && d.createdAt is string && d.updatedAt is string
+        && d.version is int;
+    }
+    match /missedIncidents/{id} {
+      allow read: if canView();
+      allow delete: if canEdit();
+      allow create: if canEdit() && validMissed(request.resource.data, id) && request.resource.data.version == 1;
+      allow update: if canEdit() && validMissed(request.resource.data, id)
+        && request.resource.data.version == resource.data.version + 1
+        && request.resource.data.createdAt == resource.data.createdAt;
     }
 
     // Incident dossiers: owner-curated. Shape and size limits are enforced here;

@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.67.0] — 2026-11-23 — Alert feedback and scorecard (Phase 30)
+
+### Added
+- **Feedback on alerts.** In the inbox, the owner and editors can mark an alert *useful*, *irrelevant*, *false positive* or *wrong category*, with an optional note. Choosing the same verdict again clears it. Feedback does not acknowledge the alert. Alerts without a verdict show a [RATE] link.
+- **Missed-incident log.** Log something WATCHTOWER missed, or caught hours late, with when it happened, regions, category, where you learned of it and a note.
+- **SCORECARD tab** on the Alerts page, over the last 30 days:
+  - share of alerts reviewed; useful and false-positive shares; how many WARNING and CRITICAL alerts were useful
+  - the same per level and per rule, with the rule versions behind the alerts; a rule with 5+ reviews and under 30% useful is flagged NOISY
+  - missed and late incidents, by region and category, with the median lateness
+  - collector reliability over 7 days: runs, the share with every source answering, and the sources that failed most
+
+  Every share shows how many it is out of, and the tab says when there are fewer than 20 reviewed alerts to judge from. In demo mode it shows labelled simulated numbers.
+- New alerts record the indicator catalog version in force, next to the rule version.
+
+### Security
+- Firestore rules: alert updates may now also set or clear `feedback` (a known verdict, a note of at most 500 characters, a time). New `missedIncidents` collection: readable by members, written by the owner and editors, shape checked, saves must bump the version. Emulator tests cover both.
+
+### Notes
+- Opening the scorecard reads the alerts of the last 30 days (up to 1,000), the missed log, and about 170 collection-run documents.
+- Older alerts have no catalog version.
+
 ## [0.66.1] — 2026-11-23 — Navigational warnings back; regional radio frequencies
 
 ### Fixed

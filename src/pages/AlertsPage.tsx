@@ -13,9 +13,18 @@ import { DELIVERY_TONE, SEVERITY_TONE } from '../config/alerts';
 import { Panel } from '../components/ui/Panel';
 import { Tag } from '../components/ui/Tag';
 import { RuleBuilder } from '../components/alerts/RuleBuilder';
+import { FeedbackControls, FeedbackTag } from '../components/alerts/FeedbackControls';
+import { ScorecardPanel } from '../components/alerts/ScorecardPanel';
+import { buildScorecard, type MissedIncident } from '@shared/domain/alerts/scorecard';
+import type { CollectionRun } from '@shared/domain/types';
+import { buildDemoScorecardInput } from '../data/demo/demoScorecard';
 
 
 type Service = typeof import('../data/alertsService');
+
+/** Scorecard window for alerts and missed incidents, and for collector runs (about 24 reads a day). */
+const SCORE_DAYS = 30;
+const RUN_DAYS = 7;
 
 function triggerSummary(r: AlertRule): string {
   const t = r.trigger;
@@ -32,7 +41,8 @@ export default function AlertsPage() {
   const canTriage = can('triageAlerts');
   const canRules = can('manageRules');
   const [svc, setSvc] = useState<Service | null>(null);
-  const [tab, setTab] = useState<'inbox' | 'rules'>('inbox');
+  const [tab, setTab] = useState<'inbox' | 'rules' | 'scorecard'>('inbox');
+  const [scoreData, setScoreData] = useState<{ alerts: AlertRecord[]; capped: boolean; missed: MissedIncident[]; runs: CollectionRun[] | null } | null>(null);
   const [alerts, setAlerts] = useState<AlertRecord[] | null>(null);
   const [rules, setRules] = useState<AlertRule[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -62,6 +72,35 @@ export default function AlertsPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const loadScorecard = useCallback(async () => {
+    if (!svc) return;
+    try {
+      const since = new Date(Date.now() - SCORE_DAYS * 86_400_000).toISOString();
+      const runSince = new Date(Date.now() - RUN_DAYS * 86_400_000).toISOString();
+      const [a, missed, runs] = await Promise.all([svc.listAlertsSince(since), svc.listMissed(), svc.listRunsSince(runSince).catch(() => null)]);
+      setScoreData({ alerts: a.alerts, capped: a.capped, missed, runs });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }, [svc]);
+
+  useEffect(() => {
+    if (tab === 'scorecard') void loadScorecard();
+  }, [tab, loadScorecard]);
+
+  const scorecard = useMemo(() => {
+    if (tab !== 'scorecard') return null;
+    if (!live) {
+      const d = buildDemoScorecardInput(now);
+      return { sc: buildScorecard({ now, windowDays: SCORE_DAYS, alerts: d.alerts, missed: d.missed, runs: d.runs, runDays: RUN_DAYS }), missed: d.missed };
+    }
+    if (!scoreData) return null;
+    return {
+      sc: buildScorecard({ now, windowDays: SCORE_DAYS, alerts: scoreData.alerts, capped: scoreData.capped, missed: scoreData.missed, runs: scoreData.runs, runDays: RUN_DAYS }),
+      missed: scoreData.missed,
+    };
+  }, [tab, live, now, scoreData]);
 
   const act = async (fn: () => Promise<void>) => {
     try {
@@ -98,6 +137,7 @@ export default function AlertsPage() {
           <span className="flex items-center gap-1">
             {tabBtn('inbox', `INBOX${alerts ? ` (${open} OPEN)` : ''}`)}
             {tabBtn('rules', `RULES${rules ? ` (${rules.length})` : ''}`)}
+            {tabBtn('scorecard', 'SCORECARD')}
           </span>
         }
       >
@@ -169,6 +209,10 @@ export default function AlertsPage() {
                         {a.regionIds.map((r) => <Tag key={r}>{getRegion(r)?.shortCode ?? r}</Tag>)}
                         <Tag tone={DELIVERY_TONE[a.delivery.discord]} title={a.delivery.error ?? undefined}>DISCORD {a.delivery.discord}</Tag>
                         {a.dismissed ? <Tag tone="inactive">DISMISSED</Tag> : a.acknowledged ? <Tag tone="inactive">ACK</Tag> : null}
+                        <FeedbackTag feedback={a.feedback} />
+                        {canTriage && !a.feedback && !expanded && (
+                          <button className="text-wt-fg-dim hover:text-wt-fg" onClick={() => setOpenId(a.id)}>[RATE]</button>
+                        )}
                         <span className="ml-auto flex gap-2">
                           {canTriage && !a.acknowledged && (
                             <button className="text-wt-fg-muted hover:text-wt-fg" onClick={() => void act(() => svc!.acknowledgeAlert(a.id))}>[ACK]</button>
@@ -182,13 +226,17 @@ export default function AlertsPage() {
                         <div className="mt-1 space-y-1 border-l-2 border-wt-info pl-2 text-2xs">
                           {a.body && <p className="text-wt-fg-muted">{a.body}</p>}
                           <p className="text-wt-fg-dim">
-                            Created {formatUtc(a.createdAt)} · rule v{a.ruleVersion} · evidence {a.evidenceEventIds.length} record(s)
+                            Created {formatUtc(a.createdAt)} · rule v{a.ruleVersion}
+                            {a.catalogVersion != null && ` · indicator catalog v${a.catalogVersion}`} · evidence {a.evidenceEventIds.length} record(s)
                             {a.acknowledgedAt && ` · acknowledged ${formatUtc(a.acknowledgedAt)}`}
                           </p>
                           {url && (
                             <a href={url} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex items-center gap-1 text-wt-info hover:underline">
                               OPEN ORIGINAL SOURCE <ExternalLink size={10} />
                             </a>
+                          )}
+                          {canTriage && (
+                            <FeedbackControls key={`${a.id}:${a.feedback?.at ?? ''}`} feedback={a.feedback} onSave={(f) => act(() => svc!.setAlertFeedback(a.id, f))} />
                           )}
                         </div>
                       )}
@@ -200,7 +248,22 @@ export default function AlertsPage() {
           </div>
         )}
 
-        {(tab === 'rules' || !live) && (
+        {tab === 'scorecard' && (
+          scorecard ? (
+            <ScorecardPanel
+              scorecard={scorecard.sc}
+              missed={scorecard.missed}
+              canEdit={canTriage}
+              simulated={!live}
+              onSaveMissed={live ? async (m) => { await svc!.saveMissed(m); await loadScorecard(); } : undefined}
+              onDeleteMissed={live ? async (id) => { await svc!.deleteMissed(id); await loadScorecard(); } : undefined}
+            />
+          ) : (
+            <p className="p-3 text-xs text-wt-fg-muted">LOADING…</p>
+          )
+        )}
+
+        {(tab === 'rules' || (!live && tab === 'inbox')) && (
           <div>
             {!canRules ? (
               <p className="border-b border-wt-line px-2 py-1 text-2xs text-wt-fg-dim">Read only: alert rules are managed by the owner.</p>

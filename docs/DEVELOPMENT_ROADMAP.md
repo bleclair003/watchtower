@@ -437,3 +437,16 @@ The radio data lives in its own Firestore document (`snapshots/radio`), read onl
 - [x] Local radio: Radio Browser's open directory, searched once a day per watch-region country, news and talk first; region panel and a LISTEN link on records with a country — v0.65.0
 - [x] Regional HF air traffic and VOLMET families with a public source each: Middle East (MID HF, MID VOLMET), Red Sea (AFI HF, AFI VOLMET), Korea and Taiwan (EA HF, West Pacific VOLMET), South China Sea (SEA-2 HF, SEA VOLMET) — v0.66.1
 - [ ] Numbers stations per region beyond those in the EiBi schedule, where a public source confirms them
+
+## Phase 30 — Alert feedback and scorecard (2026-11-23)
+
+From the feature audit (categories 11 and 26).
+
+- [x] Verdict on each alert: useful, irrelevant, false positive, wrong category, with an optional note; owner and editors only, enforced by the Firestore rules — v0.67.0
+- [x] Missed-incident log: things WATCHTOWER missed or caught late (hours late, regions, category, link, note) — v0.67.0
+- [x] SCORECARD tab: reviewed share, useful and false-positive shares, WARNING + CRITICAL precision, per level and per rule (with the rule versions behind the alerts and a NOISY flag), missed and late incidents by region and category, collector runs with every source answering — v0.67.0
+- [x] New alerts record the indicator catalog version as well as the rule version — v0.67.0
+- [ ] Detection delay against the real event time for useful alerts (needs the evidence records' occurred times)
+- [ ] Suggest rule changes from verdicts (for example a NOISY rule's commonest irrelevant terms)
+- [ ] Use missed incidents as test cases when rules or sources change
+

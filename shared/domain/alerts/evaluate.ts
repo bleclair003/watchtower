@@ -1,7 +1,7 @@
 import type { IntelligenceEvent } from '../types.ts';
 import { getRegion, WATCH_REGIONS } from '../regions.ts';
 import { matches, validateCondition } from '../indicators/conditions.ts';
-import { getIndicator } from '../indicators/catalog.ts';
+import { CATALOG_VERSION, getIndicator } from '../indicators/catalog.ts';
 import type { IndicatorEvaluation, IndicatorState, IndicatorTransition, RegionScore } from '../indicators/types.ts';
 import { ALERT_SEVERITIES, type AlertRecord, type AlertRule } from './types.ts';
 
@@ -66,7 +66,7 @@ export function isFirstLook(rule: AlertRule, ctx: AlertContext): boolean {
   return !ctx.previousEvaluatedAt || rule.createdAt > ctx.previousEvaluatedAt;
 }
 
-export type AlertCandidate = Omit<AlertRecord, 'id' | 'acknowledged' | 'acknowledgedAt' | 'dismissed' | 'dismissedAt' | 'delivery'>;
+export type AlertCandidate = Omit<AlertRecord, 'id' | 'acknowledged' | 'acknowledgedAt' | 'dismissed' | 'dismissedAt' | 'delivery' | 'feedback'>;
 
 /**
  * Turns this run's CHANGES into alert candidates. Pure and edge-based: an
@@ -76,7 +76,7 @@ export type AlertCandidate = Omit<AlertRecord, 'id' | 'acknowledged' | 'acknowle
 export function evaluateRule(rule: AlertRule, ctx: AlertContext): AlertCandidate[] {
   if (!rule.enabled) return [];
   const createdAt = new Date(ctx.now).toISOString();
-  const base = { ruleId: rule.id, ruleName: rule.name, ruleVersion: rule.version, severity: rule.severity, createdAt };
+  const base = { ruleId: rule.id, ruleName: rule.name, ruleVersion: rule.version, catalogVersion: CATALOG_VERSION, severity: rule.severity, createdAt };
   const t = rule.trigger;
   let out: AlertCandidate[] = [];
 

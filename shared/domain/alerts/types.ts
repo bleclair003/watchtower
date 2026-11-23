@@ -36,6 +36,30 @@ export interface AlertRule {
   updatedAt: string;
 }
 
+/**
+ * v0.67.0: what the owner or an editor thought of an alert, for the scorecard.
+ *  - useful:          it mattered; you would want it again
+ *  - irrelevant:      it was right but not worth an alert
+ *  - false-positive:  it was wrong (the thing did not happen, or the text was misread)
+ *  - miscategorised:  real and relevant, but the wrong kind or level
+ */
+export const FEEDBACK_VERDICTS = ['useful', 'irrelevant', 'false-positive', 'miscategorised'] as const;
+export type FeedbackVerdict = (typeof FEEDBACK_VERDICTS)[number];
+export const FEEDBACK_LABEL: Record<FeedbackVerdict, string> = {
+  useful: 'Useful',
+  irrelevant: 'Irrelevant',
+  'false-positive': 'False positive',
+  miscategorised: 'Wrong category',
+};
+export const FEEDBACK_NOTE_MAX = 500;
+
+export interface AlertFeedback {
+  verdict: FeedbackVerdict;
+  /** Optional free text; plain text only, at most FEEDBACK_NOTE_MAX characters. */
+  note: string;
+  at: string;
+}
+
 export type DeliveryStatus =
   | 'sent'
   | 'failed'
@@ -65,6 +89,10 @@ export interface AlertRecord {
   dismissed: boolean;
   dismissedAt: string | null;
   delivery: { discord: DeliveryStatus; at: string | null; error: string | null };
+  /** v0.67.0: the indicator catalog version in force when the alert was made (alerts from before have none). */
+  catalogVersion?: number;
+  /** v0.67.0: owner or editor verdict; absent or null until someone reviews it. */
+  feedback?: AlertFeedback | null;
 }
 
 export interface AlertRuleProblem {

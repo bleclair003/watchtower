@@ -182,3 +182,14 @@ test('meters: region grid opens a detail with parts and limits; region page has 
   await expect(page.getByRole('article', { name: 'MIDEAST escalation ladder' })).toBeVisible();
   expect(problems).toEqual([]);
 });
+
+test('alert scorecard: simulated in demo mode, with shares, a noisy rule and the missed log', async ({ page, problems }) => {
+  await page.goto('/alerts');
+  await page.getByRole('button', { name: 'SCORECARD' }).click();
+  await expect(page.getByText(/\[SIMULATED\] Demo numbers/)).toBeVisible();
+  await expect(page.getByText('15 of 19 alerts')).toBeVisible();
+  await expect(page.getByText('NOISY', { exact: true })).toBeVisible();
+  await expect(page.getByText(/1 missed · 1 late/)).toBeVisible();
+  await expect(page.getByText(/runs in the last 7 days/)).toBeVisible();
+  expect(problems).toEqual([]);
+});

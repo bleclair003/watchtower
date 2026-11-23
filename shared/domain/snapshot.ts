@@ -136,6 +136,8 @@ export const COLLECTIONS = {
   eventDays: 'eventDays',
   /** People and their roles (v0.60.0): `members/{uid}`. Owner and that person only. */
   members: 'members',
+  /** v0.67.0: incidents WATCHTOWER missed or caught late, logged by the owner or editors for the scorecard. */
+  missedIncidents: 'missedIncidents',
 } as const;
 
 /**
