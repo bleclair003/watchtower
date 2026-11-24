@@ -57,7 +57,7 @@ describe('AIS listening', () => {
     delete process.env[AIS_KEY_ENV];
   });
 
-  it('connects a second time with the time left when the first connection fails early', async () => {
+  it('connects a second time, with a full window, when the first connection fails early', async () => {
     let calls = 0;
     const asked: number[] = [];
     let t = 0;
@@ -71,10 +71,17 @@ describe('AIS listening', () => {
       return { msgs: [], messages: 12 };
     };
     const r = await listenWithRetry(listener, 'k', 25, () => t, async () => {});
-    expect(asked).toEqual([25, 20]);
+    expect(asked).toEqual([25, 25]);
     expect(r.note).toMatch(/^second connection after: aisstream\.io connection failed/);
     // An error message from aisstream itself (a bad key, for example) is not retried.
     await expect(listenWithRetry(async () => { throw new Error('aisstream.io: Api Key Is Not Valid'); }, 'k', 25, () => 0, async () => {})).rejects.toThrow(/Api Key/);
+    // A first connection that failed late (it used up its connect time) is not followed by a second.
+    let slow = 0;
+    let tries = 0;
+    await expect(
+      listenWithRetry(async () => { tries++; slow += 50_000; throw new Error('aisstream.io did not open the connection within 40 s'); }, 'k', 25, () => slow, async () => {}),
+    ).rejects.toThrow(/did not open/);
+    expect(tries).toBe(1);
   });
 
   it('tolerates two failed listens in a row and fails the source on the third', async () => {

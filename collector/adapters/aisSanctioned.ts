@@ -33,8 +33,15 @@ export const AIS_SOURCE_ID = 'ais-sanctioned-ships';
 export const AIS_KEY_ENV = 'AISSTREAM_API_KEY';
 /** Listening window. It runs while the other sources are collected, so it adds little or no run time. */
 export const LISTEN_SECONDS = 25;
-/** A connection not confirmed within this long is abandoned for a second one (v0.74.1). */
-export const CONFIRM_SECONDS = 8;
+/**
+ * v0.79.2: aisstream's WebSocket handshake now takes 15–25 s under its load (measured 2026-11-24), and the
+ * confirmation follows within half a second of opening. A connection gets CONNECT_SECONDS to open, then
+ * CONFIRM_SECONDS from opening to confirm; the listening window starts at the confirmation.
+ */
+export const CONNECT_SECONDS = 40;
+export const CONFIRM_SECONDS = 10;
+/** A first connection that failed within this long is followed by a second one (v0.79.2). */
+export const RETRY_WITHIN_SECONDS = 45;
 /** Pause before the second connection (v0.75.1); tests set it to 0. */
 export const aisTiming = { retryPauseMs: 3000 };
 
@@ -240,13 +247,24 @@ export const listenAisStream: Listener = (key, seconds) =>
     let messages = 0;
     let confirmed = false;
     let settled = false;
-    const started = Date.now();
+    // The listening window is counted from the confirmation, not from connecting.
+    let started = Date.now();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let confirmTimer: ReturnType<typeof setTimeout> | undefined;
     const ws = new WebSocket('wss://stream.aisstream.io/v0/stream');
     ws.binaryType = 'arraybuffer';
+    const confirm = () => {
+      if (confirmed) return;
+      confirmed = true;
+      clearTimeout(confirmTimer);
+      started = Date.now();
+      timer = setTimeout(() => finish(null), seconds * 1000);
+    };
     const finish = (err: Error | null, note?: string) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      clearTimeout(connectTimer);
       clearTimeout(confirmTimer);
       try {
         ws.close();
@@ -257,13 +275,17 @@ export const listenAisStream: Listener = (key, seconds) =>
       if (confirmed && (!err || messages > 0)) resolve({ msgs, messages, seconds: Math.min(listened, seconds), note: err ? `stream dropped after ${listened} s (${note ?? err.message}); kept what was heard` : undefined });
       else reject(err ?? new Error('aisstream.io did not confirm the subscription'));
     };
-    const timer = setTimeout(() => finish(null), seconds * 1000);
-    // v0.74.1: some connections are never confirmed and stay silent; give up early so a second one gets the time left.
-    const confirmTimer = setTimeout(() => {
-      if (!confirmed) finish(new Error(`aisstream.io did not confirm the subscription within ${CONFIRM_SECONDS} s`));
-    }, Math.min(CONFIRM_SECONDS, seconds) * 1000);
-    ws.onopen = () =>
+    const connectTimer = setTimeout(() => {
+      if (!confirmed) finish(new Error(`aisstream.io did not open the connection within ${CONNECT_SECONDS} s`));
+    }, CONNECT_SECONDS * 1000);
+    ws.onopen = () => {
+      clearTimeout(connectTimer);
+      // v0.74.1: some connections are never confirmed and stay silent; give up so a second one can try.
+      confirmTimer = setTimeout(() => {
+        if (!confirmed) finish(new Error(`aisstream.io did not confirm the subscription within ${CONFIRM_SECONDS} s of opening`));
+      }, CONFIRM_SECONDS * 1000);
       ws.send(JSON.stringify({ APIKey: key, BoundingBoxes: SHIP_AREAS.map((a) => a.box), FilterMessageTypes: ['PositionReport', 'ShipStaticData'] }));
+    };
     ws.onmessage = (ev) => {
       const text = typeof ev.data === 'string' ? ev.data : new TextDecoder().decode(ev.data as ArrayBuffer);
       let m: AisMessage & { error?: string };
@@ -273,7 +295,7 @@ export const listenAisStream: Listener = (key, seconds) =>
         return;
       }
       if (m.MessageType === 'SubscriptionConfirmation') {
-        confirmed = true;
+        confirm();
         return;
       }
       if (m.error) {
@@ -283,7 +305,7 @@ export const listenAisStream: Listener = (key, seconds) =>
         return;
       }
       // Messages arriving means the subscription is live even if the confirmation was missed.
-      confirmed = true;
+      confirm();
       messages++;
       if (m.MetaData && (m.MessageType === 'PositionReport' || m.MessageType === 'ShipStaticData')) msgs.push({ MessageType: m.MessageType, MetaData: m.MetaData, Message: m.Message });
     };
@@ -294,7 +316,7 @@ export const listenAisStream: Listener = (key, seconds) =>
     ws.onclose = (ev) => finish(new Error(`aisstream.io closed the connection (code ${(ev as CloseEvent).code ?? '?'})`), `closed, code ${(ev as CloseEvent).code ?? '?'}`);
   });
 
-/** One listening window; if the first connection fails early, a second one gets the time that is left. */
+/** One listening window; if the first connection fails early, a second one gets a full window (v0.79.2). */
 export async function listenWithRetry(
   listener: Listener,
   key: string,
@@ -309,9 +331,8 @@ export async function listenWithRetry(
     if (/aisstream\.io: /.test(String((first as Error).message))) throw first;
     // v0.75.1: a short pause first, in case the service turns away immediate reconnects.
     await pause(aisTiming.retryPauseMs);
-    const left = seconds - Math.round((clock() - started) / 1000);
-    if (left < 8) throw first;
-    const r = await listener(key, left);
+    if (clock() - started > RETRY_WITHIN_SECONDS * 1000) throw first;
+    const r = await listener(key, seconds);
     return { ...r, note: `second connection after: ${(first as Error).message.slice(0, 80)}${r.note ? `; ${r.note}` : ''}` };
   }
 }

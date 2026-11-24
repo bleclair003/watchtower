@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.79.2] — 2026-11-24 — aisstream connections fixed
+
+### Fixed
+- **aisstream.io had failed every run since about 01:00 UTC** with "did not confirm the subscription within 8 s". Probes from GitHub showed why. Under aisstream's current load, the WebSocket handshake takes 15–25 s, or sometimes never completes. Once the connection opens, the confirmation follows within half a second. The collector's 8-second timer started at connect time, so it gave up before the connection had even opened. Now:
+  - a connection gets 40 s to open, then 10 s from opening to confirm;
+  - the 25-second listening window starts at the confirmation;
+  - a first connection that fails within 45 s is followed by a second one with a full window.
+
+  The message-type filter was ruled out: filtered and unfiltered subscriptions behaved the same.
+- **AIS probe:** it now prints connection timings and can subscribe like the collector (`filter` input).
+
+### Notes
+- aisstream's own issue tracker has had reports of slow or refused connections since August, which they put down to load. Some connections will still fail, and Fintraffic's feed keeps the Baltic covered when they do.
+
 ## [0.79.1] — 2026-11-24 — Collector state fix
 
 ### Fixed
