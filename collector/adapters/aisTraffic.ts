@@ -148,8 +148,10 @@ export function makeAisTrafficAdapter(listener: Listener = listenAisStream): Sou
         // The sanctioned-ship source reports AIS outages; this one keeps the last map until three in a row fail.
         const failed = (ctx.state?.failedWindows ?? 0) + 1;
         const message = err instanceof Error ? err.message : String(err);
-        if (!ctx.state || failed >= 3) throw new Error(`${message}${failed > 1 ? ` (${failed} listens in a row failed)` : ''}`);
-        return { events: [], rejected: [], itemsSeen: 0, notModified: true, state: { ...ctx.state, failedWindows: failed }, note: `listen failed (${failed} of 3 tolerated in a row)` };
+        if (failed >= 3) throw new Error(`${message} (${failed} listens in a row failed)`);
+        // Tolerated from the first run on (v0.75.1): the map keeps the last traffic, or shows none yet.
+        const base: TrafficState = ctx.state ?? { known: {}, tracks: {}, last: {}, latest: null };
+        return { events: [], rejected: [], itemsSeen: 0, notModified: true, state: { ...base, failedWindows: failed }, note: `listen failed (${failed} of 3 tolerated in a row)` };
       }
       const state = updateTraffic(ctx.state, heard.msgs, ctx.now, heard.seconds ?? LISTEN_SECONDS);
       return { events: [], rejected: [], itemsSeen: heard.messages, notModified: false, state, note: `${state.latest!.ships.length} tankers and cargo ships on the map, ${state.latest!.typesKnown} types known` };

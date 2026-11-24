@@ -18,6 +18,8 @@ export const AIS_KEY_ENV = 'AISSTREAM_API_KEY';
 export const LISTEN_SECONDS = 25;
 /** A connection not confirmed within this long is abandoned for a second one (v0.74.1). */
 export const CONFIRM_SECONDS = 8;
+/** Pause before the second connection (v0.75.1); tests set it to 0. */
+export const aisTiming = { retryPauseMs: 3000 };
 
 /** The parts of an aisstream.io message WATCHTOWER reads. */
 export interface AisMessage {
@@ -276,13 +278,22 @@ export const listenAisStream: Listener = (key, seconds) =>
   });
 
 /** One listening window; if the first connection fails early, a second one gets the time that is left. */
-export async function listenWithRetry(listener: Listener, key: string, seconds: number, clock: () => number = Date.now): Promise<ListenResult> {
+export async function listenWithRetry(
+  listener: Listener,
+  key: string,
+  seconds: number,
+  clock: () => number = Date.now,
+  pause: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
+): Promise<ListenResult> {
   const started = clock();
   try {
     return await listener(key, seconds);
   } catch (first) {
+    if (/aisstream\.io: /.test(String((first as Error).message))) throw first;
+    // v0.75.1: a short pause first, in case the service turns away immediate reconnects.
+    await pause(aisTiming.retryPauseMs);
     const left = seconds - Math.round((clock() - started) / 1000);
-    if (left < 8 || /aisstream\.io: /.test(String((first as Error).message))) throw first;
+    if (left < 8) throw first;
     const r = await listener(key, left);
     return { ...r, note: `second connection after: ${(first as Error).message.slice(0, 80)}${r.note ? `; ${r.note}` : ''}` };
   }

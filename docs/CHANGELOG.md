@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.75.1] — 2026-11-24 — AIS: tolerate the first run, pause before reconnecting
+
+### Fixed
+- The new tanker and cargo source failed outright when its first run could not listen. It now tolerates two failed listens in a row from the first run on, like the sanctioned-ship source.
+- The second AIS connection now waits 3 seconds. Failures cluster when connections come within a minute or two of each other (back-to-back runs, or a retry straight after a silent connection), so the service may be turning away rapid reconnects. That is not confirmed: aisstream.io documents no limit.
+
 ## [0.75.0] — 2026-11-24 — Tanker and cargo traffic, shipping lanes (Phase 38)
 
 ### Added

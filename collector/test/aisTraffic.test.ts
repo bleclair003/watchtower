@@ -2,7 +2,7 @@
 /** v0.75.0: tanker and cargo traffic from the AIS window. Ships and MMSIs are invented. */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { kindOfType, trackPoints, flagOf, TRAFFIC_MAX_SHIPS } from '../../shared/domain/shipTraffic.ts';
-import { AIS_KEY_ENV, type AisMessage } from '../adapters/aisSanctioned.ts';
+import { AIS_KEY_ENV, aisTiming, type AisMessage } from '../adapters/aisSanctioned.ts';
 import { makeAisTrafficAdapter, updateTraffic, KNOWN_MAX, type TrafficState } from '../adapters/aisTraffic.ts';
 
 const T0 = Date.parse('2026-11-24T10:00:00Z');
@@ -66,6 +66,7 @@ describe('tanker and cargo traffic', () => {
 describe('traffic adapter', () => {
   beforeEach(() => {
     process.env[AIS_KEY_ENV] = 'test-key';
+    aisTiming.retryPauseMs = 0;
   });
   afterEach(() => {
     delete process.env[AIS_KEY_ENV];
@@ -82,6 +83,10 @@ describe('traffic adapter', () => {
     });
     const f1 = await failing.collect(ctx(r.state));
     expect(f1).toMatchObject({ notModified: true, state: { failedWindows: 1, latest: r.state.latest } });
-    await expect(failing.collect(ctx(null))).rejects.toThrow(/connection failed/);
+    // From the first run on, two failures in a row are tolerated; the third fails the source.
+    const first = await failing.collect(ctx(null));
+    expect(first).toMatchObject({ notModified: true, state: { failedWindows: 1, latest: null } });
+    const second = await failing.collect(ctx(first.state));
+    await expect(failing.collect(ctx(second.state))).rejects.toThrow(/3 listens in a row failed/);
   });
 });

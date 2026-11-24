@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { checkCables, type NearCableEntry } from '../../shared/domain/cableWatch.ts';
 import type { SanctionedShipSighting } from '../../shared/domain/sanctionedShips.ts';
 import type { UnderseaLine } from '../../shared/domain/undersea.ts';
-import { AIS_KEY_ENV, cableEvents, listenWithRetry, makeAisSanctionedAdapter, MAX_FAILED_WINDOWS, type AisSanctionedState, type Listener } from '../adapters/aisSanctioned.ts';
+import { AIS_KEY_ENV, aisTiming, cableEvents, listenWithRetry, makeAisSanctionedAdapter, MAX_FAILED_WINDOWS, type AisSanctionedState, type Listener } from '../adapters/aisSanctioned.ts';
 import { validateEvent } from '../lib/validate.ts';
 
 const NOW = Date.parse('2026-11-24T10:00:00Z');
@@ -51,6 +51,7 @@ describe('sanctioned ships near undersea lines', () => {
 describe('AIS listening', () => {
   beforeEach(() => {
     process.env[AIS_KEY_ENV] = 'test-key';
+    aisTiming.retryPauseMs = 0;
   });
   afterEach(() => {
     delete process.env[AIS_KEY_ENV];
@@ -69,11 +70,11 @@ describe('AIS listening', () => {
       }
       return { msgs: [], messages: 12 };
     };
-    const r = await listenWithRetry(listener, 'k', 25, () => t);
+    const r = await listenWithRetry(listener, 'k', 25, () => t, async () => {});
     expect(asked).toEqual([25, 20]);
     expect(r.note).toMatch(/^second connection after: aisstream\.io connection failed/);
     // An error message from aisstream itself (a bad key, for example) is not retried.
-    await expect(listenWithRetry(async () => { throw new Error('aisstream.io: Api Key Is Not Valid'); }, 'k', 25, () => 0)).rejects.toThrow(/Api Key/);
+    await expect(listenWithRetry(async () => { throw new Error('aisstream.io: Api Key Is Not Valid'); }, 'k', 25, () => 0, async () => {})).rejects.toThrow(/Api Key/);
   });
 
   it('tolerates two failed listens in a row and fails the source on the third', async () => {
