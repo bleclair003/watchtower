@@ -1,3 +1,4 @@
+import type { ZoneLevel } from './tankerLevels.ts';
 /**
  * Tanker and cargo ship traffic (v0.75.0), from the same aisstream.io listen as the sanctioned-ship
  * check, and shipping lanes (static).
@@ -56,6 +57,8 @@ export interface ShipTrafficDoc {
   totalSeen: number;
   /** v0.76.0: positions from Fintraffic's Digitraffic feed in the last run (null when it did not answer). */
   fintraffic?: number | null;
+  /** v0.78.0: tanker levels per Gulf of Finland zone (Fintraffic feed). */
+  levels?: ZoneLevel[];
   /** v0.77.0: ships that went dark in Finnish waters in the last 48 h and have not been heard since. */
   dark?: { mmsi: string; name: string | null; kind: TrafficKind; la: number; lo: number; lastAt: string; sanctioned: boolean }[];
   simulated?: boolean;

@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.78.0] — 2026-11-24 — Tanker traffic levels in the Gulf of Finland (Phase 41)
+
+### Added
+- **Tanker traffic levels.** Every collection run counts the tankers in three zones, using Fintraffic's feed (every ship Finland's receivers hear):
+  - the Primorsk and Vyborg approaches;
+  - the Ust-Luga approaches;
+  - the whole Gulf of Finland.
+
+  Each count is split into moving and at anchor and kept per hour for 60 days. The last 24 hours are compared with the zone's own earlier days. Once a zone has 7 days of history, a level 3 or more typical spreads above or below usual becomes a SURGE or DROP record. A drop can follow strikes on the oil terminals or loading halts; a surge can be a loading rush or a queue at anchor.
+- **Panel on the Eastern Europe region page:** a 30-day line per zone, the last 24 hours, tankers at anchor, the usual level and the status.
+- **Indicator** "EASTEUR tanker traffic surge or drop": experimental, weighted 0. Catalog v26.
+
+### Notes
+- Records start after a week of counts. Weather, ice and receiver gaps also move the counts.
+
 ## [0.77.0] — 2026-11-24 — Ships going dark (Phase 40)
 
 ### Added

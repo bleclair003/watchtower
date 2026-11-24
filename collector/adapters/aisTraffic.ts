@@ -13,6 +13,7 @@ import { contentHash } from '../lib/hash.ts';
 import { LIMITS, truncate } from '../lib/text.ts';
 import { loadPorts } from '../lib/ports.ts';
 import { DIGITRAFFIC_CREDIT } from '../lib/digitraffic.ts';
+import { addCounts, TANKER_ZONES, zoneAt, zoneLevels, type PackedHours, type ZoneLevel } from '../../shared/domain/tankerLevels.ts';
 import { DARK, detectDark, type DarkEntry, type DarkFlag, type FinEntry, type FixNow } from '../../shared/domain/darkShips.ts';
 import { TRAFFIC_LABEL } from '../../shared/domain/shipTraffic.ts';
 import type { IntelligenceEvent } from '../../shared/domain/types.ts';
@@ -42,6 +43,51 @@ export interface TrafficState {
   /** v0.77.0: last Fintraffic fix per tanker or cargo ship, and ships currently dark. */
   fin?: Record<string, FinEntry>;
   dark?: Record<string, DarkEntry>;
+  /** v0.78.0: tankers per Gulf of Finland zone per hour (Fintraffic), and the day each zone was last recorded. */
+  levels?: PackedHours;
+  levelRecorded?: Record<string, string>;
+}
+
+/** A record for a zone whose last 24 hours are far above or below its usual level (v0.78.0). */
+export function levelEvent(z: ZoneLevel, nowIso: string): IntelligenceEvent {
+  const zone = TANKER_ZONES.find((x) => x.id === z.id)!;
+  const [s, w, n, e] = zone.box;
+  const surge = z.direction === 'surge';
+  const day = nowIso.slice(0, 10);
+  const id = contentHash(TRAFFIC_SOURCE_ID, 'level', z.id, day);
+  return {
+    id,
+    contentHash: id,
+    dataOrigin: 'live',
+    sourceId: TRAFFIC_SOURCE_ID,
+    sourceName: 'Fintraffic Digitraffic AIS — tanker traffic levels',
+    sourceClass: 'official',
+    sourceUrl: 'https://www.digitraffic.fi/en/marine-traffic/',
+    title: truncate(
+      `Tanker traffic ${surge ? 'surge' : 'drop'}: ${zone.name}, ${z.last24.mean} tankers on average in the last 24 h against a usual ${z.centre}`,
+      LIMITS.title,
+    ),
+    summary: truncate(
+      `Tankers heard in ${zone.name} averaged ${z.last24.mean} over the last 24 hours (${z.last24.anchored} at anchor), against a median of ${z.centre} over ${z.days.length} earlier days: ${z.score} typical spreads ${surge ? 'above' : 'below'} normal. ` +
+        (surge
+          ? 'A surge can be a loading rush or a queue waiting at anchor. '
+          : 'A drop can follow strikes on oil terminals, loading halts or bad weather. ') +
+        `Counted each collection run from every ship Finland's receivers hear. ${DIGITRAFFIC_CREDIT}.`,
+      LIMITS.summary,
+    ),
+    category: 'maritime',
+    regionIds: ['eastern-europe'],
+    countryCodes: ['RU'],
+    publishedAt: nowIso,
+    occurredAt: nowIso,
+    collectedAt: nowIso,
+    credibility: 'official',
+    verificationStatus: 'unreviewed',
+    latitude: Math.round(((s + n) / 2) * 1000) / 1000,
+    longitude: Math.round(((w + e) / 2) * 1000) / 1000,
+    locationPrecision: 'city',
+    metadata: { subtype: 'tanker-level', zone: z.id, direction: z.direction, mean: z.last24.mean, centre: z.centre, score: z.score, geoBasis: 'zone centre (counting area)' },
+  };
 }
 
 const minIso = (m: number) => new Date(m * 60_000).toISOString();
@@ -250,6 +296,29 @@ export function makeAisTrafficAdapter(listener: Listener = listenAisStream): Sou
         state.fin = d.fin;
         state.dark = d.dark;
         events = darkEvents(d.flags, new Date(ctx.now).toISOString());
+
+        // v0.78.0: tankers per zone this run (moving, and at anchor or stopped).
+        const counts: Record<string, { t: number; m: number; a: number }> = {};
+        for (const [mmsi, f] of allNow) {
+          if (identity(mmsi)?.kind !== 'tanker') continue;
+          const anchored = f.nav === 1 || f.nav === 5 || (f.sog !== null && f.sog < 0.5);
+          for (const z of zoneAt(f.la, f.lo)) {
+            const c = (counts[z.id] ??= { t: 0, m: 0, a: 0 });
+            c.t++;
+            if (anchored) c.a++;
+            else c.m++;
+          }
+        }
+        state.levels = addCounts(ctx.state?.levels ?? {}, counts, ctx.now);
+      } else state.levels = ctx.state?.levels ?? {};
+      const levels = zoneLevels(state.levels ?? {}, ctx.now);
+      state.latest!.levels = levels;
+      const today = new Date(ctx.now).toISOString().slice(0, 10);
+      state.levelRecorded = { ...(ctx.state?.levelRecorded ?? {}) };
+      for (const z of levels) {
+        if (!z.direction || state.levelRecorded[z.id] === today) continue;
+        events.push(levelEvent(z, new Date(ctx.now).toISOString()));
+        state.levelRecorded[z.id] = today;
       }
       state.latest!.dark = Object.values(state.dark).map((s) => ({ mmsi: s.mmsi, name: s.name, kind: s.kind, la: s.la, lo: s.lo, lastAt: minIso(s.at), sanctioned: s.sanctioned }));
       return {

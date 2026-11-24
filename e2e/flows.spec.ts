@@ -324,3 +324,12 @@ test('ships and lanes: simulated tankers with 24-hour tracks, a ship card from s
   await expect(page.getByText(/572 positions last run/)).toBeVisible();
   expect(problems).toEqual([]);
 });
+
+test('Eastern Europe region page: tanker traffic levels in the Gulf of Finland (simulated)', async ({ page, problems }) => {
+  await page.goto('/regions/eastern-europe');
+  const panel = page.getByRole('region', { name: 'Tanker levels by zone' });
+  await expect(panel).toContainText('Primorsk and Vyborg approaches');
+  await expect(panel).toContainText('DROP -4.6');
+  await expect(panel).toContainText('building (4/7 days)');
+  expect(problems).toEqual([]);
+});

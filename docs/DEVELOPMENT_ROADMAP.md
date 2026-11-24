@@ -531,7 +531,8 @@ From the feature audit (category 2, items 1–3, partly).
 - [x] LANES layer: global shipping lanes, major to minor (Benden 2022, from the CIA ocean map) — v0.75.0
 - [ ] Gulf, Red Sea and Asian traffic: needs a source with receivers there (none free found yet)
 - [ ] Traffic density (World Bank, CC BY 4.0: 20–510 MB rasters, 2015–2021) or EMODnet vessel density (Europe, WMS)
-- [ ] Indicators: unusual drops in tanker traffic, ships going dark (AIS gaps), port calls
+- [x] Ships going dark (v0.77.0) and tanker traffic levels in the Gulf of Finland (v0.78.0)
+- [ ] Port calls
 
 ## Phase 39 — Fintraffic Digitraffic AIS (2026-11-24)
 
@@ -548,4 +549,9 @@ From the feature audit (category 2 item 4).
 - [x] DARK rings at the last known position (thicker for sanctioned ships), legend count, records, experimental indicator (catalog v25) — v0.77.0
 - [x] Port list for FI, SE, DK, DE, NO (Wikidata) used by the dark-ship check and the cable watch — v0.77.0
 - [ ] Learn how often each receiver area drops out, to tell outages from ships going dark
+
+## Phase 41 — Tanker traffic levels (2026-11-24)
+
+- [x] Tankers present per Gulf of Finland zone (Primorsk and Vyborg, Ust-Luga, whole gulf) each run from the Fintraffic feed, moving and at anchor, hourly for 60 days — v0.78.0
+- [x] Last 24 hours against the zone's earlier days (7+ needed): SURGE or DROP records and an experimental indicator (catalog v26); panel on the Eastern Europe region page — v0.78.0
 

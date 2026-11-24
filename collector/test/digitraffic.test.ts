@@ -3,7 +3,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { aisTime, DIGITRAFFIC_LOCATIONS, DIGITRAFFIC_VESSELS, parseDigitraffic, resetDigitrafficCache } from '../lib/digitraffic.ts';
 import { AIS_KEY_ENV, aisTiming, makeAisSanctionedAdapter, type AisSanctionedState } from '../adapters/aisSanctioned.ts';
-import { makeAisTrafficAdapter } from '../adapters/aisTraffic.ts';
+import { levelEvent, makeAisTrafficAdapter } from '../adapters/aisTraffic.ts';
+import { validateEvent } from '../lib/validate.ts';
 import type { FetchResult } from '../lib/http.ts';
 
 const NOW = Date.parse('2026-11-24T02:00:00Z');
@@ -58,6 +59,13 @@ describe('Digitraffic', () => {
     expect(r.state.latest!.ships.map((s) => [s.mmsi, s.kind, s.name, s.imo, s.area])).toEqual([['273000001', 'tanker', 'TEST TANKER', '9000001', 'gulf-of-finland']]);
     expect(r.state.latest!.fintraffic).toBe(2);
     expect(r.note).toMatch(/aisstream listen failed: .* · Fintraffic 2 positions$/);
+    // v0.78.0: the tanker is counted in the whole-gulf zone (not Primorsk or Ust-Luga).
+    const gulf = r.state.latest!.levels!.find((z) => z.id === 'gulf-of-finland')!;
+    expect(gulf.last24).toEqual({ mean: 1, anchored: 0, hours: 1 });
+    expect(r.state.latest!.levels!.find((z) => z.id === 'primorsk')!.last24.mean).toBe(0);
+    const ev = levelEvent({ ...gulf, centre: 10, score: -6, direction: 'drop' }, new Date(NOW).toISOString());
+    expect(ev.title).toBe('Tanker traffic drop: Gulf of Finland (whole), 1 tankers on average in the last 24 h against a usual 10');
+    expect(validateEvent(ev, NOW)).toBeNull();
   });
 
   it('matches a sanctioned tanker by the IMO from the Fintraffic vessel database', async () => {

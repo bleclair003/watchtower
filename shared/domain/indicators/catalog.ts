@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 25;
+export const CATALOG_VERSION = 26;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -921,6 +921,44 @@ const darkShipIndicators: IndicatorDefinition[] = [
       historicalExamples: 'None in WATCHTOWER data yet.',
       confounders: 'Receiver outages, ships leaving coverage, transponder faults, Russian territorial waters near the edge of Finnish coverage.',
       falsePositives: 'A receiver going down; ships entering ports not in the port list.',
+      retrospectiveResults: 'Insufficient history.',
+      evidenceQuality: 'none',
+    },
+  },
+  {
+    id: 'eastern-europe.tanker-traffic-change',
+    name: 'EASTEUR tanker traffic surge or drop in the Gulf of Finland',
+    description:
+      'Tankers present in a Gulf of Finland zone (Primorsk and Vyborg, Ust-Luga, the whole gulf) over the last 24 hours 3+ typical spreads above or below the zone\'s usual level (Fintraffic feed), within 72 hours. Two or more is triggered.',
+    family: 'experimental',
+    regionId: 'eastern-europe',
+    requiredSourceIds: ['ais-shipping'],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: 'ais-shipping' },
+        { field: 'metadata.subtype', op: 'eq', value: 'tanker-level' },
+        { field: 'regionIds', op: 'contains', value: 'eastern-europe' },
+      ],
+    },
+    windowHours: 72,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 2 },
+    baseline: null,
+    weight: 0,
+    severity: 'medium',
+    experimental: true,
+    enabled: true,
+    configVersion: 1,
+    rationale:
+      'Primorsk and Ust-Luga ship much of Russia\'s seaborne oil; drone strikes on them and loading halts show up as fewer tankers, and loading rushes before new sanctions as more. Weighted 0 until there is history.',
+    research: {
+      hypothesis: 'Sharp changes in tanker presence at the Gulf of Finland oil terminals track disruption or sanctions timing.',
+      dataAvailability: 'Fintraffic Digitraffic AIS, each collection run since 2026-11-24.',
+      baselinePeriod: 'Each zone against its own earlier days (7+ needed).',
+      expectedRelationship: 'Drops after terminal strikes and loading halts; surges before sanctions take effect.',
+      historicalExamples: 'None in WATCHTOWER data yet.',
+      confounders: 'Ice and storms, holidays, receiver coverage near the Russian coast.',
+      falsePositives: 'Weather closures, a receiver outage.',
       retrospectiveResults: 'Insufficient history.',
       evidenceQuality: 'none',
     },
