@@ -6,6 +6,11 @@ import { readSecret, redactSecrets } from '../lib/secrets.ts';
 import { LIMITS, cleanText, truncate } from '../lib/text.ts';
 import { stateVessels, type SanctionsState } from './sanctions.ts';
 import type { AdapterContext, AdapterResult, SourceAdapter } from './types.ts';
+import { cableFlagTitle, checkCables, CABLE_NEAR_KM, CABLE_REPEAT_MIN, CABLE_SLOW_KN, type CableFlag, type NearCableEntry } from '../../shared/domain/cableWatch.ts';
+import { underseaName, UNDERSEA_LABEL, type UnderseaLine } from '../../shared/domain/undersea.ts';
+import type { InfraSite } from '../../shared/domain/infrastructure.ts';
+import { loadUndersea } from '../lib/undersea.ts';
+import { loadInfrastructure } from '../lib/infrastructure.ts';
 
 export const AIS_SOURCE_ID = 'ais-sanctioned-ships';
 export const AIS_KEY_ENV = 'AISSTREAM_API_KEY';
@@ -193,26 +198,44 @@ export function sightingEvents(sightings: SanctionedShipSighting[], nowIso: stri
 
 // ---------------------------------------------------------------- listening ---
 
-export type Listener = (key: string, seconds: number) => Promise<{ msgs: AisMessage[]; messages: number }>;
+export interface ListenResult {
+  msgs: AisMessage[];
+  messages: number;
+  /** Seconds actually listened (less than asked when the stream dropped). */
+  seconds?: number;
+  /** Set when the window was cut short or needed a second connection. */
+  note?: string;
+}
+export type Listener = (key: string, seconds: number) => Promise<ListenResult>;
 
-/** Opens aisstream.io for `seconds` and keeps identity messages and position reports in the ship areas. */
+/**
+ * Opens aisstream.io for `seconds` and keeps identity messages and position reports in the ship areas.
+ * v0.73.0: the stream often drops part-way (about half of the runs on 2026-11-23 failed with "connection
+ * failed" after 9–16 s). A drop after the subscription was confirmed keeps what was heard so far.
+ */
 export const listenAisStream: Listener = (key, seconds) =>
   new Promise((resolve, reject) => {
     const msgs: AisMessage[] = [];
     let messages = 0;
     let confirmed = false;
+    let settled = false;
+    const started = Date.now();
     const ws = new WebSocket('wss://stream.aisstream.io/v0/stream');
     ws.binaryType = 'arraybuffer';
-    const done = () => {
+    const finish = (err: Error | null, note?: string) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
       try {
         ws.close();
       } catch {
         /* already closed */
       }
-      if (!confirmed) reject(new Error('aisstream.io did not confirm the subscription'));
-      else resolve({ msgs, messages });
+      const listened = Math.round((Date.now() - started) / 1000);
+      if (confirmed && (!err || messages > 0)) resolve({ msgs, messages, seconds: Math.min(listened, seconds), note: err ? `stream dropped after ${listened} s (${note ?? err.message}); kept what was heard` : undefined });
+      else reject(err ?? new Error('aisstream.io did not confirm the subscription'));
     };
-    const timer = setTimeout(done, seconds * 1000);
+    const timer = setTimeout(() => finish(null), seconds * 1000);
     ws.onopen = () =>
       ws.send(JSON.stringify({ APIKey: key, BoundingBoxes: SHIP_AREAS.map((a) => a.box), FilterMessageTypes: ['PositionReport', 'ShipStaticData'] }));
     ws.onmessage = (ev) => {
@@ -228,21 +251,37 @@ export const listenAisStream: Listener = (key, seconds) =>
         return;
       }
       if (m.error) {
-        clearTimeout(timer);
-        reject(new Error(`aisstream.io: ${redactSecrets(String(m.error)).slice(0, 120)}`));
-        ws.close();
+        // An error message from aisstream (e.g. a bad key) is never treated as a partial window.
+        confirmed = false;
+        finish(new Error(`aisstream.io: ${redactSecrets(String(m.error)).slice(0, 120)}`));
         return;
       }
+      // Messages arriving means the subscription is live even if the confirmation was missed.
+      confirmed = true;
       messages++;
       if (m.MetaData && (m.MessageType === 'PositionReport' || m.MessageType === 'ShipStaticData')) msgs.push({ MessageType: m.MessageType, MetaData: m.MetaData, Message: m.Message });
     };
-    ws.onerror = () => {
-      clearTimeout(timer);
-      reject(new Error('aisstream.io connection failed'));
+    ws.onerror = (ev) => {
+      const detail = (ev as Event & { message?: string }).message;
+      finish(new Error(`aisstream.io connection failed${detail ? `: ${redactSecrets(String(detail)).slice(0, 100)}` : ''}`), 'connection error');
     };
+    ws.onclose = (ev) => finish(new Error(`aisstream.io closed the connection (code ${(ev as CloseEvent).code ?? '?'})`), `closed, code ${(ev as CloseEvent).code ?? '?'}`);
   });
 
-let pending: Promise<{ msgs: AisMessage[]; messages: number }> | null = null;
+/** One listening window; if the first connection fails early, a second one gets the time that is left. */
+export async function listenWithRetry(listener: Listener, key: string, seconds: number, clock: () => number = Date.now): Promise<ListenResult> {
+  const started = clock();
+  try {
+    return await listener(key, seconds);
+  } catch (first) {
+    const left = seconds - Math.round((clock() - started) / 1000);
+    if (left < 8 || /aisstream\.io: /.test(String((first as Error).message))) throw first;
+    const r = await listener(key, left);
+    return { ...r, note: `second connection after: ${(first as Error).message.slice(0, 80)}${r.note ? `; ${r.note}` : ''}` };
+  }
+}
+
+let pending: Promise<ListenResult> | null = null;
 
 /**
  * Starts listening at the beginning of a collection run, so the window overlaps the other
@@ -251,7 +290,7 @@ let pending: Promise<{ msgs: AisMessage[]; messages: number }> | null = null;
 export function primeAisListening(listener: Listener = listenAisStream): void {
   const key = readSecret(AIS_KEY_ENV);
   if (!key || pending) return;
-  pending = listener(key, LISTEN_SECONDS);
+  pending = listenWithRetry(listener, key, LISTEN_SECONDS);
   pending.catch(() => {}); // surfaced when the adapter awaits it
 }
 
@@ -263,7 +302,14 @@ export interface AisSanctionedState {
   /** Latest sighting per vessel, last 48 hours. */
   sightings: SanctionedShipSighting[];
   latest: SanctionedShipsSnapshot | null;
+  /** v0.73.0: listening windows that failed in a row (the source fails at MAX_FAILED_WINDOWS). */
+  failedWindows?: number;
+  /** v0.73.0: sanctioned ships seen near undersea lines in the last hours (ship key → entries). */
+  cableLog?: Record<string, NearCableEntry[]>;
 }
+
+/** A failed listen is tolerated twice in a row (the map shows how old the last window is); the third fails the source. */
+export const MAX_FAILED_WINDOWS = 3;
 
 const SANCTIONS_SOURCES = ['ofac-sdn', 'uk-sanctions', 'eu-sanctions'];
 
@@ -274,14 +320,24 @@ export function makeAisSanctionedAdapter(listener: Listener = listenAisStream): 
     async collect(ctx: AdapterContext<AisSanctionedState>): Promise<AdapterResult<AisSanctionedState>> {
       const key = readSecret(AIS_KEY_ENV);
       if (!key) throw new Error(`${AIS_KEY_ENV} is not set`);
-      const window = pending ?? listener(key, LISTEN_SECONDS);
+      const window = pending ?? listenWithRetry(listener, key, LISTEN_SECONDS);
       pending = null;
       const vessels: SanctionedVessel[] = [];
       for (const id of SANCTIONS_SOURCES) {
         const st = await ctx.peerState?.<SanctionsState>(id);
         if (st) vessels.push(...stateVessels(st));
       }
-      const { msgs, messages } = await window;
+      let heard: ListenResult;
+      try {
+        heard = await window;
+      } catch (err) {
+        const failed = (ctx.state?.failedWindows ?? 0) + 1;
+        const message = err instanceof Error ? err.message : String(err);
+        if (!ctx.state || failed >= MAX_FAILED_WINDOWS) throw new Error(`${message}${failed > 1 ? ` (${failed} listens in a row failed)` : ''}`);
+        // Tolerated: nothing new this run; the sightings and the last window's time stay as they were.
+        return { events: [], rejected: [], itemsSeen: 0, notModified: true, state: { ...ctx.state, failedWindows: failed }, note: `listen failed (${failed} of ${MAX_FAILED_WINDOWS} tolerated in a row): ${message}` };
+      }
+      const { msgs, messages } = heard;
       const nowIso = new Date(ctx.now).toISOString();
       if (!vessels.length) throw new Error('no sanctioned-vessel list available yet (sanctions sources not collected)');
       const wl = buildWatchlist(vessels);
@@ -290,19 +346,76 @@ export function makeAisSanctionedAdapter(listener: Listener = listenAisStream): 
       const byKey = new Map<string, SanctionedShipSighting>();
       for (const s of [...(ctx.state?.sightings ?? []), ...r.sightings]) if (s.seenAt >= cutoff) byKey.set(s.imo ?? `mmsi:${s.mmsi}`, s);
       const sightings = [...byKey.values()].sort((a, b) => b.seenAt.localeCompare(a.seenAt));
+      // v0.73.0: sanctioned ships lingering near undersea cables and pipelines.
+      let lines: UnderseaLine[] = [];
+      let ports: InfraSite[] = [];
+      try {
+        lines = loadUndersea();
+        ports = loadInfrastructure().filter((x) => x.t === 'port');
+      } catch {
+        // The data files ship with the app; without them the check is skipped.
+      }
+      const cables = checkCables(r.sightings, lines, ports, ctx.state?.cableLog ?? {}, ctx.now);
       return {
-        events: sightingEvents(r.sightings, nowIso),
+        events: [...sightingEvents(r.sightings, nowIso), ...cableEvents(cables.flags, nowIso)],
         rejected: [],
         itemsSeen: messages,
         notModified: false,
         state: {
           known: r.known,
           sightings,
-          latest: { listenedAt: nowIso, listenSeconds: LISTEN_SECONDS, messages, ships: r.ships, watchlistSize: wl.size, sightings },
+          latest: { listenedAt: nowIso, listenSeconds: heard.seconds ?? LISTEN_SECONDS, messages, ships: r.ships, watchlistSize: wl.size, sightings },
+          failedWindows: 0,
+          cableLog: cables.log,
         },
+        note: heard.note,
       };
     },
   };
 }
 
 export const aisSanctionedShips = makeAisSanctionedAdapter();
+
+/** One record per ship, line and day (v0.73.0). */
+export function cableEvents(flags: CableFlag[], nowIso: string): IntelligenceEvent[] {
+  const out = new Map<string, IntelligenceEvent>();
+  for (const f of flags) {
+    const s = f.sighting;
+    const key = s.imo ?? `mmsi:${s.mmsi}`;
+    const id = contentHash(AIS_SOURCE_ID, 'cable', key, f.line.id, s.seenAt.slice(0, 10));
+    if (out.has(id)) continue;
+    const area = SHIP_AREAS.find((a) => a.id === s.area)!;
+    const lists = s.lists.map((l) => SANCTIONS_LISTS[l].short).join('/');
+    out.set(id, {
+      id,
+      contentHash: id,
+      dataOrigin: 'live',
+      sourceId: AIS_SOURCE_ID,
+      sourceName: 'aisstream.io — Sanctioned vessels near undersea cables (AIS)',
+      sourceClass: 'aggregator',
+      sourceUrl: s.imo ? `https://www.marinetraffic.com/en/ais/details/ships/imo:${s.imo}` : `https://www.marinetraffic.com/en/ais/details/ships/mmsi:${s.mmsi}`,
+      title: truncate(`${cableFlagTitle(f)} — ${area.name} · ${lists}`, LIMITS.title),
+      summary: truncate(
+        `AIS position at ${s.seenAt.slice(11, 16)} UTC, ${s.la.toFixed(3)}, ${s.lo.toFixed(3)}: ${f.km} km from ${underseaName(f.line)} (${UNDERSEA_LABEL[f.line.k].toLowerCase()}${f.line.op ? `, ${f.line.op}` : ''}, as mapped on OpenStreetMap). ` +
+          (f.reason === 'slow'
+            ? `Moving at ${s.sog} kn (under ${CABLE_SLOW_KN} kn) within ${CABLE_NEAR_KM} km of the line. `
+            : `Also seen within ${CABLE_NEAR_KM} km of it at ${f.firstAt?.slice(11, 16)} UTC, ${CABLE_REPEAT_MIN}+ minutes earlier. `) +
+          'Slow ships over cables were behind the 2023–2024 Baltic cable and pipeline damage, but most such passes are innocent (waiting, drifting, slow steaming). AIS is sampled briefly each run, and routes are approximate.',
+        LIMITS.summary,
+      ),
+      category: 'maritime',
+      regionIds: area.regionId ? [area.regionId] : [],
+      countryCodes: [],
+      publishedAt: s.seenAt,
+      occurredAt: s.seenAt,
+      collectedAt: nowIso,
+      credibility: 'single-source',
+      verificationStatus: 'unreviewed',
+      latitude: s.la,
+      longitude: s.lo,
+      locationPrecision: 'exact',
+      metadata: { subtype: 'cable-proximity', mmsi: s.mmsi, imo: s.imo, lineId: f.line.id, lineKind: f.line.k, km: f.km, reason: f.reason, sog: s.sog, geoBasis: 'source-coordinates (AIS position broadcast by the ship)' },
+    });
+  }
+  return [...out.values()];
+}

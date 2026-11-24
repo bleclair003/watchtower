@@ -132,6 +132,9 @@ describe('indicator', () => {
   it('is valid and experimental', () => {
     const defs = INDICATOR_CATALOG.filter((d) => d.requiredSourceIds.includes(AIS_SOURCE_ID));
     expect(validateCatalog(defs)).toEqual([]);
-    expect(defs.map((d) => [d.id, d.experimental, d.weight])).toEqual([['eastern-europe.sanctioned-vessels', true, 0]]);
+    expect(defs.map((d) => [d.id, d.experimental, d.weight])).toEqual([
+      ['eastern-europe.sanctioned-vessels', true, 0],
+      ['eastern-europe.cable-proximity', true, 0],
+    ]);
   });
 });

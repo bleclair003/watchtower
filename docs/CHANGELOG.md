@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.73.0] — 2026-11-24 — AIS reliability and cable watch (Phase 36)
+
+### Fixed
+- **AIS failures.** The aisstream.io connection failed in 29 of the last 60 collection runs ("connection failed" 9–16 s into the 25-second listen), turning each run red. The listener now:
+  - keeps what it heard when the stream drops after it started;
+  - opens a second connection for the time left when the first fails early;
+  - logs the close code or error detail.
+
+  The source tolerates two failed listens in a row and fails on the third. In between, the map keeps the last sightings and shows how old they are, and the run log says what happened.
+
+### Added
+- **Sanctioned ships lingering near undersea cables and pipelines.** A sanctioned vessel heard on AIS within 2 km of a mapped line (see the CABLES layer) gets a record, exactly placed, naming the line and its operator, when it is:
+  - moving under 4 knots, or
+  - seen near the same line again 30 or more minutes later.
+
+  Positions within 10 km of a known port are ignored. There is one record per ship, line and day. This is the pattern behind the 2023–2024 Baltic damage (Balticconnector, C-Lion 1, BCS East-West, Estlink 2).
+- **Indicator** "EASTEUR sanctioned vessel lingering near undersea cable": experimental, weighted 0. The existing sanctioned-vessels indicator now counts sightings only (definition v2). Catalog v24.
+
+### Notes
+- AIS is sampled for about 25 seconds a run, so most slow passes are never heard, and most that are heard are innocent (waiting, drifting, slow steaming).
+- Mapped routes are approximate.
+- Ports in Finland, Sweden, Germany and Denmark are not in the site file, so anchorages near them are not excluded yet.
+
 ## [0.72.0] — 2026-11-23 — Corroboration (Phase 35)
 
 ### Added

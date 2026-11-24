@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 23;
+export const CATALOG_VERSION = 24;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -817,6 +817,8 @@ const sanctionedShipIndicators: IndicatorDefinition[] = [
     match: {
       all: [
         { field: 'sourceId', op: 'eq', value: AIS_SHIPS },
+        // v0.73.0: the source also makes cable-proximity records; only sightings count here.
+        { field: 'metadata.subtype', op: 'eq', value: 'sanctioned-vessel-sighting' },
         { field: 'regionIds', op: 'contains', value: 'eastern-europe' },
       ],
     },
@@ -828,7 +830,7 @@ const sanctionedShipIndicators: IndicatorDefinition[] = [
     severity: 'low',
     experimental: true,
     enabled: true,
-    configVersion: 1,
+    configVersion: 2,
     rationale:
       'Sanctioned tankers (the Russian "shadow fleet") carry oil past sanctions through the Baltic, and ships from this fleet have damaged undersea cables. Records count ship-days (one per vessel, area and day), so a ship that stays counts on each day it is seen. Thresholds are guesses until a baseline exists.',
     research: {
@@ -839,6 +841,44 @@ const sanctionedShipIndicators: IndicatorDefinition[] = [
       historicalExamples: 'None in WATCHTOWER data yet.',
       confounders: 'Receiver coverage, the sampling window, new designations enlarging the watchlist, port calls.',
       falsePositives: 'Ships re-designated or renamed; MMSI-only matches after re-flagging.',
+      retrospectiveResults: 'Insufficient history.',
+      evidenceQuality: 'none',
+    },
+  },
+  {
+    id: 'eastern-europe.cable-proximity',
+    name: 'EASTEUR sanctioned vessel lingering near undersea cable',
+    description:
+      'A sanctioned vessel moving under 4 kn within 2 km of a mapped undersea cable or pipeline in the Baltic, or seen near the same line again 30+ minutes later, within 7 days (not within 10 km of a port). Three or more is triggered.',
+    family: 'experimental',
+    regionId: 'eastern-europe',
+    requiredSourceIds: [AIS_SHIPS, 'ofac-sdn'],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: AIS_SHIPS },
+        { field: 'metadata.subtype', op: 'eq', value: 'cable-proximity' },
+        { field: 'regionIds', op: 'contains', value: 'eastern-europe' },
+      ],
+    },
+    windowHours: 168,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 3 },
+    baseline: null,
+    weight: 0,
+    severity: 'medium',
+    experimental: true,
+    enabled: true,
+    configVersion: 1,
+    rationale:
+      'Ships dragging anchors damaged Balticconnector (Oct 2023), C-Lion 1 and BCS East-West (Nov 2024) and Estlink 2 (Dec 2024); the Estlink 2 suspect was a sanctioned-fleet tanker. Most slow passes are innocent, and AIS is sampled briefly, so this is a pointer to look, weighted 0.',
+    research: {
+      hypothesis: 'Sanctioned ships lingering over undersea infrastructure precede or accompany damage to it.',
+      dataAvailability: 'aisstream.io, sampled about 25 s per collection run since 2026-11-21; lines from OpenStreetMap.',
+      baselinePeriod: 'None yet.',
+      expectedRelationship: 'Rises with shadow-fleet traffic and with deliberate interference.',
+      historicalExamples: 'Not in WATCHTOWER data. Public cases: Newnew Polar Bear (Oct 2023), Yi Peng 3 (Nov 2024), Eagle S (Dec 2024).',
+      confounders: 'Anchorages and waiting areas near the lines, slow steaming, mapped routes being approximate.',
+      falsePositives: 'Ships waiting for pilots or berths, drifting in bad weather.',
       retrospectiveResults: 'Insufficient history.',
       evidenceQuality: 'none',
     },

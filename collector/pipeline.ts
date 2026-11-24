@@ -104,6 +104,7 @@ export interface SourceRunReport {
   sourceId: string;
   ok: boolean;
   notModified: boolean;
+  note?: string;
   itemsSeen: number;
   candidates: number;
   imported: number;
@@ -194,6 +195,7 @@ export async function runCollection(
       const result = collectedResult;
       report.itemsSeen = result.itemsSeen;
       report.notModified = result.notModified;
+      report.note = result.note;
 
       // Validate, and de-duplicate within the batch itself.
       const valid = new Map<string, IntelligenceEvent>();
@@ -267,7 +269,7 @@ export async function runCollection(
     log(
       `${report.ok ? 'OK  ' : 'FAIL'} ${adapter.sourceId.padEnd(26)} ` +
         (report.ok
-          ? `${report.notModified ? '304 not modified' : `${report.itemsSeen} seen`} · ${report.imported} new · ${report.duplicates} dup${report.revised ? ` · ${report.revised} revised` : ''} · ${report.rejected} rejected`
+          ? `${report.note ? `${report.note} · ` : ''}${report.notModified ? '304 not modified' : `${report.itemsSeen} seen`} · ${report.imported} new · ${report.duplicates} dup${report.revised ? ` · ${report.revised} revised` : ''} · ${report.rejected} rejected`
           : report.error) +
         ` · ${secs(ms)}`,
     );

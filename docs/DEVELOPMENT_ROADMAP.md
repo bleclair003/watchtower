@@ -492,7 +492,7 @@ From the feature audit (category 4, items 3, 5, 6 and 7; category 3 item 4).
 - [x] Other nuclear facilities (research reactors, enrichment, fuel cycle) and embassies and consulates added to the site file (Wikidata), with the "activity near sites" checks (10 km nuclear, 1 km embassies, location only) — v0.71.0
 - [ ] More embassies: only 112 missions have a location on Wikidata
 - [ ] Cable landing stations; Red Sea and Asian cables are thin on OpenStreetMap
-- [ ] Records when a sanctioned ship lingers near an undersea cable
+- [x] Records when a sanctioned ship lingers near an undersea cable — v0.73.0 (Phase 36)
 
 ## Phase 35 — Corroboration (2026-11-23)
 
@@ -503,4 +503,10 @@ From the feature audit (category 11 item 3; category 14 items 5 and 6).
 - [x] Feed: UNCONFIRMED tag on media reports with no independent report after 48 hours; stories say "N outlets · 1 origin" and why — v0.72.0
 - [ ] Use corroboration in the scorecard (are corroborated alerts more often useful?)
 - [ ] Agencies credited only in the article body are missed: feeds carry headlines and short summaries
+
+## Phase 36 — AIS reliability and cable watch (2026-11-24)
+
+- [x] AIS listening keeps what was heard when the stream drops after starting, retries once when it fails early, and tolerates two failed listens in a row before the source fails (29 of 60 runs failed on 2026-11-23) — v0.73.0
+- [x] Sanctioned ships within 2 km of a mapped undersea cable or pipeline, moving under 4 kn or seen near the same line again 30+ minutes later, not within 10 km of a port: records and an experimental indicator (catalog v24) — v0.73.0
+- [ ] Ports outside the watch-region countries (Finland, Sweden, Germany, Denmark) are not in the site file, so anchorages near them are not excluded
 

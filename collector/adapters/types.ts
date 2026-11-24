@@ -36,6 +36,8 @@ export interface AdapterResult<S> {
   notModified: boolean;
   /** State to persist for the next run. */
   state: S;
+  /** Optional note for the run log (public: no secrets), e.g. a tolerated failure. */
+  note?: string;
 }
 
 export interface SourceAdapter<S = unknown> {
