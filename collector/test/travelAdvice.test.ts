@@ -23,7 +23,7 @@ function file(entries: ReturnType<typeof country>[]) {
   const data: Record<string, unknown> = {};
   for (let k = 0; k < 120; k++) data[`Z${k}`] = country(`Q${String.fromCharCode(65 + (k % 26))}`.slice(0, 2), `Filler ${k}`, 0, 2000);
   for (const e of entries) data[e['country-iso']] = e;
-  data['AZORES'] = { ...country('', 'Azores', 0, 10), 'country-iso': '' };
+  data['AZORES'] = { ...country('PT-20', 'Azores', 0, 10) };
   return JSON.stringify({ metadata: {}, data });
 }
 const ok = (body: string) => async () => ({ kind: 'ok' as const, status: 200, body, validators: {}, bytes: body.length });

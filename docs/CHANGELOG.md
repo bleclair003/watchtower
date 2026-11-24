@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.83.1] — 2026-11-24 — Canada: sub-national entries skipped
+
+### Fixed
+- Canada's file lists the Azores with the sub-national code "PT-20". It was counted as a rejected item on the first live read; sub-national codes are now skipped.
+
 ## [0.83.0] — 2026-11-24 — Travel advice from more governments (Phase 45)
 
 ### Added

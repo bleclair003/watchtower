@@ -104,8 +104,8 @@ export const canadaTravel: SourceAdapter<CanadaTravelState> = {
       seen++;
       const iso = String(c['country-iso'] ?? '').toUpperCase();
       const level = c['advisory-state'];
-      // Sub-national entries (the Azores, Madeira…) carry no country code: skipped, not errors.
-      if (!iso) continue;
+      // Sub-national entries (the Azores is "PT-20") are skipped, not errors.
+      if (!iso || /^[A-Z]{2}-/.test(iso)) continue;
       if (!/^[A-Z]{2}$/.test(iso) || typeof level !== 'number' || level < 0 || level > 3) {
         rejected.push({ ref: truncate(c.eng?.name ?? iso, 80), reason: 'invalid country code or level' });
         continue;
