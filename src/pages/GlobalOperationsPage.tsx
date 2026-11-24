@@ -781,6 +781,7 @@ export default function GlobalOperationsPage() {
                       totalSeen: trafficData.data.totalSeen,
                       ageMinutes: Math.max(0, Math.round((now - Date.parse(trafficData.data.fetchedAt)) / 60_000)),
                       simulated: !!trafficData.data.simulated,
+                      fintraffic: trafficData.data.fintraffic ?? null,
                     }
                   : null
                 : undefined

@@ -533,3 +533,10 @@ From the feature audit (category 2, items 1–3, partly).
 - [ ] Traffic density (World Bank, CC BY 4.0: 20–510 MB rasters, 2015–2021) or EMODnet vessel density (Europe, WMS)
 - [ ] Indicators: unusual drops in tanker traffic, ships going dark (AIS gaps), port calls
 
+## Phase 39 — Fintraffic Digitraffic AIS (2026-11-24)
+
+- [x] Finland's official keyless AIS feed (CC BY 4.0): every vessel its coastal receivers hear, plus its vessel database (type, name, IMO, destination); one fetch per run shared by both AIS sources and merged with the aisstream.io window — v0.76.0
+- [x] Sanctioned-ship check, cable watch and the SHIPS layer keep working on the Finnish feed when aisstream fails; aisstream failures still counted and logged — v0.76.0
+- [ ] Ships going dark: a tanker heard every run that stops while still at sea (now possible in Finnish waters)
+- [ ] Norway's open AIS (Kystverket) for the North Sea and Barents, if its terms allow
+

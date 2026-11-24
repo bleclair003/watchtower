@@ -10,11 +10,12 @@ import {
 } from '../../shared/domain/shipTraffic.ts';
 import { readSecret } from '../lib/secrets.ts';
 import { cleanText } from '../lib/text.ts';
-import { AIS_KEY_ENV, LISTEN_SECONDS, listenAisStream, parseAisTime, takeAisWindow, type AisMessage, type Listener, type ListenResult } from './aisSanctioned.ts';
+import { AIS_KEY_ENV, gatherAis, LISTEN_SECONDS, listenAisStream, parseAisTime, takeAisWindow, type AisMessage, type Listener } from './aisSanctioned.ts';
 import type { AdapterContext, AdapterResult, SourceAdapter } from './types.ts';
 
 /**
- * Tanker and cargo traffic (v0.75.0): from the AIS window the sanctioned-ship source already opens.
+ * Tanker and cargo traffic (v0.75.0): from the AIS window the sanctioned-ship source already opens, and
+ * from v0.76.0 Fintraffic's Digitraffic feed (every vessel its Finnish receivers hear).
  * Remembers each tanker's and cargo ship's type, name, IMO and destination between runs (identity
  * messages come every few minutes, so one window sees few), and keeps a point per run for 24 hours.
  * Makes no records: it feeds the map's SHIPS layer.
@@ -141,20 +142,27 @@ export function makeAisTrafficAdapter(listener: Listener = listenAisStream): Sou
     async collect(ctx: AdapterContext<TrafficState>): Promise<AdapterResult<TrafficState>> {
       const key = readSecret(AIS_KEY_ENV);
       if (!key) throw new Error(`${AIS_KEY_ENV} is not set`);
-      let heard: ListenResult;
-      try {
-        heard = await takeAisWindow(listener, key);
-      } catch (err) {
-        // The sanctioned-ship source reports AIS outages; this one keeps the last map until three in a row fail.
+      const got = await gatherAis(takeAisWindow(listener, key), ctx);
+      const heard = got.heard;
+      if (!got.heard && !got.dt) {
+        // Neither feed answered: keep the last map until three runs in a row fail.
         const failed = (ctx.state?.failedWindows ?? 0) + 1;
-        const message = err instanceof Error ? err.message : String(err);
+        const message = got.windowError ?? 'no AIS data';
         if (failed >= 3) throw new Error(`${message} (${failed} listens in a row failed)`);
         // Tolerated from the first run on (v0.75.1): the map keeps the last traffic, or shows none yet.
         const base: TrafficState = ctx.state ?? { known: {}, tracks: {}, last: {}, latest: null };
         return { events: [], rejected: [], itemsSeen: 0, notModified: true, state: { ...base, failedWindows: failed }, note: `listen failed (${failed} of 3 tolerated in a row)` };
       }
-      const state = updateTraffic(ctx.state, heard.msgs, ctx.now, heard.seconds ?? LISTEN_SECONDS);
-      return { events: [], rejected: [], itemsSeen: heard.messages, notModified: false, state, note: `${state.latest!.ships.length} tankers and cargo ships on the map, ${state.latest!.typesKnown} types known` };
+      const state = updateTraffic(ctx.state, got.msgs, ctx.now, heard ? (heard.seconds ?? LISTEN_SECONDS) : 0);
+      state.latest!.fintraffic = got.dt ? got.dt.positions : null;
+      return {
+        events: [],
+        rejected: [],
+        itemsSeen: got.messages,
+        notModified: false,
+        state,
+        note: `${state.latest!.ships.length} tankers and cargo ships on the map, ${state.latest!.typesKnown} types known · ${got.note}`,
+      };
     },
   };
 }

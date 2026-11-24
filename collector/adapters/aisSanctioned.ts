@@ -11,6 +11,24 @@ import { underseaName, UNDERSEA_LABEL, type UnderseaLine } from '../../shared/do
 import type { InfraSite } from '../../shared/domain/infrastructure.ts';
 import { loadUndersea } from '../lib/undersea.ts';
 import { loadInfrastructure } from '../lib/infrastructure.ts';
+import { fetchDigitraffic, type DigitrafficResult } from '../lib/digitraffic.ts';
+
+/**
+ * v0.76.0: the aisstream.io window and Fintraffic's Digitraffic feed, gathered together. Either may fail;
+ * the caller fails only when both do.
+ */
+export async function gatherAis(window: Promise<ListenResult>, ctx: Pick<AdapterContext<unknown>, 'fetch' | 'now'>) {
+  const [w, d] = await Promise.allSettled([window, fetchDigitraffic(ctx)]);
+  const heard = w.status === 'fulfilled' ? w.value : null;
+  const dt: DigitrafficResult | null = d.status === 'fulfilled' ? d.value : null;
+  const windowError = w.status === 'rejected' ? (w.reason instanceof Error ? w.reason.message : String(w.reason)) : null;
+  const msgs = [...(heard?.msgs ?? []), ...(dt?.msgs ?? [])];
+  const parts = [
+    heard ? `aisstream ${heard.messages} messages${heard.note ? ` (${heard.note})` : ''}` : `aisstream listen failed: ${windowError}`,
+    dt ? `Fintraffic ${dt.positions} positions` : 'Fintraffic unavailable',
+  ];
+  return { heard, dt, windowError, msgs, messages: (heard?.messages ?? 0) + (dt?.positions ?? 0), note: parts.join(' · ') };
+}
 
 export const AIS_SOURCE_ID = 'ais-sanctioned-ships';
 export const AIS_KEY_ENV = 'AISSTREAM_API_KEY';
@@ -357,17 +375,16 @@ export function makeAisSanctionedAdapter(listener: Listener = listenAisStream): 
         const st = await ctx.peerState?.<SanctionsState>(id);
         if (st) vessels.push(...stateVessels(st));
       }
-      let heard: ListenResult;
-      try {
-        heard = await window;
-      } catch (err) {
-        const failed = (ctx.state?.failedWindows ?? 0) + 1;
-        const message = err instanceof Error ? err.message : String(err);
-        if (!ctx.state || failed >= MAX_FAILED_WINDOWS) throw new Error(`${message}${failed > 1 ? ` (${failed} listens in a row failed)` : ''}`);
+      const got = await gatherAis(window, ctx);
+      const failed = got.heard ? 0 : (ctx.state?.failedWindows ?? 0) + 1;
+      if (!got.heard && !got.dt) {
+        const message = got.windowError ?? 'no AIS data';
+        if (!ctx.state || failed >= MAX_FAILED_WINDOWS) throw new Error(`${message}${failed > 1 ? ` (${failed} listens in a row failed)` : ''} and Fintraffic unavailable`);
         // Tolerated: nothing new this run; the sightings and the last window's time stay as they were.
         return { events: [], rejected: [], itemsSeen: 0, notModified: true, state: { ...ctx.state, failedWindows: failed }, note: `listen failed (${failed} of ${MAX_FAILED_WINDOWS} tolerated in a row): ${message}` };
       }
-      const { msgs, messages } = heard;
+      const { msgs, messages } = got;
+      const heard: ListenResult = got.heard ?? { msgs: [], messages: 0, seconds: 0 };
       const nowIso = new Date(ctx.now).toISOString();
       if (!vessels.length) throw new Error('no sanctioned-vessel list available yet (sanctions sources not collected)');
       const wl = buildWatchlist(vessels);
@@ -395,10 +412,10 @@ export function makeAisSanctionedAdapter(listener: Listener = listenAisStream): 
           known: r.known,
           sightings,
           latest: { listenedAt: nowIso, listenSeconds: heard.seconds ?? LISTEN_SECONDS, messages, ships: r.ships, watchlistSize: wl.size, sightings },
-          failedWindows: 0,
+          failedWindows: failed,
           cableLog: cables.log,
         },
-        note: heard.note,
+        note: got.note,
       };
     },
   };

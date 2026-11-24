@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.76.0] — 2026-11-24 — Finland's AIS feed (Phase 39)
+
+### Added
+- **Fintraffic Digitraffic AIS.** Finland's official, keyless AIS feed (CC BY 4.0) gives every vessel its coastal receivers hear across the Gulf of Finland, Gulf of Bothnia and northern Baltic, and a vessel database with type, name, IMO and destination.
+  - It is fetched once per run and merged with the aisstream.io listen for the sanctioned-ship check, the cable watch and the SHIPS layer.
+  - Tankers and cargo ships in Finnish waters appear at once, with full 24-hour tracks, and sanctioned ships there are matched by IMO every run.
+  - First live read: 572 recent positions, 75 tankers and 158 cargo ships, among them Russian-flagged tankers bound for Ust-Luga and Vyborg.
+- **Resilience:** when aisstream.io fails but Fintraffic answers, the AIS sources keep working instead of counting an outage. aisstream failures are still counted and shown in the run log.
+- Fintraffic is credited on the map legend, the ship cards and the Sources page, as its licence asks.
+
 ## [0.75.1] — 2026-11-24 — AIS: tolerate the first run, pause before reconnecting
 
 ### Fixed

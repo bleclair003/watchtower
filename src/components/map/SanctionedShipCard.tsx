@@ -70,7 +70,7 @@ export function SanctionedShipCard({ ship: s, snapshot, now, onClose, nearLines 
           {s.la.toFixed(3)}, {s.lo.toFixed(3)} <span className="text-wt-fg-dim">({formatAge(s.seenAt, now)} ago)</span>
         </dd>
         <dt className="text-wt-fg-dim">SOURCE</dt>
-        <dd className="text-wt-fg-muted">{snapshot.simulated ? 'Simulated demo vessel' : 'aisstream.io (volunteer AIS receivers); OFAC, EU and UK sanctions lists'}</dd>
+        <dd className="text-wt-fg-muted">{snapshot.simulated ? 'Simulated demo vessel' : <>aisstream.io (volunteer AIS receivers) and, in Finnish waters, <a href="https://www.digitraffic.fi/en/terms-of-service/" target="_blank" rel="noopener noreferrer nofollow" className="underline">Fintraffic / digitraffic.fi</a> (CC BY 4.0); OFAC, EU and UK sanctions lists</>}</dd>
         {link && (
           <>
             <dt className="text-wt-fg-dim">LOOK UP</dt>

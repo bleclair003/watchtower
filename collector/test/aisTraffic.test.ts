@@ -77,7 +77,7 @@ describe('traffic adapter', () => {
     const ok = makeAisTrafficAdapter(async () => ({ msgs: [statics(273000001, 84), pos(273000001, 59.9, 26, T0)], messages: 2 }));
     const r = await ok.collect(ctx(null));
     expect(r.events).toEqual([]);
-    expect(r.note).toMatch(/^1 tankers and cargo ships on the map, 1 types known$/);
+    expect(r.note).toBe("1 tankers and cargo ships on the map, 1 types known · aisstream 2 messages · Fintraffic unavailable");
     const failing = makeAisTrafficAdapter(async () => {
       throw new Error('aisstream.io connection failed');
     });

@@ -54,6 +54,8 @@ export interface ShipTrafficDoc {
   ships: TrafficShip[];
   /** Tanker and cargo ships with a position in the last 24 h before the cap. */
   totalSeen: number;
+  /** v0.76.0: positions from Fintraffic's Digitraffic feed in the last run (null when it did not answer). */
+  fintraffic?: number | null;
   simulated?: boolean;
 }
 

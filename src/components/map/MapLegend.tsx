@@ -31,7 +31,7 @@ interface Props {
   /** Undersea lines by kind, and disputed areas (v0.71.0; omit when off). */
   undersea?: Record<UnderseaKind, number> | null;
   /** Tanker and cargo traffic (omit when off; null while loading) and lanes (v0.75.0). */
-  traffic?: { tankers: number; cargo: number; typesKnown: number; totalSeen: number; ageMinutes: number; simulated: boolean } | null;
+  traffic?: { tankers: number; cargo: number; typesKnown: number; totalSeen: number; ageMinutes: number; simulated: boolean; fintraffic?: number | null } | null;
   lanes?: boolean;
   disputed?: number | null;
   /** Radiation layer (omit when off). */
@@ -156,7 +156,7 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
                     ))}
                   </ul>
                   <p className="text-wt-fg-dim">
-                    Arrow = course; faint line = last 24 h, one point a run. Baltic, North Sea, Black Sea and eastern Mediterranean only (volunteer receivers; none in the Gulf, Red Sea or Asia).
+                    Arrow = course; faint line = last 24 h, one point a run. Baltic, North Sea, Black Sea and eastern Mediterranean only: aisstream.io volunteers, plus every ship Finland's receivers hear (Source: <a href="https://www.digitraffic.fi/en/terms-of-service/" target="_blank" rel="noopener noreferrer nofollow" className="underline">Fintraffic / digitraffic.fi</a> (CC BY 4.0)){traffic.fintraffic != null ? `, ${traffic.fintraffic} positions last run` : ''}. None in the Gulf, Red Sea or Asia.
                     {traffic.totalSeen > traffic.tankers + traffic.cargo && ` ${traffic.totalSeen} seen in 24 h, the ${traffic.tankers + traffic.cargo} most relevant shown.`} {traffic.typesKnown.toLocaleString('en-US')} ship types remembered. Listened {traffic.ageMinutes} min ago.
                   </p>
                 </>
@@ -422,7 +422,7 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
                 <span className="text-wt-fg tabular-nums">{sanctioned.count}</span>
               </div>
               <p className="text-wt-fg-dim">
-                Baltic + North Sea · {sanctioned.shipsHeard.toLocaleString('en-US')} ships heard {sanctioned.listenedMinutesAgo} min ago
+                Baltic, North Sea, Black Sea, eastern Mediterranean · {sanctioned.shipsHeard.toLocaleString('en-US')} ships heard {sanctioned.listenedMinutesAgo} min ago · aisstream.io and <a href="https://www.digitraffic.fi/en/terms-of-service/" target="_blank" rel="noopener noreferrer nofollow" className="underline">Fintraffic / digitraffic.fi</a> (CC BY 4.0)
               </p>
             </div>
           )}

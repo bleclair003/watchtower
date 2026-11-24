@@ -96,7 +96,7 @@ export function TrafficShipCard({
         </p>
       )}
       <p className="border-t border-wt-line px-2 py-1 text-wt-fg-dim">
-        Sampled once per collection run from volunteer AIS receivers (aisstream.io), so the track joins dots with straight lines; ships with AIS off are not seen. Name, type and destination are what the ship broadcasts.
+        Sampled once per collection run from volunteer AIS receivers (aisstream.io) and, in Finnish waters, <a href="https://www.digitraffic.fi/en/terms-of-service/" target="_blank" rel="noopener noreferrer nofollow" className="underline">Fintraffic / digitraffic.fi</a> (CC BY 4.0), so the track joins dots with straight lines; ships with AIS off are not seen. Name, type and destination are what the ship broadcasts.
       </p>
     </section>
   );

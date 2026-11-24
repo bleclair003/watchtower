@@ -379,3 +379,9 @@ Links only, as in Phase 28. Both sources make no records; they are stored in the
 | Global Shipping Lanes v1, Benden 2022 (github.com/newzealandpaul/Shipping-Lanes) | CC BY 4.0 / CC BY-SA 4.0 (the source states both; BY-SA followed) | Major, middle and minor lanes as simplified lines in `public/data/lanes.json` (`scripts/build-lanes.ts`) |
 | World Bank Global Shipping Traffic Density | not used yet | CC BY 4.0, but 20–510 MB rasters (2015–2021), no tile service |
 
+### v0.76.0 — Fintraffic Digitraffic AIS
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| Fintraffic Digitraffic marine AIS (`meri.digitraffic.fi/api/ais/v1/locations` and `/vessels`, header `Digitraffic-User`) | official, CC BY 4.0 ("Source: Fintraffic / digitraffic.fi, license CC 4.0 BY") | Positions heard in the last hour and the matching vessel records, converted to AIS messages for the sanctioned-ship check, cable watch and tanker and cargo layer. First live read: 572 recent positions, 75 tankers and 158 cargo ships (Gulf of Finland and northern Baltic) |
+
