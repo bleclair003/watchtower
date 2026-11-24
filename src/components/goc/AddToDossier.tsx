@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { IntelligenceEvent } from '@shared/domain/types';
 import type { Incident } from '@shared/domain/incidents/types';
-import { addEvidence, createIncident } from '@shared/domain/incidents/logic';
+import { addWithMembers, createIncident } from '@shared/domain/incidents/logic';
+import { useData } from '../../state/DataContext';
 import { useAuth } from '../../state/AuthContext';
 
 /** "+ DOSSIER" control for a feed item: attach the event to an existing dossier or start a new one. */
@@ -13,6 +14,7 @@ export function AddToDossier({ event }: { event: IntelligenceEvent }) {
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const canEdit = useAuth().can('editIncidents');
+  const pool = useData().events;
 
   async function openPicker() {
     setOpen(true);
@@ -31,13 +33,14 @@ export function AddToDossier({ event }: { event: IntelligenceEvent }) {
       const svc = await import('../../data/incidentsService');
       const now = new Date().toISOString();
       if (target === 'new') {
-        const saved = await svc.saveIncident(createIncident(now, event), 0);
+        // A convergence record brings the records behind it (v0.81.0).
+        const saved = await svc.saveIncident(addWithMembers(createIncident(now, event), event, pool, now).incident, 0);
         navigate(`/dossiers/${saved.id}`);
         return;
       }
       const fresh = await svc.getIncident(target.id);
       if (!fresh) throw new Error('Dossier no longer exists.');
-      const next = addEvidence(fresh, event, now);
+      const next = addWithMembers(fresh, event, pool, now).incident;
       if (next === fresh) setStatus(`Already in “${fresh.title}”.`);
       else {
         await svc.saveIncident(next, fresh.version);

@@ -3,6 +3,7 @@ import type { IntelligenceEvent } from '../types.ts';
 import { EVENT_CATEGORIES } from '../types.ts';
 import { getRegion } from '../regions.ts';
 import { getIndicator } from '../indicators/catalog.ts';
+import { buildBoard, MARK_LABEL, validateHypotheses } from './hypotheses.ts';
 import {
   EVIDENCE_ASSESSMENTS,
   INCIDENT_STATUSES,
@@ -63,6 +64,31 @@ export function addEvidence(incident: Incident, e: IntelligenceEvent, now: strin
   return { ...incident, evidence: [...incident.evidence, { event: toLinkedEvent(e), assessment: 'unconfirmed', addedAt: now, note: '' }] };
 }
 
+/**
+ * v0.81.0: adds a record, and when it is a convergence record, the records behind it that are in `pool`
+ * (the records the app has loaded), so the signals can be marked one by one. Returns how many of the
+ * records behind it were not available to add.
+ */
+export function addWithMembers(incident: Incident, e: IntelligenceEvent, pool: IntelligenceEvent[], now: string): { incident: Incident; added: number; missing: number } {
+  let next = addEvidence(incident, e, now);
+  const ids = Array.isArray(e.metadata?.signalEventIds) ? (e.metadata!.signalEventIds as unknown[]).filter((x): x is string => typeof x === 'string') : [];
+  const byId = new Map(pool.map((x) => [x.id, x]));
+  let added = 0;
+  let missing = 0;
+  for (const id of ids) {
+    const m = byId.get(id);
+    if (!m) {
+      missing++;
+      continue;
+    }
+    if (next.evidence.length >= LIMITS.evidence) break;
+    const before = next;
+    next = addEvidence(next, m, now);
+    if (next !== before) added++;
+  }
+  return { incident: next, added, missing };
+}
+
 // ------------------------------------------------------------- validation --
 
 const ISO = /^\d{4}-\d{2}-\d{2}T/;
@@ -101,6 +127,7 @@ export function validateIncident(x: unknown): string[] {
   }
   if (!isStr(i.createdAt, 40) || !ISO.test(i.createdAt!) || !isStr(i.updatedAt, 40) || !ISO.test(i.updatedAt!)) p.push('invalid timestamps');
   if (!Number.isInteger(i.version) || i.version! < 1) p.push('invalid version');
+  p.push(...validateHypotheses(i));
   return p;
 }
 
@@ -265,6 +292,35 @@ export function incidentToMarkdown(incident: Incident, exportedAt: string): stri
   }
   if (incident.indicatorIds.length) {
     lines.push('## Related indicators', '', ...incident.indicatorIds.map((id) => `- ${getIndicator(id)?.name ?? id} (${id})`), '');
+  }
+  const hs = incident.hypotheses ?? [];
+  if (hs.length) {
+    const board = buildBoard(incident);
+    lines.push('## Competing hypotheses', '');
+    lines.push('> Ranked by the evidence AGAINST each explanation (inconsistent = 1, very inconsistent = 2), records with the same origin counted once. Marks are the operator’s judgements.', '');
+    board.ranking.forEach((s, k) => {
+      const h = hs.find((x) => x.id === s.id)!;
+      lines.push(
+        `${k + 1}. **${mdInline(h.label, 120)}** — against ${s.against}${s.againstWeak ? ` (${s.againstWeak} from unconfirmed, disputed or single-source evidence)` : ''}, for ${s.support}, ${s.marked} records marked`,
+        ...(h.note.trim() ? [`   - ${mdInline(h.note, 500)}`] : []),
+      );
+    });
+    lines.push('');
+    if (board.tied) lines.push('- The top two explanations are tied on evidence against.');
+    if (board.leaderChangesOnConfirmed) lines.push(`- On evidence assessed confirmed only, the leader changes to: ${mdInline(board.confirmedRanking[0].label, 120)}.`);
+    if (board.notDiagnostic.length) lines.push(`- ${board.notDiagnostic.length} record(s) are marked the same for every explanation and do not help choose.`);
+    if (board.unmarked.length) lines.push(`- ${board.unmarked.length} record(s) are not marked against any explanation.`);
+    lines.push('', '### Marks', '');
+    for (const l of incident.evidence) {
+      const marks = hs.filter((h) => l.marks?.[h.id]);
+      if (!marks.length) continue;
+      lines.push(`- ${mdInline(l.event.title)}`);
+      for (const h of marks) {
+        const m = l.marks![h.id];
+        lines.push(`  - ${mdInline(h.label, 120)}: ${m.m} (${MARK_LABEL[m.m]})${m.why.trim() ? ` — ${mdInline(m.why, 200)}` : ''}`);
+      }
+    }
+    lines.push('');
   }
   return lines.join('\n');
 }

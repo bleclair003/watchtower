@@ -202,6 +202,14 @@ describe('incidents', () => {
     await assertSucceeds(deleteDoc(doc(owner(), 'incidents/i1')));
   });
 
+  it('accepts competing hypotheses (up to 8) and refuses more or a non-list (v0.81.0)', async () => {
+    const hyp = (n: number) => Array.from({ length: n }, (_, k) => ({ id: `h${k}`, label: `Explanation ${k}`, note: '' }));
+    await assertSucceeds(setDoc(doc(owner(), 'incidents/h1'), incident({ id: 'h1', hypotheses: hyp(3) })));
+    await assertSucceeds(setDoc(doc(owner(), 'incidents/h1'), incident({ id: 'h1', hypotheses: hyp(8), version: 2 })));
+    await assertFails(setDoc(doc(owner(), 'incidents/h2'), incident({ id: 'h2', hypotheses: hyp(9) })));
+    await assertFails(setDoc(doc(owner(), 'incidents/h3'), incident({ id: 'h3', hypotheses: 'sabotage' })));
+  });
+
   it('rejects stale or skipped versions, changed createdAt, and malformed dossiers', async () => {
     await assertSucceeds(setDoc(doc(owner(), 'incidents/i1'), incident()));
     await assertFails(setDoc(doc(owner(), 'incidents/i1'), incident({ version: 1, title: 'stale overwrite' })));

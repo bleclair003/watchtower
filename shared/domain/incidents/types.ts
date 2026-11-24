@@ -1,4 +1,5 @@
 import type { Credibility, EventCategory, IntelligenceEvent, SourceClass } from '../types.ts';
+import type { EvidenceMark, Hypothesis } from './hypotheses.ts';
 
 /**
  * Incident dossiers (Phase 5).
@@ -45,6 +46,8 @@ export interface EvidenceLink {
   addedAt: string;
   /** Why this record matters / what it does or does not establish. */
   note: string;
+  /** v0.81.0: this record's mark against each competing hypothesis, by hypothesis id. */
+  marks?: Record<string, EvidenceMark>;
 }
 
 export interface AnalystNote {
@@ -66,6 +69,8 @@ export interface Incident {
   linkedIncidentIds: string[];
   /** Indicators the operator considers relevant to this incident. */
   indicatorIds: string[];
+  /** v0.81.0: competing explanations, marked against the evidence (absent in older dossiers). */
+  hypotheses?: Hypothesis[];
   createdAt: string;
   updatedAt: string;
   /** Incremented on every save; used to detect concurrent edits. */

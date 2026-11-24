@@ -12,7 +12,8 @@ import {
   type Incident,
   type IncidentStatus,
 } from '@shared/domain/incidents/types';
-import { addEvidence, buildTimeline, incidentToMarkdown, suggestRelated, validateIncident, type TimelineBasis } from '@shared/domain/incidents/logic';
+import { addWithMembers, buildTimeline, incidentToMarkdown, suggestRelated, validateIncident, type TimelineBasis } from '@shared/domain/incidents/logic';
+import { HypothesesBoard } from '../components/dossier/HypothesesBoard';
 import { useData } from '../state/DataContext';
 import { useAuth } from '../state/AuthContext';
 import { useNow } from '../hooks/useNow';
@@ -367,7 +368,7 @@ export default function DossierPage() {
                         className="whitespace-nowrap text-wt-fg hover:underline"
                         onClick={() => {
                           try {
-                            update((d) => addEvidence(d, s.event, new Date().toISOString()));
+                            update((d) => addWithMembers(d, s.event, data.events, new Date().toISOString()).incident);
                           } catch (e) {
                             setError(e instanceof Error ? e.message : String(e));
                           }
@@ -384,6 +385,9 @@ export default function DossierPage() {
           </Panel>
         </div>
       </div>
+
+      {/* Competing hypotheses (v0.81.0) */}
+      <HypothesesBoard incident={draft} onChange={(f) => update(f)} />
 
       <div className="grid gap-1.5 xl:grid-cols-2">
         {/* Notes */}

@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.81.0] — 2026-11-24 — Competing hypotheses (Phase 43)
+
+### Added
+- **Competing hypotheses board in dossiers.** This is Analysis of Competing Hypotheses, the structured technique from CIA analyst Richards Heuer.
+  - List up to 8 possible explanations, each with a note on what would have to be true.
+  - Mark each record in the dossier against each explanation: very consistent (CC), consistent (C), neutral (N), inconsistent (I) or very inconsistent (II), with an optional one-line reason.
+  - The board ranks explanations by the evidence **against** them (I = 1, II = 2). Evidence that fits one explanation usually fits others too; evidence that rules one out is what separates them.
+- **Honesty rules on the board:**
+  - **One origin counts once.** Records crediting the same agency (Reuters, AP, TASS…), or from the same source, add only their strongest mark, and the board lists which records were merged.
+  - **Weak evidence is shown separately.** Evidence against that rests on records assessed unconfirmed or disputed, or on single-source, unverified or experimental records, is counted on its own.
+  - **The ranking is checked on confirmed evidence.** It is recomputed from records assessed confirmed only, with a warning when the leader changes.
+  - **Ties and non-diagnostic records are flagged.** A tie at the top is stated, and a record marked the same for every explanation is flagged as not helping choose.
+- **Export:** the Markdown export includes the ranking, the warnings, and every mark with its reason.
+- **Convergence records bring their evidence.** Adding a convergence record to a dossier (from the feed or the suggestions) also adds the records behind it that are loaded, so each signal can be marked on its own.
+
+### Changed
+- **Firestore rules:** dossiers may carry a `hypotheses` list of at most 8 entries. The app validates every explanation and mark. Older dossiers are unchanged.
+
 ## [0.80.0] — 2026-11-24 — Convergence alerts and country convergence (Phase 42)
 
 ### Added

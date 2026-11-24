@@ -566,3 +566,11 @@ From the feature audit (category 2 item 4).
 - [ ] An indicator for convergence records once there is history
 - [ ] Norway's AIS (BarentsWatch, needs the owner's free client registration; Kystverket's raw stream did not accept connections from the operator's machine or GitHub runners on 2026-11-24)
 
+## Phase 43 — Competing hypotheses (2026-11-24)
+
+- [x] Dossier board: up to 8 explanations, each record marked CC / C / N / I / II against each with a one-line reason — v0.81.0
+- [x] Ranking by the evidence against each explanation, one origin (credited agency, else source) counted once; weak evidence counted separately; the ranking recomputed from confirmed evidence only, with a warning when the leader changes; records that do not help choose flagged — v0.81.0
+- [x] Board in the Markdown export; a convergence record added to a dossier brings the records behind it — v0.81.0
+- [ ] Weight marks by relevance as well as credibility (Heuer's optional step)
+- [ ] Suggest evidence to look for: what would most separate the top two explanations
+

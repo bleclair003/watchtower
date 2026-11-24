@@ -139,7 +139,7 @@ service cloud.firestore {
     // Incident dossiers: owner-curated. Shape and size limits are enforced here;
     // updates must bump `version` by exactly 1 (optimistic concurrency).
     function validIncident(d, id) {
-      return d.keys().hasOnly(['id', 'title', 'summary', 'status', 'category', 'regionIds', 'evidence', 'notes', 'linkedIncidentIds', 'indicatorIds', 'createdAt', 'updatedAt', 'version'])
+      return d.keys().hasOnly(['id', 'title', 'summary', 'status', 'category', 'regionIds', 'evidence', 'notes', 'linkedIncidentIds', 'indicatorIds', 'hypotheses', 'createdAt', 'updatedAt', 'version'])
         && d.keys().hasAll(['id', 'title', 'summary', 'status', 'category', 'regionIds', 'evidence', 'notes', 'linkedIncidentIds', 'indicatorIds', 'createdAt', 'updatedAt', 'version'])
         && d.id == id
         && d.title is string && d.title.size() > 0 && d.title.size() <= 120
@@ -151,6 +151,8 @@ service cloud.firestore {
         && d.notes is list && d.notes.size() <= 100
         && d.linkedIncidentIds is list && d.linkedIncidentIds.size() <= 20 && !(id in d.linkedIncidentIds)
         && d.indicatorIds is list && d.indicatorIds.size() <= 30
+        // v0.81.0: competing hypotheses (optional; the app validates each one and every mark).
+        && (!('hypotheses' in d) || (d.hypotheses is list && d.hypotheses.size() <= 8))
         && d.createdAt is string && d.updatedAt is string
         && d.version is int;
     }
