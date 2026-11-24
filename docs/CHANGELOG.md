@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.75.0] — 2026-11-24 — Tanker and cargo traffic, shipping lanes (Phase 38)
+
+### Added
+- **SHIPS layer: tankers and cargo ships with their last 24 hours.** It comes from the same AIS listen as the sanctioned-ship check, so it adds no connection.
+  - The map shows arrows pointing along each ship's course: orange for tankers, blue for cargo ships. Each has a faint line for its last 24 hours, one point per collection run.
+  - A ship's card shows its name, AIS type (and hazardous-cargo class), flag, IMO and MMSI, the destination the crew typed, speed and course, the length of its track, whether it is on a sanctions list, and any undersea cables within 20 km. It links to MarineTraffic for the live position.
+  - Map search finds ships by name, IMO, MMSI or destination, and ships can be selected in links.
+- **Coverage, measured with a 2-minute AIS probe:** North Sea about 2,900 ships, Baltic about 960, eastern Mediterranean about 100, Black Sea about 60, Korea 22, South China Sea 7. The Gulf, Red Sea and Taiwan Strait have none: aisstream.io's volunteers have no receivers there. The layer covers the Baltic, North Sea, Black Sea and eastern Mediterranean.
+- **The sanctioned-ship check (and the cable watch) now also covers the Black Sea and eastern Mediterranean.**
+- **LANES layer:** global commercial shipping lanes, major to minor (Benden 2022, georeferenced from the CIA ocean map, CC BY-SA 4.0). They show where traffic usually runs; they are not live.
+
+### Notes
+- A ship states its type every few minutes, so one 25-second listen sees the type of only some ships. The collector remembers types between runs, so the layer fills in over the first hours.
+- Tracks join one point per run with straight lines; they are not the real path.
+- The map shows at most 800 ships: watch-region seas first, tankers before cargo.
+- Traffic is in its own document (`snapshots/ships`), read only while SHIPS is on.
+
 ## [0.74.1] — 2026-11-24 — AIS: give up on silent connections sooner
 
 ### Fixed

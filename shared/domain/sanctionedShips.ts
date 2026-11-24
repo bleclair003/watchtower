@@ -1,5 +1,6 @@
 /**
- * Sanctioned vessels seen on AIS in the Baltic and North Sea (Phase 13, item 4b).
+ * Sanctioned vessels seen on AIS in the Baltic and North Sea (Phase 13, item 4b), and from v0.75.0 the
+ * Black Sea and eastern Mediterranean, where receivers cover only parts of the coast.
  *
  * Positions come from aisstream.io, whose volunteer receivers cover north-west Europe well and
  * the Middle East and Asia not at all. Vessels are matched against the US, EU and UK sanctions
@@ -21,6 +22,9 @@ export const SHIP_AREAS: ShipArea[] = [
   { id: 'gulf-of-finland', name: 'Gulf of Finland', regionId: 'eastern-europe', box: [[59.0, 22.0], [60.8, 30.5]] },
   { id: 'baltic', name: 'Baltic Sea', regionId: 'eastern-europe', box: [[53.5, 9.5], [66.0, 30.5]] },
   { id: 'north-sea', name: 'North Sea and Channel', regionId: null, box: [[49.0, -5.5], [61.0, 9.5]] },
+  // v0.75.0: partial receiver coverage along the coasts (measured 2026-11-24: about 60 and 100 ships in 2 minutes).
+  { id: 'black-sea', name: 'Black Sea', regionId: 'eastern-europe', box: [[40.5, 27.5], [46.8, 41.8]] },
+  { id: 'east-med', name: 'Eastern Mediterranean', regionId: 'middle-east', box: [[31.0, 28.0], [37.0, 36.5]] },
 ];
 
 export function shipAreaAt(lat: number, lon: number): ShipArea | null {

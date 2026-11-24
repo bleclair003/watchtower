@@ -521,3 +521,15 @@ From the feature audit (category 12 item 1; category 23 item 9).
 - [ ] Reshape an area (today: delete and redraw)
 - [ ] Records placed at a city could count for small areas around that city (today only exact positions count)
 
+## Phase 38 — Tanker and cargo traffic, shipping lanes (2026-11-24)
+
+From the feature audit (category 2, items 1–3, partly).
+
+- [x] Coverage measured with the AIS probe (120 s): North Sea ~2,900 ships, Baltic ~960, eastern Mediterranean ~100, Black Sea ~60, Korea 22, South China Sea 7; Gulf, Red Sea, Taiwan Strait none — v0.75.0
+- [x] SHIPS layer: tankers (AIS 80–89) and cargo ships (70–79) in the Baltic, North Sea, Black Sea and eastern Mediterranean, from the same listen as the sanctioned-ship check; types remembered between runs; 24-hour tracks, one point per run; card with identity, destination, track, sanctions match and nearby cables; up to 800 ships in their own document — v0.75.0
+- [x] The sanctioned-ship check (and cable watch) now also covers the Black Sea and eastern Mediterranean — v0.75.0
+- [x] LANES layer: global shipping lanes, major to minor (Benden 2022, from the CIA ocean map) — v0.75.0
+- [ ] Gulf, Red Sea and Asian traffic: needs a source with receivers there (none free found yet)
+- [ ] Traffic density (World Bank, CC BY 4.0: 20–510 MB rasters, 2015–2021) or EMODnet vessel density (Europe, WMS)
+- [ ] Indicators: unusual drops in tanker traffic, ships going dark (AIS gaps), port calls
+

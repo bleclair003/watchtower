@@ -51,6 +51,7 @@ import { EMERGENCY_SOURCE_ID, type EmergencyState } from './adapters/adsbEmergen
 import { UCDP_SOURCE_ID, type UcdpState } from './adapters/ucdp.ts';
 import { GNSS_SOURCE_ID, type GnssState } from './adapters/gnssInterference.ts';
 import { BGP_SOURCE_ID, DDOS_SOURCE_ID, type BgpState, type DdosState } from './adapters/radarNet.ts';
+import { TRAFFIC_SOURCE_ID, type TrafficState } from './adapters/aisTraffic.ts';
 import { RADIO_RECEIVERS_SOURCE_ID, type RadioReceiversState } from './adapters/radioReceivers.ts';
 import { SHORTWAVE_SOURCE_ID, type ShortwaveState } from './adapters/shortwaveSchedule.ts';
 import { LOCAL_RADIO_SOURCE_ID, type LocalRadioState } from './adapters/localRadio.ts';
@@ -462,6 +463,15 @@ export async function runCollection(
     }
   } catch (err) {
     log(`NET  routing or DDoS data not added to the snapshot: ${sanitizeError(err)}`);
+  }
+  // v0.75.0: tanker and cargo traffic lives in its own document (snapshots/ships), written after a new window.
+  if (tracked.includes(TRAFFIC_SOURCE_ID)) {
+    try {
+      const tr = await store.getSourceState<TrafficState>(TRAFFIC_SOURCE_ID);
+      if (tr?.latest && tr.latest.fetchedAt >= run.startedAt) await store.putShipTraffic(tr.latest);
+    } catch (err) {
+      log(`SHIP tanker and cargo traffic not written: ${sanitizeError(err)}`);
+    }
   }
   // Phase 28: public shortwave receivers for "tune nearby" links (a week old at most).
   if (tracked.includes(RADIO_RECEIVERS_SOURCE_ID)) {

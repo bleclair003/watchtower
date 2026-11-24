@@ -1411,6 +1411,31 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     priority: 'P2',
     feasibility: { checkedAt: '2026-11-22T04:00:00Z', result: 'reachable', note: 'GET /v2/sqk/7700 HTTP 200 from Node ({ ac: [] } at the time).' },
   },
+  // ------------------------------------------------------------ v0.75.0 ---
+  {
+    id: 'ais-shipping',
+    name: 'Tanker and cargo ship traffic (AIS)',
+    organization: 'aisstream.io (volunteer AIS receivers)',
+    website: 'https://aisstream.io/',
+    endpoint: 'wss://stream.aisstream.io/v0/stream',
+    method: 'api',
+    sourceClass: 'aggregator',
+    defaultCategory: 'maritime',
+    coverage: 'Tankers (AIS type 80–89) and cargo ships (70–79) in the Baltic, North Sea, Black Sea and eastern Mediterranean, where volunteers run receivers; none in the Gulf, Red Sea or Asian seas (measured 2026-11-24)',
+    authentication: 'AISSTREAM_API_KEY (free account; the same listen as the sanctioned-ship check)',
+    freeAccess: 'Free API',
+    expectedUpdateFrequency: 'One 25-second listen per collection run; a track point per run, kept 24 hours',
+    pollIntervalMinutes: 30,
+    reliabilityNotes:
+      'A ship states its type every few minutes, so types are remembered between runs and new ships appear after their first identity message. Positions are sampled once a run, so tracks are dots joined by straight lines, not the actual path. The map shows at most 800 ships, watch-region seas and tankers first. Ships that switch off AIS are not seen.',
+    termsNotes: 'aisstream.io terms of service; positions shown, no data resold.',
+    priority: 'P2',
+    feasibility: {
+      checkedAt: '2026-11-24T01:20:00Z',
+      result: 'reachable',
+      note: 'AIS probe, 120 s: North Sea 2,926 ships (87 tankers and 227 cargo with type known), Baltic 964, eastern Mediterranean 101, Black Sea 57, Korea 22, South China Sea 7; Gulf and Hormuz, Red Sea, Taiwan Strait 0.',
+    },
+  },
   // ------------------------------------------------------------ v0.70.0 ---
   {
     id: 'cloudflare-radar-bgp',

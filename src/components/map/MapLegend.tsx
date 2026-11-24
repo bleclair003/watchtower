@@ -3,7 +3,7 @@ import { tfrActive, type AirportEvent, type TfrShape } from '@shared/domain/faa'
 import { NETWORK_LABEL, type RadiationSnapshot } from '@shared/domain/radiation';
 import { GNSS_LEVEL_LABEL, type GnssSnapshot } from '@shared/domain/gnss';
 import { UNDERSEA_LABEL, type UnderseaKind } from '@shared/domain/undersea';
-import { DISPUTED_COLOR, GNSS_COLOR, UNDERSEA_COLOR } from './WorldMap';
+import { DISPUTED_COLOR, GNSS_COLOR, LANE_COLOR, TRAFFIC_COLOR, UNDERSEA_COLOR } from './WorldMap';
 import { NAV_KIND_LABEL, type NavWarningKind, type NavWarningSnapshot } from '@shared/domain/navWarnings';
 import type { EmergencySnapshot } from '@shared/domain/aircraftEmergencies';
 import { VIOLENCE_LABEL, monthName, type ConflictSnapshot } from '@shared/domain/conflictEvents';
@@ -30,6 +30,9 @@ interface Props {
   infrastructure?: { all: number | null; flagged: number; simulated: boolean };
   /** Undersea lines by kind, and disputed areas (v0.71.0; omit when off). */
   undersea?: Record<UnderseaKind, number> | null;
+  /** Tanker and cargo traffic (omit when off; null while loading) and lanes (v0.75.0). */
+  traffic?: { tankers: number; cargo: number; typesKnown: number; totalSeen: number; ageMinutes: number; simulated: boolean } | null;
+  lanes?: boolean;
   disputed?: number | null;
   /** Radiation layer (omit when off). */
   radiation?: RadiationSnapshot;
@@ -61,7 +64,7 @@ interface Props {
 const BRANCH_LABEL = { army: 'Army', navy: 'Navy', 'air-force': 'Air Force', marines: 'Marines', other: 'Other DoD' } as const;
 
 /** Collapsible legend explaining symbols and location-precision handling. */
-export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, infrastructure, undersea, disputed, power, faa, radiation, gnss, navWarnings, emergencies, conflicts, conflictWindow, navWarnDays, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
+export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, infrastructure, undersea, disputed, traffic, lanes, power, faa, radiation, gnss, navWarnings, emergencies, conflicts, conflictWindow, navWarnDays, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
   // Closed by default on phones, where it would cover most of the map.
   const [open, setOpen] = useState(() => typeof window === 'undefined' || window.matchMedia?.('(min-width: 768px)').matches !== false);
   return (
@@ -133,6 +136,40 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
                 <span>Unusual activity this week</span>
                 <span className="ml-auto text-wt-fg tabular-nums">{unusualBases === null || unusualBases === undefined ? 'building baseline' : unusualBases}</span>
               </div>
+            </div>
+          )}
+          {traffic !== undefined && (
+            <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
+              <div className="flex justify-between">
+                <span>Tankers and cargo ships{traffic?.simulated ? ' · SIMULATED' : ''}</span>
+                <span className="text-wt-fg tabular-nums">{traffic ? traffic.tankers + traffic.cargo : 'loading'}</span>
+              </div>
+              {traffic && (
+                <>
+                  <ul className="space-y-0.5">
+                    {(['tanker', 'cargo'] as const).map((k) => (
+                      <li key={k} className="flex items-center gap-1">
+                        <span className="size-2 rounded-full" style={{ background: TRAFFIC_COLOR[k] }} aria-hidden />
+                        <span className="flex-1">{k === 'tanker' ? 'Tankers' : 'Cargo ships'}</span>
+                        <span className="tabular-nums">{k === 'tanker' ? traffic.tankers : traffic.cargo}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-wt-fg-dim">
+                    Arrow = course; faint line = last 24 h, one point a run. Baltic, North Sea, Black Sea and eastern Mediterranean only (volunteer receivers; none in the Gulf, Red Sea or Asia).
+                    {traffic.totalSeen > traffic.tankers + traffic.cargo && ` ${traffic.totalSeen} seen in 24 h, the ${traffic.tankers + traffic.cargo} most relevant shown.`} {traffic.typesKnown.toLocaleString('en-US')} ship types remembered. Listened {traffic.ageMinutes} min ago.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
+          {lanes && (
+            <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
+              <div className="flex items-center gap-1">
+                <span className="h-0.5 w-3 border-t border-dashed" style={{ borderColor: LANE_COLOR }} aria-hidden />
+                Shipping lanes (major, middle, minor)
+              </div>
+              <p className="text-wt-fg-dim">Where traffic usually runs, from the CIA ocean map (2012) via Benden 2022, CC BY-SA 4.0. Not live.</p>
             </div>
           )}
           {undersea !== undefined && (

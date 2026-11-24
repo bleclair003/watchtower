@@ -44,6 +44,10 @@ export interface OperatorSettings {
   disputed: boolean;
   /** Watch areas drawn by the owner and editors (v0.74.0). */
   watchAreas: boolean;
+  /** Tanker and cargo traffic with 24 h tracks (AIS, v0.75.0). */
+  traffic: boolean;
+  /** Shipping lanes (v0.75.0). */
+  lanes: boolean;
   /** Conflict events from the last N days of the release; null = whole month. */
   conflictDays: number | null;
   /** Navigational warnings issued in the last N days; null = any age. */
@@ -76,6 +80,8 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   undersea: false,
   disputed: false,
   watchAreas: true,
+  traffic: false,
+  lanes: false,
   conflictDays: null,
   navWarnDays: null,
   imagery: 'off',

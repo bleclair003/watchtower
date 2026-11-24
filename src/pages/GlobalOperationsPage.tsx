@@ -9,9 +9,12 @@ import { IMAGERY_ATTRIBUTION } from '../lib/imagery';
 import { readStorage, writeStorage } from '../lib/storage';
 import { formatUtc } from '../lib/time';
 import { unpackAirports, type Airport } from '@shared/domain/radio';
-import { Anchor, Atom, Ban, Cable, Crosshair, Factory, Flag, Grid3x3, LocateOff, Target, Plane, PlaneLanding, Satellite, Shield, Ship, Siren, Square, Zap } from 'lucide-react';
+import { Anchor, Atom, Ban, Cable, Container, Crosshair, Factory, Flag, Grid3x3, LocateOff, Route, Target, Plane, PlaneLanding, Satellite, Shield, Ship, Siren, Square, Zap } from 'lucide-react';
 import { GnssCard } from '../components/map/GnssCard';
-import { useBases, useDisputed, useInfrastructure, useUndersea } from '../data/useInstallations';
+import { useBases, useDisputed, useInfrastructure, useLanes, useUndersea } from '../data/useInstallations';
+import { useShipTraffic } from '../data/useShipTraffic';
+import { TrafficShipCard } from '../components/map/TrafficShipCard';
+import { SANCTIONS_LISTS } from '@shared/domain/sanctions';
 import { DisputedCard, UnderseaCard } from '../components/map/UnderseaCards';
 import { AreaDrawPanel, draftShape, WatchAreaCard, type DrawMode } from '../components/map/WatchAreaPanels';
 import { useWatchAreas } from '../state/WatchAreasContext';
@@ -121,12 +124,19 @@ export default function GlobalOperationsPage() {
   // The undersea file is also loaded when a sanctioned ship is selected, to list lines near it.
   const [selectedCable, setSelectedCable] = useState<string | null>(null);
   const [selectedDisputedKey, setSelectedAreaKey] = useState<string | null>(null);
-  const underseaData = useUndersea(settings.undersea || !!selectedListed);
+  // Declared here: the undersea data also loads for a selected tanker or cargo ship (v0.75.0).
+  const [selectedShip, setSelectedShip] = useState<string | null>(null);
+  const underseaData = useUndersea(settings.undersea || !!selectedListed || !!selectedShip);
   const disputedData = useDisputed(settings.disputed);
   const shownUndersea = settings.undersea ? underseaData.data?.lines : undefined;
   const shownDisputed = settings.disputed ? disputedData.data?.features : undefined;
   const selectedCableLine = selectedCable ? (shownUndersea?.find((l) => l.id === selectedCable) ?? null) : null;
   const selectedAreaProps = selectedDisputedKey ? (shownDisputed?.find((f) => f.properties.id === selectedDisputedKey)?.properties ?? null) : null;
+  // Tanker and cargo traffic and shipping lanes (v0.75.0): their own document / static file, loaded when on.
+  const trafficData = useShipTraffic(settings.traffic);
+  const lanesData = useLanes(settings.lanes);
+  const shownTraffic = settings.traffic ? trafficData.data?.ships : undefined;
+  const selectedTrafficShip = selectedShip ? (shownTraffic?.find((s) => s.mmsi === selectedShip) ?? null) : null;
   // Watch areas (v0.74.0): shared areas drawn by the owner and editors.
   const watch = useWatchAreas();
   const [selectedWatch, setSelectedWatch] = useState<string | null>(null);
@@ -142,7 +152,8 @@ export default function GlobalOperationsPage() {
     setDrawFinished(false);
   };
   // One map card at a time: selecting a base, aircraft, fleet area, chokepoint, vessel, site, square, line or area clears the others.
-  const selectOnly = (kind: 'base' | 'air' | 'fleet' | 'strait' | 'listed' | 'infra' | 'gnss' | 'cable' | 'area' | 'warea', key: string | null) => {
+  const selectOnly = (kind: 'base' | 'air' | 'fleet' | 'strait' | 'listed' | 'infra' | 'gnss' | 'cable' | 'area' | 'warea' | 'ship', key: string | null) => {
+    setSelectedShip(kind === 'ship' ? key : null);
     setSelectedWatch(kind === 'warea' ? key : null);
     setSelectedGnss(kind === 'gnss' ? key : null);
     setSelectedCable(kind === 'cable' ? key : null);
@@ -173,12 +184,14 @@ export default function GlobalOperationsPage() {
     const s = link.selection;
     if (s?.kind === 'event') selectEvent(s.key);
     else if (s) {
-      const kind = ({ base: 'base', air: 'air', fleet: 'fleet', strait: 'strait', listed: 'listed', infra: 'infra', gnss: 'gnss', cable: 'cable', area: 'area', warea: 'warea' } as const)[s.kind];
+      const kind = ({ base: 'base', air: 'air', fleet: 'fleet', strait: 'strait', listed: 'listed', infra: 'infra', gnss: 'gnss', cable: 'cable', area: 'area', warea: 'warea', ship: 'ship' } as const)[s.kind];
       selectOnly(kind, s.key);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- apply the opening link once
   }, []);
-  const selection: MapSelection | null = selectedWatch
+  const selection: MapSelection | null = selectedShip
+    ? { kind: 'ship', key: selectedShip }
+    : selectedWatch
     ? { kind: 'warea', key: selectedWatch }
     : selectedCable
     ? { kind: 'cable', key: selectedCable }
@@ -238,8 +251,9 @@ export default function GlobalOperationsPage() {
       airports,
       undersea: shownUndersea,
       disputed: shownDisputed,
+      traffic: shownTraffic,
     }),
-    [settings.installations, settings.infrastructure, shownUs, shownWorld, shownAircraft, shownListed, shownFleet, shownStraits, infraData.data, flaggedInfra, airports, shownUndersea, shownDisputed],
+    [settings.installations, settings.infrastructure, shownUs, shownWorld, shownAircraft, shownListed, shownFleet, shownStraits, infraData.data, flaggedInfra, airports, shownUndersea, shownDisputed, shownTraffic],
   );
   const notSearched = [
     !settings.installations && 'BASES',
@@ -249,6 +263,7 @@ export default function GlobalOperationsPage() {
     !shownStraits && 'STRAITS',
     !settings.infrastructure && 'INFRA (flagged sites only)',
     !settings.undersea && 'CABLES',
+    !settings.traffic && 'SHIPS',
     !settings.disputed && 'DISPUTED',
   ].filter((x): x is string => !!x);
   const onPick = (it: SearchItem) => {
@@ -285,6 +300,8 @@ export default function GlobalOperationsPage() {
       [settings.conflicts, 'CONFLICT'],
       [shownGnss, 'GPS'],
       [settings.undersea, 'CABLES'],
+      [settings.traffic, 'SHIPS'],
+      [settings.lanes, 'LANES'],
       [settings.disputed, 'DISPUTED'],
       [settings.watchAreas && watch.areas.length > 0, 'WATCH AREAS'],
     ] as [unknown, string][]
@@ -478,6 +495,25 @@ export default function GlobalOperationsPage() {
                 </select>
               )}
               <button
+                className={toggleBtn(settings.traffic)}
+                aria-pressed={settings.traffic}
+                title="Tankers and cargo ships with their last 24 hours (AIS: Baltic, North Sea, Black Sea, eastern Mediterranean)"
+                onClick={() => {
+                  update({ traffic: !settings.traffic });
+                  setSelectedShip(null);
+                }}
+              >
+                <Container size={10} aria-hidden /> SHIPS
+              </button>
+              <button
+                className={toggleBtn(settings.lanes)}
+                aria-pressed={settings.lanes}
+                title="Commercial shipping lanes, major to minor (static, CIA ocean map via Benden 2022)"
+                onClick={() => update({ lanes: !settings.lanes })}
+              >
+                <Route size={10} aria-hidden /> LANES
+              </button>
+              <button
                 className={toggleBtn(settings.watchAreas)}
                 aria-pressed={settings.watchAreas}
                 title="Watch areas drawn with the AREA tool on the map (shared with every member)"
@@ -634,6 +670,10 @@ export default function GlobalOperationsPage() {
               navWarnings={settings.navWarnings ? shownNavWarnings : []}
               emergencies={settings.aircraft ? (aircraftEmergencies?.aircraft ?? []) : []}
               conflicts={settings.conflicts ? conflictWindow.events : []}
+              traffic={shownTraffic ?? []}
+              selectedTraffic={selectedTrafficShip ? selectedShip : null}
+              onSelectTraffic={(mmsi) => selectOnly('ship', mmsi)}
+              lanes={settings.lanes ? lanesData.data?.lanes : []}
               watchAreas={shownAreas}
               selectedWatchArea={selectedWatchArea ? selectedWatch : null}
               onSelectWatchArea={(id) => selectOnly('warea', id)}
@@ -731,6 +771,21 @@ export default function GlobalOperationsPage() {
             infrastructure={settings.infrastructure || flaggedInfra.length ? { all: settings.infrastructure ? (infraData.data?.count ?? null) : null, flagged: flaggedInfra.length, simulated: !!infrastructure?.simulated } : undefined}
             power={settings.powerOutages && powerOutages ? { total: powerOutages.totalOut, states: powerOutages.states.length, counties: powerOutages.counties.length, utilities: powerOutages.utilitiesReporting, ageMinutes: Math.max(0, Math.round((now - Date.parse(powerOutages.fetchedAt)) / 60_000)), simulated: !!powerOutages.simulated } : undefined}
             radiation={settings.radiation && radiation ? radiation : undefined}
+            traffic={
+              settings.traffic
+                ? trafficData.data
+                  ? {
+                      tankers: trafficData.data.ships.filter((s) => s.kind === 'tanker').length,
+                      cargo: trafficData.data.ships.filter((s) => s.kind === 'cargo').length,
+                      typesKnown: trafficData.data.typesKnown,
+                      totalSeen: trafficData.data.totalSeen,
+                      ageMinutes: Math.max(0, Math.round((now - Date.parse(trafficData.data.fetchedAt)) / 60_000)),
+                      simulated: !!trafficData.data.simulated,
+                    }
+                  : null
+                : undefined
+            }
+            lanes={settings.lanes}
             undersea={settings.undersea ? (underseaData.data ? (Object.fromEntries((['telecom', 'power', 'pipeline'] as UnderseaKind[]).map((k) => [k, underseaData.data!.lines.filter((l) => l.k === k).length])) as Record<UnderseaKind, number>) : null) : undefined}
             disputed={settings.disputed ? (disputedData.data?.features.length ?? null) : undefined}
             gnss={shownGnss ? { ...shownGnss, ageMinutes: Math.max(0, Math.round((now - Date.parse(shownGnss.fetchedAt)) / 60_000)) } : undefined}
@@ -769,6 +824,19 @@ export default function GlobalOperationsPage() {
                 : undefined
             }
           />
+          {selectedTrafficShip && trafficData.data && (
+            <TrafficShipCard
+              ship={selectedTrafficShip}
+              doc={trafficData.data}
+              now={now}
+              onClose={() => setSelectedShip(null)}
+              sanctioned={(() => {
+                const hit = (sanctionedShips?.sightings ?? []).find((x) => x.mmsi === selectedTrafficShip.mmsi || (!!x.imo && x.imo === selectedTrafficShip.imo));
+                return hit ? { listedName: hit.listedName, lists: hit.lists.map((l) => SANCTIONS_LISTS[l].short).join('/') } : null;
+              })()}
+              nearLines={underseaData.data ? nearbyLines(underseaData.data.lines, selectedTrafficShip.la, selectedTrafficShip.lo, 20).map(({ line, km }) => ({ name: underseaName(line), kind: UNDERSEA_LABEL[line.k].toLowerCase(), km })) : undefined}
+            />
+          )}
           {selectedWatchArea && (
             <WatchAreaCard
               area={selectedWatchArea}

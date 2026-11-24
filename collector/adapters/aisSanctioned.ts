@@ -25,7 +25,7 @@ export interface AisMessage {
   MetaData: { MMSI: number; ShipName?: string; latitude: number; longitude: number; time_utc?: string };
   Message: {
     PositionReport?: { Sog?: number; Cog?: number; Latitude?: number; Longitude?: number };
-    ShipStaticData?: { ImoNumber?: number; Name?: string; Destination?: string };
+    ShipStaticData?: { ImoNumber?: number; Name?: string; Destination?: string; Type?: number };
   };
 }
 
@@ -288,17 +288,30 @@ export async function listenWithRetry(listener: Listener, key: string, seconds: 
   }
 }
 
-let pending: Promise<ListenResult> | null = null;
+/** Sources that read the one listening window per run (sanctioned ships, tanker and cargo traffic). */
+export const AIS_CONSUMERS = 2;
+let pending: { window: Promise<ListenResult>; left: number } | null = null;
 
 /**
  * Starts listening at the beginning of a collection run, so the window overlaps the other
- * sources instead of adding to the run time. The adapter then awaits it.
+ * sources instead of adding to the run time. The AIS sources then share it.
  */
 export function primeAisListening(listener: Listener = listenAisStream): void {
   const key = readSecret(AIS_KEY_ENV);
   if (!key || pending) return;
-  pending = listenWithRetry(listener, key, LISTEN_SECONDS);
-  pending.catch(() => {}); // surfaced when the adapter awaits it
+  const window = listenWithRetry(listener, key, LISTEN_SECONDS);
+  window.catch(() => {}); // surfaced when an adapter awaits it
+  pending = { window, left: AIS_CONSUMERS };
+}
+
+/** The primed window (shared by the AIS sources in a run), or a new listen when none was primed. */
+export function takeAisWindow(listener: Listener, key: string): Promise<ListenResult> {
+  if (pending) {
+    const w = pending.window;
+    if (--pending.left <= 0) pending = null;
+    return w;
+  }
+  return listenWithRetry(listener, key, LISTEN_SECONDS);
 }
 
 // ---------------------------------------------------------------- adapter ---
@@ -327,8 +340,7 @@ export function makeAisSanctionedAdapter(listener: Listener = listenAisStream): 
     async collect(ctx: AdapterContext<AisSanctionedState>): Promise<AdapterResult<AisSanctionedState>> {
       const key = readSecret(AIS_KEY_ENV);
       if (!key) throw new Error(`${AIS_KEY_ENV} is not set`);
-      const window = pending ?? listenWithRetry(listener, key, LISTEN_SECONDS);
-      pending = null;
+      const window = takeAisWindow(listener, key);
       const vessels: SanctionedVessel[] = [];
       for (const id of SANCTIONS_SOURCES) {
         const st = await ctx.peerState?.<SanctionsState>(id);

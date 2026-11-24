@@ -1,5 +1,6 @@
 import type { MetersSnapshot } from '../../shared/domain/meters/types.ts';
 import type { RadioGuide } from '../../shared/domain/shortwave.ts';
+import type { ShipTrafficDoc } from '../../shared/domain/shipTraffic.ts';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../../shared/domain/types.ts';
 import type { DashboardSnapshot } from '../../shared/domain/snapshot.ts';
 import type { IndicatorTransition, ScoreHistoryPoint } from '../../shared/domain/indicators/types.ts';
@@ -78,6 +79,10 @@ export class MemoryStore implements CollectorStore {
     this.meters = structuredClone(m);
   }
   radioGuide: RadioGuide | null = null;
+  shipTraffic: ShipTrafficDoc | null = null;
+  async putShipTraffic(d: ShipTrafficDoc) {
+    this.shipTraffic = structuredClone(d);
+  }
   async getRadioGuide() {
     return this.radioGuide ? structuredClone(this.radioGuide) : null;
   }

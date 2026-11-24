@@ -371,3 +371,11 @@ Links only, as in Phase 28. Both sources make no records; they are stored in the
 | Wikidata: nuclear facility, research reactor, embassy, consulate and direct subclasses (`scripts/build-infrastructure.ts --new-types-only`) | CC0 | 20 other nuclear facilities and 112 embassies and consulates with coordinates in watch-region countries, added to `infrastructure.json` |
 | TeleGeography Submarine Cable Map | rejected | Only its map images are CC BY-SA 4.0; the raw cable and landing-point data and its JSON API are sold under a paid annual licence |
 
+### v0.75.0 — Tanker and cargo traffic, shipping lanes
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| aisstream.io (same listen as the sanctioned-ship check) | aggregator | Tankers and cargo ships in the Baltic, North Sea, Black Sea and eastern Mediterranean: remembered identities (type, name, IMO, destination; 4,000 most recent, 7 days), a position per run for 24 hours, up to 800 ships in `snapshots/ships` |
+| Global Shipping Lanes v1, Benden 2022 (github.com/newzealandpaul/Shipping-Lanes) | CC BY 4.0 / CC BY-SA 4.0 (the source states both; BY-SA followed) | Major, middle and minor lanes as simplified lines in `public/data/lanes.json` (`scripts/build-lanes.ts`) |
+| World Bank Global Shipping Traffic Density | not used yet | CC BY 4.0, but 20–510 MB rasters (2015–2021), no tile service |
+

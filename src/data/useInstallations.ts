@@ -3,6 +3,7 @@ import type { InstallationDataset, WorldDataset } from '@shared/domain/installat
 import type { InfraDataset } from '@shared/domain/infrastructure';
 import type { UnderseaDataset } from '@shared/domain/undersea';
 import type { DisputedDataset } from '@shared/domain/disputed';
+import type { LanesDataset } from '@shared/domain/shipTraffic';
 import type { SelectedSite } from '../components/map/InstallationCard';
 
 const cache = new Map<string, Promise<unknown>>();
@@ -42,6 +43,8 @@ export const useInfrastructure = (enabled: boolean) => useStatic<InfraDataset>('
 
 /** Undersea cables and pipelines in the watch-region seas (OpenStreetMap, v0.71.0). */
 export const useUndersea = (enabled: boolean) => useStatic<UnderseaDataset>('/data/undersea.json', enabled, 'Undersea layer');
+/** Shipping lanes, major / middle / minor (Benden 2022, v0.75.0). */
+export const useLanes = (enabled: boolean) => useStatic<LanesDataset>('/data/lanes.json', enabled, 'Lanes layer');
 /** Disputed and breakaway areas worldwide (Natural Earth, v0.71.0). */
 export const useDisputed = (enabled: boolean) => useStatic<DisputedDataset>('/data/disputed.json', enabled, 'Disputed areas layer');
 

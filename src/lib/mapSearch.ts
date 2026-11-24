@@ -9,18 +9,20 @@ import { WATCH_REGIONS } from '@shared/domain/regions';
 import type { MapSelection } from './mapLink';
 import { UNDERSEA_LABEL, type UnderseaLine } from '@shared/domain/undersea';
 import type { DisputedDataset } from '@shared/domain/disputed';
+import { TRAFFIC_LABEL, type TrafficShip } from '@shared/domain/shipTraffic';
 import { INFRA_LABEL } from '@shared/domain/infrastructure';
 
 /**
  * Map search (v0.68.0): finds what is already loaded on the map, so a search costs no reads.
  * Layers that are switched off are not searched; the search box says which.
  */
-export type SearchKind = 'region' | 'base' | 'aircraft' | 'ship' | 'fleet' | 'strait' | 'infra' | 'cable' | 'area' | 'airport';
+export type SearchKind = 'region' | 'base' | 'aircraft' | 'ship' | 'traffic' | 'fleet' | 'strait' | 'infra' | 'cable' | 'area' | 'airport';
 export const KIND_LABEL: Record<SearchKind, string> = {
   region: 'REGION',
   base: 'BASE',
   aircraft: 'AIRCRAFT',
   ship: 'SANCTIONED SHIP',
+  traffic: 'TANKER / CARGO',
   fleet: 'US NAVY',
   strait: 'STRAIT',
   infra: 'SITE',
@@ -55,6 +57,7 @@ export interface SearchSources {
   flaggedInfra?: FlaggedSite[];
   airports?: Airport[];
   undersea?: UnderseaLine[];
+  traffic?: TrafficShip[];
   disputed?: DisputedDataset['features'];
 }
 
@@ -96,6 +99,12 @@ export function buildSearchIndex(s: SearchSources): SearchItem[] {
   for (const i of s.infra ?? []) {
     if (seenInfra.has(i.id) || !i.n[0]) continue;
     add({ kind: 'infra', label: i.n[0], detail: `${INFRA_LABEL[i.t]} · ${i.c}`, lat: i.la, lon: i.lo, select: { kind: 'infra', key: i.id } }, [...i.n.slice(1), i.t]);
+  }
+  for (const t of s.traffic ?? []) {
+    add(
+      { kind: 'traffic', label: t.name ?? `MMSI ${t.mmsi}`, detail: [TRAFFIC_LABEL[t.kind], t.imo ? `IMO ${t.imo}` : null, `MMSI ${t.mmsi}`, t.destination ? `to ${t.destination}` : null].filter(Boolean).join(' · '), lat: t.la, lon: t.lo, select: { kind: 'ship', key: t.mmsi } },
+      [t.kind],
+    );
   }
   for (const l of s.undersea ?? []) {
     if (!l.n) continue;

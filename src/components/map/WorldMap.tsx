@@ -21,6 +21,7 @@ import { BASEMAP_STYLE_URL, findTextFont, militarizeStyle } from '../../lib/mapS
 import { graticule, isPlottable, projectEvents, regionAreas } from '../../lib/geo';
 import { circleRing, greatCirclePath, KM_PER_NM, type LonLat } from '../../lib/measure';
 import type { UnderseaKind, UnderseaLine } from '@shared/domain/undersea';
+import { trackPoints, type LaneClass, type TrafficKind, type TrafficShip } from '@shared/domain/shipTraffic';
 import type { DisputedDataset } from '@shared/domain/disputed';
 import { shapeCentre, shapeRing, type WatchArea } from '@shared/domain/watchAreas';
 import { cellBounds, GNSS_RADIUS_NM, type GnssCell, type GnssCircle, type GnssLevel, type GnssLostPoint } from '@shared/domain/gnss';
@@ -39,6 +40,9 @@ export const RULER_COLOR = '#ffd166';
 /** Undersea lines by kind, and the disputed-area tint (v0.71.0). */
 export const UNDERSEA_COLOR: Record<UnderseaKind, string> = { telecom: '#5ec8ff', power: '#f6a04d', pipeline: '#c084fc' };
 export const DISPUTED_COLOR = '#e8b04a';
+/** Tanker and cargo traffic and shipping lanes (v0.75.0). */
+export const TRAFFIC_COLOR: Record<TrafficKind, string> = { tanker: '#ff9f43', cargo: '#4fc3f7' };
+export const LANE_COLOR = '#5b7f93';
 /** Watch areas the user drew (v0.74.0). */
 export const WATCH_AREA_COLOR = '#7dd3fc';
 export const GNSS_COLOR: Record<GnssLevel, string> = { low: '#2f6a4c', medium: '#ffb347', high: '#ff4d6d' };
@@ -67,6 +71,11 @@ export interface WorldMapProps {
   gnssCircles?: GnssCircle[];
   selectedGnss?: string | null;
   onSelectGnss?: (key: string | null) => void;
+  /** Tanker and cargo traffic with 24 h tracks, and shipping lanes (v0.75.0); empty when off. */
+  traffic?: TrafficShip[];
+  selectedTraffic?: string | null;
+  onSelectTraffic?: (mmsi: string | null) => void;
+  lanes?: { c: LaneClass; g: [number, number][][] }[];
   /** Undersea cables and pipelines, and disputed areas (v0.71.0); empty when their layers are off. */
   undersea?: UnderseaLine[];
   selectedUndersea?: string | null;
@@ -195,6 +204,8 @@ export const CHOKEPOINT_COLOR = { normal: '#80a992', reduced: '#ffc857', severe:
 /** Fleet areas: brighter where a carrier or big-deck amphib is listed. */
 export const FLEET_COLOR = { bigDeck: '#69c6d5', other: '#80a992' } as const;
 /** Ship silhouette in a 20x20 box (hull and island), for the map icon and legend. */
+/** Heading arrow (points up = north before rotation). */
+export const HEADING_PATH = 'M10 2.5 L15.5 16.5 L10 13 L4.5 16.5 Z';
 export const SHIP_PATH = 'M1.5 11 L18.5 11 L16 15.5 L4 15.5 Z M10.5 4.5 L12.5 4.5 L12.5 7 L14 7 L14 10.5 L9 10.5 L9 7 L10.5 7 Z';
 
 /** Plane outline in a 20x20 box, pointing north (map icon and legend). */
@@ -222,6 +233,11 @@ function registerAircraftIcon(map: MLMap) {
   ctx.clearRect(0, 0, 20, 20);
   ctx.fillRect(3, 3, 14, 14);
   map.addImage('infra-square', ctx.getImageData(0, 0, size, size), { pixelRatio: px, sdf: true });
+  if (map.hasImage('heading')) return;
+  // v0.75.0: tanker and cargo ships, an arrow rotated to the course over ground.
+  ctx.clearRect(0, 0, 20, 20);
+  ctx.fill(new Path2D(HEADING_PATH));
+  map.addImage('heading', ctx.getImageData(0, 0, size, size), { pixelRatio: px, sdf: true });
 }
 
 /** Rasterize each category's SVG path into a map icon so map and legend match. */
@@ -333,6 +349,18 @@ export function WorldMap(props: WorldMapProps) {
         m.addLayer({ id: 'disputed-fill', type: 'fill', source: 'disputed', paint: { 'fill-color': DISPUTED_COLOR, 'fill-opacity': 0.1 } });
         m.addLayer({ id: 'disputed-line', type: 'line', source: 'disputed', paint: { 'line-color': DISPUTED_COLOR, 'line-width': 1, 'line-dasharray': [2, 2], 'line-opacity': 0.8 } });
         m.addLayer({ id: 'disputed-selected', type: 'line', source: 'disputed', filter: ['==', ['get', 'id'], '__none__'], paint: { 'line-color': '#ffffff', 'line-width': 2 } });
+        m.addSource('lanes', { type: 'geojson', data: none });
+        m.addLayer({
+          id: 'lanes',
+          type: 'line',
+          source: 'lanes',
+          paint: {
+            'line-color': LANE_COLOR,
+            'line-width': ['match', ['get', 'c'], 'major', 1.6, 'middle', 1.1, 0.7],
+            'line-opacity': ['match', ['get', 'c'], 'major', 0.7, 'middle', 0.55, 0.4],
+            'line-dasharray': [4, 3],
+          },
+        });
         m.addSource('undersea', { type: 'geojson', data: none });
         m.addLayer({
           id: 'undersea',
@@ -744,6 +772,57 @@ export function WorldMap(props: WorldMapProps) {
           paint: { 'text-color': '#ffb3b3', 'text-halo-color': '#050a08', 'text-halo-width': 1.2 },
         });
         // Sanctioned vessels (AIS): ship icons along their course.
+        // Tanker and cargo traffic (v0.75.0), under the sanctioned ships.
+        m.addSource('traffic-tracks', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({
+          id: 'traffic-tracks',
+          type: 'line',
+          source: 'traffic-tracks',
+          paint: { 'line-color': ['match', ['get', 'kind'], 'tanker', TRAFFIC_COLOR.tanker, TRAFFIC_COLOR.cargo], 'line-width': 1, 'line-opacity': 0.28 },
+        });
+        m.addLayer({
+          id: 'traffic-track-selected',
+          type: 'line',
+          source: 'traffic-tracks',
+          filter: ['==', ['get', 'mmsi'], '__none__'],
+          paint: { 'line-color': '#ffffff', 'line-width': 2, 'line-opacity': 0.9 },
+        });
+        m.addSource('traffic', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({
+          id: 'traffic',
+          type: 'symbol',
+          source: 'traffic',
+          layout: {
+            'icon-image': 'heading',
+            'icon-size': ['interpolate', ['linear'], ['zoom'], 2, 0.45, 7, 0.8],
+            'icon-rotate': ['get', 'cog'],
+            'icon-rotation-alignment': 'map',
+            'icon-allow-overlap': true,
+            'text-field': ['step', ['zoom'], '', 7, ['get', 'name']],
+            'text-font': font,
+            'text-size': 9,
+            'text-offset': [0, 1.1],
+            'text-anchor': 'top',
+            'text-optional': true,
+          },
+          paint: {
+            'icon-color': ['match', ['get', 'kind'], 'tanker', TRAFFIC_COLOR.tanker, TRAFFIC_COLOR.cargo],
+            'icon-opacity': ['case', ['get', 'stopped'], 0.5, 0.95],
+            'icon-halo-color': '#050a08',
+            'icon-halo-width': 1,
+            'text-color': '#cfe3ea',
+            'text-halo-color': '#050a08',
+            'text-halo-width': 1.2,
+          },
+        });
+        m.addLayer({
+          id: 'traffic-selected',
+          type: 'circle',
+          source: 'traffic',
+          filter: ['==', ['get', 'mmsi'], '__none__'],
+          paint: { 'circle-radius': 9, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 1.5 },
+        });
+
         m.addSource('sanctioned-ships', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
         m.addLayer({
           id: 'sanctioned-ship-selected',
@@ -1008,6 +1087,12 @@ export function WorldMap(props: WorldMapProps) {
             : [];
           if (planes[0] && cb.current.onSelectAircraft) {
             cb.current.onSelectAircraft(String(planes[0].properties.hex));
+            return;
+          }
+          const trafficHit = m.queryRenderedFeatures([[e.point.x - 6, e.point.y - 6], [e.point.x + 6, e.point.y + 6]], { layers: ['traffic'] });
+          const listedFirst = m.queryRenderedFeatures([[e.point.x - 7, e.point.y - 7], [e.point.x + 7, e.point.y + 7]], { layers: ['sanctioned-ships'] });
+          if (trafficHit[0] && !listedFirst[0] && cb.current.onSelectTraffic) {
+            cb.current.onSelectTraffic(String(trafficHit[0].properties.mmsi));
             return;
           }
           const listed = m.getLayoutProperty('sanctioned-ships', 'visibility') !== 'none'
@@ -1455,6 +1540,41 @@ export function WorldMap(props: WorldMapProps) {
     if (a) m.easeTo({ center: [a.lo, a.la], zoom: Math.max(m.getZoom(), 5), duration: 600 });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to selection changes
   }, [ready, selectedAircraft]);
+
+  // ------------------------------------------------- traffic and lanes --
+  const { traffic, selectedTraffic, lanes } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    (m.getSource('traffic') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (traffic ?? []).map((s) => ({
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: [s.lo, s.la] },
+        properties: { mmsi: s.mmsi, kind: s.kind, name: s.name ?? '', cog: s.cog ?? 0, stopped: s.sog === null || s.sog < 0.5 },
+      })),
+    });
+    (m.getSource('traffic-tracks') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (traffic ?? [])
+        .filter((s) => s.track.length >= 3)
+        .map((s) => ({ type: 'Feature' as const, geometry: { type: 'LineString' as const, coordinates: trackPoints(s).map(([lo, la]) => [lo, la]) }, properties: { mmsi: s.mmsi, kind: s.kind } })),
+    });
+  }, [ready, traffic]);
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    m.setFilter('traffic-selected', ['==', ['get', 'mmsi'], selectedTraffic ?? '__none__']);
+    m.setFilter('traffic-track-selected', ['==', ['get', 'mmsi'], selectedTraffic ?? '__none__']);
+  }, [ready, selectedTraffic]);
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    (m.getSource('lanes') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (lanes ?? []).map((l) => ({ type: 'Feature' as const, geometry: { type: 'MultiLineString' as const, coordinates: l.g }, properties: { c: l.c } })),
+    });
+  }, [ready, lanes]);
 
   // ------------------------------------------- undersea lines, disputed areas --
   const { undersea, selectedUndersea, disputed, selectedDisputed } = props;

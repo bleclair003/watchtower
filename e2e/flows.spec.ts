@@ -303,3 +303,22 @@ test('watch areas: draw a polygon corner by corner, finish, and save', async ({ 
   await expect(page.getByRole('region', { name: 'Watch area: Test polygon' })).toBeVisible();
   expect(problems).toEqual([]);
 });
+
+test('ships and lanes: simulated tankers with 24-hour tracks, a ship card from search, lanes legend', async ({ page, problems }) => {
+  await page.goto('/?at=58,24,4&layers=gatl');
+  const search = page.getByRole('combobox', { name: /find on map/i });
+  await search.fill('primorsk');
+  await expect(page.getByRole('listbox', { name: 'Map search results' }).getByRole('option').first()).toContainText('TANKER / CARGO');
+  await search.press('Enter');
+  const card = page.getByRole('region', { name: /^Tanker: \[SIMULATED\] TEST TANKER/ });
+  await expect(card).toContainText('AIS type 84');
+  await expect(card).toContainText('PRIMORSK');
+  await expect(card).toContainText(/4 positions from/);
+  await expect(page).toHaveURL(/sel=ship:999000001/);
+  // The legend may already be open on a wide screen.
+  const lanesLine = page.getByText('Shipping lanes (major, middle, minor)');
+  if (!(await lanesLine.isVisible())) await page.getByRole('button', { name: /legend/i }).first().click();
+  await expect(lanesLine).toBeVisible();
+  await expect(page.getByText(/1,840 ship types remembered/)).toBeVisible();
+  expect(problems).toEqual([]);
+});
