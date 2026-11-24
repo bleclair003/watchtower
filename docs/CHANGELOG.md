@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.79.1] — 2026-11-24 — Collector state fix
+
+### Fixed
+- **Ship tracking state could not be saved.** The 17:00 UTC run failed on the AIS ships source with Firestore's "too many index entries" error. Firestore indexes every field of a map; the ship tracker's state, with thousands of keyed entries for ships, tracks, positions and Finnish fixes, passed its limit of 40,000 index entries per document. Each source's state is now stored as a single JSON string, exempt from indexing (`firestore.indexes.json`). Older documents are read as before until their next write. Nothing was lost except that run's state update.
+
 ## [0.79.0] — 2026-11-24 — Signal convergence (Phase 42)
 
 ### Added

@@ -42,10 +42,16 @@ export class FirestoreStore implements CollectorStore {
   async getSourceState<S>(id: string) {
     const snap = await this.db.collection(COLLECTIONS.sourceState).doc(id).get();
     this.readCount++;
-    return snap.exists ? ((snap.data()?.state ?? null) as S | null) : null;
+    if (!snap.exists) return null;
+    const d = snap.data();
+    // v0.79.1: state is stored as one JSON string; older documents hold it as a map.
+    if (typeof d?.stateJson === 'string') return JSON.parse(d.stateJson) as S;
+    return (d?.state ?? null) as S | null;
   }
   async putSourceState(id: string, state: unknown) {
-    await this.db.collection(COLLECTIONS.sourceState).doc(id).set({ state, updatedAt: new Date().toISOString() });
+    // One JSON string, not a map: Firestore indexes every field of a map, and large states (the ship
+    // tracker keeps thousands of keyed entries) hit its 40,000 index entries per document limit.
+    await this.db.collection(COLLECTIONS.sourceState).doc(id).set({ stateJson: JSON.stringify(state ?? null), updatedAt: new Date().toISOString() });
   }
   async getSourceStatus(id: string) {
     const snap = await this.db.collection(COLLECTIONS.sourceStatus).doc(id).get();

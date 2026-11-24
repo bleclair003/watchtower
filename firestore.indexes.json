@@ -33,5 +33,11 @@
       ]
     }
   ],
-  "fieldOverrides": []
+  "fieldOverrides": [
+    {
+      "collectionGroup": "sourceState",
+      "fieldPath": "stateJson",
+      "indexes": []
+    }
+  ]
 }
