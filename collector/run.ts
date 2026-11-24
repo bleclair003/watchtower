@@ -91,7 +91,10 @@ async function main(): Promise<number> {
     `Run ${run.id}: fetched ${run.recordsFetched} · imported ${run.recordsImported} · duplicates ${run.duplicatesSuppressed} · rejected ${run.recordsRejected} · alerts ${run.alertsCreated ?? 0} · notified ${run.notificationsSent ?? 0} · errors ${run.errors.length}`,
   );
   const parts = splitSnapshot(snapshot);
-  console.log(`Snapshot: ${snapshot.events.length} events, ${Buffer.byteLength(JSON.stringify(parts.main))} bytes; layers ${Buffer.byteLength(JSON.stringify(parts.layers))} bytes`);
+  const layersBytes = Buffer.byteLength(JSON.stringify(parts.layers));
+  console.log(`Snapshot: ${snapshot.events.length} events, ${Buffer.byteLength(JSON.stringify(parts.main))} bytes; layers ${layersBytes} bytes`);
+  // Firestore caps a document at 1 MiB; warn well before the layers document reaches it.
+  if (layersBytes > 900_000) console.log(`WARN layers document is ${layersBytes} bytes, near Firestore's 1 MiB document limit: move a large layer to its own document`);
   if (values['dry-run']) {
     const { buildBrief } = await import('../shared/domain/brief/brief.ts');
     const { briefToText } = await import('./brief/dailyBrief.ts');

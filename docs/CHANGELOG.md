@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.84.1] — 2026-11-24 — Satellites in their own document
+
+### Changed
+- **Satellite elements moved to their own document** (`snapshots/satellites`). The first live run put them in the map layers document, which reached 865 KB against Firestore's 1 MiB document limit; the elements were 94 KB of that. Past the limit, the map layers would stop updating. The elements are now read only when the SATS layer is on or a region's passes are asked for.
+- **Run log warning** when the layers document passes 900 KB, so the next large layer is moved before it hits the limit.
+
 ## [0.84.0] — 2026-11-24 — Satellites (Phase 46)
 
 ### Added

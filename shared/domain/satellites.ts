@@ -12,6 +12,8 @@ import { parseCsv } from './conflictEvents.ts';
  */
 
 export const SATELLITES_SOURCE_ID = 'celestrak-satellites';
+/** v0.84.1: its own document (`snapshots/satellites`), read only when the SATS layer or a pass list needs it. */
+export const SATELLITES_DOC_ID = 'satellites';
 export const SAT_GROUPS = [
   { id: 'military', label: 'Military (public element sets)' },
   { id: 'resource', label: 'Earth imaging and resources' },

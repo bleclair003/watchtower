@@ -14,6 +14,7 @@ import { GnssCard } from '../components/map/GnssCard';
 import { ConvergenceCard } from '../components/map/ConvergenceCard';
 import { SatelliteCard } from '../components/map/SatelliteCard';
 import { groundTrack, subPoint, toSatrec } from '../lib/orbits';
+import { useSatellites } from '../data/useSatellites';
 import { useBases, useDisputed, useInfrastructure, useLanes, useUndersea } from '../data/useInstallations';
 import { useShipTraffic } from '../data/useShipTraffic';
 import { TrafficShipCard } from '../components/map/TrafficShipCard';
@@ -57,7 +58,7 @@ import { Panel } from '../components/ui/Panel';
 export default function GlobalOperationsPage() {
   // Re-evaluate time windows once a minute; the clock in the top bar ticks separately.
   const now = useNow(60_000).getTime();
-  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips, baseActivity, infrastructure, powerOutages, tfrs, airportStatus, radiation, navWarnings, aircraftEmergencies, conflictEvents, gnss, convergence, satellites } = useData();
+  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips, baseActivity, infrastructure, powerOutages, tfrs, airportStatus, radiation, navWarnings, aircraftEmergencies, conflictEvents, gnss, convergence } = useData();
   const unusualBases = useMemo(() => (baseActivity?.items ?? []).filter((i) => i.unusual).map((i) => i.key), [baseActivity]);
   const { filters, setFilters, resetFilters, selectedEventId, selectEvent, globalViewNonce } = useDashboard();
   const { settings, update } = useSettings();
@@ -129,7 +130,8 @@ export default function GlobalOperationsPage() {
   const selectedHotspot = selectedConv ? (shownConv?.hotspots.find((h) => h.id === selectedConv) ?? null) : null;
   // Satellites (v0.84.0): positions recomputed every 20 s while the layer is on.
   const [selectedSatId, setSelectedSatId] = useState<string | null>(null);
-  const shownSats = settings.satellites && satellites ? satellites : null;
+  const satData = useSatellites(settings.satellites);
+  const shownSats = settings.satellites ? satData.data : null;
   const satRecs = useMemo(() => (shownSats ? shownSats.sats.map((s) => ({ s, rec: toSatrec(s.el) })).filter((x) => x.rec) : []), [shownSats]);
   // Ticks every 20 s only while the layer is on (otherwise hourly), so the page is not re-rendered for nothing.
   const satTick = useNow(shownSats ? 20_000 : 3_600_000).getTime();

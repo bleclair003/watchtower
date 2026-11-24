@@ -1,3 +1,4 @@
+import type { SatellitesSnapshot } from '../../shared/domain/satellites.ts';
 import type { MetersSnapshot } from '../../shared/domain/meters/types.ts';
 import type { RadioGuide } from '../../shared/domain/shortwave.ts';
 import type { ShipTrafficDoc } from '../../shared/domain/shipTraffic.ts';
@@ -49,6 +50,7 @@ export interface CollectorStore {
   getRadioGuide(): Promise<RadioGuide | null>;
   /** v0.75.0: tanker and cargo traffic for the map (snapshots/ships). */
   putShipTraffic(d: ShipTrafficDoc): Promise<void>;
+  putSatellites(d: SatellitesSnapshot): Promise<void>;
   putRadioGuide(g: RadioGuide): Promise<void>;
   /** Stored events by id (missing ids are omitted). Used only for revisable sources. */
   getEvents(ids: string[]): Promise<IntelligenceEvent[]>;

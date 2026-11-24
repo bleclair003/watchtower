@@ -4,6 +4,7 @@ import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../../shared/domain/types.ts';
 import type { RadioGuide } from '../../shared/domain/shortwave.ts';
 import { SHIPS_DOC_ID, type ShipTrafficDoc } from '../../shared/domain/shipTraffic.ts';
+import { SATELLITES_DOC_ID, type SatellitesSnapshot } from '../../shared/domain/satellites.ts';
 import { RADIO_GUIDE_DOC_ID, METERS_DOC_ID, COLLECTIONS, LAYERS_DOC_ID, SNAPSHOT_DOC_ID, joinSnapshot, splitSnapshot, type DashboardSnapshot, type LayersSnapshot } from '../../shared/domain/snapshot.ts';
 import type { IndicatorTransition, ScoreHistoryPoint } from '../../shared/domain/indicators/types.ts';
 import type { AlertRecord } from '../../shared/domain/alerts/types.ts';
@@ -262,6 +263,9 @@ export class FirestoreStore implements CollectorStore {
   }
   async putShipTraffic(d: ShipTrafficDoc) {
     await this.db.collection(COLLECTIONS.snapshots).doc(SHIPS_DOC_ID).set(d);
+  }
+  async putSatellites(d: SatellitesSnapshot) {
+    await this.db.collection(COLLECTIONS.snapshots).doc(SATELLITES_DOC_ID).set(d);
   }
   async getRadioGuide() {
     const snap = await this.db.collection(COLLECTIONS.snapshots).doc(RADIO_GUIDE_DOC_ID).get();

@@ -21,7 +21,6 @@ import type { NetAttackSnapshot } from '@shared/domain/netAttacks';
 import type { ConvergenceSnapshot } from '@shared/domain/convergence';
 import type { TaiwanPlaSnapshot } from '@shared/domain/taiwanPla';
 import type { TravelAdviceSnapshot } from '@shared/domain/travelAdvice';
-import type { SatellitesSnapshot } from '@shared/domain/satellites';
 import type { RadioReceiversSnapshot } from '@shared/domain/radio';
 import type { ConflictSnapshot } from '@shared/domain/conflictEvents';
 import type { ActorsSnapshot } from '@shared/domain/actors';
@@ -78,7 +77,6 @@ interface DataState {
   convergence: ConvergenceSnapshot | null;
   taiwanPla: TaiwanPlaSnapshot | null;
   travelAdvice: TravelAdviceSnapshot | null;
-  satellites: SatellitesSnapshot | null;
   radioReceivers: RadioReceiversSnapshot | null;
   conflictEvents: ConflictSnapshot | null;
   actors: ActorsSnapshot | null;
@@ -133,7 +131,6 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
     convergence: null as ConvergenceSnapshot | null,
     taiwanPla: null as TaiwanPlaSnapshot | null,
     travelAdvice: null as TravelAdviceSnapshot | null,
-    satellites: null as SatellitesSnapshot | null,
     radioReceivers: null as RadioReceiversSnapshot | null,
     conflictEvents: null as ConflictSnapshot | null,
     actors: null as ActorsSnapshot | null,
@@ -192,7 +189,6 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
         convergence: d.convergence,
         taiwanPla: d.taiwanPla,
         travelAdvice: d.travelAdvice,
-        satellites: d.satellites,
         radioReceivers: d.radioReceivers,
         conflictEvents: d.conflictEvents,
         actors: d.actors,

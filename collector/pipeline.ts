@@ -519,13 +519,13 @@ export async function runCollection(
   } catch (err) {
     log(`NET  routing or DDoS data not added to the snapshot: ${sanitizeError(err)}`);
   }
-  // v0.84.0: satellite elements (CelesTrak), shown while under 3 days old.
+  // v0.84.1: satellite elements (CelesTrak) live in their own document, rewritten each run while under 3 days old.
   if (tracked.includes(SATELLITES_SOURCE_ID)) {
     try {
       const sat = await store.getSourceState<SatellitesState>(SATELLITES_SOURCE_ID);
-      if (sat?.latest && Date.parse(snapshot.generatedAt) - Date.parse(sat.latest.fetchedAt) < 3 * 86_400_000) snapshot.satellites = sat.latest;
+      if (sat?.latest && Date.parse(run.startedAt) - Date.parse(sat.latest.fetchedAt) < 3 * 86_400_000) await store.putSatellites(sat.latest);
     } catch (err) {
-      log(`SAT  satellite elements not added to the snapshot: ${sanitizeError(err)}`);
+      log(`SAT  satellite elements not written: ${sanitizeError(err)}`);
     }
   }
   // v0.82.0: PLA activity around Taiwan (daily; shown while under 4 days old).

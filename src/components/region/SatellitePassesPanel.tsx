@@ -6,6 +6,7 @@ import { formatAge, formatUtc } from '../../lib/time';
 import { passesOver, toSatrec } from '../../lib/orbits';
 import { Panel } from '../ui/Panel';
 import { Tag } from '../ui/Tag';
+import { useSatellites } from '../../data/useSatellites';
 
 const HOURS = 6;
 
@@ -13,9 +14,12 @@ const HOURS = 6;
  * Satellite passes over a region in the next hours (v0.84.0): military satellites with public elements and
  * Earth imaging satellites whose ground track crosses the region, computed in the browser on request.
  */
-export function SatellitePassesPanel({ data, regionId, now }: { data: SatellitesSnapshot | null; regionId: string; now: number }) {
+export function SatellitePassesPanel({ regionId, now }: { regionId: string; now: number }) {
   const region = getRegion(regionId);
   const [shown, setShown] = useState(false);
+  // The elements are their own document: read only once passes are asked for.
+  const { data: loaded, error } = useSatellites(shown);
+  const data: SatellitesSnapshot | null = loaded;
   const passes = useMemo(() => {
     if (!shown || !data || !region?.bbox) return [];
     const from = Date.now();
@@ -26,17 +30,19 @@ export function SatellitePassesPanel({ data, regionId, now }: { data: Satellites
       })
       .sort((a, b) => a.p.start - b.p.start);
   }, [shown, data, region]);
-  if (!data || !region?.bbox) return null;
+  if (!region?.bbox) return null;
   return (
-    <Panel title={`Satellite passes (next ${HOURS} h)`} designator="SP" actions={data.simulated ? <Tag tone="warn">SIMULATED</Tag> : undefined}>
+    <Panel title={`Satellite passes (next ${HOURS} h)`} designator="SP" actions={data?.simulated ? <Tag tone="warn">SIMULATED</Tag> : undefined}>
       <p className="border-b border-wt-line px-2 py-1 text-2xs text-wt-fg-dim">
         When military satellites with public orbits and Earth imaging satellites cross {region.name}: a pass means the ground track crosses the region, not that anything was
-        imaged, and many classified satellites are not in the public catalogue. Elements read {formatAge(data.fetchedAt, now)} ago. {SAT_CREDIT}.
+        imaged, and many classified satellites are not in the public catalogue.{data ? ` Elements read ${formatAge(data.fetchedAt, now)} ago.` : ''} {SAT_CREDIT}.
       </p>
       {!shown ? (
         <button className="px-2 py-1.5 text-2xs text-wt-fg hover:underline" onClick={() => setShown(true)}>
-          [COMPUTE PASSES FOR {data.sats.length} SATELLITES]
+          [COMPUTE SATELLITE PASSES]
         </button>
+      ) : !data ? (
+        <p className="px-2 py-1.5 text-2xs text-wt-fg-muted">{error ?? 'Loading satellite elements…'}</p>
       ) : passes.length === 0 ? (
         <p className="px-2 py-1.5 text-2xs text-wt-fg-muted">No passes in the next {HOURS} hours.</p>
       ) : (
@@ -69,7 +75,7 @@ export function SatellitePassesPanel({ data, regionId, now }: { data: Satellites
           </table>
         </div>
       )}
-      <p className="border-t border-wt-line px-2 py-1 text-2xs text-wt-fg-dim">{data.groups.map((g) => `${SAT_GROUPS.find((x) => x.id === g.id)?.label ?? g.id}: ${g.count}`).join(' · ')}</p>
+      {data && <p className="border-t border-wt-line px-2 py-1 text-2xs text-wt-fg-dim">{data.groups.map((g) => `${SAT_GROUPS.find((x) => x.id === g.id)?.label ?? g.id}: ${g.count}`).join(' · ')}</p>}
     </Panel>
   );
 }

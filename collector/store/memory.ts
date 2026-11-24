@@ -1,3 +1,4 @@
+import type { SatellitesSnapshot } from '../../shared/domain/satellites.ts';
 import type { MetersSnapshot } from '../../shared/domain/meters/types.ts';
 import type { RadioGuide } from '../../shared/domain/shortwave.ts';
 import type { ShipTrafficDoc } from '../../shared/domain/shipTraffic.ts';
@@ -82,6 +83,10 @@ export class MemoryStore implements CollectorStore {
   shipTraffic: ShipTrafficDoc | null = null;
   async putShipTraffic(d: ShipTrafficDoc) {
     this.shipTraffic = structuredClone(d);
+  }
+  satellites: SatellitesSnapshot | null = null;
+  async putSatellites(d: SatellitesSnapshot) {
+    this.satellites = structuredClone(d);
   }
   async getRadioGuide() {
     return this.radioGuide ? structuredClone(this.radioGuide) : null;

@@ -336,7 +336,7 @@ test('Satellites: a link opens the layer with the satellite card; region passes 
   await expect(page).not.toHaveURL(/sel=sat/);
 
   await page.goto('/regions/taiwan-strait');
-  await page.getByRole('button', { name: /COMPUTE PASSES FOR 5 SATELLITES/ }).click();
+  await page.getByRole('button', { name: 'COMPUTE SATELLITE PASSES' }).click();
   await expect(page.getByText(/No passes in the next 6 hours|SIM /).first()).toBeVisible();
   expect(problems).toEqual([]);
 });
