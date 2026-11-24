@@ -21,9 +21,14 @@ const AREAS: [string, Box][] = [
   ['Gulf of Finland', [[59.0, 22.0], [60.8, 30.5]]],
   ['Baltic Sea (rest)', [[53.5, 9.5], [66.0, 30.5]]],
   ['North Sea + Channel', [[49.0, -5.5], [61.0, 9.5]]],
-  ['Norfolk (Hampton Roads)', [[36.7, -76.6], [37.2, -75.9]]],
-  ['San Diego Bay', [[32.55, -117.35], [32.85, -117.05]]],
   ['Eastern Mediterranean', [[31.0, 28.0], [37.0, 36.5]]],
+  // v0.75.0 coverage check for tanker and cargo tracking in the other watch-region seas.
+  ['Black Sea', [[40.5, 27.5], [46.8, 41.8]]],
+  ['Gulf and Hormuz', [[23.5, 48.0], [30.5, 58.0]]],
+  ['Red Sea and Gulf of Aden', [[11.0, 32.0], [30.0, 45.5]]],
+  ['Korea', [[33.0, 124.0], [39.0, 131.0]]],
+  ['Taiwan Strait', [[22.0, 117.0], [26.5, 121.5]]],
+  ['South China Sea', [[2.0, 105.0], [22.0, 121.0]]],
 ];
 const areaOf = (lat: number, lon: number) => AREAS.find(([, [[s, w], [n, e]]]) => lat >= s && lat <= n && lon >= w && lon <= e)?.[0] ?? null;
 
@@ -95,8 +100,10 @@ setTimeout(() => {
   for (const [name] of AREAS) {
     const s = stats.get(name)!;
     const typeShare = s.ships.size ? Math.round((s.typed.size / s.ships.size) * 100) : 0;
+    const tankers = [...s.typed.values()].filter((t) => t >= 80 && t <= 89).length;
+    const cargo = [...s.typed.values()].filter((t) => t >= 70 && t <= 79).length;
     console.log(
-      `  ${name.padEnd(24)} ${String(s.ships.size).padStart(5)} ships · ${String(s.positions).padStart(5)} positions · ${String(s.moving.size).padStart(4)} moving · ${String(s.slow.size).padStart(4)} slow/stopped · ` +
+      `  ${name.padEnd(24)} tankers ${tankers} · cargo ${cargo} · ${String(s.ships.size).padStart(5)} ships · ${String(s.positions).padStart(5)} positions · ${String(s.moving.size).padStart(4)} moving · ${String(s.slow.size).padStart(4)} slow/stopped · ` +
         `type known ${typeShare}% · military/law type ${s.military.size} · Russian-flag ${s.russian.size} · warship-like names: ${[...s.warshipNames].slice(0, 8).join(', ') || 'none'}`,
     );
   }
