@@ -20,6 +20,8 @@ import { CATEGORY_STYLES } from '../../config/categories';
 import { BASEMAP_STYLE_URL, findTextFont, militarizeStyle } from '../../lib/mapStyle';
 import { graticule, isPlottable, projectEvents, regionAreas } from '../../lib/geo';
 import { circleRing, greatCirclePath, KM_PER_NM, type LonLat } from '../../lib/measure';
+import type { UnderseaKind, UnderseaLine } from '@shared/domain/undersea';
+import type { DisputedDataset } from '@shared/domain/disputed';
 import { cellBounds, GNSS_RADIUS_NM, type GnssCell, type GnssCircle, type GnssLevel, type GnssLostPoint } from '@shared/domain/gnss';
 import type { MapView } from '../../lib/mapLink';
 
@@ -33,6 +35,9 @@ export interface WorldMapHandle {
 }
 export const RULER_COLOR = '#ffd166';
 /** GPS interference squares by level (v0.69.0); lost-GPS points use the high colour. */
+/** Undersea lines by kind, and the disputed-area tint (v0.71.0). */
+export const UNDERSEA_COLOR: Record<UnderseaKind, string> = { telecom: '#5ec8ff', power: '#f6a04d', pipeline: '#c084fc' };
+export const DISPUTED_COLOR = '#e8b04a';
 export const GNSS_COLOR: Record<GnssLevel, string> = { low: '#2f6a4c', medium: '#ffb347', high: '#ff4d6d' };
 
 export interface WorldMapProps {
@@ -59,6 +64,13 @@ export interface WorldMapProps {
   gnssCircles?: GnssCircle[];
   selectedGnss?: string | null;
   onSelectGnss?: (key: string | null) => void;
+  /** Undersea cables and pipelines, and disputed areas (v0.71.0); empty when their layers are off. */
+  undersea?: UnderseaLine[];
+  selectedUndersea?: string | null;
+  onSelectUndersea?: (id: string | null) => void;
+  disputed?: DisputedDataset['features'];
+  selectedDisputed?: string | null;
+  onSelectDisputed?: (id: string | null) => void;
   /** A marked location (search result without its own marker, such as an airport). */
   pin?: { lat: number; lon: number } | null;
   handleRef?: { current: WorldMapHandle | null };
@@ -160,7 +172,7 @@ export const AIRPORT_COLOR = { 'ground-stop': '#ff5555', 'ground-delay': '#ff8a3
 export const POWER_STEPS: [number, string][] = [[50, '#ffd38a'], [1_000, '#ffb347'], [10_000, '#ff8a3d'], [100_000, '#ff5555']];
 const POWER_FILL = ['step', ['get', 'out'], POWER_STEPS[0][1], POWER_STEPS[1][0], POWER_STEPS[1][1], POWER_STEPS[2][0], POWER_STEPS[2][1], POWER_STEPS[3][0], POWER_STEPS[3][1]] as unknown as string;
 /** Infrastructure types: no red or amber (reserved for severity; flagged sites get a red ring). */
-export const INFRA_COLOR: Record<InfraType, string> = { nuclear: '#d2a8ff', power: '#8fb3ff', refinery: '#e0c89a', dam: '#6fd3d0', port: '#b8c4bc' };
+export const INFRA_COLOR: Record<InfraType, string> = { nuclear: '#d2a8ff', 'nuclear-site': '#ff8ad8', power: '#8fb3ff', refinery: '#e0c89a', dam: '#6fd3d0', port: '#b8c4bc', embassy: '#f4e27a' };
 
 /** Sanctioned vessels: pink, distinct from severity colours and from the fleet layer. */
 export const SANCTIONED_SHIP_COLOR = '#ff7ab6';
@@ -304,8 +316,30 @@ export function WorldMap(props: WorldMapProps) {
           paint: { 'line-color': '#123323', 'line-width': 0.6, 'line-dasharray': [2, 3] },
         });
 
-        // GPS interference (v0.69.0): sampled circles, 1° squares coloured by degraded share, lost-GPS points.
+        // Disputed areas and undersea lines (v0.71.0), under everything else.
         const none = { type: 'FeatureCollection' as const, features: [] };
+        m.addSource('disputed', { type: 'geojson', data: none });
+        m.addLayer({ id: 'disputed-fill', type: 'fill', source: 'disputed', paint: { 'fill-color': DISPUTED_COLOR, 'fill-opacity': 0.1 } });
+        m.addLayer({ id: 'disputed-line', type: 'line', source: 'disputed', paint: { 'line-color': DISPUTED_COLOR, 'line-width': 1, 'line-dasharray': [2, 2], 'line-opacity': 0.8 } });
+        m.addLayer({ id: 'disputed-selected', type: 'line', source: 'disputed', filter: ['==', ['get', 'id'], '__none__'], paint: { 'line-color': '#ffffff', 'line-width': 2 } });
+        m.addSource('undersea', { type: 'geojson', data: none });
+        m.addLayer({
+          id: 'undersea',
+          type: 'line',
+          source: 'undersea',
+          paint: {
+            'line-color': ['match', ['get', 'k'], 'telecom', UNDERSEA_COLOR.telecom, 'power', UNDERSEA_COLOR.power, UNDERSEA_COLOR.pipeline],
+            'line-width': ['interpolate', ['linear'], ['zoom'], 2, 0.8, 7, 1.8],
+            'line-opacity': 0.85,
+          },
+        });
+        m.addLayer({ id: 'undersea-selected', type: 'line', source: 'undersea', filter: ['==', ['get', 'id'], '__none__'], paint: { 'line-color': '#ffffff', 'line-width': 3 } });
+        for (const layer of ['undersea', 'disputed-fill']) {
+          m.on('mouseenter', layer, () => (m.getCanvas().style.cursor = 'pointer'));
+          m.on('mouseleave', layer, () => (m.getCanvas().style.cursor = cb.current.measuring ? 'crosshair' : ''));
+        }
+
+        // GPS interference (v0.69.0): sampled circles, 1° squares coloured by degraded share, lost-GPS points.
         m.addSource('gnss-circles', { type: 'geojson', data: none });
         m.addLayer({ id: 'gnss-circles', type: 'line', source: 'gnss-circles', paint: { 'line-color': '#3d5a4a', 'line-width': 0.8, 'line-dasharray': [1, 3] } });
         m.addSource('gnss', { type: 'geojson', data: none });
@@ -581,7 +615,7 @@ export function WorldMap(props: WorldMapProps) {
             'icon-ignore-placement': true,
           },
           paint: {
-            'icon-color': ['match', ['get', 'type'], 'nuclear', INFRA_COLOR.nuclear, 'power', INFRA_COLOR.power, 'refinery', INFRA_COLOR.refinery, 'dam', INFRA_COLOR.dam, INFRA_COLOR.port],
+            'icon-color': ['match', ['get', 'type'], 'nuclear', INFRA_COLOR.nuclear, 'nuclear-site', INFRA_COLOR['nuclear-site'], 'power', INFRA_COLOR.power, 'refinery', INFRA_COLOR.refinery, 'dam', INFRA_COLOR.dam, 'embassy', INFRA_COLOR.embassy, INFRA_COLOR.port],
             'icon-opacity': 0.9,
             'icon-halo-color': '#050a08',
             'icon-halo-width': 0.8,
@@ -599,7 +633,7 @@ export function WorldMap(props: WorldMapProps) {
             'icon-ignore-placement': true,
           },
           paint: {
-            'icon-color': ['match', ['get', 'type'], 'nuclear', INFRA_COLOR.nuclear, 'power', INFRA_COLOR.power, 'refinery', INFRA_COLOR.refinery, 'dam', INFRA_COLOR.dam, INFRA_COLOR.port],
+            'icon-color': ['match', ['get', 'type'], 'nuclear', INFRA_COLOR.nuclear, 'nuclear-site', INFRA_COLOR['nuclear-site'], 'power', INFRA_COLOR.power, 'refinery', INFRA_COLOR.refinery, 'dam', INFRA_COLOR.dam, 'embassy', INFRA_COLOR.embassy, INFRA_COLOR.port],
             'icon-halo-color': '#ff5555',
             'icon-halo-width': ['case', ['get', 'selected'], 3, 2],
           },
@@ -973,10 +1007,20 @@ export function WorldMap(props: WorldMapProps) {
             cb.current.onSelectGnss(String(gnssHit[0].properties.k));
             return;
           }
+          const lineHit = clusters[0] ? [] : m.queryRenderedFeatures([[e.point.x - 5, e.point.y - 5], [e.point.x + 5, e.point.y + 5]], { layers: ['undersea'] });
+          if (lineHit[0] && cb.current.onSelectUndersea) {
+            cb.current.onSelectUndersea(String(lineHit[0].properties.id));
+            return;
+          }
           if (clusters[0]) {
             const src = m.getSource('events') as GeoJSONSource;
             const zoom = await src.getClusterExpansionZoom(clusters[0].properties.cluster_id as number);
             m.easeTo({ center: (clusters[0].geometry as GeoJSON.Point).coordinates as [number, number], zoom });
+            return;
+          }
+          const disputedHit = m.queryRenderedFeatures(e.point, { layers: ['disputed-fill'] });
+          if (disputedHit[0] && cb.current.onSelectDisputed) {
+            cb.current.onSelectDisputed(String(disputedHit[0].properties.id));
             return;
           }
           const areas = m.queryRenderedFeatures(e.point, { layers: ['region-fill'] });
@@ -1362,6 +1406,28 @@ export function WorldMap(props: WorldMapProps) {
     if (a) m.easeTo({ center: [a.lo, a.la], zoom: Math.max(m.getZoom(), 5), duration: 600 });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to selection changes
   }, [ready, selectedAircraft]);
+
+  // ------------------------------------------- undersea lines, disputed areas --
+  const { undersea, selectedUndersea, disputed, selectedDisputed } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    (m.getSource('undersea') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (undersea ?? []).map((l) => ({ type: 'Feature' as const, geometry: { type: 'MultiLineString' as const, coordinates: l.g }, properties: { id: l.id, k: l.k, name: l.n ?? '' } })),
+    });
+  }, [ready, undersea]);
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    (m.getSource('disputed') as GeoJSONSource).setData({ type: 'FeatureCollection', features: disputed ?? [] } as GeoJSON.FeatureCollection);
+  }, [ready, disputed]);
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    m.setFilter('undersea-selected', ['==', ['get', 'id'], selectedUndersea ?? '__none__']);
+    m.setFilter('disputed-selected', ['==', ['get', 'id'], selectedDisputed ?? '__none__']);
+  }, [ready, selectedUndersea, selectedDisputed]);
 
   // ------------------------------------------------------- GPS interference --
   const { gnssCells, gnssLost, gnssCircles, selectedGnss } = props;

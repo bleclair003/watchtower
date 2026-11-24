@@ -9,9 +9,11 @@ import { IMAGERY_ATTRIBUTION } from '../lib/imagery';
 import { readStorage, writeStorage } from '../lib/storage';
 import { formatUtc } from '../lib/time';
 import { unpackAirports, type Airport } from '@shared/domain/radio';
-import { Anchor, Atom, Ban, Crosshair, Factory, Grid3x3, LocateOff, Plane, PlaneLanding, Satellite, Shield, Ship, Siren, Square, Zap } from 'lucide-react';
+import { Anchor, Atom, Ban, Cable, Crosshair, Factory, Flag, Grid3x3, LocateOff, Plane, PlaneLanding, Satellite, Shield, Ship, Siren, Square, Zap } from 'lucide-react';
 import { GnssCard } from '../components/map/GnssCard';
-import { useBases, useInfrastructure } from '../data/useInstallations';
+import { useBases, useDisputed, useInfrastructure, useUndersea } from '../data/useInstallations';
+import { DisputedCard, UnderseaCard } from '../components/map/UnderseaCards';
+import { nearbyLines, underseaName, UNDERSEA_LABEL, type UnderseaKind } from '@shared/domain/undersea';
 import { InfraCard } from '../components/map/InfraCard';
 import { ALL_OPERATORS, operatedBy, operatorCounts } from '@shared/domain/installations';
 import { countryName } from '../lib/regionSummary';
@@ -111,9 +113,21 @@ export default function GlobalOperationsPage() {
   const [selectedGnss, setSelectedGnss] = useState<string | null>(null);
   const shownGnss = settings.gnss && gnss ? gnss : null;
   const selectedGnssCell = selectedGnss ? (shownGnss?.cells.find((c) => c.k === selectedGnss) ?? null) : null;
-  // One map card at a time: selecting a base, aircraft, fleet area, chokepoint, vessel, site or square clears the others.
-  const selectOnly = (kind: 'base' | 'air' | 'fleet' | 'strait' | 'listed' | 'infra' | 'gnss', key: string | null) => {
+  // Undersea cables and pipelines, disputed areas (v0.71.0): static files loaded when their layer is on.
+  // The undersea file is also loaded when a sanctioned ship is selected, to list lines near it.
+  const [selectedCable, setSelectedCable] = useState<string | null>(null);
+  const [selectedDisputedKey, setSelectedAreaKey] = useState<string | null>(null);
+  const underseaData = useUndersea(settings.undersea || !!selectedListed);
+  const disputedData = useDisputed(settings.disputed);
+  const shownUndersea = settings.undersea ? underseaData.data?.lines : undefined;
+  const shownDisputed = settings.disputed ? disputedData.data?.features : undefined;
+  const selectedCableLine = selectedCable ? (shownUndersea?.find((l) => l.id === selectedCable) ?? null) : null;
+  const selectedAreaProps = selectedDisputedKey ? (shownDisputed?.find((f) => f.properties.id === selectedDisputedKey)?.properties ?? null) : null;
+  // One map card at a time: selecting a base, aircraft, fleet area, chokepoint, vessel, site, square, line or area clears the others.
+  const selectOnly = (kind: 'base' | 'air' | 'fleet' | 'strait' | 'listed' | 'infra' | 'gnss' | 'cable' | 'area', key: string | null) => {
     setSelectedGnss(kind === 'gnss' ? key : null);
+    setSelectedCable(kind === 'cable' ? key : null);
+    setSelectedAreaKey(kind === 'area' ? key : null);
     setSelectedInfra(kind === 'infra' ? key : null);
     setSelectedListed(kind === 'listed' ? key : null);
     setSelectedBase(kind === 'base' ? key : null);
@@ -140,12 +154,16 @@ export default function GlobalOperationsPage() {
     const s = link.selection;
     if (s?.kind === 'event') selectEvent(s.key);
     else if (s) {
-      const kind = ({ base: 'base', air: 'air', fleet: 'fleet', strait: 'strait', listed: 'listed', infra: 'infra', gnss: 'gnss' } as const)[s.kind];
+      const kind = ({ base: 'base', air: 'air', fleet: 'fleet', strait: 'strait', listed: 'listed', infra: 'infra', gnss: 'gnss', cable: 'cable', area: 'area' } as const)[s.kind];
       selectOnly(kind, s.key);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- apply the opening link once
   }, []);
-  const selection: MapSelection | null = selectedGnss
+  const selection: MapSelection | null = selectedCable
+    ? { kind: 'cable', key: selectedCable }
+    : selectedDisputedKey
+    ? { kind: 'area', key: selectedDisputedKey }
+    : selectedGnss
     ? { kind: 'gnss', key: selectedGnss }
     : selectedInfra
     ? { kind: 'infra', key: selectedInfra }
@@ -193,8 +211,10 @@ export default function GlobalOperationsPage() {
       infra: settings.infrastructure ? infraData.data?.sites : undefined,
       flaggedInfra,
       airports,
+      undersea: shownUndersea,
+      disputed: shownDisputed,
     }),
-    [settings.installations, settings.infrastructure, shownUs, shownWorld, shownAircraft, shownListed, shownFleet, shownStraits, infraData.data, flaggedInfra, airports],
+    [settings.installations, settings.infrastructure, shownUs, shownWorld, shownAircraft, shownListed, shownFleet, shownStraits, infraData.data, flaggedInfra, airports, shownUndersea, shownDisputed],
   );
   const notSearched = [
     !settings.installations && 'BASES',
@@ -203,6 +223,8 @@ export default function GlobalOperationsPage() {
     !shownFleet && 'FLEET',
     !shownStraits && 'STRAITS',
     !settings.infrastructure && 'INFRA (flagged sites only)',
+    !settings.undersea && 'CABLES',
+    !settings.disputed && 'DISPUTED',
   ].filter((x): x is string => !!x);
   const onPick = (it: SearchItem) => {
     setPin(null);
@@ -237,6 +259,8 @@ export default function GlobalOperationsPage() {
       [settings.navWarnings, 'NAVWARN'],
       [settings.conflicts, 'CONFLICT'],
       [shownGnss, 'GPS'],
+      [settings.undersea, 'CABLES'],
+      [settings.disputed, 'DISPUTED'],
     ] as [unknown, string][]
   )
     .filter(([on]) => !!on)
@@ -428,6 +452,28 @@ export default function GlobalOperationsPage() {
                 </select>
               )}
               <button
+                className={toggleBtn(settings.undersea)}
+                aria-pressed={settings.undersea}
+                title="Undersea telecom cables, power cables (100 kV+) and oil and gas pipelines in the watch-region seas (OpenStreetMap)"
+                onClick={() => {
+                  update({ undersea: !settings.undersea });
+                  setSelectedCable(null);
+                }}
+              >
+                <Cable size={10} aria-hidden /> CABLES
+              </button>
+              <button
+                className={toggleBtn(settings.disputed)}
+                aria-pressed={settings.disputed}
+                title="Disputed areas, breakaway regions and buffer zones (Natural Earth), with who administers and who claims them"
+                onClick={() => {
+                  update({ disputed: !settings.disputed });
+                  setSelectedAreaKey(null);
+                }}
+              >
+                <Flag size={10} aria-hidden /> DISPUTED
+              </button>
+              <button
                 className={toggleBtn(settings.gnss)}
                 aria-pressed={settings.gnss}
                 title="GPS interference: share of aircraft reporting degraded GPS accuracy per 1° square, last 24 hours (adsb.lol, sampled hourly)"
@@ -551,6 +597,12 @@ export default function GlobalOperationsPage() {
               navWarnings={settings.navWarnings ? shownNavWarnings : []}
               emergencies={settings.aircraft ? (aircraftEmergencies?.aircraft ?? []) : []}
               conflicts={settings.conflicts ? conflictWindow.events : []}
+              undersea={shownUndersea ?? []}
+              selectedUndersea={selectedCableLine ? selectedCable : null}
+              onSelectUndersea={(id) => selectOnly('cable', id)}
+              disputed={shownDisputed ?? []}
+              selectedDisputed={selectedAreaProps ? selectedDisputedKey : null}
+              onSelectDisputed={(id) => selectOnly('area', id)}
               gnssCells={shownGnss?.cells ?? []}
               gnssLost={shownGnss?.lost ?? []}
               gnssCircles={shownGnss?.circles ?? []}
@@ -587,6 +639,8 @@ export default function GlobalOperationsPage() {
             infrastructure={settings.infrastructure || flaggedInfra.length ? { all: settings.infrastructure ? (infraData.data?.count ?? null) : null, flagged: flaggedInfra.length, simulated: !!infrastructure?.simulated } : undefined}
             power={settings.powerOutages && powerOutages ? { total: powerOutages.totalOut, states: powerOutages.states.length, counties: powerOutages.counties.length, utilities: powerOutages.utilitiesReporting, ageMinutes: Math.max(0, Math.round((now - Date.parse(powerOutages.fetchedAt)) / 60_000)), simulated: !!powerOutages.simulated } : undefined}
             radiation={settings.radiation && radiation ? radiation : undefined}
+            undersea={settings.undersea ? (underseaData.data ? (Object.fromEntries((['telecom', 'power', 'pipeline'] as UnderseaKind[]).map((k) => [k, underseaData.data!.lines.filter((l) => l.k === k).length])) as Record<UnderseaKind, number>) : null) : undefined}
+            disputed={settings.disputed ? (disputedData.data?.features.length ?? null) : undefined}
             gnss={shownGnss ? { ...shownGnss, ageMinutes: Math.max(0, Math.round((now - Date.parse(shownGnss.fetchedAt)) / 60_000)) } : undefined}
             navWarnings={settings.navWarnings && navWarnings ? { ...navWarnings, warnings: shownNavWarnings } : undefined}
             navWarnDays={settings.navWarnDays}
@@ -623,9 +677,13 @@ export default function GlobalOperationsPage() {
                 : undefined
             }
           />
+          {selectedCableLine && underseaData.data && (
+            <UnderseaCard line={selectedCableLine} dataset={underseaData.data} ships={sanctionedShips?.sightings ?? []} warnings={navWarnings?.warnings ?? []} onClose={() => setSelectedCable(null)} />
+          )}
+          {selectedAreaProps && <DisputedCard area={selectedAreaProps} onClose={() => setSelectedAreaKey(null)} />}
           {selectedGnssCell && shownGnss && <GnssCard cell={selectedGnssCell} snapshot={shownGnss} warnings={navWarnings?.warnings ?? []} now={now} onClose={() => setSelectedGnss(null)} />}
           {(selectedInfraSite || selectedInfraFlag) && <InfraCard site={selectedInfraSite} flagged={selectedInfraFlag} dataset={infraData.data} now={now} onClose={() => setSelectedInfra(null)} />}
-          {!selectedInfra && selectedListedShip && sanctionedShips && <SanctionedShipCard ship={selectedListedShip} snapshot={sanctionedShips} now={now} onClose={() => setSelectedListed(null)} />}
+          {!selectedInfra && selectedListedShip && sanctionedShips && <SanctionedShipCard ship={selectedListedShip} snapshot={sanctionedShips} now={now} onClose={() => setSelectedListed(null)} nearLines={underseaData.data ? nearbyLines(underseaData.data.lines, selectedListedShip.la, selectedListedShip.lo, 20).map(({ line, km }) => ({ name: underseaName(line), kind: UNDERSEA_LABEL[line.k].toLowerCase(), km })) : undefined} />}
           {!selectedInfra && !selectedListedShip && selectedStraitItem && chokepoints && <ChokepointCard item={selectedStraitItem} snapshot={chokepoints} now={now} onClose={() => setSelectedStrait(null)} />}
           {!selectedInfra && !selectedListedShip && !selectedStraitItem && selectedArea && fleet && <FleetCard area={selectedArea} snapshot={fleet} now={now} onClose={() => setSelectedFleetArea(null)} />}
           {!selectedInfra && !selectedListedShip && !selectedStraitItem && !selectedArea && selectedPlane && aircraft && <AircraftCard aircraft={selectedPlane} snapshot={aircraft} now={now} onClose={() => setSelectedAircraft(null)} />}

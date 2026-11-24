@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.71.0] — 2026-11-23 — Undersea cables, disputed areas, nuclear facilities, embassies (Phase 34)
+
+### Added
+- **CABLES layer.** Undersea telecom cables, power cables of 100 kV or more, and oil and gas pipelines in the watch-region seas, from OpenStreetMap: 197 lines. They include C-Lion 1 and BCS East-West (both cut in November 2024), Estlink 1 and 2, Balticconnector, Nord Stream, TurkStream, Blue Stream, SUMED and SEA-ME-WE segments.
+  - Clicking a line shows its operator, voltage or substance, sanctioned ships seen within 20 km in the last 48 hours, and NGA warnings within 50 km.
+  - A sanctioned ship's card now lists cables and pipelines within 20 km.
+- **DISPUTED layer.** 99 disputed areas, breakaway regions, buffer zones and leased territories worldwide, from Natural Earth: the Korean DMZ and the islands under UN jurisdiction, the Golan Heights and the UNDOF zone, Abkhazia, South Ossetia, Transnistria, the Spratly and Paracel Islands, Kashmir and more. Each card says who administers the area and who claims it.
+- **Other nuclear facilities and embassies** in the site file (INFRA layer), from Wikidata:
+  - 20 nuclear facilities, including Natanz, Fordow, Arak, the Tehran Research Reactor, Yongbyon, Taechon, Negev (Dimona), Mayak, and research reactors in Poland, Jordan, Korea and the Philippines.
+  - 112 embassies and consulates.
+  - Both get the "activity near sites" checks: 10 km for nuclear facilities, as for plants, and 1 km for embassies. Embassies are matched by exact location only, never by name.
+- Map search finds named cables, pipelines and disputed areas; links can select them.
+
+### Notes
+- **TeleGeography's cable map was not used.** Only its map images are freely licensed; the raw cable data is sold under a paid licence.
+- OpenStreetMap routes are approximate, and coverage outside Europe is thin: the Gulf, Red Sea and Asian seas have few mapped cables.
+- Natural Earth lags events: its Donetsk and Luhansk lines predate 2022, and Artsakh dissolved in 2024. These are not front lines.
+- Only some embassies have a location on Wikidata, mostly consulates in Russia and Vietnam. Wikidata's "nuclear facility" class also includes a former test range (Kapustin Yar) and a contaminated lake (Karachay).
+- Wikidata was limiting queries to one a minute during an outage; the builder now waits when told to.
+
 ## [0.70.1] — 2026-11-23 — Routing and DDoS rules fixed after the first live read
 
 ### Fixed

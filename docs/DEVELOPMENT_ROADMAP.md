@@ -385,7 +385,7 @@ Free sources and analysis of data already collected. Each new outside source is 
 - [ ] More travel and health advisories (Australia Smartraveller, CDC, Canada)
 - [x] GPS interference from aircraft position-quality fields — v0.69.0 (Phase 32)
 - [ ] State-affiliated / partisan labels on publishers
-- [ ] Open-Meteo climate anomalies; abuse.ch cyber infrastructure; cables, pipelines, ports, satellites layers
+- [ ] Open-Meteo climate anomalies; abuse.ch cyber infrastructure; satellites layer (cables and pipelines done in v0.71.0)
 
 ## Phase 26 — Several people (2026-11-22)
 
@@ -482,4 +482,15 @@ From the feature audit (category 7, items 2, 6 and 7).
 - [x] CYBER page panels (C6 routing, C7 DDoS with 28-day lines); experimental indicators per region: route hijack, DDoS surge (catalog v23) — v0.70.0
 - [ ] Add hijacks and DDoS surges to the cyber meter once they have history
 - [ ] Application-layer (layer 7) attacks, once Cloudflare documents whether its location filter is the target or the origin
+
+## Phase 34 — More map layers (2026-11-23)
+
+From the feature audit (category 4, items 3, 5, 6 and 7; category 3 item 4).
+
+- [x] CABLES: undersea telecom cables, power cables 100 kV+ and oil and gas pipelines in the watch-region seas (OpenStreetMap, ODbL); card with sanctioned ships within 20 km and NGA warnings within 50 km; sanctioned-ship cards list lines within 20 km — v0.71.0
+- [x] DISPUTED: disputed, breakaway, buffer and leased areas worldwide (Natural Earth, public domain), card with who administers and who claims — v0.71.0
+- [x] Other nuclear facilities (research reactors, enrichment, fuel cycle) and embassies and consulates added to the site file (Wikidata), with the "activity near sites" checks (10 km nuclear, 1 km embassies, location only) — v0.71.0
+- [ ] More embassies: only 112 missions have a location on Wikidata
+- [ ] Cable landing stations; Red Sea and Asian cables are thin on OpenStreetMap
+- [ ] Records when a sanctioned ship lingers near an undersea cable
 

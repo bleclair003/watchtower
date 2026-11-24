@@ -2,7 +2,8 @@ import { INFRA_LABEL, INFRA_TYPES } from '@shared/domain/infrastructure';
 import { tfrActive, type AirportEvent, type TfrShape } from '@shared/domain/faa';
 import { NETWORK_LABEL, type RadiationSnapshot } from '@shared/domain/radiation';
 import { GNSS_LEVEL_LABEL, type GnssSnapshot } from '@shared/domain/gnss';
-import { GNSS_COLOR } from './WorldMap';
+import { UNDERSEA_LABEL, type UnderseaKind } from '@shared/domain/undersea';
+import { DISPUTED_COLOR, GNSS_COLOR, UNDERSEA_COLOR } from './WorldMap';
 import { NAV_KIND_LABEL, type NavWarningKind, type NavWarningSnapshot } from '@shared/domain/navWarnings';
 import type { EmergencySnapshot } from '@shared/domain/aircraftEmergencies';
 import { VIOLENCE_LABEL, monthName, type ConflictSnapshot } from '@shared/domain/conflictEvents';
@@ -27,6 +28,9 @@ interface Props {
   unusualBases?: number | null;
   /** Infrastructure layer: all sites shown (count, or null when only flagged ones), flagged count. */
   infrastructure?: { all: number | null; flagged: number; simulated: boolean };
+  /** Undersea lines by kind, and disputed areas (v0.71.0; omit when off). */
+  undersea?: Record<UnderseaKind, number> | null;
+  disputed?: number | null;
   /** Radiation layer (omit when off). */
   radiation?: RadiationSnapshot;
   gnss?: GnssSnapshot & { ageMinutes: number };
@@ -57,7 +61,7 @@ interface Props {
 const BRANCH_LABEL = { army: 'Army', navy: 'Navy', 'air-force': 'Air Force', marines: 'Marines', other: 'Other DoD' } as const;
 
 /** Collapsible legend explaining symbols and location-precision handling. */
-export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, infrastructure, power, faa, radiation, gnss, navWarnings, emergencies, conflicts, conflictWindow, navWarnDays, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
+export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, infrastructure, undersea, disputed, power, faa, radiation, gnss, navWarnings, emergencies, conflicts, conflictWindow, navWarnDays, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
   // Closed by default on phones, where it would cover most of the map.
   const [open, setOpen] = useState(() => typeof window === 'undefined' || window.matchMedia?.('(min-width: 768px)').matches !== false);
   return (
@@ -129,6 +133,36 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
                 <span>Unusual activity this week</span>
                 <span className="ml-auto text-wt-fg tabular-nums">{unusualBases === null || unusualBases === undefined ? 'building baseline' : unusualBases}</span>
               </div>
+            </div>
+          )}
+          {undersea !== undefined && (
+            <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
+              <div className="flex justify-between">
+                <span>Undersea cables and pipelines</span>
+                <span className="text-wt-fg tabular-nums">{undersea ? Object.values(undersea).reduce((a, b) => a + b, 0) : 'loading'}</span>
+              </div>
+              <ul className="space-y-0.5">
+                {(['telecom', 'power', 'pipeline'] as const).map((k) => (
+                  <li key={k} className="flex items-center gap-1">
+                    <span className="h-0.5 w-3" style={{ background: UNDERSEA_COLOR[k] }} aria-hidden />
+                    <span className="flex-1">{UNDERSEA_LABEL[k]}</span>
+                    <span className="tabular-nums">{undersea?.[k] ?? '—'}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-wt-fg-dim">Watch-region seas only, as traced on OpenStreetMap (© contributors, ODbL): approximate, and some cables are missing.</p>
+            </div>
+          )}
+          {disputed !== undefined && (
+            <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
+              <div className="flex items-center justify-between gap-1">
+                <span className="flex items-center gap-1">
+                  <span className="size-2 border border-dashed" style={{ borderColor: DISPUTED_COLOR }} aria-hidden />
+                  Disputed and breakaway areas
+                </span>
+                <span className="text-wt-fg tabular-nums">{disputed ?? 'loading'}</span>
+              </div>
+              <p className="text-wt-fg-dim">Natural Earth (public domain): de facto lines with the claims noted. Can lag events; not front lines.</p>
             </div>
           )}
           {infrastructure && (

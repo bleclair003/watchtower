@@ -17,7 +17,7 @@ export interface MapView {
   zoom: number;
 }
 
-export const SELECTION_KINDS = ['event', 'base', 'air', 'fleet', 'strait', 'listed', 'infra', 'gnss'] as const;
+export const SELECTION_KINDS = ['event', 'base', 'air', 'fleet', 'strait', 'listed', 'infra', 'gnss', 'cable', 'area'] as const;
 export type SelectionKind = (typeof SELECTION_KINDS)[number];
 export interface MapSelection {
   kind: SelectionKind;
@@ -40,6 +40,8 @@ export const LAYER_CODES = {
   navWarnings: 'n',
   conflicts: 'c',
   gnss: 'j',
+  undersea: 'u',
+  disputed: 'd',
 } as const satisfies Partial<Record<keyof OperatorSettings, string>>;
 export type LayerKey = keyof typeof LAYER_CODES;
 const LAYER_KEYS = Object.keys(LAYER_CODES) as LayerKey[];
@@ -82,7 +84,7 @@ export function encodeMapLink(s: { view: MapView | null; settings: LinkSettings;
   if (s.selection) p.set('sel', `${s.selection.kind}:${s.selection.key}`);
   if (s.ruler) p.set('ruler', s.ruler.map(([lo, la]) => `${fix(lo, 4)},${fix(la, 4)}`).join(';'));
   // Commas, semicolons and colons are safe in a query string; leaving them readable keeps links short.
-  return p.toString().replace(/%2C/g, ',').replace(/%3B/g, ';').replace(/%3A/g, ':').replace(/%7C/g, '|');
+  return p.toString().replace(/%2C/g, ',').replace(/%3B/g, ';').replace(/%3A/g, ':').replace(/%7C/g, '|').replace(/%2F/g, '/');
 }
 
 const finite = (x: string | undefined) => (x != null && x.trim() !== '' && Number.isFinite(Number(x)) ? Number(x) : null);

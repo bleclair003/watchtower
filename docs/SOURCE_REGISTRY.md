@@ -362,3 +362,12 @@ Links only, as in Phase 28. Both sources make no records; they are stored in the
 | Cloudflare Radar route hijacks (`/radar/bgp/hijacks/events`, minConfidence 8) and leaks (`/radar/bgp/leaks/events`) | scientific, CC BY-NC 4.0 | Read hourly, last 2 days, up to 5 pages of 100. Events involving networks registered in watch-region countries (not the US), 7 days: networks (AS number, name, country), prefixes (up to 10), times, confidence. A record per event; leaks under 100 blocks are routine |
 | Cloudflare Radar layer-3 attacks (`/radar/attacks/layer3/timeseries`, `location`, `direction=TARGET`, `aggInterval=1d`) | scientific, CC BY-NC 4.0 | Once a day, one request per watch-region country: 28 complete days as Cloudflare scales them, the last scored against the earlier median. A record for a surge (3× the median and 3+ typical spreads) |
 
+### v0.71.0 — Map layers (static files, rebuilt by script)
+
+| Dataset | Licence | What WATCHTOWER keeps |
+|---|---|---|
+| OpenStreetMap via Overpass (`scripts/build-undersea.ts`) | ODbL 1.0, © OpenStreetMap contributors | Undersea (`location=underwater` or `submarine`) telecom cables, power cables of 100 kV or more and oil and gas pipelines in eight watch-region sea areas: 197 lines (36 telecom, 95 power, 66 pipelines), names, operators, voltage, substance, simplified routes. Approximate; thin outside Europe |
+| Natural Earth 1:10m breakaway and disputed areas (`scripts/build-disputed.ts`) | Public domain | 99 areas worldwide with name, type and the administered-by / claimed-by note. Lags events (Donetsk and Luhansk lines predate 2022; Artsakh dissolved 2024) |
+| Wikidata: nuclear facility, research reactor, embassy, consulate and direct subclasses (`scripts/build-infrastructure.ts --new-types-only`) | CC0 | 20 other nuclear facilities and 112 embassies and consulates with coordinates in watch-region countries, added to `infrastructure.json` |
+| TeleGeography Submarine Cable Map | rejected | Only its map images are CC BY-SA 4.0; the raw cable and landing-point data and its JSON API are sold under a paid annual licence |
+

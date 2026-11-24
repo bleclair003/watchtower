@@ -27,7 +27,7 @@ export function infrastructureMeter(input: MeterInput, regionId: string): Meter 
       ? 'Infrastructure check not run yet.'
       : flagged.length
         ? `${plural(flagged.length, 'site')} with records near or naming them in 72 h: ${flagged.slice(0, 3).map((f) => f.name).join(', ')}${flagged.length > 3 ? '…' : ''}.`
-        : `None of the region's power plants, nuclear sites, refineries, dams or ports has a record near or naming it in 72 h.`,
+        : `None of the region's power plants, nuclear sites, refineries, dams, ports or embassies has a record near or naming it in 72 h.`,
     components: flagged.slice(0, 6).map((f) => ({
       label: `${f.name} (${INFRA_LABEL[f.type].toLowerCase()}, ${f.country})`,
       value: [f.near ? `${f.near} near` : '', f.named ? `${f.named} named` : ''].filter(Boolean).join(', '),
@@ -37,8 +37,8 @@ export function infrastructureMeter(input: MeterInput, regionId: string): Meter 
     asOf: snap?.computedAt ?? null,
     baseline: 'none',
     notes: [
-      'Sites: WRI Global Power Plant Database (500 MW+ and all nuclear; data to 2021) and Wikidata (nuclear plants, refineries; dams and ports with an English Wikipedia article). Some major sites are missing (e.g. Abqaiq, Kharg Island).',
-      'Near = a new fire cluster or an exactly located military record within 10 km of a nuclear plant or 5 km of other sites. A fire near an industrial site can be routine (flares, field burning).',
+      'Sites: WRI Global Power Plant Database (500 MW+ and all nuclear; data to 2021) and Wikidata (nuclear plants and other nuclear facilities, refineries, embassies and consulates; dams and ports with an English Wikipedia article). Some major sites are missing (e.g. Abqaiq, Kharg Island), and only some embassies have a location on Wikidata.',
+      'Near = a new fire cluster or an exactly located military record within 10 km of a nuclear site, 1 km of an embassy or 5 km of other sites. A fire near an industrial site can be routine (flares, field burning).',
     ],
   });
 }

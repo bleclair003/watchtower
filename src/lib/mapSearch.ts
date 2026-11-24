@@ -7,12 +7,15 @@ import type { Airport } from '@shared/domain/radio';
 import type { SanctionedShipSighting } from '@shared/domain/sanctionedShips';
 import { WATCH_REGIONS } from '@shared/domain/regions';
 import type { MapSelection } from './mapLink';
+import { UNDERSEA_LABEL, type UnderseaLine } from '@shared/domain/undersea';
+import type { DisputedDataset } from '@shared/domain/disputed';
+import { INFRA_LABEL } from '@shared/domain/infrastructure';
 
 /**
  * Map search (v0.68.0): finds what is already loaded on the map, so a search costs no reads.
  * Layers that are switched off are not searched; the search box says which.
  */
-export type SearchKind = 'region' | 'base' | 'aircraft' | 'ship' | 'fleet' | 'strait' | 'infra' | 'airport';
+export type SearchKind = 'region' | 'base' | 'aircraft' | 'ship' | 'fleet' | 'strait' | 'infra' | 'cable' | 'area' | 'airport';
 export const KIND_LABEL: Record<SearchKind, string> = {
   region: 'REGION',
   base: 'BASE',
@@ -21,6 +24,8 @@ export const KIND_LABEL: Record<SearchKind, string> = {
   fleet: 'US NAVY',
   strait: 'STRAIT',
   infra: 'SITE',
+  cable: 'UNDERSEA',
+  area: 'DISPUTED AREA',
   airport: 'AIRPORT',
 };
 
@@ -49,6 +54,8 @@ export interface SearchSources {
   infra?: InfraSite[];
   flaggedInfra?: FlaggedSite[];
   airports?: Airport[];
+  undersea?: UnderseaLine[];
+  disputed?: DisputedDataset['features'];
 }
 
 const norm = (s: string) => s.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -88,7 +95,18 @@ export function buildSearchIndex(s: SearchSources): SearchItem[] {
   }
   for (const i of s.infra ?? []) {
     if (seenInfra.has(i.id) || !i.n[0]) continue;
-    add({ kind: 'infra', label: i.n[0], detail: `${i.t} · ${i.c}`, lat: i.la, lon: i.lo, select: { kind: 'infra', key: i.id } }, i.n.slice(1));
+    add({ kind: 'infra', label: i.n[0], detail: `${INFRA_LABEL[i.t]} · ${i.c}`, lat: i.la, lon: i.lo, select: { kind: 'infra', key: i.id } }, [...i.n.slice(1), i.t]);
+  }
+  for (const l of s.undersea ?? []) {
+    if (!l.n) continue;
+    const mid = l.g[0][Math.floor(l.g[0].length / 2)];
+    add({ kind: 'cable', label: l.n, detail: [UNDERSEA_LABEL[l.k], l.op].filter(Boolean).join(' · '), lat: mid[1], lon: mid[0], select: { kind: 'cable', key: l.id } });
+  }
+  for (const f of s.disputed ?? []) {
+    const pts = f.geometry.coordinates.flat(2);
+    const lat = pts.reduce((a, p) => a + p[1], 0) / pts.length;
+    const lon = pts.reduce((a, p) => a + p[0], 0) / pts.length;
+    add({ kind: 'area', label: f.properties.name, detail: f.properties.note ?? f.properties.kind, lat, lon, select: { kind: 'area', key: f.properties.id } });
   }
   for (const a of s.airports ?? []) add({ kind: 'airport', label: `${a.icao} ${a.name}`, detail: a.region, lat: a.lat, lon: a.lon, select: null });
   return out;

@@ -38,6 +38,10 @@ export interface OperatorSettings {
   conflicts: boolean;
   /** GPS interference squares and lost-GPS points (aircraft position accuracy) on the map. */
   gnss: boolean;
+  /** Undersea cables and pipelines (OpenStreetMap) on the map. */
+  undersea: boolean;
+  /** Disputed and breakaway areas (Natural Earth) on the map. */
+  disputed: boolean;
   /** Conflict events from the last N days of the release; null = whole month. */
   conflictDays: number | null;
   /** Navigational warnings issued in the last N days; null = any age. */
@@ -67,6 +71,8 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   navWarnings: true,
   conflicts: true,
   gnss: true,
+  undersea: false,
+  disputed: false,
   conflictDays: null,
   navWarnDays: null,
   imagery: 'off',

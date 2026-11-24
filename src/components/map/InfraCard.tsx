@@ -1,5 +1,5 @@
 import { ExternalLink, X } from 'lucide-react';
-import { INFRA_LABEL, INFRA_RADIUS_KM, type FlaggedSite, type InfraDataset, type InfraSite } from '@shared/domain/infrastructure';
+import { INFRA_LABEL, INFRA_RADIUS_KM, isNuclearType, type FlaggedSite, type InfraDataset, type InfraSite } from '@shared/domain/infrastructure';
 import { countryName } from '../../lib/regionSummary';
 import { formatAge } from '../../lib/time';
 import { safeExternalUrl } from '../../lib/sanitize';
@@ -26,7 +26,7 @@ export function InfraCard({ site, flagged, dataset, now, onClose }: { site: Infr
             {INFRA_LABEL[type]} · {countryName(country)}
           </p>
         </div>
-        {flagged && <Tag tone={flagged.type === 'nuclear' ? 'crit' : 'warn'}>FLAGGED</Tag>}
+        {flagged && <Tag tone={isNuclearType(flagged.type) ? 'crit' : 'warn'}>FLAGGED</Tag>}
         <button onClick={onClose} aria-label="Close" className="text-wt-fg-muted hover:text-wt-fg">
           <X size={12} />
         </button>
@@ -97,7 +97,7 @@ export function InfraCard({ site, flagged, dataset, now, onClose }: { site: Infr
         )}
       </div>
       <p className="border-t border-wt-line px-2 py-1 text-wt-fg-dim">
-        Near = a new fire cluster or an exactly located military record within {INFRA_RADIUS_KM[type]} km. Named = the record names the site with its type (“… nuclear plant”, “Port of …”). A fire near an industrial site can be routine.
+        Near = a new fire cluster or an exactly located military record within {INFRA_RADIUS_KM[type]} km. Named = the record names the site with its type (“… nuclear plant”, “Port of …”); embassies are matched by location only. A fire near an industrial site can be routine.{type === 'embassy' && ' Embassies and consulates come from Wikidata, where only some missions have a location.'}{type === 'nuclear-site' && ' Other nuclear facilities are as Wikidata classes them (research reactors, enrichment and fuel-cycle sites, some former test or waste sites).'}
       </p>
     </section>
   );

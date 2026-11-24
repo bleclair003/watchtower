@@ -2,7 +2,7 @@ import type { IntelligenceEvent } from './types.ts';
 import { regionsForCountry } from './regions.ts';
 import { distanceKm } from './installations.ts';
 import { isNews } from './changes.ts';
-import { INFRA_RADIUS_KM, type FlaggedSite, type InfraMatch, type InfraSite, type InfraType, type InfrastructureSnapshot } from './infrastructure.ts';
+import { INFRA_RADIUS_KM, isNuclearType, type FlaggedSite, type InfraMatch, type InfraSite, type InfraType, type InfrastructureSnapshot } from './infrastructure.ts';
 
 /**
  * Records near or naming critical infrastructure in the last 72 hours.
@@ -24,10 +24,14 @@ const TYPE_WORDS: Record<InfraType, string> = {
   refinery: '(?:oil )?refinery',
   dam: 'dam',
   port: '(?:port|harbou?r|seaport|terminal)',
+  'nuclear-site': '(?:nuclear (?:research )?(?:facility|site|centre|center|complex)|enrichment (?:plant|facility|site)|(?:research |heavy[- ]water )?reactor)',
+  // Embassies are matched by location only: their names ("Embassy of the United States, Kyiv") do not
+  // reduce to a core that headlines use, and "the US embassy" alone does not say which one.
+  embassy: '(?!)',
 };
 /** Words removed from a site's name to get its core ("Zaporizhzhia Nuclear Power Plant" → "Zaporizhzhia"). */
 const STRIP =
-  /\b(nuclear power plant|nuclear power station|nuclear plant|power plant|power station|hydroelectric power plant|hydroelectric power station|hydroelectric|thermal|oil refinery|refinery|dam|port of|seaport|sea port|port|harbour|harbor|fishing|river|commercial|npp|tpp|hpp|chp|gres|ccgt|c\.c\.|cc|ii|iii|iv|-\d)\b/gi;
+  /\b(nuclear research center|nuclear research centre|nuclear facility|nuclear site|enrichment plant|enrichment facility|research reactor|heavy water reactor|nuclear power plant|nuclear power station|nuclear plant|power plant|power station|hydroelectric power plant|hydroelectric power station|hydroelectric|thermal|oil refinery|refinery|dam|port of|seaport|sea port|port|harbour|harbor|fishing|river|commercial|npp|tpp|hpp|chp|gres|ccgt|c\.c\.|cc|ii|iii|iv|-\d)\b/gi;
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const KEYWORD = /nuclear|atomic|npp|power|plant|station|refinery|dam\b|port|harbou?r|terminal|tpp|hpp|gres|chp/i;
 
@@ -38,6 +42,7 @@ function coreOf(name: string): string | null {
 
 /** Name patterns for a site: its core name next to its type word, in either order. */
 export function sitePatterns(site: Pick<InfraSite, 'n' | 't'>): RegExp[] {
+  if (site.t === 'embassy') return [];
   const cores = [...new Set(site.n.map(coreOf).filter((c): c is string => !!c))];
   const type = TYPE_WORDS[site.t];
   return cores.map((c) => {
@@ -93,13 +98,13 @@ export function computeInfrastructure(sites: InfraSite[], events: IntelligenceEv
       matches: matches.slice(0, 5),
     });
   }
-  flagged.sort((a, b) => Number(b.type === 'nuclear') - Number(a.type === 'nuclear') || b.near + b.named - (a.near + a.named));
+  flagged.sort((a, b) => Number(isNuclearType(b.type)) - Number(isNuclearType(a.type)) || b.near + b.named - (a.near + a.named));
   return { computedAt: new Date(now).toISOString(), windowHours: INFRA_WINDOW_HOURS, sitesChecked: sites.length, flagged: flagged.slice(0, 100) };
 }
 
 /** Points for the meter: nuclear sites weigh most; strike headlines more than mentions. */
 export function siteScore(f: FlaggedSite): number {
-  const nuclear = f.type === 'nuclear';
+  const nuclear = isNuclearType(f.type);
   const near = f.matches.some((m) => m.how === 'near') ? (nuclear ? 3 : 1) : 0;
   const strike = f.matches.some((m) => m.kind === 'strike') ? (nuclear ? 3 : 2) : 0;
   const mention = f.matches.some((m) => m.kind === 'mention') ? 0.5 : 0;

@@ -11,10 +11,12 @@ interface Props {
   snapshot: SanctionedShipsSnapshot;
   now: number;
   onClose: () => void;
+  /** Undersea cables and pipelines within 20 km (v0.71.0); undefined while the undersea data loads. */
+  nearLines?: { name: string; kind: string; km: number }[];
 }
 
 /** One sanctioned vessel's latest AIS position, with how it was matched and the limits. */
-export function SanctionedShipCard({ ship: s, snapshot, now, onClose }: Props) {
+export function SanctionedShipCard({ ship: s, snapshot, now, onClose, nearLines }: Props) {
   const area = SHIP_AREAS.find((a) => a.id === s.area);
   const link = snapshot.simulated ? null : safeExternalUrl(s.imo ? `https://www.marinetraffic.com/en/ais/details/ships/imo:${s.imo}` : `https://www.marinetraffic.com/en/ais/details/ships/mmsi:${s.mmsi}`);
   return (
@@ -80,6 +82,22 @@ export function SanctionedShipCard({ ship: s, snapshot, now, onClose }: Props) {
           </>
         )}
       </dl>
+      {nearLines && (
+        <div className="border-t border-wt-line px-2 py-1.5">
+          <p className="text-wt-fg-dim">UNDERSEA CABLES AND PIPELINES WITHIN 20 KM</p>
+          {nearLines.length ? (
+            <ul className="mt-0.5 space-y-0.5">
+              {nearLines.slice(0, 5).map((l) => (
+                <li key={l.name}>
+                  <span className={l.km <= 5 ? 'text-wt-warn' : 'text-wt-fg'}>{l.name}</span> <span className="text-wt-fg-muted">· {l.kind} · {l.km} km</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-wt-fg-muted">None mapped on OpenStreetMap.</p>
+          )}
+        </div>
+      )}
       <p className="border-t border-wt-line px-2 py-1 text-wt-fg-dim">
         Seen during a 25-second listening window in a collection run. Only ships with AIS on are seen. A sanctioned ship at sea is not by itself a violation. An MMSI-only match can be a different ship if the number was reassigned.
       </p>

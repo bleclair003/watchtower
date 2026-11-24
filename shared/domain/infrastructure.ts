@@ -8,12 +8,25 @@
  *    Wikipedia article (a notability bar), to add sites built after 2021 and other kinds
  */
 
-export const INFRA_TYPES = ['nuclear', 'power', 'refinery', 'dam', 'port'] as const;
+export const INFRA_TYPES = ['nuclear', 'nuclear-site', 'power', 'refinery', 'dam', 'port', 'embassy'] as const;
 export type InfraType = (typeof INFRA_TYPES)[number];
-export const INFRA_LABEL: Record<InfraType, string> = { nuclear: 'Nuclear power plant', power: 'Power plant (500 MW+)', refinery: 'Oil refinery', dam: 'Dam', port: 'Port' };
+export const INFRA_LABEL: Record<InfraType, string> = {
+  nuclear: 'Nuclear power plant',
+  'nuclear-site': 'Other nuclear facility (research, enrichment, fuel)',
+  power: 'Power plant (500 MW+)',
+  refinery: 'Oil refinery',
+  dam: 'Dam',
+  port: 'Port',
+  embassy: 'Embassy or consulate',
+};
+/** Nuclear power plants and other nuclear facilities: wider ring, weighted most. */
+export const isNuclearType = (t: InfraType) => t === 'nuclear' || t === 'nuclear-site';
 
-/** Location matches within this distance (km): a wider ring for nuclear plants. */
-export const INFRA_RADIUS_KM: Record<InfraType, number> = { nuclear: 10, power: 5, refinery: 5, dam: 5, port: 5 };
+/**
+ * Location matches within this distance (km): a wider ring for nuclear sites; embassies 1 km, since they
+ * sit in city centres among many other buildings (only exactly located records are ever compared).
+ */
+export const INFRA_RADIUS_KM: Record<InfraType, number> = { nuclear: 10, 'nuclear-site': 10, power: 5, refinery: 5, dam: 5, port: 5, embassy: 1 };
 
 /** Compact record from public/data/infrastructure.json. */
 export interface InfraSite {

@@ -238,3 +238,21 @@ test('CYBER page: simulated route hijack, large leak, and DDoS levels with a sur
   await expect(page.getByText(/No data: KP, ER/)).toBeVisible();
   expect(problems).toEqual([]);
 });
+
+test('undersea and disputed layers: search a cable, open its card, and a disputed area from a link', async ({ page, problems }) => {
+  await page.goto('/?at=59.5,24,5&layers=gaud');
+  const search = page.getByRole('combobox', { name: /find on map/i });
+  await search.fill('c-lion');
+  await expect(page.getByRole('listbox', { name: 'Map search results' }).getByRole('option').first()).toContainText('C-Lion 1');
+  await search.press('Enter');
+  const card = page.getByRole('region', { name: 'Undersea line: C-Lion 1' });
+  await expect(card).toContainText('Telecom cable');
+  await expect(card).toContainText('ODbL');
+  await expect(page).toHaveURL(/sel=cable:osm:way\/\d+/);
+  await search.fill('golan');
+  await search.press('Enter');
+  const area = page.getByRole('region', { name: 'Disputed area: Golan Heights' });
+  await expect(area).toContainText(/Admin\. [Bb]y Israel/);
+  await expect(area).toContainText('not WATCHTOWER');
+  expect(problems).toEqual([]);
+});

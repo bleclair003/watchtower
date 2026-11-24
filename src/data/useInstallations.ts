@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { InstallationDataset, WorldDataset } from '@shared/domain/installations';
 import type { InfraDataset } from '@shared/domain/infrastructure';
+import type { UnderseaDataset } from '@shared/domain/undersea';
+import type { DisputedDataset } from '@shared/domain/disputed';
 import type { SelectedSite } from '../components/map/InstallationCard';
 
 const cache = new Map<string, Promise<unknown>>();
@@ -37,6 +39,11 @@ function useStatic<T>(path: string, enabled: boolean, label = 'Installations lay
 
 /** Critical infrastructure in watch-region countries (WRI + Wikidata, ~30 KB compressed). */
 export const useInfrastructure = (enabled: boolean) => useStatic<InfraDataset>('/data/infrastructure.json', enabled, 'Infrastructure layer');
+
+/** Undersea cables and pipelines in the watch-region seas (OpenStreetMap, v0.71.0). */
+export const useUndersea = (enabled: boolean) => useStatic<UnderseaDataset>('/data/undersea.json', enabled, 'Undersea layer');
+/** Disputed and breakaway areas worldwide (Natural Earth, v0.71.0). */
+export const useDisputed = (enabled: boolean) => useStatic<DisputedDataset>('/data/disputed.json', enabled, 'Disputed areas layer');
 
 /** US sites (DoD MIRTA, ~30 KB compressed). */
 export const useInstallations = (enabled: boolean) => useStatic<InstallationDataset>('/data/installations-us.json', enabled);
