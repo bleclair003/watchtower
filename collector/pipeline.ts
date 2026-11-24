@@ -56,6 +56,8 @@ import { NGA_SOURCE_ID, type NgaState } from './adapters/ngaMsi.ts';
 import { EMERGENCY_SOURCE_ID, type EmergencyState } from './adapters/adsbEmergencies.ts';
 import { UCDP_SOURCE_ID, type UcdpState } from './adapters/ucdp.ts';
 import type { TaiwanPlaState } from './adapters/taiwanPla.ts';
+import type { SatellitesState } from './adapters/satellites.ts';
+import { SATELLITES_SOURCE_ID } from '../shared/domain/satellites.ts';
 import { TAIWAN_PLA_SOURCE_ID } from '../shared/domain/taiwanPla.ts';
 import { GNSS_SOURCE_ID, type GnssState } from './adapters/gnssInterference.ts';
 import { BGP_SOURCE_ID, DDOS_SOURCE_ID, type BgpState, type DdosState } from './adapters/radarNet.ts';
@@ -516,6 +518,15 @@ export async function runCollection(
     }
   } catch (err) {
     log(`NET  routing or DDoS data not added to the snapshot: ${sanitizeError(err)}`);
+  }
+  // v0.84.0: satellite elements (CelesTrak), shown while under 3 days old.
+  if (tracked.includes(SATELLITES_SOURCE_ID)) {
+    try {
+      const sat = await store.getSourceState<SatellitesState>(SATELLITES_SOURCE_ID);
+      if (sat?.latest && Date.parse(snapshot.generatedAt) - Date.parse(sat.latest.fetchedAt) < 3 * 86_400_000) snapshot.satellites = sat.latest;
+    } catch (err) {
+      log(`SAT  satellite elements not added to the snapshot: ${sanitizeError(err)}`);
+    }
   }
   // v0.82.0: PLA activity around Taiwan (daily; shown while under 4 days old).
   if (tracked.includes(TAIWAN_PLA_SOURCE_ID)) {

@@ -325,6 +325,22 @@ test('ships and lanes: simulated tankers with 24-hour tracks, a ship card from s
   expect(problems).toEqual([]);
 });
 
+test('Satellites: a link opens the layer with the satellite card; region passes on request (simulated)', async ({ page, problems }) => {
+  await page.goto('/?at=20,0,1.5&sel=sat:990001');
+  const card = page.getByRole('region', { name: 'Satellite SIM RECON 1' });
+  await expect(card).toContainText('NORAD 990001');
+  await expect(card).toContainText(/km up/);
+  await expect(card).toContainText('not that anything was imaged');
+  await expect(page.getByRole('button', { name: /SATS/ })).toHaveAttribute('aria-pressed', 'true');
+  await card.getByRole('button', { name: 'Close satellite details' }).click();
+  await expect(page).not.toHaveURL(/sel=sat/);
+
+  await page.goto('/regions/taiwan-strait');
+  await page.getByRole('button', { name: /COMPUTE PASSES FOR 5 SATELLITES/ }).click();
+  await expect(page.getByText(/No passes in the next 6 hours|SIM /).first()).toBeVisible();
+  expect(problems).toEqual([]);
+});
+
 test('Middle East region page: travel advice by government with a joint raise (simulated)', async ({ page, problems }) => {
   await page.goto('/regions/middle-east');
   await expect(page.getByRole('list', { name: 'Joint raises' })).toContainText('JOINT RAISE');

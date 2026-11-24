@@ -19,6 +19,7 @@ import { aisTraffic } from './aisTraffic.ts';
 import { taiwanPla } from './taiwanPla.ts';
 import { canadaTravel } from './canadaTravel.ts';
 import { cdcTravel } from './cdcTravel.ts';
+import { satellites } from './satellites.ts';
 import { unSecurityCouncil } from './unsc.ts';
 import { yonhapDprkLaunches } from './yonhapDprk.ts';
 import { dodContracts } from './dodContracts.ts';
@@ -124,4 +125,5 @@ export const ADAPTERS: SourceAdapter<never>[] = [
   taiwanPla as SourceAdapter<never>,
   canadaTravel as SourceAdapter<never>,
   cdcTravel as SourceAdapter<never>,
+  satellites as SourceAdapter<never>,
 ];

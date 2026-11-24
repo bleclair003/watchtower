@@ -403,3 +403,9 @@ Links only, as in Phase 28. Both sources make no records; they are stored in the
 | US CDC travel health notices (`wwwnc.cdc.gov/travel/rss/notices.xml`) | official, public domain | One record per notice (Level 1–4, disease, places, countries). Read at most every 3 hours (the CDC asks crawlers to wait 20 s) |
 | Australia Smartraveller (`smartraveller.gov.au`) | not read | The site (Akamai) times out non-browser requests; no open data feed on data.gov.au |
 
+### v0.84.0 — Satellites
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| CelesTrak GP elements (`celestrak.org/NORAD/elements/gp.php?GROUP=military|resource&FORMAT=csv`) | aggregator; CelesTrak usage policy (CSV, at most once per 2-hour update, no repeated failing requests) | Orbital elements for about 45 military and 167 Earth imaging satellites, in the private layers document; no records. Read at most every 12 hours; after a failure the collector waits 12 hours |
+

@@ -1577,7 +1577,28 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     termsNotes: 'The API is free and open source; clients are asked to send a descriptive User-Agent and pick a server from all.api.radio-browser.info, both done. Station streams belong to their broadcasters.',
     priority: 'P3',
     feasibility: { checkedAt: '2026-11-23T10:00:00Z', result: 'reachable', note: 'stations/search HTTP 200; 11,120 working stations with a position, e.g. 41 in Ukraine, 11 in Israel.' },
-  },  // ------------------------------------------------------------ v0.83.0 ---
+  },  // ------------------------------------------------------------ v0.84.0 ---
+  {
+    id: 'celestrak-satellites',
+    name: 'Satellite orbital elements (CelesTrak)',
+    organization: 'CelesTrak (Dr T.S. Kelso), from the US Space Force satellite catalogue',
+    website: 'https://celestrak.org/',
+    endpoint: 'https://celestrak.org/NORAD/elements/gp.php?GROUP={military|resource}&FORMAT=csv',
+    method: 'structured-download',
+    sourceClass: 'aggregator',
+    defaultCategory: 'military',
+    coverage: 'Military satellites with public element sets and Earth imaging and resource satellites (about 210)',
+    authentication: 'None',
+    freeAccess: 'Free; CelesTrak usage policy (CSV, no more than once per 2-hour update, no repeated failing requests)',
+    expectedUpdateFrequency: 'Elements every 2 hours at CelesTrak; read here at most every 12 hours',
+    pollIntervalMinutes: 720,
+    reliabilityNotes:
+      'Makes no records. Positions and passes are computed in the browser with SGP4 (satellite.js): a few km near the element epoch, worse as elements age (the age is shown). The public catalogue leaves out many classified satellites. A pass means the ground track crosses a region, not that anything was imaged. After a failed read the collector waits 12 hours instead of retrying.',
+    termsNotes: 'Follows the CelesTrak usage policy (2026-11-16). The elements are kept in the private, sign-in-only database, not republished on a public page.',
+    priority: 'P3',
+    feasibility: { checkedAt: '2026-11-24T21:00:00Z', result: 'reachable', note: 'gp.php GROUP=military 45 and GROUP=resource 167 elements (CSV); robots.txt allows gp.php for general agents.' },
+  },
+  // ------------------------------------------------------------ v0.83.0 ---
   {
     id: 'canada-travel-advisories',
     name: 'Travel advice and advisories (Canada)',

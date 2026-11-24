@@ -589,3 +589,13 @@ From the feature audit (category 2 item 4).
 - [ ] Australia (Smartraveller): the site drops non-browser requests; no open data feed found
 - [ ] Germany, France, Japan travel advice: check for open feeds
 
+## Phase 46 — Satellites (2026-11-24)
+
+From the feature audit (category 6 items 1 and 6).
+
+- [x] CelesTrak elements for military satellites with public orbits and Earth imaging satellites, read at most every 12 hours under CelesTrak's usage policy, kept in the private layers document — v0.84.0
+- [x] SATS map layer: positions computed in the browser (SGP4, satellite.js 6), ground track of the selected satellite, card with orbit, element age and the next pass over each watch region — v0.84.0
+- [x] Region pages: satellite passes over the region in the next 6 hours, computed on request — v0.84.0
+- [ ] Re-entries and decays (audit 6.5): needs CelesTrak's SATCAT decay data on the same usage policy
+- [ ] Overpasses against events: which imaging satellites passed over a strike or fire around its time
+

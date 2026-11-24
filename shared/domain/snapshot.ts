@@ -26,6 +26,7 @@ import type { ActorsSnapshot } from './actors.ts';
 import type { ConvergenceSnapshot } from './convergence.ts';
 import type { TaiwanPlaSnapshot } from './taiwanPla.ts';
 import type { TravelAdviceSnapshot } from './travelAdvice.ts';
+import type { SatellitesSnapshot } from './satellites.ts';
 
 /**
  * Precomputed dashboard payload, written by the collector to
@@ -124,6 +125,8 @@ export interface DashboardSnapshot {
   taiwanPla?: TaiwanPlaSnapshot;
   /** v0.83.0: each government's latest travel advice per watch-region country, and joint raises. */
   travelAdvice?: TravelAdviceSnapshot;
+  /** v0.84.0: satellite elements (CelesTrak); positions and passes are computed in the browser. */
+  satellites?: SatellitesSnapshot;
   /** Daily sources that have gone quiet while reachable (for the brief and Diagnostics). */
   quietSources?: { sourceId: string; name: string; hoursSinceNew: number; usualPerDay: number }[];
 }
@@ -191,6 +194,7 @@ export const LAYER_KEYS = [
   'convergence',
   'taiwanPla',
   'travelAdvice',
+  'satellites',
 ] as const satisfies readonly (keyof DashboardSnapshot)[];
 export type LayerKey = (typeof LAYER_KEYS)[number];
 export type LayersSnapshot = Partial<Pick<DashboardSnapshot, LayerKey>> & { generatedAt: string };

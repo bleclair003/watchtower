@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.84.0] — 2026-11-24 — Satellites (Phase 46)
+
+### Added
+- **Satellite elements from CelesTrak.** Covers military satellites with public orbits (about 45) and Earth imaging and resource satellites (about 167).
+  - Read at most every 12 hours, as compressed CSV, following CelesTrak's usage policy. After a failed read the collector waits 12 hours instead of retrying, because CelesTrak firewalls clients that repeat failing requests.
+  - Kept in the private, sign-in-only layers document and not republished.
+- **SATS map layer** (off by default). Positions are computed in your browser with SGP4 (satellite.js 6) every 20 seconds while the layer is on.
+  - Clicking a satellite shows its ground track for the past and next 45 minutes.
+  - The card gives its height, orbit, element age (flagged when over 3 days), and the next pass over each watch region in the next 12 hours.
+  - Shareable links (`sel=sat:<NORAD id>`) turn the layer on.
+- **Region pages: satellite passes** in the next 6 hours. Computed on request, since it is a few hundred thousand position calculations.
+
+### Notes
+- **What a pass means:** the ground track crosses the region, not that anything was imaged.
+- **Accuracy:** positions from public elements are good to a few kilometres near the epoch and drift after it.
+- **Gaps:** many classified satellites are not in the public catalogue.
+- **Library version:** satellite.js 7 bundles a WebAssembly build the site's bundler cannot package, so version 6.0.2 is used.
+
 ## [0.83.1] — 2026-11-24 — Canada: sub-national entries skipped
 
 ### Fixed

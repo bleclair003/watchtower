@@ -1,7 +1,7 @@
 {
   "name": "watchtower",
   "private": true,
-  "version": "0.83.1",
+  "version": "0.84.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -31,7 +31,8 @@
     "maplibre-gl": "^6.19.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "react-router-dom": "^7.18.6"
+    "react-router-dom": "^7.18.6",
+    "satellite.js": "6.0.2"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

@@ -12,6 +12,8 @@ import { unpackAirports, type Airport } from '@shared/domain/radio';
 import { Anchor, Atom, Ban, Cable, Container, Crosshair, Factory, Flag, Grid3x3, LocateOff, Radar, Route, Target, Plane, PlaneLanding, Satellite, Shield, Ship, Siren, Square, Zap } from 'lucide-react';
 import { GnssCard } from '../components/map/GnssCard';
 import { ConvergenceCard } from '../components/map/ConvergenceCard';
+import { SatelliteCard } from '../components/map/SatelliteCard';
+import { groundTrack, subPoint, toSatrec } from '../lib/orbits';
 import { useBases, useDisputed, useInfrastructure, useLanes, useUndersea } from '../data/useInstallations';
 import { useShipTraffic } from '../data/useShipTraffic';
 import { TrafficShipCard } from '../components/map/TrafficShipCard';
@@ -55,7 +57,7 @@ import { Panel } from '../components/ui/Panel';
 export default function GlobalOperationsPage() {
   // Re-evaluate time windows once a minute; the clock in the top bar ticks separately.
   const now = useNow(60_000).getTime();
-  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips, baseActivity, infrastructure, powerOutages, tfrs, airportStatus, radiation, navWarnings, aircraftEmergencies, conflictEvents, gnss, convergence } = useData();
+  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips, baseActivity, infrastructure, powerOutages, tfrs, airportStatus, radiation, navWarnings, aircraftEmergencies, conflictEvents, gnss, convergence, satellites } = useData();
   const unusualBases = useMemo(() => (baseActivity?.items ?? []).filter((i) => i.unusual).map((i) => i.key), [baseActivity]);
   const { filters, setFilters, resetFilters, selectedEventId, selectEvent, globalViewNonce } = useDashboard();
   const { settings, update } = useSettings();
@@ -125,6 +127,25 @@ export default function GlobalOperationsPage() {
   const [selectedConv, setSelectedConv] = useState<string | null>(null);
   const shownConv = settings.convergence && convergence ? convergence : null;
   const selectedHotspot = selectedConv ? (shownConv?.hotspots.find((h) => h.id === selectedConv) ?? null) : null;
+  // Satellites (v0.84.0): positions recomputed every 20 s while the layer is on.
+  const [selectedSatId, setSelectedSatId] = useState<string | null>(null);
+  const shownSats = settings.satellites && satellites ? satellites : null;
+  const satRecs = useMemo(() => (shownSats ? shownSats.sats.map((s) => ({ s, rec: toSatrec(s.el) })).filter((x) => x.rec) : []), [shownSats]);
+  // Ticks every 20 s only while the layer is on (otherwise hourly), so the page is not re-rendered for nothing.
+  const satTick = useNow(shownSats ? 20_000 : 3_600_000).getTime();
+  const satPoints = useMemo(() => {
+    const at = new Date(satTick);
+    return satRecs.flatMap(({ s, rec }) => {
+      const p = subPoint(rec!, at);
+      return p ? [{ id: String(s.el.NORAD_CAT_ID), name: s.el.OBJECT_NAME, g: s.g, lat: p.lat, lon: p.lon }] : [];
+    });
+  }, [satRecs, satTick]);
+  const selectedSat = selectedSatId ? (shownSats?.sats.find((s) => String(s.el.NORAD_CAT_ID) === selectedSatId) ?? null) : null;
+  const satTrack = useMemo(() => {
+    const r = selectedSat ? satRecs.find((x) => x.s === selectedSat)?.rec : null;
+    return r ? groundTrack(r, Date.now() - 45 * 60_000, 90, 60) : [];
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the track is redrawn when the selection changes or every few minutes
+  }, [selectedSat, satRecs, Math.floor(satTick / 300_000)]);
   // Undersea cables and pipelines, disputed areas (v0.71.0): static files loaded when their layer is on.
   // The undersea file is also loaded when a sanctioned ship is selected, to list lines near it.
   const [selectedCable, setSelectedCable] = useState<string | null>(null);
@@ -157,8 +178,10 @@ export default function GlobalOperationsPage() {
     setDrawFinished(false);
   };
   // One map card at a time: selecting a base, aircraft, fleet area, chokepoint, vessel, site, square, line or area clears the others.
-  const selectOnly = (kind: 'base' | 'air' | 'fleet' | 'strait' | 'listed' | 'infra' | 'gnss' | 'cable' | 'area' | 'warea' | 'ship' | 'conv', key: string | null) => {
+  const selectOnly = (kind: 'base' | 'air' | 'fleet' | 'strait' | 'listed' | 'infra' | 'gnss' | 'cable' | 'area' | 'warea' | 'ship' | 'conv' | 'sat', key: string | null) => {
     setSelectedConv(kind === 'conv' ? key : null);
+    setSelectedSatId(kind === 'sat' ? key : null);
+    if (kind === 'sat' && key && !settings.satellites) update({ satellites: true });
     setSelectedShip(kind === 'ship' ? key : null);
     setSelectedWatch(kind === 'warea' ? key : null);
     setSelectedGnss(kind === 'gnss' ? key : null);
@@ -190,12 +213,14 @@ export default function GlobalOperationsPage() {
     const s = link.selection;
     if (s?.kind === 'event') selectEvent(s.key);
     else if (s) {
-      const kind = ({ base: 'base', air: 'air', fleet: 'fleet', strait: 'strait', listed: 'listed', infra: 'infra', gnss: 'gnss', cable: 'cable', area: 'area', warea: 'warea', ship: 'ship', conv: 'conv' } as const)[s.kind];
+      const kind = ({ base: 'base', air: 'air', fleet: 'fleet', strait: 'strait', listed: 'listed', infra: 'infra', gnss: 'gnss', cable: 'cable', area: 'area', warea: 'warea', ship: 'ship', conv: 'conv', sat: 'sat' } as const)[s.kind];
       selectOnly(kind, s.key);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- apply the opening link once
   }, []);
-  const selection: MapSelection | null = selectedConv
+  const selection: MapSelection | null = selectedSatId
+    ? { kind: 'sat', key: selectedSatId }
+    : selectedConv
     ? { kind: 'conv', key: selectedConv }
     : selectedShip
     ? { kind: 'ship', key: selectedShip }
@@ -308,6 +333,7 @@ export default function GlobalOperationsPage() {
       [settings.conflicts, 'CONFLICT'],
       [shownGnss, 'GPS'],
       [shownConv, 'CONVERGE'],
+      [shownSats, 'SATS'],
       [settings.undersea, 'CABLES'],
       [settings.traffic, 'SHIPS'],
       [settings.lanes, 'LANES'],
@@ -567,6 +593,17 @@ export default function GlobalOperationsPage() {
                 <Radar size={10} aria-hidden /> CONVERGE
               </button>
               <button
+                className={toggleBtn(settings.satellites)}
+                aria-pressed={settings.satellites}
+                title="Satellites: military satellites with public orbits and Earth imaging satellites, positions computed from CelesTrak elements"
+                onClick={() => {
+                  update({ satellites: !settings.satellites });
+                  setSelectedSatId(null);
+                }}
+              >
+                <Satellite size={10} aria-hidden /> SATS
+              </button>
+              <button
                 className={toggleBtn(settings.gnss)}
                 aria-pressed={settings.gnss}
                 title="GPS interference: share of aircraft reporting degraded GPS accuracy per 1° square, last 24 hours (adsb.lol, sampled hourly)"
@@ -722,6 +759,10 @@ export default function GlobalOperationsPage() {
               gnssCircles={shownGnss?.circles ?? []}
               selectedGnss={selectedGnssCell ? selectedGnss : null}
               onSelectGnss={(k) => selectOnly('gnss', k)}
+              satellites={satPoints}
+              satTrack={satTrack}
+              selectedSat={selectedSat ? selectedSatId : null}
+              onSelectSat={(id) => selectOnly('sat', id)}
               convergence={shownConv?.hotspots ?? []}
               selectedConvergence={selectedHotspot ? selectedConv : null}
               onSelectConvergence={(id) => selectOnly('conv', id)}
@@ -896,6 +937,7 @@ export default function GlobalOperationsPage() {
             <UnderseaCard line={selectedCableLine} dataset={underseaData.data} ships={sanctionedShips?.sightings ?? []} warnings={navWarnings?.warnings ?? []} onClose={() => setSelectedCable(null)} />
           )}
           {selectedAreaProps && <DisputedCard area={selectedAreaProps} onClose={() => setSelectedAreaKey(null)} />}
+          {selectedSat && shownSats && <SatelliteCard sat={selectedSat} snapshot={shownSats} now={satTick} onClose={() => setSelectedSatId(null)} />}
           {selectedHotspot && shownConv && <ConvergenceCard hotspot={selectedHotspot} snapshot={shownConv} now={now} onClose={() => setSelectedConv(null)} />}
           {selectedGnssCell && shownGnss && <GnssCard cell={selectedGnssCell} snapshot={shownGnss} warnings={navWarnings?.warnings ?? []} now={now} onClose={() => setSelectedGnss(null)} />}
           {(selectedInfraSite || selectedInfraFlag) && <InfraCard site={selectedInfraSite} flagged={selectedInfraFlag} dataset={infraData.data} now={now} onClose={() => setSelectedInfra(null)} />}

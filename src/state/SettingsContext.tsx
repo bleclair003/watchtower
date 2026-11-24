@@ -38,6 +38,8 @@ export interface OperatorSettings {
   conflicts: boolean;
   /** GPS interference squares and lost-GPS points (aircraft position accuracy) on the map. */
   gnss: boolean;
+  /** Satellites (v0.84.0): positions computed in the browser from CelesTrak elements. Off by default. */
+  satellites: boolean;
   /** Signal convergence hotspots (v0.79.0) on the map. */
   convergence: boolean;
   /** Undersea cables and pipelines (OpenStreetMap) on the map. */
@@ -80,6 +82,7 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   conflicts: true,
   gnss: true,
   convergence: true,
+  satellites: false,
   undersea: false,
   disputed: false,
   watchAreas: true,

@@ -49,6 +49,8 @@ export const WATCH_AREA_COLOR = '#7dd3fc';
 export const GNSS_COLOR: Record<GnssLevel, string> = { low: '#2f6a4c', medium: '#ffb347', high: '#ff4d6d' };
 /** Signal convergence hotspots (v0.79.0). */
 export const CONVERGENCE_COLOR: Record<HotspotLevel, string> = { watch: '#b48cff', strong: '#ff5cf0' };
+/** Satellites (v0.84.0). */
+export const SAT_COLOR: Record<'military' | 'resource', string> = { military: '#ff8f5c', resource: '#7fd4ff' };
 
 export interface WorldMapProps {
   events: IntelligenceEvent[];
@@ -78,6 +80,11 @@ export interface WorldMapProps {
   convergence?: Hotspot[];
   selectedConvergence?: string | null;
   onSelectConvergence?: (id: string | null) => void;
+  /** Satellites (v0.84.0): current sub-satellite points, and the selected one's ground track. */
+  satellites?: { id: string; name: string; g: 'military' | 'resource'; lat: number; lon: number }[];
+  satTrack?: [number, number][][];
+  selectedSat?: string | null;
+  onSelectSat?: (id: string | null) => void;
   /** Tanker and cargo traffic with 24 h tracks, and shipping lanes (v0.75.0); empty when off. */
   traffic?: TrafficShip[];
   /** Ships that went dark (last known positions, v0.77.0). */
@@ -1108,6 +1115,23 @@ export function WorldMap(props: WorldMapProps) {
             paint: { 'text-color': '#ffffff' },
           });
         }
+        // Satellites (v0.84.0): a small diamond per satellite and the selected one's ground track.
+        m.addSource('sat-track', { type: 'geojson', data: none });
+        m.addLayer({ id: 'sat-track', type: 'line', source: 'sat-track', paint: { 'line-color': '#ffffff', 'line-width': 1, 'line-dasharray': [2, 2], 'line-opacity': 0.7 } });
+        m.addSource('satellites', { type: 'geojson', data: none });
+        m.addLayer({
+          id: 'satellites',
+          type: 'circle',
+          source: 'satellites',
+          paint: {
+            'circle-radius': ['case', ['get', 'sel'], 6, 3.5],
+            'circle-color': ['match', ['get', 'g'], 'military', SAT_COLOR.military, SAT_COLOR.resource],
+            'circle-stroke-color': '#000000',
+            'circle-stroke-width': 1,
+          },
+        });
+        m.on('mouseenter', 'satellites', () => (m.getCanvas().style.cursor = 'pointer'));
+        m.on('mouseleave', 'satellites', () => (m.getCanvas().style.cursor = cb.current.measuring ? 'crosshair' : ''));
         m.on('mouseenter', 'convergence', () => (m.getCanvas().style.cursor = 'pointer'));
         m.on('mouseleave', 'convergence', () => (m.getCanvas().style.cursor = cb.current.measuring ? 'crosshair' : ''));
         m.addSource('pin', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
@@ -1130,6 +1154,11 @@ export function WorldMap(props: WorldMapProps) {
             const hit = m.queryRenderedFeatures([[e.point.x - 6, e.point.y - 6], [e.point.x + 6, e.point.y + 6]], { layers: snapLayers }).find((f) => f.geometry.type === 'Point');
             const at = hit ? ((hit.geometry as GeoJSON.Point).coordinates as LonLat) : ([e.lngLat.lng, e.lngLat.lat] as LonLat);
             cb.current.onRulerPoint?.(at);
+            return;
+          }
+          const satHit = m.getLayer('satellites') ? m.queryRenderedFeatures([[e.point.x - 5, e.point.y - 5], [e.point.x + 5, e.point.y + 5]], { layers: ['satellites'] }) : [];
+          if (satHit[0] && cb.current.onSelectSat) {
+            cb.current.onSelectSat(String(satHit[0].properties.id));
             return;
           }
           const conv = m.getLayer('convergence') && m.getLayoutProperty('convergence', 'visibility') !== 'none'
@@ -1702,6 +1731,21 @@ export function WorldMap(props: WorldMapProps) {
     if (!ready || !m) return;
     m.setFilter('gnss-selected', ['==', ['get', 'k'], selectedGnss ?? '__none__']);
   }, [ready, selectedGnss]);
+
+  // ------------------------------------------------------------ satellites --
+  const { satellites, satTrack, selectedSat } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    (m.getSource('satellites') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (satellites ?? []).map((s) => ({ type: 'Feature' as const, geometry: { type: 'Point' as const, coordinates: [s.lon, s.lat] }, properties: { id: s.id, g: s.g, name: s.name, sel: s.id === selectedSat } })),
+    });
+    (m.getSource('sat-track') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (satTrack ?? []).map((seg) => ({ type: 'Feature' as const, geometry: { type: 'LineString' as const, coordinates: seg }, properties: {} })),
+    });
+  }, [ready, satellites, satTrack, selectedSat]);
 
   // ---------------------------------------------------- signal convergence --
   const { convergence, selectedConvergence } = props;
