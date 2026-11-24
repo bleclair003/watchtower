@@ -1577,6 +1577,26 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     termsNotes: 'The API is free and open source; clients are asked to send a descriptive User-Agent and pick a server from all.api.radio-browser.info, both done. Station streams belong to their broadcasters.',
     priority: 'P3',
     feasibility: { checkedAt: '2026-11-23T10:00:00Z', result: 'reachable', note: 'stations/search HTTP 200; 11,120 working stations with a position, e.g. 41 in Ukraine, 11 in Israel.' },
+  },  // ------------------------------------------------------------ v0.80.0 ---
+  {
+    id: 'watchtower-convergence',
+    name: 'Signal convergence (WATCHTOWER analysis)',
+    organization: 'WATCHTOWER — computed from the other sources’ records',
+    website: '',
+    endpoint: null,
+    method: 'derived',
+    sourceClass: 'aggregator',
+    defaultCategory: 'general',
+    coverage: 'Map hotspots (located anomalies of 2+ types from 2+ independent feeds within 150 km, 72 h) and country hotspots (signals with a country but no position, 48 h)',
+    authentication: 'n/a',
+    freeAccess: 'Nothing is fetched',
+    expectedUpdateFrequency: 'Every collection run; a record only when a hotspot is new or goes from WATCH to STRONG',
+    pollIntervalMinutes: null,
+    reliabilityNotes:
+      'Coincidence, not causation: busy sea lanes, standing GPS jamming and conflicts that never stop put signals together by chance. Two feeds is WATCH, three or more STRONG. A hotspot is reported again only after it has been gone for 24 hours. Each record lists the records behind it (metadata.signalEventIds).',
+    termsNotes: 'Inherits the terms of the records it is built from; it republishes only their titles and links.',
+    priority: 'P2',
+    feasibility: { checkedAt: '2026-11-24T18:00:00Z', result: 'reachable', note: 'Computed in the collector; no outside request.' },
   },
 ];
 

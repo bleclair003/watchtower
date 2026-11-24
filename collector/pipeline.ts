@@ -2,6 +2,9 @@ import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../shared/d
 import { getSource } from '../shared/domain/sources.ts';
 import { computeBaseActivity } from '../shared/domain/baseActivity.ts';
 import { computeConvergence } from '../shared/domain/convergence.ts';
+import { findCountryHotspots } from '../shared/domain/countryConvergence.ts';
+import { trackHotspots, type ConvergenceMemory } from '../shared/domain/convergenceMemory.ts';
+import { CONVERGENCE_SOURCE_ID, convergenceRecord } from './lib/convergenceRecords.ts';
 import { loadBases } from './lib/bases.ts';
 import { loadInfrastructure } from './lib/infrastructure.ts';
 import { computeInfrastructure } from '../shared/domain/infraProximity.ts';
@@ -284,6 +287,36 @@ export async function runCollection(
   phases.push(['snapshot+indicators', clock() - tSnapshot]);
   const tAfter = clock();
 
+  // Signal convergence (v0.79.0 map hotspots, v0.80.0 countries), before alerting: a new or upgraded
+  // hotspot becomes a record, so alert rules can fire on it in this run.
+  try {
+    const gen = Date.parse(snapshot.generatedAt);
+    const gnssState = tracked.includes(GNSS_SOURCE_ID) ? await store.getSourceState<GnssState>(GNSS_SOURCE_ID) : null;
+    const gnssFresh = gnssState?.latest && gen - Date.parse(gnssState.latest.fetchedAt) < 3 * 3_600_000 ? gnssState.latest : null;
+    const conv = { ...computeConvergence(loaded, gnssFresh, gen), countries: findCountryHotspots(loaded, gen) };
+    snapshot.convergence = conv;
+    const prev = await store.getSourceState<ConvergenceMemory>(CONVERGENCE_SOURCE_ID);
+    const { memory, changes } = trackHotspots(prev, conv.hotspots, conv.countries, gen);
+    const records = changes.map((c) => convergenceRecord(c, snapshot.generatedAt, opts.appUrl)).filter((e) => {
+      const reason = validateEvent(e, now());
+      if (reason) log(`  reject ${CONVERGENCE_SOURCE_ID}: ${reason}`);
+      return !reason;
+    });
+    const fresh = await store.filterNewEventIds(records.map((e) => e.id));
+    const toWrite = records.filter((e) => fresh.has(e.id));
+    if (toWrite.length) await store.putEvents(toWrite);
+    await store.putSourceState(CONVERGENCE_SOURCE_ID, memory);
+    importedThisRun.push(...toWrite);
+    run.recordsImported += toWrite.length;
+    const strong = (xs: { level: string }[]) => xs.filter((h) => h.level === 'strong').length;
+    log(
+      `CNV  ${conv.hotspots.length} map hotspots (${strong(conv.hotspots)} strong) from ${conv.signalsChecked} located signals (72 h) · ` +
+        `${conv.countries.length} country hotspots (${strong(conv.countries)} strong, 48 h) · ${toWrite.length} new or upgraded recorded`,
+    );
+  } catch (err) {
+    log(`CNV  convergence not computed: ${sanitizeError(err)}`);
+  }
+
   // Alerting: only this run's CHANGES can fire, so unchanged inputs never re-alert.
   try {
     const alerting = await runAlerting(store, {
@@ -464,14 +497,6 @@ export async function runCollection(
     }
   } catch (err) {
     log(`NET  routing or DDoS data not added to the snapshot: ${sanitizeError(err)}`);
-  }
-  // v0.79.0: signal convergence — places where different kinds of signal line up (72 h).
-  try {
-    snapshot.convergence = computeConvergence(loaded, snapshot.gnss ?? null, Date.parse(snapshot.generatedAt));
-    const hs = snapshot.convergence.hotspots;
-    log(`CNV  ${hs.length} convergence hotspots (${hs.filter((h) => h.level === 'strong').length} strong) from ${snapshot.convergence.signalsChecked} located signals (72 h)`);
-  } catch (err) {
-    log(`CNV  convergence not computed: ${sanitizeError(err)}`);
   }
   // v0.75.0: tanker and cargo traffic lives in its own document (snapshots/ships), written after a new window.
   if (tracked.includes(TRAFFIC_SOURCE_ID)) {

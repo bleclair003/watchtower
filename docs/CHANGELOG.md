@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.80.0] — 2026-11-24 — Convergence alerts and country convergence (Phase 42)
+
+### Added
+- **Country-level convergence.** Covers signals that have a country but no position:
+  - routing hijacks and leaks, and DDoS surges (only those *not* marked routine by their own rules);
+  - internet outages (IODA, Cloudflare), new censorship (OONI);
+  - US and UK travel advice changes, prediction-market swings, missile launches, WHO outbreak news;
+  - located anomalies that carry a country.
+
+  Daily front reports, sanctions designations, Security Council meetings, military flights and sanctioned ships are context only. A country needs anomalies of two or more types from two or more independent feeds in 48 hours (WATCH); three or more feeds is STRONG. Shown under BY COUNTRY in each region page's Signal convergence panel, with every signal behind it.
+- **New hotspots become records** (source `watchtower-convergence`, credibility experimental). A record is written when a map or country hotspot first appears, and when it goes from WATCH to STRONG.
+  - A map hotspot within 150 km of one seen in the last 24 hours counts as the same place, so a place that stays lit is not reported every run.
+  - Each record lists the records behind it (`metadata.signalEventIds`) and links to the map or region page.
+  - Convergence now runs before alerting, so a rule can fire in the same run.
+- **Alert rule presets:** NEW STRONG CONVERGENCE (WARNING) and ANY NEW CONVERGENCE (ADVISORY) in the rule builder. There is a new condition field, `metadata.level` (watch or strong), and `metadata.change` now suggests `upgraded`.
+- **Sources:** a new retrieval method, `derived`, for WATCHTOWER's own analysis.
+
+### Notes
+- On the live dry run (2026-11-24), the United Arab Emirates was a STRONG country hotspot. Within two days it had an IODA connectivity drop, a DDoS surge at 65% of its 29-day peak, and a large route leak by a Bahraini network. Cloudflare's routing data (from public route collectors) and its DDoS data (from its own network) count as separate feeds. The first runs after release will record every hotspot already lit as new.
+
 ## [0.79.2] — 2026-11-24 — aisstream connections fixed
 
 ### Fixed

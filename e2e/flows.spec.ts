@@ -325,6 +325,16 @@ test('ships and lanes: simulated tankers with 24-hour tracks, a ship card from s
   expect(problems).toEqual([]);
 });
 
+test('Alert rule builder: convergence presets fill the rule (simulated)', async ({ page, problems }) => {
+  await page.goto('/alerts');
+  const newRule = page.getByRole('button', { name: /new rule/i }).first();
+  if (await newRule.count()) await newRule.click();
+  await page.getByRole('button', { name: 'NEW STRONG CONVERGENCE' }).click();
+  await expect(page.getByPlaceholder('e.g. Red Sea maritime official reports')).toHaveValue('New STRONG signal convergence');
+  await expect(page.getByLabel('Field').nth(1)).toHaveValue('metadata.level');
+  expect(problems).toEqual([]);
+});
+
 test('Signal convergence: region panel lists hotspots and opens the map card (simulated)', async ({ page, problems }) => {
   await page.goto('/regions/eastern-europe');
   const list = page.getByRole('list', { name: 'Convergence hotspots' });
@@ -342,6 +352,12 @@ test('Signal convergence: region panel lists hotspots and opens the map card (si
   // The Middle East hotspot is a WATCH: an aircraft orbit and a fire cluster, two feeds.
   await page.goto('/regions/middle-east');
   await expect(page.getByRole('list', { name: 'Convergence hotspots' })).toContainText('WATCH');
+  // Country convergence (v0.80.0): signals without a position, by country.
+  const countries = page.getByRole('list', { name: 'Country convergence' });
+  await expect(countries).toContainText('United Arab Emirates');
+  await expect(countries).toContainText('IODA internet measurements');
+  await countries.getByText('Signals (7)').click();
+  await expect(countries).toContainText('Route leak by an invented network');
   expect(problems).toEqual([]);
 });
 

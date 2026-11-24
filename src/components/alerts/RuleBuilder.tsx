@@ -23,8 +23,9 @@ const SUGGESTIONS: Partial<Record<ConditionField, string[]>> = {
   credibility: [...CREDIBILITY_LEVELS],
   sourceId: SOURCE_REGISTRY.map((s) => s.id),
   sourceClass: ['official', 'media', 'aggregator', 'scientific'],
-  'metadata.change': ['raised', 'lowered', 'new', 'reissued', 'initial'],
-  'metadata.subtype': ['alert', 'joint-advisory', 'analysis-report', 'ics-advisory', 'kev-announcement', 'guidance', 'internet-outage', 'thermal-anomaly-cluster'],
+  'metadata.change': ['raised', 'lowered', 'new', 'reissued', 'initial', 'upgraded'],
+  'metadata.subtype': ['alert', 'joint-advisory', 'analysis-report', 'ics-advisory', 'kev-announcement', 'guidance', 'internet-outage', 'thermal-anomaly-cluster', 'convergence-hotspot', 'country-convergence'],
+  'metadata.level': ['watch', 'strong'],
   'metadata.seismicType': ['earthquake', 'explosion', 'nuclear explosion', 'quarry blast'],
   'metadata.alertLevel': ['Green', 'Orange', 'Red'],
   'metadata.outageCause': ['GOVERNMENT_DIRECTED', 'MILITARY_ACTION', 'CABLE_CUT', 'POWER_OUTAGE', 'CYBERATTACK', 'NATURAL_DISASTER', 'TECHNICAL_PROBLEM', 'UNKNOWN'],
@@ -76,6 +77,25 @@ export interface RuleBuilderProps {
   onSave: (rule: AlertRule) => Promise<void>;
   onCancel: () => void;
 }
+
+/** v0.80.0: ready-made rules for new signal-convergence hotspots. */
+const CONVERGENCE_PRESETS: { label: string; name: string; severity: AlertSeverity; rows: Row[] }[] = [
+  {
+    label: 'NEW STRONG CONVERGENCE',
+    name: 'New STRONG signal convergence',
+    severity: 'WARNING',
+    rows: [
+      { field: 'sourceId', op: 'eq', value: 'watchtower-convergence', negate: false },
+      { field: 'metadata.level', op: 'eq', value: 'strong', negate: false },
+    ],
+  },
+  {
+    label: 'ANY NEW CONVERGENCE',
+    name: 'New signal convergence',
+    severity: 'ADVISORY',
+    rows: [{ field: 'sourceId', op: 'eq', value: 'watchtower-convergence', negate: false }],
+  },
+];
 
 /** Graphical rule editor producing declarative JSON — never executable code. */
 export function RuleBuilder({ initial, canSave, onSave, onCancel }: RuleBuilderProps) {
@@ -191,6 +211,27 @@ export function RuleBuilder({ initial, canSave, onSave, onCancel }: RuleBuilderP
         ))}
       </div>
 
+      {kind === 'event' && !initial && (
+        <div className="flex flex-wrap items-center gap-1 text-2xs">
+          <span className="text-wt-fg-dim">START FROM</span>
+          {CONVERGENCE_PRESETS.map((p) => (
+            <button
+              key={p.label}
+              className="h-6 border border-wt-line-strong px-2 text-wt-fg-muted hover:text-wt-fg"
+              onClick={() => {
+                setName(p.name);
+                setSeverity(p.severity);
+                setCombinator('all');
+                setRows(p.rows);
+                setJsonMode(false);
+                setPreview(null);
+              }}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      )}
       {kind === 'event' && (
         <div className="space-y-1 border border-wt-line p-2">
           <div className="flex items-center gap-2 text-2xs">

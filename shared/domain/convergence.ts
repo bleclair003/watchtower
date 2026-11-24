@@ -1,4 +1,5 @@
 import type { IntelligenceEvent } from './types.ts';
+import type { CountryHotspot } from './countryConvergence.ts';
 import { cellCentre, type GnssCell } from './gnss.ts';
 import { distanceKm } from './installations.ts';
 import { regionsForPoint } from './regions.ts';
@@ -180,6 +181,8 @@ export interface ConvergenceSnapshot {
   radiusKm: number;
   signalsChecked: number;
   hotspots: Hotspot[];
+  /** v0.80.0: countries where signals without a position line up (48 h). */
+  countries?: CountryHotspot[];
   simulated?: boolean;
 }
 

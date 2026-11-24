@@ -36,5 +36,28 @@ export function buildDemoConvergence(now: number): ConvergenceSnapshot {
     radiusKm: CONVERGENCE_RADIUS_KM,
     signalsChecked: signals.length + 120,
     hotspots: findHotspots(signals),
+    // An invented country hotspot: an outage, a non-routine route leak and a DDoS surge in two days.
+    countries: [
+      {
+        country: 'AE',
+        level: 'strong',
+        types: [
+          { type: 'outage', label: 'Internet outage', role: 'anomaly', feed: 'ioda', count: 1 },
+          { type: 'routing', label: 'Routing hijack or leak (not routine)', role: 'anomaly', feed: 'bgp', count: 2 },
+          { type: 'ddos', label: 'DDoS surge (not routine)', role: 'anomaly', feed: 'cloudflare', count: 1 },
+          { type: 'mil-air', label: 'Military flights', role: 'context', feed: 'adsb', count: 3 },
+        ],
+        feeds: ['bgp', 'cloudflare', 'ioda'],
+        first: at(40),
+        last: at(3),
+        regionIds: ['middle-east'],
+        signals: [
+          { type: 'routing', feed: 'bgp', role: 'anomaly', title: 'Route leak by an invented network: 40 address blocks rerouted (SIMULATED)', sourceId: 'demo', at: at(3), url: '', eventId: 'demo-c1' },
+          { type: 'outage', feed: 'ioda', role: 'anomaly', title: 'Internet connectivity drop detected — invented provider (SIMULATED)', sourceId: 'demo', at: at(14), url: '', eventId: 'demo-c2' },
+          { type: 'ddos', feed: 'cloudflare', role: 'anomaly', title: 'DDoS surge: attacks reached 70% of the biggest day in 28 days (SIMULATED)', sourceId: 'demo', at: at(40), url: '', eventId: 'demo-c3' },
+        ],
+        signalCount: 7,
+      },
+    ],
   };
 }

@@ -561,7 +561,8 @@ From the feature audit (category 2 item 4).
 - [x] Hotspots: anomalies of 2+ types from 2+ independent feeds within 150 km in 72 h (WATCH), 3+ feeds (STRONG); computed each run into the layers document — v0.79.0
 - [x] CONVERGE map layer (rings, feed-count markers, card listing every signal), legend, region page panel with links to the map — v0.79.0
 - [ ] Learn which places are always busy (standing jamming, sea lanes) once there are weeks of hotspots, and mark chronic ones
-- [ ] Country-level convergence (routing hijacks, DDoS, outages, travel advice) for signals without a position
-- [ ] An alert rule and an indicator for new STRONG hotspots
+- [x] Country-level convergence (routing hijacks and leaks, DDoS, outages, censorship, travel advice, market swings, launches, outbreaks, plus located anomalies) over 48 h — v0.80.0
+- [x] New and upgraded hotspots become records (source watchtower-convergence), with a 24 h memory; rule builder presets NEW STRONG CONVERGENCE and ANY NEW CONVERGENCE — v0.80.0
+- [ ] An indicator for convergence records once there is history
 - [ ] Norway's AIS (BarentsWatch, needs the owner's free client registration; Kystverket's raw stream did not accept connections from the operator's machine or GitHub runners on 2026-11-24)
 

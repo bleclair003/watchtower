@@ -143,6 +143,8 @@ export type RetrievalMethod =
   | 'atom'
   | 'structured-download'
   | 'page-parse'
+  /** Computed by WATCHTOWER from other sources' records; nothing is fetched. */
+  | 'derived'
   | 'none';
 
 export type IntegrationPriority = 'P1' | 'P2' | 'P3' | 'research' | 'rejected';
