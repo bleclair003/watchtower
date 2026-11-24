@@ -27,6 +27,7 @@ import { MarketsPanel } from '../components/meters/MarketsPanel';
 import { ActorsPanel } from '../components/meters/ActorsPanel';
 import { UkraineFrontPanel } from '../components/region/UkraineFrontPanel';
 import { TankerLevelsPanel } from '../components/region/TankerLevelsPanel';
+import { ConvergencePanel } from '../components/region/ConvergencePanel';
 import { KnownDatesList } from '../components/meters/KnownDatesList';
 import { regionChanges } from '@shared/domain/changes';
 
@@ -118,6 +119,7 @@ export default function RegionPage() {
         </p>
       </Panel>
       <WhatChangedPanel changes={changes} now={now} />
+      <ConvergencePanel data={data.convergence} regionId={id} now={now} />
       {id === 'eastern-europe' && <UkraineFrontPanel data={data.ukraineFront} now={now} />}
       {id === 'eastern-europe' && <TankerLevelsPanel now={now} />}
       <RegionMeters regionId={id} meters={data.meters} now={now} />

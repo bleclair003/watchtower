@@ -26,6 +26,7 @@ import type { DisputedDataset } from '@shared/domain/disputed';
 import { shapeCentre, shapeRing, type WatchArea } from '@shared/domain/watchAreas';
 import { cellBounds, GNSS_RADIUS_NM, type GnssCell, type GnssCircle, type GnssLevel, type GnssLostPoint } from '@shared/domain/gnss';
 import type { MapView } from '../../lib/mapLink';
+import type { Hotspot, HotspotLevel } from '@shared/domain/convergence';
 
 /** Imperative handle for map tools (v0.68.0): fly somewhere, or capture the current frame. */
 export interface WorldMapHandle {
@@ -46,6 +47,8 @@ export const LANE_COLOR = '#5b7f93';
 /** Watch areas the user drew (v0.74.0). */
 export const WATCH_AREA_COLOR = '#7dd3fc';
 export const GNSS_COLOR: Record<GnssLevel, string> = { low: '#2f6a4c', medium: '#ffb347', high: '#ff4d6d' };
+/** Signal convergence hotspots (v0.79.0). */
+export const CONVERGENCE_COLOR: Record<HotspotLevel, string> = { watch: '#b48cff', strong: '#ff5cf0' };
 
 export interface WorldMapProps {
   events: IntelligenceEvent[];
@@ -71,6 +74,10 @@ export interface WorldMapProps {
   gnssCircles?: GnssCircle[];
   selectedGnss?: string | null;
   onSelectGnss?: (key: string | null) => void;
+  /** Signal convergence hotspots (v0.79.0): a ring at the hotspot's reach and a marker at its centre. */
+  convergence?: Hotspot[];
+  selectedConvergence?: string | null;
+  onSelectConvergence?: (id: string | null) => void;
   /** Tanker and cargo traffic with 24 h tracks, and shipping lanes (v0.75.0); empty when off. */
   traffic?: TrafficShip[];
   /** Ships that went dark (last known positions, v0.77.0). */
@@ -1071,6 +1078,38 @@ export function WorldMap(props: WorldMapProps) {
           filter: ['==', ['geometry-type'], 'Point'],
           paint: { 'circle-radius': 4, 'circle-color': '#000000', 'circle-stroke-color': RULER_COLOR, 'circle-stroke-width': 2 },
         });
+        // Signal convergence (v0.79.0): dashed ring at the hotspot's reach, a marker with the feed count at its centre.
+        m.addSource('convergence-rings', { type: 'geojson', data: none });
+        m.addLayer({
+          id: 'convergence-rings',
+          type: 'line',
+          source: 'convergence-rings',
+          paint: { 'line-color': ['match', ['get', 'level'], 'strong', CONVERGENCE_COLOR.strong, CONVERGENCE_COLOR.watch], 'line-width': ['match', ['get', 'level'], 'strong', 2, 1.4], 'line-dasharray': [3, 2], 'line-opacity': 0.9 },
+        });
+        m.addLayer({ id: 'convergence-selected', type: 'line', source: 'convergence-rings', filter: ['==', ['get', 'id'], '__none__'], paint: { 'line-color': '#ffffff', 'line-width': 2.5 } });
+        m.addSource('convergence', { type: 'geojson', data: none });
+        m.addLayer({
+          id: 'convergence',
+          type: 'circle',
+          source: 'convergence',
+          paint: {
+            'circle-radius': ['match', ['get', 'level'], 'strong', 9, 7],
+            'circle-color': '#000000',
+            'circle-stroke-color': ['match', ['get', 'level'], 'strong', CONVERGENCE_COLOR.strong, CONVERGENCE_COLOR.watch],
+            'circle-stroke-width': 2,
+          },
+        });
+        if (font) {
+          m.addLayer({
+            id: 'convergence-label',
+            type: 'symbol',
+            source: 'convergence',
+            layout: { 'text-field': ['get', 'label'], 'text-font': font, 'text-size': 10, 'text-allow-overlap': true },
+            paint: { 'text-color': '#ffffff' },
+          });
+        }
+        m.on('mouseenter', 'convergence', () => (m.getCanvas().style.cursor = 'pointer'));
+        m.on('mouseleave', 'convergence', () => (m.getCanvas().style.cursor = cb.current.measuring ? 'crosshair' : ''));
         m.addSource('pin', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
         m.addLayer({ id: 'pin', type: 'circle', source: 'pin', paint: { 'circle-radius': 9, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': RULER_COLOR, 'circle-stroke-width': 2 } });
         m.on('moveend', () => {
@@ -1091,6 +1130,13 @@ export function WorldMap(props: WorldMapProps) {
             const hit = m.queryRenderedFeatures([[e.point.x - 6, e.point.y - 6], [e.point.x + 6, e.point.y + 6]], { layers: snapLayers }).find((f) => f.geometry.type === 'Point');
             const at = hit ? ((hit.geometry as GeoJSON.Point).coordinates as LonLat) : ([e.lngLat.lng, e.lngLat.lat] as LonLat);
             cb.current.onRulerPoint?.(at);
+            return;
+          }
+          const conv = m.getLayer('convergence') && m.getLayoutProperty('convergence', 'visibility') !== 'none'
+            ? m.queryRenderedFeatures([[e.point.x - 6, e.point.y - 6], [e.point.x + 6, e.point.y + 6]], { layers: ['convergence'] })
+            : [];
+          if (conv[0] && cb.current.onSelectConvergence) {
+            cb.current.onSelectConvergence(String(conv[0].properties.id));
             return;
           }
           const pts = m.queryRenderedFeatures(e.point, { layers: ['events'] });
@@ -1656,6 +1702,27 @@ export function WorldMap(props: WorldMapProps) {
     if (!ready || !m) return;
     m.setFilter('gnss-selected', ['==', ['get', 'k'], selectedGnss ?? '__none__']);
   }, [ready, selectedGnss]);
+
+  // ---------------------------------------------------- signal convergence --
+  const { convergence, selectedConvergence } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    const hs = convergence ?? [];
+    (m.getSource('convergence-rings') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: hs.map((h) => ({ type: 'Feature' as const, geometry: { type: 'LineString' as const, coordinates: circleRing(h.lat, h.lon, h.radiusKm) }, properties: { id: h.id, level: h.level } })),
+    });
+    (m.getSource('convergence') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: hs.map((h) => ({ type: 'Feature' as const, geometry: { type: 'Point' as const, coordinates: [h.lon, h.lat] }, properties: { id: h.id, level: h.level, label: String(h.feeds.length) } })),
+    });
+  }, [ready, convergence]);
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    m.setFilter('convergence-selected', ['==', ['get', 'id'], selectedConvergence ?? '__none__']);
+  }, [ready, selectedConvergence]);
 
   // ---------------------------------------------------------- watch areas --
   const { watchAreas, selectedWatchArea, drawing, draft } = props;

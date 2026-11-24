@@ -38,6 +38,8 @@ export interface OperatorSettings {
   conflicts: boolean;
   /** GPS interference squares and lost-GPS points (aircraft position accuracy) on the map. */
   gnss: boolean;
+  /** Signal convergence hotspots (v0.79.0) on the map. */
+  convergence: boolean;
   /** Undersea cables and pipelines (OpenStreetMap) on the map. */
   undersea: boolean;
   /** Disputed and breakaway areas (Natural Earth) on the map. */
@@ -77,6 +79,7 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   navWarnings: true,
   conflicts: true,
   gnss: true,
+  convergence: true,
   undersea: false,
   disputed: false,
   watchAreas: true,

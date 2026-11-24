@@ -2,8 +2,9 @@ import { INFRA_LABEL, INFRA_TYPES } from '@shared/domain/infrastructure';
 import { tfrActive, type AirportEvent, type TfrShape } from '@shared/domain/faa';
 import { NETWORK_LABEL, type RadiationSnapshot } from '@shared/domain/radiation';
 import { GNSS_LEVEL_LABEL, type GnssSnapshot } from '@shared/domain/gnss';
+import type { ConvergenceSnapshot } from '@shared/domain/convergence';
 import { UNDERSEA_LABEL, type UnderseaKind } from '@shared/domain/undersea';
-import { DISPUTED_COLOR, GNSS_COLOR, LANE_COLOR, TRAFFIC_COLOR, UNDERSEA_COLOR } from './WorldMap';
+import { DISPUTED_COLOR, GNSS_COLOR, LANE_COLOR, TRAFFIC_COLOR, UNDERSEA_COLOR, CONVERGENCE_COLOR } from './WorldMap';
 import { NAV_KIND_LABEL, type NavWarningKind, type NavWarningSnapshot } from '@shared/domain/navWarnings';
 import type { EmergencySnapshot } from '@shared/domain/aircraftEmergencies';
 import { VIOLENCE_LABEL, monthName, type ConflictSnapshot } from '@shared/domain/conflictEvents';
@@ -37,6 +38,8 @@ interface Props {
   /** Radiation layer (omit when off). */
   radiation?: RadiationSnapshot;
   gnss?: GnssSnapshot & { ageMinutes: number };
+  /** v0.79.0: signal convergence hotspots. */
+  convergence?: ConvergenceSnapshot;
   /** Phase 25 layers (omit when off). */
   navWarnings?: NavWarningSnapshot;
   emergencies?: EmergencySnapshot;
@@ -64,7 +67,7 @@ interface Props {
 const BRANCH_LABEL = { army: 'Army', navy: 'Navy', 'air-force': 'Air Force', marines: 'Marines', other: 'Other DoD' } as const;
 
 /** Collapsible legend explaining symbols and location-precision handling. */
-export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, infrastructure, undersea, disputed, traffic, lanes, power, faa, radiation, gnss, navWarnings, emergencies, conflicts, conflictWindow, navWarnDays, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
+export function MapLegend({ plotted, areaLevel, unlocated, installations, worldInstallations, unusualBases, infrastructure, undersea, disputed, traffic, lanes, power, faa, radiation, gnss, convergence, navWarnings, emergencies, conflicts, conflictWindow, navWarnDays, operatorFilter, aircraft, fleet, sanctioned, imagery }: Props) {
   // Closed by default on phones, where it would cover most of the map.
   const [open, setOpen] = useState(() => typeof window === 'undefined' || window.matchMedia?.('(min-width: 768px)').matches !== false);
   return (
@@ -228,6 +231,26 @@ export function MapLegend({ plotted, areaLevel, unlocated, installations, worldI
                 <span>Records near or naming it (72 h)</span>
                 <span className="ml-auto text-wt-fg tabular-nums">{infrastructure.flagged}</span>
               </div>
+            </div>
+          )}
+          {convergence && (
+            <div className="space-y-0.5 border-t border-wt-line pt-1.5 text-wt-fg-muted">
+              <div className="flex justify-between">
+                <span title="Places where different kinds of signal from separate feeds line up, last 72 hours">Signal convergence{convergence.simulated ? ' · SIMULATED' : ''}</span>
+                <span className="text-wt-fg tabular-nums">{convergence.hotspots.length}</span>
+              </div>
+              <ul className="space-y-0.5">
+                {(['strong', 'watch'] as const).map((k) => (
+                  <li key={k} className="flex items-center gap-1">
+                    <span className="size-2 rounded-full border-2" style={{ borderColor: CONVERGENCE_COLOR[k] }} aria-hidden />
+                    <span className="flex-1">{k === 'strong' ? 'Strong: 3+ independent feeds' : 'Watch: 2 independent feeds'}</span>
+                    <span className="tabular-nums">{convergence.hotspots.filter((h) => h.level === k).length}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-wt-fg-dim">
+                The number on a marker is its feed count. From {convergence.signalsChecked} located signals, last {convergence.windowHours} h, within {convergence.radiusKm} km. A coincidence worth a look, not proof of a link.
+              </p>
             </div>
           )}
           {gnss && (

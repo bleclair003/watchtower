@@ -325,6 +325,26 @@ test('ships and lanes: simulated tankers with 24-hour tracks, a ship card from s
   expect(problems).toEqual([]);
 });
 
+test('Signal convergence: region panel lists hotspots and opens the map card (simulated)', async ({ page, problems }) => {
+  await page.goto('/regions/eastern-europe');
+  const list = page.getByRole('list', { name: 'Convergence hotspots' });
+  await expect(list).toContainText('STRONG');
+  await expect(list).toContainText('Ship went dark');
+  await expect(list).toContainText('NGA navigational warnings');
+  await list.getByRole('link', { name: 'Show on the map' }).first().click();
+  const card = page.getByRole('region', { name: /Signal convergence near/ });
+  await expect(card).toContainText('3 independent feeds');
+  await expect(card).toContainText('not evidence that they are linked');
+  await expect(card).toContainText('SIMULATED');
+  await expect(page).toHaveURL(/sel=conv/);
+  await card.getByRole('button', { name: 'Close convergence details' }).click();
+  await expect(page).not.toHaveURL(/sel=conv/);
+  // The Middle East hotspot is a WATCH: an aircraft orbit and a fire cluster, two feeds.
+  await page.goto('/regions/middle-east');
+  await expect(page.getByRole('list', { name: 'Convergence hotspots' })).toContainText('WATCH');
+  expect(problems).toEqual([]);
+});
+
 test('Eastern Europe region page: tanker traffic levels in the Gulf of Finland (simulated)', async ({ page, problems }) => {
   await page.goto('/regions/eastern-europe');
   const panel = page.getByRole('region', { name: 'Tanker levels by zone' });

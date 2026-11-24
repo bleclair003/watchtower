@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.79.0] — 2026-11-24 — Signal convergence (Phase 42)
+
+### Added
+- **Signal convergence.** Each run, WATCHTOWER looks for places where different kinds of signal line up in the last 72 hours. Every located record is sorted into a signal type:
+  - **anomalies:** GPS interference (high), aircraft patterns and emergency squawks, ships going dark, ships lingering over cables or pipelines, tanker traffic surges or drops, navigational warnings of notable kinds, earthquakes of magnitude 4 or more, fire clusters, located military or unrest reports;
+  - **context:** military flights, sanctioned ships passing through, and medium GPS interference, which is near-constant in parts of the Middle East and the Baltic.
+
+  A hotspot needs anomalies of at least two types, from at least two independent feeds, within 150 km. Two signals from the same feed (for example a ship going dark and another lingering over a cable, both AIS) do not count as independent. Two feeds is WATCH; three or more is STRONG.
+- **CONVERGE map layer:** a dashed ring at each hotspot's reach and a marker showing its feed count. The card lists the anomaly and context types, the span, and every signal behind the hotspot with links to the source records. Shareable map links (`sel=conv:`).
+- **Signal convergence panel** on each region page, with a link that opens each hotspot on the map.
+
+### Notes
+- A hotspot is a coincidence worth a look, not evidence that the signals are linked. Busy sea lanes and standing jamming put signals together by chance, and with four days of history WATCHTOWER cannot yet tell chronic places from new ones.
+- On the first live check (2026-11-24), the Gulf of Finland was the one hotspot. It had ships going dark and sanctioned ships lingering near Nord Stream, C-Lion 1 and the Baltika cable, with high GPS interference recorded nearby.
+- The one-off Kystverket probe workflow was removed: Norway's raw AIS stream did not accept connections. Norway will come through BarentsWatch once a client is registered.
+
 ## [0.78.0] — 2026-11-24 — Tanker traffic levels in the Gulf of Finland (Phase 41)
 
 ### Added

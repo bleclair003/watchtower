@@ -18,6 +18,7 @@ import type { NavWarningSnapshot } from '@shared/domain/navWarnings';
 import type { EmergencySnapshot } from '@shared/domain/aircraftEmergencies';
 import type { GnssSnapshot } from '@shared/domain/gnss';
 import type { NetAttackSnapshot } from '@shared/domain/netAttacks';
+import type { ConvergenceSnapshot } from '@shared/domain/convergence';
 import type { RadioReceiversSnapshot } from '@shared/domain/radio';
 import type { ConflictSnapshot } from '@shared/domain/conflictEvents';
 import type { ActorsSnapshot } from '@shared/domain/actors';
@@ -71,6 +72,7 @@ interface DataState {
   aircraftEmergencies: EmergencySnapshot | null;
   gnss: GnssSnapshot | null;
   netAttacks: NetAttackSnapshot | null;
+  convergence: ConvergenceSnapshot | null;
   radioReceivers: RadioReceiversSnapshot | null;
   conflictEvents: ConflictSnapshot | null;
   actors: ActorsSnapshot | null;
@@ -122,6 +124,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
     aircraftEmergencies: null as EmergencySnapshot | null,
     gnss: null as GnssSnapshot | null,
     netAttacks: null as NetAttackSnapshot | null,
+    convergence: null as ConvergenceSnapshot | null,
     radioReceivers: null as RadioReceiversSnapshot | null,
     conflictEvents: null as ConflictSnapshot | null,
     actors: null as ActorsSnapshot | null,
@@ -177,6 +180,7 @@ export function DataProvider({ children, repository }: { children: ReactNode; re
         aircraftEmergencies: d.aircraftEmergencies,
         gnss: d.gnss,
         netAttacks: d.netAttacks,
+        convergence: d.convergence,
         radioReceivers: d.radioReceivers,
         conflictEvents: d.conflictEvents,
         actors: d.actors,

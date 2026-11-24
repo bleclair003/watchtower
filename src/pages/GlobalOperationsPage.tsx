@@ -9,8 +9,9 @@ import { IMAGERY_ATTRIBUTION } from '../lib/imagery';
 import { readStorage, writeStorage } from '../lib/storage';
 import { formatUtc } from '../lib/time';
 import { unpackAirports, type Airport } from '@shared/domain/radio';
-import { Anchor, Atom, Ban, Cable, Container, Crosshair, Factory, Flag, Grid3x3, LocateOff, Route, Target, Plane, PlaneLanding, Satellite, Shield, Ship, Siren, Square, Zap } from 'lucide-react';
+import { Anchor, Atom, Ban, Cable, Container, Crosshair, Factory, Flag, Grid3x3, LocateOff, Radar, Route, Target, Plane, PlaneLanding, Satellite, Shield, Ship, Siren, Square, Zap } from 'lucide-react';
 import { GnssCard } from '../components/map/GnssCard';
+import { ConvergenceCard } from '../components/map/ConvergenceCard';
 import { useBases, useDisputed, useInfrastructure, useLanes, useUndersea } from '../data/useInstallations';
 import { useShipTraffic } from '../data/useShipTraffic';
 import { TrafficShipCard } from '../components/map/TrafficShipCard';
@@ -54,7 +55,7 @@ import { Panel } from '../components/ui/Panel';
 export default function GlobalOperationsPage() {
   // Re-evaluate time windows once a minute; the clock in the top bar ticks separately.
   const now = useNow(60_000).getTime();
-  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips, baseActivity, infrastructure, powerOutages, tfrs, airportStatus, radiation, navWarnings, aircraftEmergencies, conflictEvents, gnss } = useData();
+  const { events, regionScores, scoreHistory, indicatorEvaluations, mode, aircraft, fleet, chokepoints, sanctionedShips, baseActivity, infrastructure, powerOutages, tfrs, airportStatus, radiation, navWarnings, aircraftEmergencies, conflictEvents, gnss, convergence } = useData();
   const unusualBases = useMemo(() => (baseActivity?.items ?? []).filter((i) => i.unusual).map((i) => i.key), [baseActivity]);
   const { filters, setFilters, resetFilters, selectedEventId, selectEvent, globalViewNonce } = useDashboard();
   const { settings, update } = useSettings();
@@ -120,6 +121,10 @@ export default function GlobalOperationsPage() {
   const [selectedGnss, setSelectedGnss] = useState<string | null>(null);
   const shownGnss = settings.gnss && gnss ? gnss : null;
   const selectedGnssCell = selectedGnss ? (shownGnss?.cells.find((c) => c.k === selectedGnss) ?? null) : null;
+  // Signal convergence hotspots (v0.79.0).
+  const [selectedConv, setSelectedConv] = useState<string | null>(null);
+  const shownConv = settings.convergence && convergence ? convergence : null;
+  const selectedHotspot = selectedConv ? (shownConv?.hotspots.find((h) => h.id === selectedConv) ?? null) : null;
   // Undersea cables and pipelines, disputed areas (v0.71.0): static files loaded when their layer is on.
   // The undersea file is also loaded when a sanctioned ship is selected, to list lines near it.
   const [selectedCable, setSelectedCable] = useState<string | null>(null);
@@ -152,7 +157,8 @@ export default function GlobalOperationsPage() {
     setDrawFinished(false);
   };
   // One map card at a time: selecting a base, aircraft, fleet area, chokepoint, vessel, site, square, line or area clears the others.
-  const selectOnly = (kind: 'base' | 'air' | 'fleet' | 'strait' | 'listed' | 'infra' | 'gnss' | 'cable' | 'area' | 'warea' | 'ship', key: string | null) => {
+  const selectOnly = (kind: 'base' | 'air' | 'fleet' | 'strait' | 'listed' | 'infra' | 'gnss' | 'cable' | 'area' | 'warea' | 'ship' | 'conv', key: string | null) => {
+    setSelectedConv(kind === 'conv' ? key : null);
     setSelectedShip(kind === 'ship' ? key : null);
     setSelectedWatch(kind === 'warea' ? key : null);
     setSelectedGnss(kind === 'gnss' ? key : null);
@@ -184,12 +190,14 @@ export default function GlobalOperationsPage() {
     const s = link.selection;
     if (s?.kind === 'event') selectEvent(s.key);
     else if (s) {
-      const kind = ({ base: 'base', air: 'air', fleet: 'fleet', strait: 'strait', listed: 'listed', infra: 'infra', gnss: 'gnss', cable: 'cable', area: 'area', warea: 'warea', ship: 'ship' } as const)[s.kind];
+      const kind = ({ base: 'base', air: 'air', fleet: 'fleet', strait: 'strait', listed: 'listed', infra: 'infra', gnss: 'gnss', cable: 'cable', area: 'area', warea: 'warea', ship: 'ship', conv: 'conv' } as const)[s.kind];
       selectOnly(kind, s.key);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- apply the opening link once
   }, []);
-  const selection: MapSelection | null = selectedShip
+  const selection: MapSelection | null = selectedConv
+    ? { kind: 'conv', key: selectedConv }
+    : selectedShip
     ? { kind: 'ship', key: selectedShip }
     : selectedWatch
     ? { kind: 'warea', key: selectedWatch }
@@ -299,6 +307,7 @@ export default function GlobalOperationsPage() {
       [settings.navWarnings, 'NAVWARN'],
       [settings.conflicts, 'CONFLICT'],
       [shownGnss, 'GPS'],
+      [shownConv, 'CONVERGE'],
       [settings.undersea, 'CABLES'],
       [settings.traffic, 'SHIPS'],
       [settings.lanes, 'LANES'],
@@ -547,6 +556,17 @@ export default function GlobalOperationsPage() {
                 <Flag size={10} aria-hidden /> DISPUTED
               </button>
               <button
+                className={toggleBtn(settings.convergence)}
+                aria-pressed={settings.convergence}
+                title="Signal convergence: places where different kinds of signal from separate feeds line up within 150 km, last 72 hours"
+                onClick={() => {
+                  update({ convergence: !settings.convergence });
+                  setSelectedConv(null);
+                }}
+              >
+                <Radar size={10} aria-hidden /> CONVERGE
+              </button>
+              <button
                 className={toggleBtn(settings.gnss)}
                 aria-pressed={settings.gnss}
                 title="GPS interference: share of aircraft reporting degraded GPS accuracy per 1° square, last 24 hours (adsb.lol, sampled hourly)"
@@ -702,6 +722,9 @@ export default function GlobalOperationsPage() {
               gnssCircles={shownGnss?.circles ?? []}
               selectedGnss={selectedGnssCell ? selectedGnss : null}
               onSelectGnss={(k) => selectOnly('gnss', k)}
+              convergence={shownConv?.hotspots ?? []}
+              selectedConvergence={selectedHotspot ? selectedConv : null}
+              onSelectConvergence={(id) => selectOnly('conv', id)}
               initialView={initialView}
               onViewChange={onViewChange}
               measuring={measuring}
@@ -791,6 +814,7 @@ export default function GlobalOperationsPage() {
             lanes={settings.lanes}
             undersea={settings.undersea ? (underseaData.data ? (Object.fromEntries((['telecom', 'power', 'pipeline'] as UnderseaKind[]).map((k) => [k, underseaData.data!.lines.filter((l) => l.k === k).length])) as Record<UnderseaKind, number>) : null) : undefined}
             disputed={settings.disputed ? (disputedData.data?.features.length ?? null) : undefined}
+            convergence={shownConv ?? undefined}
             gnss={shownGnss ? { ...shownGnss, ageMinutes: Math.max(0, Math.round((now - Date.parse(shownGnss.fetchedAt)) / 60_000)) } : undefined}
             navWarnings={settings.navWarnings && navWarnings ? { ...navWarnings, warnings: shownNavWarnings } : undefined}
             navWarnDays={settings.navWarnDays}
@@ -872,6 +896,7 @@ export default function GlobalOperationsPage() {
             <UnderseaCard line={selectedCableLine} dataset={underseaData.data} ships={sanctionedShips?.sightings ?? []} warnings={navWarnings?.warnings ?? []} onClose={() => setSelectedCable(null)} />
           )}
           {selectedAreaProps && <DisputedCard area={selectedAreaProps} onClose={() => setSelectedAreaKey(null)} />}
+          {selectedHotspot && shownConv && <ConvergenceCard hotspot={selectedHotspot} snapshot={shownConv} now={now} onClose={() => setSelectedConv(null)} />}
           {selectedGnssCell && shownGnss && <GnssCard cell={selectedGnssCell} snapshot={shownGnss} warnings={navWarnings?.warnings ?? []} now={now} onClose={() => setSelectedGnss(null)} />}
           {(selectedInfraSite || selectedInfraFlag) && <InfraCard site={selectedInfraSite} flagged={selectedInfraFlag} dataset={infraData.data} now={now} onClose={() => setSelectedInfra(null)} />}
           {!selectedInfra && selectedListedShip && sanctionedShips && <SanctionedShipCard ship={selectedListedShip} snapshot={sanctionedShips} now={now} onClose={() => setSelectedListed(null)} nearLines={underseaData.data ? nearbyLines(underseaData.data.lines, selectedListedShip.la, selectedListedShip.lo, 20).map(({ line, km }) => ({ name: underseaName(line), kind: UNDERSEA_LABEL[line.k].toLowerCase(), km })) : undefined} />}

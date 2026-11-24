@@ -23,6 +23,7 @@ import type { NetAttackSnapshot } from './netAttacks.ts';
 import type { RadioReceiversSnapshot } from './radio.ts';
 import type { ConflictSnapshot } from './conflictEvents.ts';
 import type { ActorsSnapshot } from './actors.ts';
+import type { ConvergenceSnapshot } from './convergence.ts';
 
 /**
  * Precomputed dashboard payload, written by the collector to
@@ -115,6 +116,8 @@ export interface DashboardSnapshot {
   conflictEvents?: ConflictSnapshot;
   /** Tracked people and groups, and new names in headlines. */
   actors?: ActorsSnapshot;
+  /** v0.79.0: places where different kinds of signal line up in the last 72 hours. */
+  convergence?: ConvergenceSnapshot;
   /** Daily sources that have gone quiet while reachable (for the brief and Diagnostics). */
   quietSources?: { sourceId: string; name: string; hoursSinceNew: number; usualPerDay: number }[];
 }
@@ -179,6 +182,7 @@ export const LAYER_KEYS = [
   'netAttacks',
   'conflictEvents',
   'radioReceivers',
+  'convergence',
 ] as const satisfies readonly (keyof DashboardSnapshot)[];
 export type LayerKey = (typeof LAYER_KEYS)[number];
 export type LayersSnapshot = Partial<Pick<DashboardSnapshot, LayerKey>> & { generatedAt: string };

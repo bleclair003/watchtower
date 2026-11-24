@@ -555,3 +555,13 @@ From the feature audit (category 2 item 4).
 - [x] Tankers present per Gulf of Finland zone (Primorsk and Vyborg, Ust-Luga, whole gulf) each run from the Fintraffic feed, moving and at anchor, hourly for 60 days — v0.78.0
 - [x] Last 24 hours against the zone's earlier days (7+ needed): SURGE or DROP records and an experimental indicator (catalog v26); panel on the Eastern Europe region page — v0.78.0
 
+## Phase 42 — Signal convergence (2026-11-24)
+
+- [x] Located records sorted into signal types (GPS interference, aircraft patterns and emergencies, ships going dark, cable loitering, tanker level changes, navigational warnings, earthquakes M4+, fire clusters, located military or unrest reports) as anomalies, with military flights, sanctioned ships and medium GPS interference as context — v0.79.0
+- [x] Hotspots: anomalies of 2+ types from 2+ independent feeds within 150 km in 72 h (WATCH), 3+ feeds (STRONG); computed each run into the layers document — v0.79.0
+- [x] CONVERGE map layer (rings, feed-count markers, card listing every signal), legend, region page panel with links to the map — v0.79.0
+- [ ] Learn which places are always busy (standing jamming, sea lanes) once there are weeks of hotspots, and mark chronic ones
+- [ ] Country-level convergence (routing hijacks, DDoS, outages, travel advice) for signals without a position
+- [ ] An alert rule and an indicator for new STRONG hotspots
+- [ ] Norway's AIS (BarentsWatch, needs the owner's free client registration; Kystverket's raw stream did not accept connections from the operator's machine or GitHub runners on 2026-11-24)
+

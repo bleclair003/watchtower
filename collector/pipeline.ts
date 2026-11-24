@@ -1,6 +1,7 @@
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../shared/domain/types.ts';
 import { getSource } from '../shared/domain/sources.ts';
 import { computeBaseActivity } from '../shared/domain/baseActivity.ts';
+import { computeConvergence } from '../shared/domain/convergence.ts';
 import { loadBases } from './lib/bases.ts';
 import { loadInfrastructure } from './lib/infrastructure.ts';
 import { computeInfrastructure } from '../shared/domain/infraProximity.ts';
@@ -463,6 +464,14 @@ export async function runCollection(
     }
   } catch (err) {
     log(`NET  routing or DDoS data not added to the snapshot: ${sanitizeError(err)}`);
+  }
+  // v0.79.0: signal convergence — places where different kinds of signal line up (72 h).
+  try {
+    snapshot.convergence = computeConvergence(loaded, snapshot.gnss ?? null, Date.parse(snapshot.generatedAt));
+    const hs = snapshot.convergence.hotspots;
+    log(`CNV  ${hs.length} convergence hotspots (${hs.filter((h) => h.level === 'strong').length} strong) from ${snapshot.convergence.signalsChecked} located signals (72 h)`);
+  } catch (err) {
+    log(`CNV  convergence not computed: ${sanitizeError(err)}`);
   }
   // v0.75.0: tanker and cargo traffic lives in its own document (snapshots/ships), written after a new window.
   if (tracked.includes(TRAFFIC_SOURCE_ID)) {
