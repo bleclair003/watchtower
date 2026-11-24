@@ -52,7 +52,16 @@ let confirmed = false;
 
 const ws = new WebSocket('wss://stream.aisstream.io/v0/stream');
 ws.binaryType = 'arraybuffer';
-ws.onopen = () => ws.send(JSON.stringify({ APIKey: key, BoundingBoxes: AREAS.map(([, b]) => b) }));
+// AIS_PROBE_FILTER=1 subscribes like the collector (position and identity messages only) to compare.
+const filtered = process.env.AIS_PROBE_FILTER === '1';
+const t0 = Date.now();
+let openedMs: number | null = null;
+let confirmMs: number | null = null;
+let firstMsgMs: number | null = null;
+ws.onopen = () => {
+  openedMs = Date.now() - t0;
+  ws.send(JSON.stringify({ APIKey: key, BoundingBoxes: AREAS.map(([, b]) => b), ...(filtered ? { FilterMessageTypes: ['PositionReport', 'ShipStaticData'] } : {}) }));
+};
 ws.onmessage = (ev) => {
   const text = typeof ev.data === 'string' ? ev.data : new TextDecoder().decode(ev.data as ArrayBuffer);
   let msg: { MessageType?: string; MetaData?: { MMSI?: number; ShipName?: string; latitude?: number; longitude?: number }; Message?: Record<string, { Sog?: number; Type?: number }> };
@@ -63,8 +72,10 @@ ws.onmessage = (ev) => {
   }
   if (msg.MessageType === 'SubscriptionConfirmation') {
     confirmed = true;
+    confirmMs ??= Date.now() - t0;
     return;
   }
+  firstMsgMs ??= Date.now() - t0;
   total++;
   const m = msg.MetaData;
   if (!m?.MMSI || typeof m.latitude !== 'number' || typeof m.longitude !== 'number') return;
@@ -96,7 +107,7 @@ ws.onclose = (ev) => console.log(`closed: code ${ev.code} ${redactSecrets(ev.rea
 
 setTimeout(() => {
   ws.close();
-  console.log(`Listened ${seconds} s · ${total} messages · subscription confirmed: ${confirmed}`);
+  console.log(`Listened ${seconds} s · ${total} messages · subscription confirmed: ${confirmed} · filter: ${filtered} · opened ${openedMs} ms · confirmed at ${confirmMs} ms · first message ${firstMsgMs} ms`);
   for (const [name] of AREAS) {
     const s = stats.get(name)!;
     const typeShare = s.ships.size ? Math.round((s.typed.size / s.ships.size) * 100) : 0;
