@@ -23,7 +23,7 @@ s.on('data', (d) => {
   buf = parts.pop() ?? '';
   for (const l of parts) {
     lines++;
-    if (l.startsWith('\')) tagBlocks++;
+    if (l.charCodeAt(0) === 92) tagBlocks++;
     const m = l.match(/!([A-Z]{2})VD[MO],(\d),(\d),[^,]*,[^,]*,([^,]*),/);
     if (!m) continue;
     talkers[m[1]] = (talkers[m[1]] ?? 0) + 1;
