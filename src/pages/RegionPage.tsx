@@ -29,6 +29,7 @@ import { UkraineFrontPanel } from '../components/region/UkraineFrontPanel';
 import { TankerLevelsPanel } from '../components/region/TankerLevelsPanel';
 import { ConvergencePanel } from '../components/region/ConvergencePanel';
 import { TaiwanPlaPanel } from '../components/region/TaiwanPlaPanel';
+import { TravelAdvicePanel } from '../components/region/TravelAdvicePanel';
 import { KnownDatesList } from '../components/meters/KnownDatesList';
 import { regionChanges } from '@shared/domain/changes';
 
@@ -122,6 +123,7 @@ export default function RegionPage() {
       <WhatChangedPanel changes={changes} now={now} />
       {id === 'taiwan-strait' && <TaiwanPlaPanel data={data.taiwanPla} now={now} />}
       <ConvergencePanel data={data.convergence} regionId={id} now={now} />
+      <TravelAdvicePanel data={data.travelAdvice} regionId={id} now={now} />
       {id === 'eastern-europe' && <UkraineFrontPanel data={data.ukraineFront} now={now} />}
       {id === 'eastern-europe' && <TankerLevelsPanel now={now} />}
       <RegionMeters regionId={id} meters={data.meters} now={now} />

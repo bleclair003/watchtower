@@ -2,8 +2,12 @@ import type { IntelligenceEvent } from '../../shared/domain/types.ts';
 import { FEED_LABEL } from '../../shared/domain/convergence.ts';
 import { countryFeedLabel } from '../../shared/domain/countryConvergence.ts';
 import type { HotspotChange } from '../../shared/domain/convergenceMemory.ts';
+import { GOVERNMENT_LABEL, JOINT_WINDOW_HOURS, type JointRaise } from '../../shared/domain/travelAdvice.ts';
 import { contentHash } from './hash.ts';
 import { LIMITS, truncate } from './text.ts';
+import { regionsForCountry } from '../../shared/domain/regions.ts';
+
+const regionIdsFor = (c: string) => regionsForCountry(c);
 
 /** Records for new or upgraded convergence hotspots (v0.80.0); alert rules match them like any record. */
 export const CONVERGENCE_SOURCE_ID = 'watchtower-convergence';
@@ -97,3 +101,39 @@ export function convergenceRecord(c: HotspotChange, nowIso: string, appUrl = DEF
     },
   };
 }
+
+/**
+ * v0.83.0: two or more governments raised their travel advice for the same country within 72 hours.
+ * The id covers the country, the governments and the day of the first raise, so the same joint raise is
+ * recorded once, and a third government joining makes a new (STRONG) record.
+ */
+export function jointRaiseRecord(j: JointRaise, nowIso: string, appUrl = DEFAULT_APP_URL): IntelligenceEvent {
+  const id = contentHash(CONVERGENCE_SOURCE_ID, 'joint-raise', j.country, j.governments.join(','), j.first.slice(0, 10));
+  const govs = j.governments.map((g) => GOVERNMENT_LABEL[g] ?? g);
+  const base = appUrl.replace(/\/+$/, '');
+  return {
+    id,
+    contentHash: id,
+    dataOrigin: 'live',
+    sourceId: CONVERGENCE_SOURCE_ID,
+    sourceName: 'WATCHTOWER signal convergence',
+    sourceClass: 'aggregator',
+    sourceUrl: regionIdsFor(j.country)[0] ? `${base}/regions/${regionIdsFor(j.country)[0]}` : `${base}/`,
+    title: truncate(`Travel advice raised by ${govs.length} governments for ${countryName(j.country)} within ${JOINT_WINDOW_HOURS} h (${govs.join(', ')})`, LIMITS.title),
+    summary: truncate(
+      `${j.titles.join(' · ')}. Governments raise their advice on information they often cannot publish; several within days is a stronger signal than one. They also share information, so this is agreement, not independent proof.`,
+      LIMITS.summary,
+    ),
+    category: 'diplomatic',
+    regionIds: regionIdsFor(j.country),
+    countryCodes: [j.country],
+    publishedAt: nowIso,
+    occurredAt: j.first,
+    collectedAt: nowIso,
+    credibility: 'experimental',
+    verificationStatus: 'unreviewed',
+    locationPrecision: 'country',
+    metadata: { subtype: 'joint-advice-raise', level: j.level, change: 'new', governments: j.governments, signalEventIds: j.eventIds.slice(0, 30), geoBasis: 'country of the advisories' },
+  };
+}
+

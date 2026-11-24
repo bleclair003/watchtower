@@ -17,6 +17,8 @@ import { euSanctions, ofacSdn, ukSanctions } from './sanctions.ts';
 import { aisSanctionedShips } from './aisSanctioned.ts';
 import { aisTraffic } from './aisTraffic.ts';
 import { taiwanPla } from './taiwanPla.ts';
+import { canadaTravel } from './canadaTravel.ts';
+import { cdcTravel } from './cdcTravel.ts';
 import { unSecurityCouncil } from './unsc.ts';
 import { yonhapDprkLaunches } from './yonhapDprk.ts';
 import { dodContracts } from './dodContracts.ts';
@@ -120,4 +122,6 @@ export const ADAPTERS: SourceAdapter<never>[] = [
   aisSanctionedShips as SourceAdapter<never>,
   aisTraffic as SourceAdapter<never>,
   taiwanPla as SourceAdapter<never>,
+  canadaTravel as SourceAdapter<never>,
+  cdcTravel as SourceAdapter<never>,
 ];

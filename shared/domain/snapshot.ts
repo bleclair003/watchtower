@@ -25,6 +25,7 @@ import type { ConflictSnapshot } from './conflictEvents.ts';
 import type { ActorsSnapshot } from './actors.ts';
 import type { ConvergenceSnapshot } from './convergence.ts';
 import type { TaiwanPlaSnapshot } from './taiwanPla.ts';
+import type { TravelAdviceSnapshot } from './travelAdvice.ts';
 
 /**
  * Precomputed dashboard payload, written by the collector to
@@ -121,6 +122,8 @@ export interface DashboardSnapshot {
   convergence?: ConvergenceSnapshot;
   /** v0.82.0: daily PLA aircraft and ships around Taiwan (MND figures via Skyfaring's PLA Tracker). */
   taiwanPla?: TaiwanPlaSnapshot;
+  /** v0.83.0: each government's latest travel advice per watch-region country, and joint raises. */
+  travelAdvice?: TravelAdviceSnapshot;
   /** Daily sources that have gone quiet while reachable (for the brief and Diagnostics). */
   quietSources?: { sourceId: string; name: string; hoursSinceNew: number; usualPerDay: number }[];
 }
@@ -187,6 +190,7 @@ export const LAYER_KEYS = [
   'radioReceivers',
   'convergence',
   'taiwanPla',
+  'travelAdvice',
 ] as const satisfies readonly (keyof DashboardSnapshot)[];
 export type LayerKey = (typeof LAYER_KEYS)[number];
 export type LayersSnapshot = Partial<Pick<DashboardSnapshot, LayerKey>> & { generatedAt: string };

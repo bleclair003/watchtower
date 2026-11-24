@@ -325,6 +325,18 @@ test('ships and lanes: simulated tankers with 24-hour tracks, a ship card from s
   expect(problems).toEqual([]);
 });
 
+test('Middle East region page: travel advice by government with a joint raise (simulated)', async ({ page, problems }) => {
+  await page.goto('/regions/middle-east');
+  await expect(page.getByRole('list', { name: 'Joint raises' })).toContainText('JOINT RAISE');
+  await expect(page.getByRole('list', { name: 'Joint raises' })).toContainText('Canada, United Kingdom');
+  const table = page.getByRole('region', { name: 'Travel advice by country' });
+  await expect(table).toContainText('Lebanon');
+  await expect(table).toContainText('Do not travel');
+  await expect(table).toContainText('Avoid all travel');
+  await expect(table).toContainText('Invented fever in Iraq');
+  expect(problems).toEqual([]);
+});
+
 test('Taiwan Strait region page: daily PLA activity panel (simulated)', async ({ page, problems }) => {
   await page.goto('/regions/taiwan-strait');
   const latest = page.getByLabel('Latest day');

@@ -395,3 +395,11 @@ Links only, as in Phase 28. Both sources make no records; they are stored in the
 | Japan Joint Staff (`mod.go.jp/js/`) | not read | Refuses automated requests (HTTP 403) |
 | PLATracker (Google Sheet, Brown, Lewis and Kung) | not used | No licence; asks users to email before use |
 
+### v0.83.0 — Travel advice from more governments
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| Global Affairs Canada travel advice (`data.international.gc.ca/travel-voyage/index-updated.json`) | official, Open Government Licence – Canada | Level per country (0–3, also stored as 1–4); a record when it is raised, lowered or a country appears. First read: 230 entries, 15 recent at "avoid non-essential" or "avoid all travel" |
+| US CDC travel health notices (`wwwnc.cdc.gov/travel/rss/notices.xml`) | official, public domain | One record per notice (Level 1–4, disease, places, countries). Read at most every 3 hours (the CDC asks crawlers to wait 20 s) |
+| Australia Smartraveller (`smartraveller.gov.au`) | not read | The site (Akamai) times out non-browser requests; no open data feed on data.gov.au |
+

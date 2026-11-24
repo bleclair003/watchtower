@@ -382,7 +382,7 @@ Free sources and analysis of data already collected. Each new outside source is 
 - [x] Aircraft emergency codes 7500 / 7600 / 7700 (adsb.lol) on the map and in the feed — v0.59.0
 - [x] UCDP conflict events (monthly candidate release) on the map, per-region monthly totals — v0.59.0
 - [ ] Taiwan MND daily PLA activity and Japan Joint Staff scrambles (check terms)
-- [ ] More travel and health advisories (Australia Smartraveller, CDC, Canada)
+- [x] More travel and health advisories: Canada and CDC (v0.83.0); Australia Smartraveller not added (its site drops automated requests, no data feed)
 - [x] GPS interference from aircraft position-quality fields — v0.69.0 (Phase 32)
 - [ ] State-affiliated / partisan labels on publishers
 - [ ] Open-Meteo climate anomalies; abuse.ch cyber infrastructure; satellites layer (cables and pipelines done in v0.71.0)
@@ -580,4 +580,12 @@ From the feature audit (category 2 item 4).
 - [x] Each day against the 60 before: 3+ typical spreads ABOVE USUAL, 6+ SURGE; Taiwan Strait panel; experimental indicator (catalog v27); a SURGE day is a country convergence signal for Taiwan — v0.82.0
 - [ ] Japan Joint Staff scramble and ship notices: the site refuses automated requests; needs another route or permission
 - [ ] Ask Taiwan's MND whether automated reading of the daily reports is allowed (would make it a primary source)
+
+## Phase 45 — Travel advice from more governments (2026-11-24)
+
+- [x] Canada's travel advice (open data, four levels; raises, lowers and new countries recorded) and CDC travel health notices (Level 1–4, countries from the place names) — v0.83.0
+- [x] Joint raises: two or more governments raising advice for the same country within 72 h become a record (WATCH, STRONG at three) — v0.83.0
+- [x] Region pages: travel advice by government per country (US, Canada, UK change note, CDC notices) — v0.83.0
+- [ ] Australia (Smartraveller): the site drops non-browser requests; no open data feed found
+- [ ] Germany, France, Japan travel advice: check for open feeds
 

@@ -4,7 +4,9 @@ import { computeBaseActivity } from '../shared/domain/baseActivity.ts';
 import { computeConvergence } from '../shared/domain/convergence.ts';
 import { findCountryHotspots } from '../shared/domain/countryConvergence.ts';
 import { trackHotspots, type ConvergenceMemory } from '../shared/domain/convergenceMemory.ts';
-import { CONVERGENCE_SOURCE_ID, convergenceRecord } from './lib/convergenceRecords.ts';
+import { CONVERGENCE_SOURCE_ID, convergenceRecord, jointRaiseRecord } from './lib/convergenceRecords.ts';
+import { buildTravelAdvice, CANADA_TRAVEL_SOURCE_ID, findJointRaises, US_TRAVEL_SOURCE_ID, type TravelAdviceInputs } from '../shared/domain/travelAdvice.ts';
+import { WATCH_REGIONS } from '../shared/domain/regions.ts';
 import { loadBases } from './lib/bases.ts';
 import { loadInfrastructure } from './lib/infrastructure.ts';
 import { computeInfrastructure } from '../shared/domain/infraProximity.ts';
@@ -299,7 +301,9 @@ export async function runCollection(
     snapshot.convergence = conv;
     const prev = await store.getSourceState<ConvergenceMemory>(CONVERGENCE_SOURCE_ID);
     const { memory, changes } = trackHotspots(prev, conv.hotspots, conv.countries, gen);
-    const records = changes.map((c) => convergenceRecord(c, snapshot.generatedAt, opts.appUrl)).filter((e) => {
+    // v0.83.0: governments raising their travel advice for the same country within 72 h.
+    const joint = findJointRaises(loaded, gen);
+    const records = [...changes.map((c) => convergenceRecord(c, snapshot.generatedAt, opts.appUrl)), ...joint.map((j) => jointRaiseRecord(j, snapshot.generatedAt, opts.appUrl))].filter((e) => {
       const reason = validateEvent(e, now());
       if (reason) log(`  reject ${CONVERGENCE_SOURCE_ID}: ${reason}`);
       return !reason;
@@ -313,8 +317,21 @@ export async function runCollection(
     const strong = (xs: { level: string }[]) => xs.filter((h) => h.level === 'strong').length;
     log(
       `CNV  ${conv.hotspots.length} map hotspots (${strong(conv.hotspots)} strong) from ${conv.signalsChecked} located signals (72 h) · ` +
-        `${conv.countries.length} country hotspots (${strong(conv.countries)} strong, 48 h) · ${toWrite.length} new or upgraded recorded`,
+        `${conv.countries.length} country hotspots (${strong(conv.countries)} strong, 48 h) · ${joint.length} joint travel-advice raises · ${toWrite.length} new or upgraded recorded`,
     );
+    // Region-page table: each government's latest advice for the watch regions' countries.
+    const [usState, caState] = await Promise.all([
+      store.getSourceState<{ advisories: TravelAdviceInputs['us'] }>(US_TRAVEL_SOURCE_ID),
+      store.getSourceState<{ levels: TravelAdviceInputs['ca'] }>(CANADA_TRAVEL_SOURCE_ID),
+    ]);
+    snapshot.travelAdvice = buildTravelAdvice({
+      us: usState?.advisories ?? {},
+      ca: caState?.levels ?? {},
+      events: loaded,
+      countries: WATCH_REGIONS.flatMap((r) => r.countryCodes),
+      joint,
+      now: gen,
+    });
   } catch (err) {
     log(`CNV  convergence not computed: ${sanitizeError(err)}`);
   }

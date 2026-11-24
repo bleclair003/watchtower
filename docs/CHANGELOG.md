@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.83.0] — 2026-11-24 — Travel advice from more governments (Phase 45)
+
+### Added
+- **Canada's travel advice** (Global Affairs Canada open data, Open Government Licence – Canada).
+  - Each country is at one of four levels, from "take normal security precautions" to "avoid all travel".
+  - A record is written when a level is raised or lowered, or a country appears. Text-only updates are not recorded.
+  - The level is also stored on the US 1–4 scale, so rules can compare them.
+- **US CDC travel health notices** (public domain), Level 1 to 4. Countries are read from the place names, including provinces such as Ituri and Nord-Kivu in the DR Congo.
+- **Joint raises.** When two or more governments (US, Canada, UK) raise their travel advice for the same country within 72 hours, a record is written. Two governments is WATCH, three is STRONG, so your "New STRONG signal convergence" alert rule catches a three-government raise. The UK publishes no levels; its change note counts as a raise when it says the FCDO now advises against all, or all but essential, travel.
+- **Region pages: "Travel advice by government"**, with each government's latest advice per country (US level, Canada level, UK change note, CDC notices) and joint raises flagged.
+- **Country convergence:** Canada joins the travel-advice feed, which stays one feed because governments share information. CDC Level 3–4 notices are a new anomaly signal from a separate feed; Level 1–2 are context.
+
+### Not added
+- **Australia's Smartraveller:** its site drops automated requests, and there is no open data feed.
+
 ## [0.82.0] — 2026-11-24 — PLA activity around Taiwan (Phase 44)
 
 ### Added

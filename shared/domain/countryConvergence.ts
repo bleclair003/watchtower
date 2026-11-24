@@ -22,7 +22,7 @@ export const COUNTRY_FEED_LABEL: Record<string, string> = {
   cloudflare: 'Cloudflare network (DDoS, outages)',
   ioda: 'IODA internet measurements',
   ooni: 'OONI censorship tests',
-  travel: 'US and UK travel advice',
+  travel: 'Government travel advice (US, UK, Canada)',
   markets: 'Prediction markets',
   yonhap: 'Yonhap launch reports',
   who: 'WHO outbreak news',
@@ -30,6 +30,7 @@ export const COUNTRY_FEED_LABEL: Record<string, string> = {
   un: 'UN Security Council',
   front: 'Ukrainian military reports',
   mnd: 'Taiwan MND daily PLA report',
+  cdc: 'US CDC travel health notices',
 };
 
 export const COUNTRY_TYPE_LABEL: Record<string, string> = {
@@ -46,6 +47,7 @@ export const COUNTRY_TYPE_LABEL: Record<string, string> = {
   front: 'Daily front or air-attack report',
   'pla-surge': 'PLA activity surge around Taiwan',
   'pla-daily': 'Daily PLA activity report',
+  'health-notice': 'CDC travel health notice',
 };
 
 export interface CountrySignal {
@@ -97,11 +99,15 @@ export function classifyCountry(e: IntelligenceEvent): Kind | null {
       return { type: 'censorship', feed: 'ooni', role: 'anomaly' };
     case 'state-travel-advisories':
     case 'uk-fcdo-travel':
+    case 'canada-travel-advisories':
       return { type: 'travel-advice', feed: 'travel', role: 'anomaly' };
     case 'polymarket':
       return sub === 'market-odds-move' ? { type: 'market', feed: 'markets', role: 'anomaly' } : null;
     case 'yonhap-dprk-launches':
       return { type: 'missile-launch', feed: 'yonhap', role: 'anomaly' };
+    case 'cdc-travel-notices':
+      // v0.83.0: CDC Level 3–4 (reconsider or avoid nonessential travel) is an anomaly; 1–2 context.
+      return Number(m.advisoryLevel) >= 3 ? { type: 'health-notice', feed: 'cdc', role: 'anomaly' } : { type: 'health-notice', feed: 'cdc', role: 'context' };
     case 'who-don':
       return { type: 'outbreak', feed: 'who', role: 'anomaly' };
     case 'ofac-sdn':
