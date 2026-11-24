@@ -24,6 +24,7 @@ import type { RadioReceiversSnapshot } from './radio.ts';
 import type { ConflictSnapshot } from './conflictEvents.ts';
 import type { ActorsSnapshot } from './actors.ts';
 import type { ConvergenceSnapshot } from './convergence.ts';
+import type { TaiwanPlaSnapshot } from './taiwanPla.ts';
 
 /**
  * Precomputed dashboard payload, written by the collector to
@@ -118,6 +119,8 @@ export interface DashboardSnapshot {
   actors?: ActorsSnapshot;
   /** v0.79.0: places where different kinds of signal line up in the last 72 hours. */
   convergence?: ConvergenceSnapshot;
+  /** v0.82.0: daily PLA aircraft and ships around Taiwan (MND figures via Skyfaring's PLA Tracker). */
+  taiwanPla?: TaiwanPlaSnapshot;
   /** Daily sources that have gone quiet while reachable (for the brief and Diagnostics). */
   quietSources?: { sourceId: string; name: string; hoursSinceNew: number; usualPerDay: number }[];
 }
@@ -183,6 +186,7 @@ export const LAYER_KEYS = [
   'conflictEvents',
   'radioReceivers',
   'convergence',
+  'taiwanPla',
 ] as const satisfies readonly (keyof DashboardSnapshot)[];
 export type LayerKey = (typeof LAYER_KEYS)[number];
 export type LayersSnapshot = Partial<Pick<DashboardSnapshot, LayerKey>> & { generatedAt: string };

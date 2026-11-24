@@ -53,6 +53,8 @@ import { OONI_SOURCE_ID, type OoniState } from './adapters/ooni.ts';
 import { NGA_SOURCE_ID, type NgaState } from './adapters/ngaMsi.ts';
 import { EMERGENCY_SOURCE_ID, type EmergencyState } from './adapters/adsbEmergencies.ts';
 import { UCDP_SOURCE_ID, type UcdpState } from './adapters/ucdp.ts';
+import type { TaiwanPlaState } from './adapters/taiwanPla.ts';
+import { TAIWAN_PLA_SOURCE_ID } from '../shared/domain/taiwanPla.ts';
 import { GNSS_SOURCE_ID, type GnssState } from './adapters/gnssInterference.ts';
 import { BGP_SOURCE_ID, DDOS_SOURCE_ID, type BgpState, type DdosState } from './adapters/radarNet.ts';
 import { TRAFFIC_SOURCE_ID, type TrafficState } from './adapters/aisTraffic.ts';
@@ -497,6 +499,15 @@ export async function runCollection(
     }
   } catch (err) {
     log(`NET  routing or DDoS data not added to the snapshot: ${sanitizeError(err)}`);
+  }
+  // v0.82.0: PLA activity around Taiwan (daily; shown while under 4 days old).
+  if (tracked.includes(TAIWAN_PLA_SOURCE_ID)) {
+    try {
+      const pla = await store.getSourceState<TaiwanPlaState>(TAIWAN_PLA_SOURCE_ID);
+      if (pla?.latest && Date.parse(snapshot.generatedAt) - Date.parse(pla.latest.fetchedAt) < 4 * 86_400_000) snapshot.taiwanPla = pla.latest;
+    } catch (err) {
+      log(`PLA  Taiwan PLA activity not added to the snapshot: ${sanitizeError(err)}`);
+    }
   }
   // v0.75.0: tanker and cargo traffic lives in its own document (snapshots/ships), written after a new window.
   if (tracked.includes(TRAFFIC_SOURCE_ID)) {

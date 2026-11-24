@@ -1577,7 +1577,29 @@ export const SOURCE_REGISTRY: SourceDefinition[] = [
     termsNotes: 'The API is free and open source; clients are asked to send a descriptive User-Agent and pick a server from all.api.radio-browser.info, both done. Station streams belong to their broadcasters.',
     priority: 'P3',
     feasibility: { checkedAt: '2026-11-23T10:00:00Z', result: 'reachable', note: 'stations/search HTTP 200; 11,120 working stations with a position, e.g. 41 in Ukraine, 11 in Israel.' },
-  },  // ------------------------------------------------------------ v0.80.0 ---
+  },  // ------------------------------------------------------------ v0.82.0 ---
+  {
+    id: 'taiwan-pla-activity',
+    name: 'PLA activity around Taiwan (MND daily, via PLA Tracker)',
+    organization: 'Republic of China (Taiwan) Ministry of National Defense; compiled by Skyfaring’s PLA Tracker',
+    website: 'https://pla-tracker.skyfaring.net/en/',
+    endpoint: 'https://pla-tracker.skyfaring.net/data/records.csv',
+    method: 'structured-download',
+    sourceClass: 'aggregator',
+    defaultCategory: 'military',
+    coverage: 'Daily counts of PLA aircraft sorties (and median-line crossings) and PLA Navy and official ships around Taiwan, 06:00 to 06:00 UTC+8, since 2022-11-16',
+    authentication: 'None',
+    freeAccess: 'Free CSV; CC BY 4.0',
+    expectedUpdateFrequency: 'Once a day, around midday Taiwan time; read at most every 2 hours with conditional requests',
+    pollIntervalMinutes: 180,
+    reliabilityNotes:
+      'A secondary source: the tracker transcribes each MND release verbatim (2024 to early 2025 releases were images and were read from them) and keeps a corrections log; corrected days are rewritten here. The MND counts what Taiwan detects, not all PLA activity. A day the MND does not publish stays blank. Each day is scored against the 60 days before: 3+ typical spreads ABOVE USUAL, 6+ SURGE.',
+    termsNotes:
+      'Compilation under CC BY 4.0; credit "Source: ROC Ministry of National Defense; compilation & charts: Skyfaring’s PLA Tracker". The MND site itself disallows automated readers in robots.txt, so it is not read directly. The tracker’s Global Fishing Watch figures (CC BY-NC) are not used.',
+    priority: 'P2',
+    feasibility: { checkedAt: '2026-11-24T19:00:00Z', result: 'reachable', note: 'records.csv HTTP 200 text/csv, 1,470 daily rows 2022-11-16 to 2026-11-24; robots.txt allows all.' },
+  },
+  // ------------------------------------------------------------ v0.80.0 ---
   {
     id: 'watchtower-convergence',
     name: 'Signal convergence (WATCHTOWER analysis)',

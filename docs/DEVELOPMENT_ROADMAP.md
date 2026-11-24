@@ -574,3 +574,10 @@ From the feature audit (category 2 item 4).
 - [ ] Weight marks by relevance as well as credibility (Heuer's optional step)
 - [ ] Suggest evidence to look for: what would most separate the top two explanations
 
+## Phase 44 — PLA activity around Taiwan (2026-11-24)
+
+- [x] Daily MND counts (aircraft, median-line crossings, ships, balloons) via Skyfaring's PLA Tracker (CC BY 4.0), one record per day, corrections rewritten — v0.82.0
+- [x] Each day against the 60 before: 3+ typical spreads ABOVE USUAL, 6+ SURGE; Taiwan Strait panel; experimental indicator (catalog v27); a SURGE day is a country convergence signal for Taiwan — v0.82.0
+- [ ] Japan Joint Staff scramble and ship notices: the site refuses automated requests; needs another route or permission
+- [ ] Ask Taiwan's MND whether automated reading of the daily reports is allowed (would make it a primary source)
+

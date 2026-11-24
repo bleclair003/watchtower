@@ -44,11 +44,13 @@ import type { EmergencySnapshot } from '@shared/domain/aircraftEmergencies';
 import type { GnssSnapshot } from '@shared/domain/gnss';
 import type { NetAttackSnapshot } from '@shared/domain/netAttacks';
 import type { ConvergenceSnapshot } from '@shared/domain/convergence';
+import type { TaiwanPlaSnapshot } from '@shared/domain/taiwanPla';
 import type { RadioReceiversSnapshot } from '@shared/domain/radio';
 import type { ConflictSnapshot } from '@shared/domain/conflictEvents';
 import { buildDemoConflicts, buildDemoEmergencies, buildDemoNavWarnings, buildDemoReceivers } from './demo/demoPhase25';
 import { buildDemoGnss } from './demo/demoGnss';
 import { buildDemoConvergence } from './demo/demoConvergence';
+import { buildDemoTaiwanPla } from './demo/demoTaiwanPla';
 import { buildDemoNetAttacks } from './demo/demoNetAttacks';
 import type { ActorsSnapshot } from '@shared/domain/actors';
 import { computeActors } from '@shared/domain/actorsTrack';
@@ -115,6 +117,7 @@ export interface DashboardData {
   gnss: GnssSnapshot | null;
   netAttacks: NetAttackSnapshot | null;
   convergence: ConvergenceSnapshot | null;
+  taiwanPla: TaiwanPlaSnapshot | null;
   /** Phase 28: public shortwave receivers (or null). */
   radioReceivers: RadioReceiversSnapshot | null;
   conflictEvents: ConflictSnapshot | null;
@@ -179,6 +182,7 @@ export class DemoRepository implements IntelRepository {
       gnss: buildDemoGnss(now),
       netAttacks: buildDemoNetAttacks(now),
       convergence: buildDemoConvergence(now),
+      taiwanPla: buildDemoTaiwanPla(now),
       radioReceivers: buildDemoReceivers(now),
       conflictEvents: buildDemoConflicts(now),
       // The real tracker over the demo records (no registry: nothing counts as new in demo mode).

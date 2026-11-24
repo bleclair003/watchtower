@@ -29,6 +29,7 @@ export const COUNTRY_FEED_LABEL: Record<string, string> = {
   sanctions: 'Sanctions lists',
   un: 'UN Security Council',
   front: 'Ukrainian military reports',
+  mnd: 'Taiwan MND daily PLA report',
 };
 
 export const COUNTRY_TYPE_LABEL: Record<string, string> = {
@@ -43,6 +44,8 @@ export const COUNTRY_TYPE_LABEL: Record<string, string> = {
   sanctions: 'Sanctions designations',
   unsc: 'Security Council meeting',
   front: 'Daily front or air-attack report',
+  'pla-surge': 'PLA activity surge around Taiwan',
+  'pla-daily': 'Daily PLA activity report',
 };
 
 export interface CountrySignal {
@@ -107,6 +110,9 @@ export function classifyCountry(e: IntelligenceEvent): Kind | null {
       return { type: 'sanctions', feed: 'sanctions', role: 'context' };
     case 'un-security-council':
       return { type: 'unsc', feed: 'un', role: 'context' };
+    case 'taiwan-pla-activity':
+      // v0.82.0: a SURGE day (6+ typical spreads) is an anomaly; ordinary days are context.
+      return m.direction === 'surge' ? { type: 'pla-surge', feed: 'mnd', role: 'anomaly' } : { type: 'pla-daily', feed: 'mnd', role: 'context' };
     case 'ua-general-staff':
     case 'ua-air-force':
       return { type: 'front', feed: 'front', role: 'context' };

@@ -32,7 +32,7 @@ describe('SignalLabPage', () => {
     render(wrap(<SignalLabPage />));
     expect(await screen.findByText('Pentagon Pizza Index')).toBeInTheDocument();
     expect(screen.getByText('State Dept advisory tempo (global)')).toBeInTheDocument();
-    expect(screen.getByText('EVIDENCE: ANECDOTAL')).toBeInTheDocument();
+    expect(screen.getAllByText('EVIDENCE: ANECDOTAL')).toHaveLength(INDICATOR_CATALOG.filter((d) => d.experimental && d.research?.evidenceQuality === 'anecdotal').length);
     expect(screen.getAllByText('HYPOTHESIS').length).toBe(INDICATOR_CATALOG.filter((d) => d.experimental).length);
   });
 });

@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 26;
+export const CATALOG_VERSION = 27;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -961,6 +961,43 @@ const darkShipIndicators: IndicatorDefinition[] = [
       falsePositives: 'Weather closures, a receiver outage.',
       retrospectiveResults: 'Insufficient history.',
       evidenceQuality: 'none',
+    },
+  },
+  {
+    id: 'taiwan-strait.pla-surge',
+    name: 'TWSTRAIT PLA aircraft or ship surge around Taiwan',
+    description:
+      'A day when the PLA aircraft or ships Taiwan\'s MND counted around Taiwan were 6+ typical spreads above the 60 days before (figures via Skyfaring\'s PLA Tracker), within 72 hours. Two or more is triggered.',
+    family: 'experimental',
+    regionId: 'taiwan-strait',
+    requiredSourceIds: ['taiwan-pla-activity'],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: 'taiwan-pla-activity' },
+        { field: 'metadata.direction', op: 'eq', value: 'surge' },
+      ],
+    },
+    windowHours: 72,
+    elevated: { countAtLeast: 1 },
+    triggered: { countAtLeast: 2 },
+    baseline: null,
+    weight: 0,
+    severity: 'high',
+    experimental: true,
+    enabled: true,
+    configVersion: 1,
+    rationale:
+      'Large PLA exercises around Taiwan (Joint Sword, Strait Thunder and the 30–31 December 2025 drills) show as days far above the usual count; routine joint combat readiness patrols reach about 3 spreads and are left out.',
+    research: {
+      hypothesis: 'Days far above the usual PLA count around Taiwan mark exercises or coercive signalling.',
+      dataAvailability: 'MND daily releases since 2022-11-16, transcribed by Skyfaring\'s PLA Tracker (CC BY 4.0).',
+      baselinePeriod: 'Each day against the 60 days before it (28 needed).',
+      expectedRelationship: 'Surges during named exercises and around political events (inaugurations, transits, arms sales).',
+      historicalExamples: 'About 8 surge days in the year to November 2026, among them 2025-12-30 (130 aircraft) and 2026-03-18.',
+      confounders: 'Weather, holidays, MND counting or wording changes (2024–early 2025 releases were images).',
+      falsePositives: 'A transcription error in the tracker (it keeps a corrections log; corrected days are rewritten).',
+      retrospectiveResults: 'Back-tested by eye on 2025-11 to 2026-11 only.',
+      evidenceQuality: 'anecdotal',
     },
   },
 ];

@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.82.0] — 2026-11-24 — PLA activity around Taiwan (Phase 44)
+
+### Added
+- **Daily PLA activity around Taiwan.** Taiwan's Ministry of National Defense counts the Chinese military aircraft (and how many crossed the median line) and ships it detects around Taiwan every day.
+  - **Where the numbers come from:** the MND's website disallows automated readers, so WATCHTOWER reads the same figures from Skyfaring's PLA Tracker. The tracker copies each release verbatim, keeps a corrections log, and publishes under CC BY 4.0.
+  - **Records:** one per day, credited to both and labelled as a secondary source. A day the tracker later corrects is rewritten.
+- **Levels:** each day is compared with the 60 days before it.
+  - **ABOVE USUAL** is 3 or more typical spreads above usual. That was about 40 days in the past year, most of them routine "joint combat readiness patrols".
+  - **SURGE** is 6 or more. That was about 8 days in the past year, the large exercises; 30 December 2025 had 130 aircraft, 18 spreads above usual.
+- **Taiwan Strait region page:** a panel with the latest day, aircraft and ships against usual, a 90-day chart and the busiest day of the year.
+- **Indicator** "TWSTRAIT PLA aircraft or ship surge around Taiwan": experimental, weighted 0, catalog v27.
+- **Country convergence:** a SURGE day is now an anomaly signal for Taiwan, from a new feed (Taiwan MND daily report). Ordinary days are context.
+
+### Not added
+- **Japan's Joint Staff** scramble and ship notices: the ministry's site refuses automated requests.
+- **PLATracker** (the Google Sheet): it has no licence and asks users to write first.
+
 ## [0.81.0] — 2026-11-24 — Competing hypotheses (Phase 43)
 
 ### Added

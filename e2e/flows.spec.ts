@@ -325,6 +325,17 @@ test('ships and lanes: simulated tankers with 24-hour tracks, a ship card from s
   expect(problems).toEqual([]);
 });
 
+test('Taiwan Strait region page: daily PLA activity panel (simulated)', async ({ page, problems }) => {
+  await page.goto('/regions/taiwan-strait');
+  const latest = page.getByLabel('Latest day');
+  await expect(latest).toContainText('SURGE');
+  await expect(latest).toContainText('71');
+  await expect(latest).toContainText('crossed the median line');
+  await expect(page.getByText(/compilation: Skyfaring’s PLA Tracker/)).toBeVisible();
+  await expect(page.getByText('SIMULATED').first()).toBeVisible();
+  expect(problems).toEqual([]);
+});
+
 test('Alert rule builder: convergence presets fill the rule (simulated)', async ({ page, problems }) => {
   await page.goto('/alerts');
   const newRule = page.getByRole('button', { name: /new rule/i }).first();

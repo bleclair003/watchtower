@@ -385,3 +385,13 @@ Links only, as in Phase 28. Both sources make no records; they are stored in the
 |---|---|---|
 | Fintraffic Digitraffic marine AIS (`meri.digitraffic.fi/api/ais/v1/locations` and `/vessels`, header `Digitraffic-User`) | official, CC BY 4.0 ("Source: Fintraffic / digitraffic.fi, license CC 4.0 BY") | Positions heard in the last hour and the matching vessel records, converted to AIS messages for the sanctioned-ship check, cable watch and tanker and cargo layer. First live read: 572 recent positions, 75 tankers and 158 cargo ships (Gulf of Finland and northern Baltic) |
 
+### v0.82.0 — PLA activity around Taiwan
+
+| Source | Kind | What WATCHTOWER keeps |
+|---|---|---|
+| Skyfaring's PLA Tracker (`pla-tracker.skyfaring.net/data/records.csv`), transcribing Taiwan MND daily releases | aggregator (secondary), CC BY 4.0 ("Source: ROC Ministry of National Defense; compilation & charts: Skyfaring's PLA Tracker") | One record per day (aircraft, median-line crossings, ships, balloons) and the last 90 days for the Taiwan Strait panel. Read at most every 2 hours with conditional requests. First check: 1,470 days, 2022-11-16 to 2026-11-24 |
+| Taiwan MND (`mnd.gov.tw`) | not read | Reports are licensed OGDL-Taiwan-1.0, but robots.txt disallows all automated readers except Googlebot |
+| data.gov.tw dataset 138118 | not used | One-line CSV pointing back to the MND website; no counts |
+| Japan Joint Staff (`mod.go.jp/js/`) | not read | Refuses automated requests (HTTP 403) |
+| PLATracker (Google Sheet, Brown, Lewis and Kung) | not used | No licence; asks users to email before use |
+

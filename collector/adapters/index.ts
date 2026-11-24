@@ -16,6 +16,7 @@ import { portwatchChokepoints } from './portwatch.ts';
 import { euSanctions, ofacSdn, ukSanctions } from './sanctions.ts';
 import { aisSanctionedShips } from './aisSanctioned.ts';
 import { aisTraffic } from './aisTraffic.ts';
+import { taiwanPla } from './taiwanPla.ts';
 import { unSecurityCouncil } from './unsc.ts';
 import { yonhapDprkLaunches } from './yonhapDprk.ts';
 import { dodContracts } from './dodContracts.ts';
@@ -118,4 +119,5 @@ export const ADAPTERS: SourceAdapter<never>[] = [
   // Last: it awaits the AIS window that listened while the sources above were collected.
   aisSanctionedShips as SourceAdapter<never>,
   aisTraffic as SourceAdapter<never>,
+  taiwanPla as SourceAdapter<never>,
 ];
