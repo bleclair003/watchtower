@@ -28,7 +28,11 @@ export function useShipTraffic(enabled: boolean): { data: ShipTrafficDoc | null;
       cached = mode === 'demo' ? import('./demo/demoShipTraffic').then((m) => m.buildDemoShipTraffic(Date.now())) : loadLive();
     }
     cached.then(
-      (d) => live && setData(d),
+      (d) => {
+        if (!live) return;
+        setData(d);
+        if (!d) setError('No tanker or cargo traffic collected yet: it appears after the first successful AIS listen.');
+      },
       (e: Error) => {
         cached = null;
         if (live) setError(`Ship traffic unavailable: ${e.message}`);

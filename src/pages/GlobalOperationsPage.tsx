@@ -877,6 +877,7 @@ export default function GlobalOperationsPage() {
           {!selectedInfra && !selectedListedShip && !selectedStraitItem && !selectedArea && selectedPlane && aircraft && <AircraftCard aircraft={selectedPlane} snapshot={aircraft} now={now} onClose={() => setSelectedAircraft(null)} />}
           {!selectedInfra && !selectedListedShip && !selectedStraitItem && !selectedArea && !selectedPlane && bases.selected && <InstallationCard selected={bases.selected} events={events} now={now} onClose={() => setSelectedBase(null)} activity={baseActivity} />}
           {bases.error && settings.installations && <p className="absolute top-2 right-2 z-10 bg-wt-panel/95 px-2 py-1 text-2xs text-wt-warn">{bases.error}</p>}
+          {trafficData.error && settings.traffic && <p className="absolute top-9 right-2 z-10 max-w-[260px] bg-wt-panel/95 px-2 py-1 text-2xs text-wt-warn">{trafficData.error}</p>}
         </Panel>
 
         <IntelFeed
