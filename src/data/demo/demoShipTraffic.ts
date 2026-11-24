@@ -12,6 +12,8 @@ export function buildDemoShipTraffic(now: number): ShipTrafficDoc {
     listenSeconds: 25,
     typesKnown: 1840,
     totalSeen: 4,
+    fintraffic: 572,
+    dark: [{ mmsi: '999000009', name: '[SIMULATED] TEST DARK', kind: 'tanker', la: 59.7, lo: 25.4, lastAt: at(95), sanctioned: true }],
     ships: [
       ship({ mmsi: '999000001', name: '[SIMULATED] TEST TANKER', imo: '9000001', kind: 'tanker', type: 84, destination: 'PRIMORSK', la: 59.9, lo: 26.2, sog: 12.4, cog: 260, area: 'gulf-of-finland', track: [27.6, 60.2, 180, 27.0, 60.05, 120, 26.6, 59.95, 60] }),
       ship({ mmsi: '999000002', name: '[SIMULATED] TEST CARRIER', kind: 'cargo', type: 70, destination: 'ROTTERDAM', la: 55.4, lo: 15.1, sog: 13, cog: 250, track: [17.2, 55.9, 150, 16.1, 55.6, 75] }),

@@ -320,5 +320,7 @@ test('ships and lanes: simulated tankers with 24-hour tracks, a ship card from s
   if (!(await lanesLine.isVisible())) await page.getByRole('button', { name: /legend/i }).first().click();
   await expect(lanesLine).toBeVisible();
   await expect(page.getByText(/1,840 ship types remembered/)).toBeVisible();
+  await expect(page.getByText('Went dark (last known position)')).toBeVisible();
+  await expect(page.getByText(/572 positions last run/)).toBeVisible();
   expect(problems).toEqual([]);
 });

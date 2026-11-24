@@ -8,9 +8,8 @@ import { stateVessels, type SanctionsState } from './sanctions.ts';
 import type { AdapterContext, AdapterResult, SourceAdapter } from './types.ts';
 import { cableFlagTitle, checkCables, CABLE_NEAR_KM, CABLE_REPEAT_MIN, CABLE_SLOW_KN, type CableFlag, type NearCableEntry } from '../../shared/domain/cableWatch.ts';
 import { underseaName, UNDERSEA_LABEL, type UnderseaLine } from '../../shared/domain/undersea.ts';
-import type { InfraSite } from '../../shared/domain/infrastructure.ts';
 import { loadUndersea } from '../lib/undersea.ts';
-import { loadInfrastructure } from '../lib/infrastructure.ts';
+import { loadPorts } from '../lib/ports.ts';
 import { fetchDigitraffic, type DigitrafficResult } from '../lib/digitraffic.ts';
 
 /**
@@ -44,7 +43,7 @@ export interface AisMessage {
   MessageType: string;
   MetaData: { MMSI: number; ShipName?: string; latitude: number; longitude: number; time_utc?: string };
   Message: {
-    PositionReport?: { Sog?: number; Cog?: number; Latitude?: number; Longitude?: number };
+    PositionReport?: { Sog?: number; Cog?: number; Latitude?: number; Longitude?: number; NavigationalStatus?: number };
     ShipStaticData?: { ImoNumber?: number; Name?: string; Destination?: string; Type?: number };
   };
 }
@@ -362,6 +361,16 @@ export const MAX_FAILED_WINDOWS = 3;
 
 const SANCTIONS_SOURCES = ['ofac-sdn', 'uk-sanctions', 'eu-sanctions'];
 
+/** The sanctioned-vessel watchlist from the US, EU and UK list sources' saved state. */
+export async function loadSanctionsWatchlist(ctx: Pick<AdapterContext<unknown>, 'peerState'>): Promise<Watchlist | null> {
+  const vessels: SanctionedVessel[] = [];
+  for (const id of SANCTIONS_SOURCES) {
+    const st = await ctx.peerState?.<SanctionsState>(id);
+    if (st) vessels.push(...stateVessels(st));
+  }
+  return vessels.length ? buildWatchlist(vessels) : null;
+}
+
 export function makeAisSanctionedAdapter(listener: Listener = listenAisStream): SourceAdapter<AisSanctionedState> {
   return {
     sourceId: AIS_SOURCE_ID,
@@ -395,10 +404,10 @@ export function makeAisSanctionedAdapter(listener: Listener = listenAisStream): 
       const sightings = [...byKey.values()].sort((a, b) => b.seenAt.localeCompare(a.seenAt));
       // v0.73.0: sanctioned ships lingering near undersea cables and pipelines.
       let lines: UnderseaLine[] = [];
-      let ports: InfraSite[] = [];
+      let ports: { la: number; lo: number }[] = [];
       try {
         lines = loadUndersea();
-        ports = loadInfrastructure().filter((x) => x.t === 'port');
+        ports = loadPorts();
       } catch {
         // The data files ship with the app; without them the check is skipped.
       }

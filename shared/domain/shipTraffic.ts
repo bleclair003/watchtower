@@ -56,6 +56,8 @@ export interface ShipTrafficDoc {
   totalSeen: number;
   /** v0.76.0: positions from Fintraffic's Digitraffic feed in the last run (null when it did not answer). */
   fintraffic?: number | null;
+  /** v0.77.0: ships that went dark in Finnish waters in the last 48 h and have not been heard since. */
+  dark?: { mmsi: string; name: string | null; kind: TrafficKind; la: number; lo: number; lastAt: string; sanctioned: boolean }[];
   simulated?: boolean;
 }
 

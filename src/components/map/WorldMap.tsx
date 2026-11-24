@@ -73,6 +73,8 @@ export interface WorldMapProps {
   onSelectGnss?: (key: string | null) => void;
   /** Tanker and cargo traffic with 24 h tracks, and shipping lanes (v0.75.0); empty when off. */
   traffic?: TrafficShip[];
+  /** Ships that went dark (last known positions, v0.77.0). */
+  trafficDark?: { mmsi: string; name: string | null; la: number; lo: number; sanctioned: boolean }[];
   selectedTraffic?: string | null;
   onSelectTraffic?: (mmsi: string | null) => void;
   lanes?: { c: LaneClass; g: [number, number][][] }[];
@@ -786,6 +788,20 @@ export function WorldMap(props: WorldMapProps) {
           source: 'traffic-tracks',
           filter: ['==', ['get', 'mmsi'], '__none__'],
           paint: { 'line-color': '#ffffff', 'line-width': 2, 'line-opacity': 0.9 },
+        });
+        m.addSource('traffic-dark', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({
+          id: 'traffic-dark',
+          type: 'circle',
+          source: 'traffic-dark',
+          paint: { 'circle-radius': 7, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': '#ff4d6d', 'circle-stroke-width': ['case', ['get', 'sanctioned'], 2.5, 1.5] },
+        });
+        m.addLayer({
+          id: 'traffic-dark-labels',
+          type: 'symbol',
+          source: 'traffic-dark',
+          layout: { 'text-field': ['concat', 'DARK ', ['get', 'name']], 'text-font': font, 'text-size': 9, 'text-offset': [0, 1.3], 'text-anchor': 'top', 'text-optional': true },
+          paint: { 'text-color': '#ff8fa3', 'text-halo-color': '#050a08', 'text-halo-width': 1.2 },
         });
         m.addSource('traffic', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
         m.addLayer({
@@ -1542,7 +1558,15 @@ export function WorldMap(props: WorldMapProps) {
   }, [ready, selectedAircraft]);
 
   // ------------------------------------------------- traffic and lanes --
-  const { traffic, selectedTraffic, lanes } = props;
+  const { traffic, selectedTraffic, lanes, trafficDark } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    (m.getSource('traffic-dark') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (trafficDark ?? []).map((d) => ({ type: 'Feature' as const, geometry: { type: 'Point' as const, coordinates: [d.lo, d.la] }, properties: { name: d.name ?? d.mmsi, sanctioned: d.sanctioned } })),
+    });
+  }, [ready, trafficDark]);
   useEffect(() => {
     const m = mapRef.current;
     if (!ready || !m) return;

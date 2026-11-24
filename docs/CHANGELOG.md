@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.77.0] — 2026-11-24 — Ships going dark (Phase 40)
+
+### Added
+- **Ships going dark.** Fintraffic's feed reports every ship its Finnish receivers hear each run, so WATCHTOWER can now flag a tanker or cargo ship that stops broadcasting AIS while still at sea. All of these must hold:
+  - it was heard on at least three runs in a row;
+  - at its last fix it was under way (2 knots or more, not anchored, moored or aground);
+  - it was more than 15 km from a port;
+  - it has now been silent between one and six hours;
+  - at least three other ships are still heard within 30 km of its last position, and within 30 km of where it would be by now at its last speed and course. Receivers are working where it should be, so it has not just sailed out of range.
+
+  Each flag is a record placed at the last position; sanctioned ships are marked. When the ship is heard again, a second record says how long it was gone and how far it moved.
+- **DARK rings on the SHIPS layer** at the last known position (thicker for sanctioned ships), with a count in the legend.
+- **Indicator** "EASTEUR ships going dark": two in 72 hours is elevated, five triggered. Experimental, weighted 0. Catalog v25.
+- **Ports in Finland, Sweden, Denmark, Germany and Norway** (Wikidata) are now excluded, for the dark-ship check and the cable watch alike.
+
+### Notes
+- Turning AIS off is sometimes lawful (security threats), and receivers fail. A flag is a lead to check, not proof of evasion.
+- Only Finnish coverage qualifies: aisstream's 25-second sample cannot tell silence from not being sampled.
+
 ## [0.76.0] — 2026-11-24 — Finland's AIS feed (Phase 39)
 
 ### Added

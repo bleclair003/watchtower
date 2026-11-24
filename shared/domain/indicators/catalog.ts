@@ -12,7 +12,7 @@ import type { IndicatorDefinition } from './types.ts';
  *
  * Changing any definition: bump its configVersion and CATALOG_VERSION.
  */
-export const CATALOG_VERSION = 24;
+export const CATALOG_VERSION = 25;
 
 const STATE = 'state-travel-advisories';
 const KEV = 'cisa-kev';
@@ -885,6 +885,48 @@ const sanctionedShipIndicators: IndicatorDefinition[] = [
   },
 ];
 
+/** v0.77.0: tankers and cargo ships going dark in Finnish waters (experimental: no history yet). */
+const darkShipIndicators: IndicatorDefinition[] = [
+  {
+    id: 'eastern-europe.ships-dark',
+    name: 'EASTEUR ships going dark in the Gulf of Finland and northern Baltic',
+    description:
+      'Tankers or cargo ships that stopped broadcasting AIS at sea, under way, after steady contact, where other ships were still heard (Fintraffic feed), within 72 hours. Five or more is triggered.',
+    family: 'experimental',
+    regionId: 'eastern-europe',
+    requiredSourceIds: ['ais-shipping'],
+    match: {
+      all: [
+        { field: 'sourceId', op: 'eq', value: 'ais-shipping' },
+        { field: 'metadata.subtype', op: 'eq', value: 'ship-dark' },
+        { field: 'regionIds', op: 'contains', value: 'eastern-europe' },
+      ],
+    },
+    windowHours: 72,
+    elevated: { countAtLeast: 2 },
+    triggered: { countAtLeast: 5 },
+    baseline: null,
+    weight: 0,
+    severity: 'medium',
+    experimental: true,
+    enabled: true,
+    configVersion: 1,
+    rationale:
+      'Shadow-fleet tankers switch AIS off to hide ship-to-ship transfers and port calls; a cluster of ships going dark can also accompany electronic interference or military activity. AIS may be switched off lawfully and receivers fail, so this is weighted 0 until there is history.',
+    research: {
+      hypothesis: 'More ships going dark than usual in the Gulf of Finland marks sanctions evasion activity or interference.',
+      dataAvailability: 'Fintraffic Digitraffic AIS (every ship its Finnish receivers hear), each collection run since 2026-11-24.',
+      baselinePeriod: 'None yet.',
+      expectedRelationship: 'Rises with shadow-fleet loading at Primorsk and Ust-Luga and with GNSS or AIS interference.',
+      historicalExamples: 'None in WATCHTOWER data yet.',
+      confounders: 'Receiver outages, ships leaving coverage, transponder faults, Russian territorial waters near the edge of Finnish coverage.',
+      falsePositives: 'A receiver going down; ships entering ports not in the port list.',
+      retrospectiveResults: 'Insufficient history.',
+      evidenceQuality: 'none',
+    },
+  },
+];
+
 const GNSS = 'adsb-gnss';
 const GNSS_REGIONS = ['eastern-europe', 'middle-east', 'red-sea', 'korean-peninsula', 'taiwan-strait', 'south-china-sea'];
 
@@ -1530,6 +1572,7 @@ export const INDICATOR_CATALOG: IndicatorDefinition[] = [
   ...sanctionsIndicators,
   ...sanctionedShipIndicators,
   ...gnssIndicators,
+  ...darkShipIndicators,
   ...netIndicators,
   ...unscIndicators,
   ...missileIndicators,

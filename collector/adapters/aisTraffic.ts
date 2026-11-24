@@ -9,8 +9,15 @@ import {
   type TrafficShip,
 } from '../../shared/domain/shipTraffic.ts';
 import { readSecret } from '../lib/secrets.ts';
+import { contentHash } from '../lib/hash.ts';
+import { LIMITS, truncate } from '../lib/text.ts';
+import { loadPorts } from '../lib/ports.ts';
+import { DIGITRAFFIC_CREDIT } from '../lib/digitraffic.ts';
+import { DARK, detectDark, type DarkEntry, type DarkFlag, type FinEntry, type FixNow } from '../../shared/domain/darkShips.ts';
+import { TRAFFIC_LABEL } from '../../shared/domain/shipTraffic.ts';
+import type { IntelligenceEvent } from '../../shared/domain/types.ts';
 import { cleanText } from '../lib/text.ts';
-import { AIS_KEY_ENV, gatherAis, LISTEN_SECONDS, listenAisStream, parseAisTime, takeAisWindow, type AisMessage, type Listener } from './aisSanctioned.ts';
+import { AIS_KEY_ENV, gatherAis, loadSanctionsWatchlist, LISTEN_SECONDS, listenAisStream, parseAisTime, takeAisWindow, type AisMessage, type Listener } from './aisSanctioned.ts';
 import type { AdapterContext, AdapterResult, SourceAdapter } from './types.ts';
 
 /**
@@ -18,7 +25,7 @@ import type { AdapterContext, AdapterResult, SourceAdapter } from './types.ts';
  * from v0.76.0 Fintraffic's Digitraffic feed (every vessel its Finnish receivers hear).
  * Remembers each tanker's and cargo ship's type, name, IMO and destination between runs (identity
  * messages come every few minutes, so one window sees few), and keeps a point per run for 24 hours.
- * Makes no records: it feeds the map's SHIPS layer.
+ * Feeds the map's SHIPS layer, and from v0.77.0 makes records for ships going dark in Finnish waters.
  */
 export { TRAFFIC_SOURCE_ID };
 
@@ -32,6 +39,66 @@ export interface TrafficState {
   last: Record<string, [number, number, number | null, number | null, number, number]>;
   failedWindows?: number;
   latest: ShipTrafficDoc | null;
+  /** v0.77.0: last Fintraffic fix per tanker or cargo ship, and ships currently dark. */
+  fin?: Record<string, FinEntry>;
+  dark?: Record<string, DarkEntry>;
+}
+
+const minIso = (m: number) => new Date(m * 60_000).toISOString();
+
+/** Records for ships going dark and coming back (v0.77.0). */
+export function darkEvents(flags: DarkFlag[], nowIso: string): IntelligenceEvent[] {
+  return flags.map((f) => {
+    const s = f.ship;
+    const who = `${TRAFFIC_LABEL[s.kind]} ${s.name ?? `MMSI ${s.mmsi}`}${s.imo ? ` (IMO ${s.imo})` : ''}${s.sanctioned ? ', on a sanctions list,' : ''}`;
+    const dark = f.type === 'dark';
+    const id = contentHash(TRAFFIC_SOURCE_ID, f.type, s.mmsi, String(dark ? s.at : s.flaggedAt));
+    const la = dark ? s.la : f.la;
+    const lo = dark ? s.lo : f.lo;
+    return {
+      id,
+      contentHash: id,
+      dataOrigin: 'live',
+      sourceId: TRAFFIC_SOURCE_ID,
+      sourceName: 'Fintraffic Digitraffic AIS — ships going dark',
+      sourceClass: 'official',
+      sourceUrl: s.imo ? `https://www.marinetraffic.com/en/ais/details/ships/imo:${s.imo}` : `https://www.marinetraffic.com/en/ais/details/ships/mmsi:${s.mmsi}`,
+      title: truncate(
+        dark
+          ? `Ship went dark: ${who} stopped broadcasting AIS at sea while under way (${s.sog} kn)`
+          : `Ship back on AIS: ${who} after ${Math.round((f.gapMin / 60) * 10) / 10} h dark, ${f.movedKm} km from where it went quiet`,
+        LIMITS.title,
+      ),
+      summary: truncate(
+        dark
+          ? `Last heard at ${minIso(s.at)} at ${s.la.toFixed(3)}, ${s.lo.toFixed(3)}, ${s.sog} kn on ${s.cog ?? '?'}°, after at least ${DARK.minStreak} runs of steady contact; silent ${f.silentMin} min. ` +
+            `Other ships are still heard within ${DARK.coverKm} km of its last position and of where it would be now (${f.projected[0]}, ${f.projected[1]}), so it is not simply out of range. ` +
+            `Turning AIS off can hide transfers or port calls, but it is also allowed for security reasons and receivers fail: a lead to check, not proof. ${DIGITRAFFIC_CREDIT}.`
+          : `Went quiet at ${minIso(s.at)} at ${s.la.toFixed(3)}, ${s.lo.toFixed(3)}; heard again at ${f.la.toFixed(3)}, ${f.lo.toFixed(3)}, ${f.movedKm} km away, after ${f.gapMin} min. ${DIGITRAFFIC_CREDIT}.`,
+        LIMITS.summary,
+      ),
+      category: 'maritime',
+      regionIds: ['eastern-europe'],
+      countryCodes: [],
+      publishedAt: dark ? minIso(s.at) : nowIso,
+      occurredAt: dark ? minIso(s.at) : nowIso,
+      collectedAt: nowIso,
+      credibility: 'official',
+      verificationStatus: 'unreviewed',
+      latitude: la,
+      longitude: lo,
+      locationPrecision: 'exact',
+      metadata: {
+        subtype: dark ? 'ship-dark' : 'ship-reappeared',
+        mmsi: s.mmsi,
+        imo: s.imo,
+        shipKind: s.kind,
+        sanctioned: s.sanctioned,
+        ...(dark ? { silentMin: f.silentMin } : { gapMin: f.gapMin, movedKm: f.movedKm }),
+        geoBasis: 'source-coordinates (AIS position broadcast by the ship)',
+      },
+    };
+  });
 }
 
 /** Identities kept, most recently heard first (a few hundred KB of state at most). */
@@ -155,8 +222,38 @@ export function makeAisTrafficAdapter(listener: Listener = listenAisStream): Sou
       }
       const state = updateTraffic(ctx.state, got.msgs, ctx.now, heard ? (heard.seconds ?? LISTEN_SECONDS) : 0);
       state.latest!.fintraffic = got.dt ? got.dt.positions : null;
+      // v0.77.0: ships going dark, judged only on runs where the Finnish feed answered (it sees every ship).
+      let events: IntelligenceEvent[] = [];
+      state.fin = ctx.state?.fin ?? {};
+      state.dark = ctx.state?.dark ?? {};
+      if (got.dt) {
+        const allNow = new Map<string, FixNow>();
+        for (const m of got.dt.msgs) {
+          if (m.MessageType !== 'PositionReport') continue;
+          const at = Math.floor(Date.parse(parseAisTime(m.MetaData.time_utc) ?? new Date(ctx.now).toISOString()) / 60_000);
+          const p = m.Message.PositionReport ?? {};
+          allNow.set(String(m.MetaData.MMSI), { la: m.MetaData.latitude, lo: m.MetaData.longitude, sog: p.Sog ?? null, cog: p.Cog ?? null, nav: p.NavigationalStatus ?? null, at });
+        }
+        const wl = await loadSanctionsWatchlist(ctx);
+        const identity = (mmsi: string) => {
+          const k = state.known[mmsi];
+          const kind = k ? kindOfType(k[0]) : null;
+          return k && kind ? { kind, name: k[1], imo: k[2] } : null;
+        };
+        let ports: { la: number; lo: number }[] = [];
+        try {
+          ports = loadPorts();
+        } catch {
+          // without the port list no ship is excluded for being near a port
+        }
+        const d = detectDark({ fin: state.fin, dark: state.dark }, allNow, identity, (mmsi, imo) => !!wl && (wl.byMmsi.has(mmsi) || (!!imo && wl.byImo.has(imo))), ports, Math.floor(ctx.now / 60_000));
+        state.fin = d.fin;
+        state.dark = d.dark;
+        events = darkEvents(d.flags, new Date(ctx.now).toISOString());
+      }
+      state.latest!.dark = Object.values(state.dark).map((s) => ({ mmsi: s.mmsi, name: s.name, kind: s.kind, la: s.la, lo: s.lo, lastAt: minIso(s.at), sanctioned: s.sanctioned }));
       return {
-        events: [],
+        events,
         rejected: [],
         itemsSeen: got.messages,
         notModified: false,

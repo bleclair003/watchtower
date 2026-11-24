@@ -51,7 +51,7 @@ export function parseDigitraffic(locationsBody: string, vesselsBody: string, now
     msgs.push({
       MessageType: 'PositionReport',
       MetaData: { MMSI: mmsi, latitude: lat, longitude: lon, time_utc: aisTime(at) },
-      Message: { PositionReport: { Sog: sog ?? undefined, Cog: cog ?? undefined } },
+      Message: { PositionReport: { Sog: sog ?? undefined, Cog: cog ?? undefined, NavigationalStatus: num(f.properties?.navStat) ?? undefined } },
     });
     located.add(mmsi);
     positions++;

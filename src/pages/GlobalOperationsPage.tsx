@@ -671,6 +671,7 @@ export default function GlobalOperationsPage() {
               emergencies={settings.aircraft ? (aircraftEmergencies?.aircraft ?? []) : []}
               conflicts={settings.conflicts ? conflictWindow.events : []}
               traffic={shownTraffic ?? []}
+              trafficDark={settings.traffic ? (trafficData.data?.dark ?? []) : []}
               selectedTraffic={selectedTrafficShip ? selectedShip : null}
               onSelectTraffic={(mmsi) => selectOnly('ship', mmsi)}
               lanes={settings.lanes ? lanesData.data?.lanes : []}
@@ -782,6 +783,7 @@ export default function GlobalOperationsPage() {
                       ageMinutes: Math.max(0, Math.round((now - Date.parse(trafficData.data.fetchedAt)) / 60_000)),
                       simulated: !!trafficData.data.simulated,
                       fintraffic: trafficData.data.fintraffic ?? null,
+                      dark: trafficData.data.dark?.length ?? 0,
                     }
                   : null
                 : undefined

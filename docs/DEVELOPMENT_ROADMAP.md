@@ -508,7 +508,7 @@ From the feature audit (category 11 item 3; category 14 items 5 and 6).
 
 - [x] AIS listening keeps what was heard when the stream drops after starting, retries once when it fails early, and tolerates two failed listens in a row before the source fails (29 of 60 runs failed on 2026-11-23) — v0.73.0
 - [x] Sanctioned ships within 2 km of a mapped undersea cable or pipeline, moving under 4 kn or seen near the same line again 30+ minutes later, not within 10 km of a port: records and an experimental indicator (catalog v24) — v0.73.0
-- [ ] Ports outside the watch-region countries (Finland, Sweden, Germany, Denmark) are not in the site file, so anchorages near them are not excluded
+- [x] Ports outside the watch-region countries (Finland, Sweden, Denmark, Germany, Norway) for the cable watch and dark-ship check — v0.77.0
 
 ## Phase 37 — Watch areas (2026-11-24)
 
@@ -537,6 +537,15 @@ From the feature audit (category 2, items 1–3, partly).
 
 - [x] Finland's official keyless AIS feed (CC BY 4.0): every vessel its coastal receivers hear, plus its vessel database (type, name, IMO, destination); one fetch per run shared by both AIS sources and merged with the aisstream.io window — v0.76.0
 - [x] Sanctioned-ship check, cable watch and the SHIPS layer keep working on the Finnish feed when aisstream fails; aisstream failures still counted and logged — v0.76.0
-- [ ] Ships going dark: a tanker heard every run that stops while still at sea (now possible in Finnish waters)
+- [x] Ships going dark: a tanker heard every run that stops while still at sea — v0.77.0 (Phase 40)
 - [ ] Norway's open AIS (Kystverket) for the North Sea and Barents, if its terms allow
+
+## Phase 40 — Ships going dark (2026-11-24)
+
+From the feature audit (category 2 item 4).
+
+- [x] Tankers and cargo ships that stop broadcasting AIS at sea in Finnish coverage: after 3+ runs of steady contact, under way (2 kn+, not anchored, moored or aground), more than 15 km from a port, silent 1–6 h, with other ships still heard near the last and the projected position; a second record when they return (gap, distance) — v0.77.0
+- [x] DARK rings at the last known position (thicker for sanctioned ships), legend count, records, experimental indicator (catalog v25) — v0.77.0
+- [x] Port list for FI, SE, DK, DE, NO (Wikidata) used by the dark-ship check and the cable watch — v0.77.0
+- [ ] Learn how often each receiver area drops out, to tell outages from ships going dark
 
