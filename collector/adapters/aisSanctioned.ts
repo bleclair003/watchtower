@@ -16,6 +16,8 @@ export const AIS_SOURCE_ID = 'ais-sanctioned-ships';
 export const AIS_KEY_ENV = 'AISSTREAM_API_KEY';
 /** Listening window. It runs while the other sources are collected, so it adds little or no run time. */
 export const LISTEN_SECONDS = 25;
+/** A connection not confirmed within this long is abandoned for a second one (v0.74.1). */
+export const CONFIRM_SECONDS = 8;
 
 /** The parts of an aisstream.io message WATCHTOWER reads. */
 export interface AisMessage {
@@ -226,6 +228,7 @@ export const listenAisStream: Listener = (key, seconds) =>
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      clearTimeout(confirmTimer);
       try {
         ws.close();
       } catch {
@@ -236,6 +239,10 @@ export const listenAisStream: Listener = (key, seconds) =>
       else reject(err ?? new Error('aisstream.io did not confirm the subscription'));
     };
     const timer = setTimeout(() => finish(null), seconds * 1000);
+    // v0.74.1: some connections are never confirmed and stay silent; give up early so a second one gets the time left.
+    const confirmTimer = setTimeout(() => {
+      if (!confirmed) finish(new Error(`aisstream.io did not confirm the subscription within ${CONFIRM_SECONDS} s`));
+    }, Math.min(CONFIRM_SECONDS, seconds) * 1000);
     ws.onopen = () =>
       ws.send(JSON.stringify({ APIKey: key, BoundingBoxes: SHIP_AREAS.map((a) => a.box), FilterMessageTypes: ['PositionReport', 'ShipStaticData'] }));
     ws.onmessage = (ev) => {

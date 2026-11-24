@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.74.1] — 2026-11-24 — AIS: give up on silent connections sooner
+
+### Fixed
+- The error logging added in v0.73.0 showed what actually happens: some aisstream.io connections are never confirmed and stay silent for the whole window ("did not confirm the subscription"), so the retry never got a chance. A connection not confirmed within 8 seconds is now abandoned, and a second one gets the rest of the window.
+
 ## [0.74.0] — 2026-11-24 — Watch areas (Phase 37)
 
 ### Added
