@@ -84,6 +84,33 @@ service cloud.firestore {
       allow create, delete: if false;
     }
 
+    // Watch areas (v0.74.0): drawn by the owner and editors, seen by every member. Shape and size are
+    // checked here; the app and the collector check each point (the collector skips an invalid area).
+    function validWatchArea(d, id) {
+      return d.keys().hasOnly(['id', 'name', 'shape', 'alert', 'note', 'createdAt', 'updatedAt', 'version'])
+        && d.keys().hasAll(['id', 'name', 'shape', 'alert', 'note', 'createdAt', 'updatedAt', 'version'])
+        && d.id == id
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 60
+        && d.note is string && d.note.size() <= 500
+        && d.shape is map && d.shape.kind in ['circle', 'polygon']
+        && (d.shape.kind != 'polygon' || (d.shape.points is list && d.shape.points.size() >= 3 && d.shape.points.size() <= 50))
+        && (d.shape.kind != 'circle' || (d.shape.radiusKm is number && d.shape.radiusKm >= 0.5 && d.shape.radiusKm <= 1000))
+        && d.alert is map && d.alert.keys().hasOnly(['enabled', 'severity', 'categories', 'discord'])
+        && d.alert.enabled is bool && d.alert.discord is bool
+        && d.alert.severity in ['INFORMATION', 'ADVISORY', 'WARNING', 'CRITICAL']
+        && d.alert.categories is list && d.alert.categories.size() <= 10
+        && d.createdAt is string && d.updatedAt is string
+        && d.version is int;
+    }
+    match /watchAreas/{id} {
+      allow read: if canView();
+      allow delete: if canEdit();
+      allow create: if canEdit() && validWatchArea(request.resource.data, id) && request.resource.data.version == 1;
+      allow update: if canEdit() && validWatchArea(request.resource.data, id)
+        && request.resource.data.version == resource.data.version + 1
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
     // Missed or late incidents (v0.67.0): logged by the owner and editors for the scorecard.
     function validMissed(d, id) {
       return d.keys().hasOnly(['id', 'title', 'occurredAt', 'kind', 'lateHours', 'regionIds', 'category', 'url', 'note', 'createdAt', 'updatedAt', 'version'])

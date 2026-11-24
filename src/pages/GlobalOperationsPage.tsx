@@ -9,10 +9,14 @@ import { IMAGERY_ATTRIBUTION } from '../lib/imagery';
 import { readStorage, writeStorage } from '../lib/storage';
 import { formatUtc } from '../lib/time';
 import { unpackAirports, type Airport } from '@shared/domain/radio';
-import { Anchor, Atom, Ban, Cable, Crosshair, Factory, Flag, Grid3x3, LocateOff, Plane, PlaneLanding, Satellite, Shield, Ship, Siren, Square, Zap } from 'lucide-react';
+import { Anchor, Atom, Ban, Cable, Crosshair, Factory, Flag, Grid3x3, LocateOff, Target, Plane, PlaneLanding, Satellite, Shield, Ship, Siren, Square, Zap } from 'lucide-react';
 import { GnssCard } from '../components/map/GnssCard';
 import { useBases, useDisputed, useInfrastructure, useUndersea } from '../data/useInstallations';
 import { DisputedCard, UnderseaCard } from '../components/map/UnderseaCards';
+import { AreaDrawPanel, draftShape, WatchAreaCard, type DrawMode } from '../components/map/WatchAreaPanels';
+import { useWatchAreas } from '../state/WatchAreasContext';
+import { areaContents } from '../lib/areaContents';
+import { shapeRing } from '@shared/domain/watchAreas';
 import { nearbyLines, underseaName, UNDERSEA_LABEL, type UnderseaKind } from '@shared/domain/undersea';
 import { InfraCard } from '../components/map/InfraCard';
 import { ALL_OPERATORS, operatedBy, operatorCounts } from '@shared/domain/installations';
@@ -123,8 +127,23 @@ export default function GlobalOperationsPage() {
   const shownDisputed = settings.disputed ? disputedData.data?.features : undefined;
   const selectedCableLine = selectedCable ? (shownUndersea?.find((l) => l.id === selectedCable) ?? null) : null;
   const selectedAreaProps = selectedDisputedKey ? (shownDisputed?.find((f) => f.properties.id === selectedDisputedKey)?.properties ?? null) : null;
+  // Watch areas (v0.74.0): shared areas drawn by the owner and editors.
+  const watch = useWatchAreas();
+  const [selectedWatch, setSelectedWatch] = useState<string | null>(null);
+  const shownAreas = settings.watchAreas ? watch.areas : [];
+  const selectedWatchArea = selectedWatch ? (shownAreas.find((a) => a.id === selectedWatch) ?? null) : null;
+  const [drawing, setDrawing] = useState(false);
+  const [drawMode, setDrawMode] = useState<DrawMode>('circle');
+  const [drawPoints, setDrawPoints] = useState<[number, number][]>([]);
+  const [drawFinished, setDrawFinished] = useState(false);
+  const stopDrawing = () => {
+    setDrawing(false);
+    setDrawPoints([]);
+    setDrawFinished(false);
+  };
   // One map card at a time: selecting a base, aircraft, fleet area, chokepoint, vessel, site, square, line or area clears the others.
-  const selectOnly = (kind: 'base' | 'air' | 'fleet' | 'strait' | 'listed' | 'infra' | 'gnss' | 'cable' | 'area', key: string | null) => {
+  const selectOnly = (kind: 'base' | 'air' | 'fleet' | 'strait' | 'listed' | 'infra' | 'gnss' | 'cable' | 'area' | 'warea', key: string | null) => {
+    setSelectedWatch(kind === 'warea' ? key : null);
     setSelectedGnss(kind === 'gnss' ? key : null);
     setSelectedCable(kind === 'cable' ? key : null);
     setSelectedAreaKey(kind === 'area' ? key : null);
@@ -154,12 +173,14 @@ export default function GlobalOperationsPage() {
     const s = link.selection;
     if (s?.kind === 'event') selectEvent(s.key);
     else if (s) {
-      const kind = ({ base: 'base', air: 'air', fleet: 'fleet', strait: 'strait', listed: 'listed', infra: 'infra', gnss: 'gnss', cable: 'cable', area: 'area' } as const)[s.kind];
+      const kind = ({ base: 'base', air: 'air', fleet: 'fleet', strait: 'strait', listed: 'listed', infra: 'infra', gnss: 'gnss', cable: 'cable', area: 'area', warea: 'warea' } as const)[s.kind];
       selectOnly(kind, s.key);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- apply the opening link once
   }, []);
-  const selection: MapSelection | null = selectedCable
+  const selection: MapSelection | null = selectedWatch
+    ? { kind: 'warea', key: selectedWatch }
+    : selectedCable
     ? { kind: 'cable', key: selectedCable }
     : selectedDisputedKey
     ? { kind: 'area', key: selectedDisputedKey }
@@ -190,13 +211,17 @@ export default function GlobalOperationsPage() {
   }, []);
   const onRulerPoint = useCallback((p: LonLat) => setRuler((r) => (r.length >= 2 ? [p] : [...r, p])), []);
   useEffect(() => {
-    if (!measuring) return;
+    if (!measuring && !drawing) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMeasuring(false);
+      if (e.key !== 'Escape') return;
+      setMeasuring(false);
+      setDrawing(false);
+      setDrawPoints([]);
+      setDrawFinished(false);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [measuring]);
+  }, [measuring, drawing]);
   const loadAirports = useCallback(() => {
     import('@shared/domain/airportsData').then((m) => setAirports(unpackAirports(m.AIRPORTS_PACKED)), () => setAirports([]));
   }, []);
@@ -261,6 +286,7 @@ export default function GlobalOperationsPage() {
       [shownGnss, 'GPS'],
       [settings.undersea, 'CABLES'],
       [settings.disputed, 'DISPUTED'],
+      [settings.watchAreas && watch.areas.length > 0, 'WATCH AREAS'],
     ] as [unknown, string][]
   )
     .filter(([on]) => !!on)
@@ -452,6 +478,17 @@ export default function GlobalOperationsPage() {
                 </select>
               )}
               <button
+                className={toggleBtn(settings.watchAreas)}
+                aria-pressed={settings.watchAreas}
+                title="Watch areas drawn with the AREA tool on the map (shared with every member)"
+                onClick={() => {
+                  update({ watchAreas: !settings.watchAreas });
+                  setSelectedWatch(null);
+                }}
+              >
+                <Target size={10} aria-hidden /> WATCH
+              </button>
+              <button
                 className={toggleBtn(settings.undersea)}
                 aria-pressed={settings.undersea}
                 title="Undersea telecom cables, power cables (100 kV+) and oil and gas pipelines in the watch-region seas (OpenStreetMap)"
@@ -597,6 +634,22 @@ export default function GlobalOperationsPage() {
               navWarnings={settings.navWarnings ? shownNavWarnings : []}
               emergencies={settings.aircraft ? (aircraftEmergencies?.aircraft ?? []) : []}
               conflicts={settings.conflicts ? conflictWindow.events : []}
+              watchAreas={shownAreas}
+              selectedWatchArea={selectedWatchArea ? selectedWatch : null}
+              onSelectWatchArea={(id) => selectOnly('warea', id)}
+              drawing={drawing && !draftShape(drawMode, drawPoints, drawFinished)}
+              onDrawClick={(p) => {
+                if (drawMode === 'circle') setDrawPoints((pts) => (pts.length >= 2 ? [p] : [...pts, p]));
+                else setDrawPoints((pts) => (pts.length >= 50 ? pts : [...pts, p]));
+              }}
+              draft={
+                drawing
+                  ? (() => {
+                      const sh = draftShape(drawMode, drawPoints, drawFinished);
+                      return { ring: sh ? shapeRing(sh) : null, points: sh?.kind === 'circle' ? [[sh.lon, sh.lat] as [number, number]] : drawPoints };
+                    })()
+                  : null
+              }
               undersea={shownUndersea ?? []}
               selectedUndersea={selectedCableLine ? selectedCable : null}
               onSelectUndersea={(id) => selectOnly('cable', id)}
@@ -628,6 +681,45 @@ export default function GlobalOperationsPage() {
             onClearRuler={() => setRuler([])}
             onCopyLink={copyLink}
             onSnapshot={takeSnapshot}
+            drawing={drawing}
+            onDraw={
+              watch.canEdit
+                ? (on) => {
+                    stopDrawing();
+                    setDrawing(on);
+                    if (on) {
+                      setMeasuring(false);
+                      update({ watchAreas: true });
+                    }
+                  }
+                : undefined
+            }
+            extra={
+              drawing ? (
+                <AreaDrawPanel
+                  mode={drawMode}
+                  onMode={(m) => {
+                    setDrawMode(m);
+                    setDrawPoints([]);
+                    setDrawFinished(false);
+                  }}
+                  points={drawPoints}
+                  finished={drawFinished}
+                  onFinish={() => setDrawFinished(true)}
+                  onUndo={() => {
+                    setDrawFinished(false);
+                    setDrawPoints((p) => p.slice(0, -1));
+                  }}
+                  onCancel={stopDrawing}
+                  storage={watch.storage}
+                  onSave={async (a) => {
+                    await watch.save(a);
+                    stopDrawing();
+                    selectOnly('warea', a.id);
+                  }}
+                />
+              ) : undefined
+            }
           />
           <MapLegend
             plotted={projection.points.features.length}
@@ -677,6 +769,34 @@ export default function GlobalOperationsPage() {
                 : undefined
             }
           />
+          {selectedWatchArea && (
+            <WatchAreaCard
+              area={selectedWatchArea}
+              now={now}
+              canEdit={watch.canEdit}
+              onSave={watch.save}
+              onDelete={async () => {
+                await watch.remove(selectedWatchArea.id);
+                setSelectedWatch(null);
+              }}
+              onClose={() => setSelectedWatch(null)}
+              contents={areaContents(selectedWatchArea.shape, {
+                events,
+                aircraft: shownAircraft,
+                emergencies: aircraftEmergencies?.aircraft,
+                ships: sanctionedShips?.sightings,
+                navWarnings: navWarnings?.warnings,
+                gnssCells: gnss?.cells,
+                lostGps: gnss?.lost,
+                conflicts: conflictEvents?.events,
+                bases: bases.us.data?.installations,
+                worldBases: bases.world.data?.installations,
+                sites: infraData.data?.sites,
+                flaggedSites: flaggedInfra,
+                lines: underseaData.data?.lines,
+              })}
+            />
+          )}
           {selectedCableLine && underseaData.data && (
             <UnderseaCard line={selectedCableLine} dataset={underseaData.data} ships={sanctionedShips?.sightings ?? []} warnings={navWarnings?.warnings ?? []} onClose={() => setSelectedCable(null)} />
           )}

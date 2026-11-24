@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.74.0] — 2026-11-24 — Watch areas (Phase 37)
+
+### Added
+- **Draw your own watch areas.** The new AREA tool on the GOC map draws a circle (click the centre, then the edge) or a polygon (click the corners, then FINISH). You then name it and choose:
+  - whether records inside it alert you;
+  - at what level;
+  - for which categories;
+  - whether to notify Discord.
+
+  The owner and editors can draw, edit and delete areas; every member can see them. In demo mode they stay in your browser.
+- **Alerts:** a new record with an exact position inside an area alerts through the normal inbox, cooldown and Discord path. That covers strikes, fires, aircraft, aircraft emergencies, ship sightings, cable flags and conflict events. Run logs never show area names.
+- **WATCH layer and area card:** areas drawn dashed with their names. Clicking one shows records inside in the last 24 hours and 7 days, and what is inside right now on the loaded layers: military aircraft, emergencies, sanctioned ships, NGA warnings, GPS interference and GPS-loss points, UCDP events, bases, sites, cables and pipelines.
+- **AREAS page** (in the navigation): every area with its alert and recent counts. Each area has its own page listing the records inside and everything inside it now, with a link that opens the map on it.
+- Areas can be selected in map links.
+
+### Security
+- Firestore rules: a new `watchAreas` collection. Members can read it; the owner and editors write it, with the shape, size and alert fields checked. Saves must bump the version. Emulator tests cover it.
+
+### Fixed before release
+- Firestore cannot store nested arrays, so polygon corners are stored as `{lo, la}` objects. Without that, saving a polygon would have failed on the live site; the emulator test caught it.
+
+### Notes
+- Only records with exact coordinates are tested. A report placed only at a city or country is not "inside" an area.
+- To reshape an area, delete it and draw it again.
+
 ## [0.73.0] — 2026-11-24 — AIS reliability and cable watch (Phase 36)
 
 ### Fixed

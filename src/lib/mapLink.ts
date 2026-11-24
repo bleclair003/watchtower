@@ -17,7 +17,7 @@ export interface MapView {
   zoom: number;
 }
 
-export const SELECTION_KINDS = ['event', 'base', 'air', 'fleet', 'strait', 'listed', 'infra', 'gnss', 'cable', 'area'] as const;
+export const SELECTION_KINDS = ['event', 'base', 'air', 'fleet', 'strait', 'listed', 'infra', 'gnss', 'cable', 'area', 'warea'] as const;
 export type SelectionKind = (typeof SELECTION_KINDS)[number];
 export interface MapSelection {
   kind: SelectionKind;
@@ -42,6 +42,7 @@ export const LAYER_CODES = {
   gnss: 'j',
   undersea: 'u',
   disputed: 'd',
+  watchAreas: 'm',
 } as const satisfies Partial<Record<keyof OperatorSettings, string>>;
 export type LayerKey = keyof typeof LAYER_CODES;
 const LAYER_KEYS = Object.keys(LAYER_CODES) as LayerKey[];

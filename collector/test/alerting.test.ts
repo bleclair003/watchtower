@@ -250,3 +250,33 @@ describe('corroboration (v0.72.0)', () => {
     expect((await store.getAlertingState())?.watching ?? []).toHaveLength(0);
   });
 });
+
+describe('watch areas (v0.74.0)', () => {
+  const area = (p: Record<string, unknown> = {}) => ({
+    id: 'area-test-00001', name: 'Test strait', shape: { kind: 'circle', lat: 26.5, lon: 56.3, radiusKm: 50 },
+    alert: { enabled: true, severity: 'CRITICAL', categories: [], discord: true }, note: '',
+    createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z', version: 1, ...p,
+  });
+  const located = (n: number, lat: number, lon: number, p: Partial<IntelligenceEvent> = {}) =>
+    ev(n, { title: `Located record ${n}`, regionIds: ['middle-east'], latitude: lat, longitude: lon, locationPrecision: 'exact', ...p });
+
+  it('alerts on exactly located records inside an area, at its level, and not on others', async () => {
+    const store = new MemoryStore();
+    store.watchAreas.set('a', area());
+    const fetchImpl = okFetch();
+    await run(store, [located(50, 26.6, 56.4), located(51, 30, 50), located(52, 26.5, 56.3, { locationPrecision: 'country' })], NOW, fetchImpl);
+    const alerts = [...store.alerts.values()];
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0]).toMatchObject({ ruleId: 'warea-area-test-00001', ruleName: 'Area: Test strait', severity: 'CRITICAL', title: 'Located record 50', delivery: { discord: 'sent' } });
+    expect(alerts[0].body).toMatch(/^Inside watch area "Test strait" \(circle, 50 km radius/);
+  });
+
+  it('skips areas with the alert off, and reports invalid ones', async () => {
+    const store = new MemoryStore();
+    store.watchAreas.set('off', area({ id: 'area-off-000001', alert: { enabled: false, severity: 'WARNING', categories: [], discord: false } }));
+    store.watchAreas.set('bad', area({ id: 'area-bad-000001', shape: { kind: 'circle', lat: 26.5, lon: 56.3, radiusKm: 5000 } }));
+    const r = await run(store, [located(60, 26.6, 56.4)], NOW, okFetch());
+    expect(store.alerts.size).toBe(0);
+    expect(r.snapshot.alertRuleProblems?.some((p) => p.ruleId === 'warea-area-bad-000001')).toBe(true);
+  });
+});

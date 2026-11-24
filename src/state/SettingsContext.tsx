@@ -42,6 +42,8 @@ export interface OperatorSettings {
   undersea: boolean;
   /** Disputed and breakaway areas (Natural Earth) on the map. */
   disputed: boolean;
+  /** Watch areas drawn by the owner and editors (v0.74.0). */
+  watchAreas: boolean;
   /** Conflict events from the last N days of the release; null = whole month. */
   conflictDays: number | null;
   /** Navigational warnings issued in the last N days; null = any age. */
@@ -73,6 +75,7 @@ export const DEFAULT_SETTINGS: OperatorSettings = {
   gnss: true,
   undersea: false,
   disputed: false,
+  watchAreas: true,
   conflictDays: null,
   navWarnDays: null,
   imagery: 'off',

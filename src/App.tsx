@@ -6,6 +6,7 @@ import { DashboardProvider } from './state/DashboardContext';
 import { SettingsProvider } from './state/SettingsContext';
 import { AuthProvider } from './state/AuthContext';
 import { WatchlistProvider } from './state/WatchlistContext';
+import { WatchAreasProvider } from './state/WatchAreasContext';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { AuthGate } from './components/layout/AuthGate';
 
@@ -50,6 +51,7 @@ const MetersPage = lazyPage(() => import('./pages/MetersPage'));
 const RegionsPage = lazyPage(() => import('./pages/RegionsPage'));
 const CyberPage = lazyPage(() => import('./pages/CyberPage'));
 const RegionPage = lazyPage(() => import('./pages/RegionPage'));
+const AreasPage = lazyPage(() => import('./pages/AreasPage'));
 const RadioPage = lazyPage(() => import('./pages/RadioPage'));
 
 function RouteLoading() {
@@ -85,6 +87,7 @@ export default function App() {
         <AuthGate>
           <DataProvider>
             <WatchlistProvider>
+              <WatchAreasProvider>
               <BrowserRouter>
                 <DashboardProvider>
                   <Routes>
@@ -106,11 +109,14 @@ export default function App() {
                       <Route path="regions" element={page(<RegionsPage />)} />
                       <Route path="cyber" element={page(<CyberPage />)} />
                       <Route path="regions/:id" element={page(<RegionPage />)} />
+                      <Route path="areas" element={page(<AreasPage />)} />
+                      <Route path="areas/:id" element={page(<AreasPage />)} />
                       <Route path="*" element={<NotFound />} />
                     </Route>
                   </Routes>
                 </DashboardProvider>
               </BrowserRouter>
+              </WatchAreasProvider>
             </WatchlistProvider>
           </DataProvider>
         </AuthGate>

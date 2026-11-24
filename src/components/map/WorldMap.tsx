@@ -22,6 +22,7 @@ import { graticule, isPlottable, projectEvents, regionAreas } from '../../lib/ge
 import { circleRing, greatCirclePath, KM_PER_NM, type LonLat } from '../../lib/measure';
 import type { UnderseaKind, UnderseaLine } from '@shared/domain/undersea';
 import type { DisputedDataset } from '@shared/domain/disputed';
+import { shapeCentre, shapeRing, type WatchArea } from '@shared/domain/watchAreas';
 import { cellBounds, GNSS_RADIUS_NM, type GnssCell, type GnssCircle, type GnssLevel, type GnssLostPoint } from '@shared/domain/gnss';
 import type { MapView } from '../../lib/mapLink';
 
@@ -38,6 +39,8 @@ export const RULER_COLOR = '#ffd166';
 /** Undersea lines by kind, and the disputed-area tint (v0.71.0). */
 export const UNDERSEA_COLOR: Record<UnderseaKind, string> = { telecom: '#5ec8ff', power: '#f6a04d', pipeline: '#c084fc' };
 export const DISPUTED_COLOR = '#e8b04a';
+/** Watch areas the user drew (v0.74.0). */
+export const WATCH_AREA_COLOR = '#7dd3fc';
 export const GNSS_COLOR: Record<GnssLevel, string> = { low: '#2f6a4c', medium: '#ffb347', high: '#ff4d6d' };
 
 export interface WorldMapProps {
@@ -71,6 +74,14 @@ export interface WorldMapProps {
   disputed?: DisputedDataset['features'];
   selectedDisputed?: string | null;
   onSelectDisputed?: (id: string | null) => void;
+  /** Watch areas (v0.74.0), and the draw tool: while `drawing`, clicks go to onDrawClick; `draft` is previewed. */
+  watchAreas?: WatchArea[];
+  selectedWatchArea?: string | null;
+  onSelectWatchArea?: (id: string | null) => void;
+  drawing?: boolean;
+  onDrawClick?: (p: LonLat) => void;
+  /** Preview: the finished ring (circle or closed polygon) and/or the points clicked so far. */
+  draft?: { ring: [number, number][] | null; points: [number, number][] } | null;
   /** A marked location (search result without its own marker, such as an airport). */
   pin?: { lat: number; lon: number } | null;
   handleRef?: { current: WorldMapHandle | null };
@@ -926,6 +937,35 @@ export function WorldMap(props: WorldMapProps) {
           m.on('mouseleave', layer, () => (m.getCanvas().style.cursor = ''));
         }
 
+        // Watch areas (v0.74.0) and the draw preview.
+        m.addSource('watch-areas', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({ id: 'watch-area-fill', type: 'fill', source: 'watch-areas', filter: ['==', ['geometry-type'], 'Polygon'], paint: { 'fill-color': WATCH_AREA_COLOR, 'fill-opacity': 0.06 } });
+        m.addLayer({ id: 'watch-area-line', type: 'line', source: 'watch-areas', filter: ['==', ['geometry-type'], 'Polygon'], paint: { 'line-color': WATCH_AREA_COLOR, 'line-width': 1.4, 'line-dasharray': [3, 2] } });
+        m.addLayer({
+          id: 'watch-area-selected',
+          type: 'line',
+          source: 'watch-areas',
+          filter: ['all', ['==', ['geometry-type'], 'Polygon'], ['==', ['get', 'id'], '__none__']],
+          paint: { 'line-color': '#ffffff', 'line-width': 2.2 },
+        });
+        m.addLayer({
+          id: 'watch-area-labels',
+          type: 'symbol',
+          source: 'watch-areas',
+          filter: ['==', ['geometry-type'], 'Point'],
+          layout: { 'text-field': ['get', 'name'], 'text-font': font, 'text-size': 10, 'text-allow-overlap': false },
+          paint: { 'text-color': WATCH_AREA_COLOR, 'text-halo-color': '#000000', 'text-halo-width': 1.2 },
+        });
+        m.addSource('area-draft', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        m.addLayer({ id: 'area-draft-line', type: 'line', source: 'area-draft', filter: ['!=', ['geometry-type'], 'Point'], paint: { 'line-color': WATCH_AREA_COLOR, 'line-width': 2 } });
+        m.addLayer({
+          id: 'area-draft-points',
+          type: 'circle',
+          source: 'area-draft',
+          filter: ['==', ['geometry-type'], 'Point'],
+          paint: { 'circle-radius': 4, 'circle-color': '#000000', 'circle-stroke-color': WATCH_AREA_COLOR, 'circle-stroke-width': 2 },
+        });
+
         // Ruler (v0.68.0) and search pin, drawn above everything else.
         m.addSource('ruler', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
         m.addLayer({ id: 'ruler-line', type: 'line', source: 'ruler', filter: ['==', ['geometry-type'], 'LineString'], paint: { 'line-color': RULER_COLOR, 'line-width': 2, 'line-dasharray': [2, 1] } });
@@ -944,6 +984,10 @@ export function WorldMap(props: WorldMapProps) {
         });
 
         m.on('click', async (e) => {
+          if (cb.current.drawing) {
+            cb.current.onDrawClick?.([e.lngLat.lng, e.lngLat.lat]);
+            return;
+          }
           if (cb.current.measuring) {
             // Snap to a marker under the pointer, so "from this base to that aircraft" is exact.
             const snapLayers = ['aircraft', 'sanctioned-ships', 'infrastructure-flagged', 'infrastructure', 'chokepoints', 'fleet', 'installations', 'installations-world', 'events', 'pin'].filter(
@@ -1016,6 +1060,11 @@ export function WorldMap(props: WorldMapProps) {
             const src = m.getSource('events') as GeoJSONSource;
             const zoom = await src.getClusterExpansionZoom(clusters[0].properties.cluster_id as number);
             m.easeTo({ center: (clusters[0].geometry as GeoJSON.Point).coordinates as [number, number], zoom });
+            return;
+          }
+          const areaHit = m.queryRenderedFeatures(e.point, { layers: ['watch-area-fill'] });
+          if (areaHit[0] && cb.current.onSelectWatchArea) {
+            cb.current.onSelectWatchArea(String(areaHit[0].properties.id));
             return;
           }
           const disputedHit = m.queryRenderedFeatures(e.point, { layers: ['disputed-fill'] });
@@ -1464,13 +1513,43 @@ export function WorldMap(props: WorldMapProps) {
     m.setFilter('gnss-selected', ['==', ['get', 'k'], selectedGnss ?? '__none__']);
   }, [ready, selectedGnss]);
 
+  // ---------------------------------------------------------- watch areas --
+  const { watchAreas, selectedWatchArea, drawing, draft } = props;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    const features: GeoJSON.Feature[] = [];
+    for (const a of watchAreas ?? []) {
+      features.push({ type: 'Feature', geometry: { type: 'Polygon', coordinates: [shapeRing(a.shape)] }, properties: { id: a.id, name: a.name } });
+      const [la, lo] = shapeCentre(a.shape);
+      features.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [lo, la] }, properties: { id: a.id, name: a.name } });
+    }
+    (m.getSource('watch-areas') as GeoJSONSource).setData({ type: 'FeatureCollection', features });
+  }, [ready, watchAreas]);
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    m.setFilter('watch-area-selected', ['all', ['==', ['geometry-type'], 'Polygon'], ['==', ['get', 'id'], selectedWatchArea ?? '__none__']]);
+  }, [ready, selectedWatchArea]);
+  const draftKey = JSON.stringify(draft ?? null);
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    const d = JSON.parse(draftKey) as typeof draft;
+    const features: GeoJSON.Feature[] = [];
+    if (d?.ring) features.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: d.ring }, properties: {} });
+    else if (d && d.points.length > 1) features.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: d.points }, properties: {} });
+    for (const p of d?.points ?? []) features.push({ type: 'Feature', geometry: { type: 'Point', coordinates: p }, properties: {} });
+    (m.getSource('area-draft') as GeoJSONSource).setData({ type: 'FeatureCollection', features });
+  }, [ready, draftKey]);
+
   // ------------------------------------------------------------ map tools --
   const { measuring, ruler, pin, handleRef } = props;
   useEffect(() => {
     const m = mapRef.current;
     if (!ready || !m) return;
-    m.getCanvas().style.cursor = measuring ? 'crosshair' : '';
-  }, [ready, measuring]);
+    m.getCanvas().style.cursor = measuring || drawing ? 'crosshair' : '';
+  }, [ready, measuring, drawing]);
 
   const rulerKey = JSON.stringify(ruler ?? []);
   useEffect(() => {

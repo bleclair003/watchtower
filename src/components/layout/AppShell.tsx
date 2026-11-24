@@ -16,6 +16,7 @@ interface NavItem {
 const NAV: NavItem[] = [
   { to: '/', label: 'GOC' },
   { to: '/regions', label: 'REGIONS' },
+  { to: '/areas', label: 'AREAS' },
   { to: '/cyber', label: 'CYBER' },
   { to: '/sources', label: 'SOURCES' },
   { to: '/diagnostics', label: 'DIAGNOSTICS' },

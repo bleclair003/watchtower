@@ -459,7 +459,7 @@ From the feature audit (category 12, items 2, 7, 8 and 9; category 23 item 3).
 - [x] Map search over what is loaded: regions, bases, aircraft (callsign, registration, hex, type), sanctioned ships (name, IMO, MMSI, destination), US Navy areas and ship names, straits, infrastructure sites, airports; says which layers are off and so not searched — v0.68.0
 - [x] Ruler: great-circle distance (km, nm) and bearings between two clicks, snapping to markers — v0.68.0
 - [x] PNG snapshot with time, layers, feed window, centre, ruler, the link and map credits — v0.68.0
-- [ ] Draw an area of interest and alert on activity inside it (audit 12.1)
+- [x] Draw an area of interest and alert on activity inside it (audit 12.1) — v0.74.0 (Phase 37)
 - [ ] Links for region pages and the replay
 
 ## Phase 32 — GPS interference (2026-11-23)
@@ -509,4 +509,15 @@ From the feature audit (category 11 item 3; category 14 items 5 and 6).
 - [x] AIS listening keeps what was heard when the stream drops after starting, retries once when it fails early, and tolerates two failed listens in a row before the source fails (29 of 60 runs failed on 2026-11-23) — v0.73.0
 - [x] Sanctioned ships within 2 km of a mapped undersea cable or pipeline, moving under 4 kn or seen near the same line again 30+ minutes later, not within 10 km of a port: records and an experimental indicator (catalog v24) — v0.73.0
 - [ ] Ports outside the watch-region countries (Finland, Sweden, Germany, Denmark) are not in the site file, so anchorages near them are not excluded
+
+## Phase 37 — Watch areas (2026-11-24)
+
+From the feature audit (category 12 item 1; category 23 item 9).
+
+- [x] AREA tool on the GOC map: draw a circle (centre, edge) or a polygon (3–50 corners), name it, choose an alert level, categories and Discord — v0.74.0
+- [x] Stored in Firestore (`watchAreas`), written by the owner and editors, read by every member, shape and size checked by the rules; demo mode keeps them in the browser — v0.74.0
+- [x] Alerts for new exactly located records inside an area, through the normal inbox, cooldown and Discord path — v0.74.0
+- [x] WATCH layer and card (records inside in 24 h and 7 days, what is inside on the loaded layers), AREAS page and a page per area; areas in links — v0.74.0
+- [ ] Reshape an area (today: delete and redraw)
+- [ ] Records placed at a city could count for small areas around that city (today only exact positions count)
 

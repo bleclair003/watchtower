@@ -65,6 +65,8 @@ export interface CollectorStore {
   listWatchlists(): Promise<{ uid: string; data: unknown }[]>;
   /** People and roles, `members/{uid}` (unvalidated; v0.60.0). */
   listMembers(): Promise<unknown[]>;
+  /** v0.74.0: watch areas (unvalidated). */
+  listWatchAreas(): Promise<unknown[]>;
   filterNewAlertIds(ids: string[]): Promise<Set<string>>;
   /** Creates alerts; must fail rather than overwrite an existing id. */
   putAlerts(alerts: AlertRecord[]): Promise<void>;

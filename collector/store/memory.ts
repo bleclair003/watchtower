@@ -19,6 +19,7 @@ export class MemoryStore implements CollectorStore {
   readonly alertRules = new Map<string, unknown>();
   readonly watchlists = new Map<string, unknown>();
   readonly members = new Map<string, unknown>();
+  readonly watchAreas = new Map<string, unknown>();
   readonly alerts = new Map<string, AlertRecord>();
   alertingState: AlertingState | null = null;
 
@@ -100,6 +101,9 @@ export class MemoryStore implements CollectorStore {
   }
   async listMembers() {
     return [...this.members.values()].map((m) => structuredClone(m));
+  }
+  async listWatchAreas() {
+    return [...this.watchAreas.values()].map((a) => structuredClone(a));
   }
   async filterNewAlertIds(ids: string[]) {
     return new Set(ids.filter((id) => !this.alerts.has(id)));

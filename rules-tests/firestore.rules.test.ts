@@ -141,6 +141,30 @@ describe('alert rules and alerts', () => {
   });
 });
 
+describe('watch areas', () => {
+  const T = '2026-11-24T12:00:00.000Z';
+  const wa = (p: Record<string, unknown> = {}) => ({
+    id: 'area-x', name: 'Test area', shape: { kind: 'circle', lat: 59.5, lon: 24.5, radiusKm: 20 },
+    alert: { enabled: true, severity: 'WARNING', categories: [], discord: true }, note: '', createdAt: T, updatedAt: T, version: 1, ...p,
+  });
+  it('owner creates, edits (version + 1) and deletes; shape and size are enforced; strangers are refused', async () => {
+    await assertSucceeds(setDoc(doc(owner(), 'watchAreas/area-x'), wa()));
+    await assertSucceeds(getDocs(collection(owner(), 'watchAreas')));
+    await assertSucceeds(setDoc(doc(owner(), 'watchAreas/area-x'), wa({ name: 'Renamed', version: 2 })));
+    await assertFails(setDoc(doc(owner(), 'watchAreas/area-x'), wa({ version: 2 })));
+    await assertSucceeds(deleteDoc(doc(owner(), 'watchAreas/area-x')));
+    await assertFails(setDoc(doc(owner(), 'watchAreas/area-y'), wa({ id: 'area-y', shape: { kind: 'circle', lat: 0, lon: 0, radiusKm: 5000 } })));
+    // Polygon corners are stored as { lo, la } (Firestore has no nested arrays); fewer than 3 is refused.
+    await assertSucceeds(setDoc(doc(owner(), 'watchAreas/area-p'), wa({ id: 'area-p', shape: { kind: 'polygon', points: [{ lo: 1, la: 1 }, { lo: 2, la: 1 }, { lo: 2, la: 2 }] } })));
+    await assertFails(setDoc(doc(owner(), 'watchAreas/area-y'), wa({ id: 'area-y', shape: { kind: 'polygon', points: [{ lo: 1, la: 1 }, { lo: 2, la: 2 }] } })));
+    await assertFails(setDoc(doc(owner(), 'watchAreas/area-y'), wa({ id: 'area-y', alert: { enabled: true, severity: 'PANIC', categories: [], discord: true } })));
+    await assertFails(setDoc(doc(owner(), 'watchAreas/area-y'), wa({ id: 'area-y', extra: 1 })));
+    await assertFails(setDoc(doc(owner(), 'watchAreas/area-z'), wa({ id: 'area-y' })));
+    await assertFails(setDoc(doc(stranger(), 'watchAreas/area-y'), wa({ id: 'area-y' })));
+    await assertFails(getDocs(collection(stranger(), 'watchAreas')));
+  });
+});
+
 describe('missed incidents', () => {
   const T = '2026-11-23T12:00:00.000Z';
   const missed = (p: Record<string, unknown> = {}) => ({
@@ -302,6 +326,8 @@ describe('members and roles (v0.60.0)', () => {
     await assertFails(updateDoc(doc(v, 'alerts/a1'), { acknowledged: true, acknowledgedAt: T }));
     await assertFails(updateDoc(doc(v, 'alerts/a1'), { feedback: { verdict: 'useful', note: '', at: T } }));
     await assertSucceeds(getDocs(collection(v, 'missedIncidents')));
+    await assertSucceeds(getDocs(collection(v, 'watchAreas')));
+    await assertFails(setDoc(doc(v, 'watchAreas/area-v'), { id: 'area-v', name: 'x', shape: { kind: 'circle', lat: 1, lon: 1, radiusKm: 5 }, alert: { enabled: false, severity: 'WARNING', categories: [], discord: false }, note: '', createdAt: T, updatedAt: T, version: 1 }));
     await assertFails(setDoc(doc(v, 'missedIncidents/m1'), { id: 'm1', title: 'x', occurredAt: T, kind: 'missed', lateHours: null, regionIds: [], category: 'general', url: '', note: '', createdAt: T, updatedAt: T, version: 1 }));
     await assertFails(setDoc(doc(v, 'incidents/i1'), incident));
     await assertFails(getDoc(doc(v, 'sourceState/cisa-kev')));
@@ -316,6 +342,7 @@ describe('members and roles (v0.60.0)', () => {
     await assertSucceeds(deleteDoc(doc(e, 'incidents/i1')));
     await assertSucceeds(updateDoc(doc(e, 'alerts/a1'), { acknowledged: true, acknowledgedAt: T }));
     await assertSucceeds(updateDoc(doc(e, 'alerts/a1'), { feedback: { verdict: 'irrelevant', note: '', at: T } }));
+    await assertSucceeds(setDoc(doc(e, 'watchAreas/area-e'), { id: 'area-e', name: 'x', shape: { kind: 'circle', lat: 1, lon: 1, radiusKm: 5 }, alert: { enabled: false, severity: 'WARNING', categories: [], discord: false }, note: '', createdAt: T, updatedAt: T, version: 1 }));
     await assertSucceeds(setDoc(doc(e, 'missedIncidents/m1'), { id: 'm1', title: 'x', occurredAt: T, kind: 'missed', lateHours: null, regionIds: [], category: 'general', url: '', note: '', createdAt: T, updatedAt: T, version: 1 }));
     await assertFails(setDoc(doc(e, 'alertRules/r1'), { id: 'r1', name: 'x', enabled: true, severity: 'WARNING', trigger: { kind: 'event' }, notify: { discord: false }, cooldownMinutes: 0, version: 1, createdAt: T, updatedAt: T }));
     await assertFails(setDoc(doc(e, 'events/forged'), { title: 'forged' }));

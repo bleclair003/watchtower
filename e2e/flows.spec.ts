@@ -256,3 +256,50 @@ test('undersea and disputed layers: search a cable, open its card, and a dispute
   await expect(area).toContainText('not WATCHTOWER');
   expect(problems).toEqual([]);
 });
+
+test('watch areas: draw a circle, name and save it, see its card and its page', async ({ page, problems }) => {
+  await page.goto('/?at=59.5,24.5,7&layers=gam');
+  const map = page.locator('[aria-label="World map of plotted events"]');
+  await expect(map).toBeVisible();
+  await page.waitForTimeout(1500); // map style and layers load
+  await page.getByRole('button', { name: 'AREA', exact: true }).click();
+  const box = (await map.boundingBox())!;
+  const cx = box.x + box.width * 0.6;
+  const cy = box.y + box.height * 0.55;
+  await page.mouse.click(cx, cy);
+  await page.mouse.click(cx + 60, cy);
+  const panel = page.getByRole('dialog', { name: 'Draw a watch area' });
+  await expect(panel).toContainText(/circle, [\d.]+ km radius/);
+  await panel.getByLabel('NAME').fill('Test zone');
+  await panel.getByRole('button', { name: 'SAVE (THIS BROWSER)' }).click();
+  const card = page.getByRole('region', { name: 'Watch area: Test zone' });
+  await expect(card).toContainText('RECORDS INSIDE');
+  await expect(page).toHaveURL(/sel=warea:area-/);
+  await card.getByRole('link', { name: 'Open area page' }).click();
+  await expect(page.getByText('Watch area // Test zone', { exact: false })).toBeVisible();
+  await page.getByRole('link', { name: 'All watch areas' }).click();
+  await expect(page.getByRole('link', { name: 'Test zone' })).toBeVisible();
+  expect(problems).toEqual([]);
+});
+
+test('watch areas: draw a polygon corner by corner, finish, and save', async ({ page, problems }) => {
+  await page.goto('/?at=59.5,24.5,7&layers=gam');
+  const map = page.locator('[aria-label="World map of plotted events"]');
+  await page.waitForTimeout(1500);
+  await page.getByRole('button', { name: 'AREA', exact: true }).click();
+  const panel = page.getByRole('dialog', { name: 'Draw a watch area' });
+  await panel.getByRole('button', { name: 'POLYGON' }).click();
+  const box = (await map.boundingBox())!;
+  const at = (fx: number, fy: number) => page.mouse.click(box.x + box.width * fx, box.y + box.height * fy);
+  await at(0.55, 0.45);
+  await at(0.75, 0.45);
+  await at(0.75, 0.65);
+  await expect(panel).toContainText('3 corners');
+  await at(0.6, 0.7);
+  await panel.getByRole('button', { name: 'FINISH' }).click();
+  await expect(panel).toContainText(/polygon, 4 points/);
+  await panel.getByLabel('NAME').fill('Test polygon');
+  await panel.getByRole('button', { name: 'SAVE (THIS BROWSER)' }).click();
+  await expect(page.getByRole('region', { name: 'Watch area: Test polygon' })).toBeVisible();
+  expect(problems).toEqual([]);
+});

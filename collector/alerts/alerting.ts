@@ -6,6 +6,7 @@ import { CORROBORATION_HOURS, nextSeverity, type AlertRecord, type AlertRule, ty
 import { STORY_SOURCES, WINDOW_HOURS, buildStories, type Story } from '../../shared/domain/stories/stories.ts';
 import { CATALOG_VERSION } from '../../shared/domain/indicators/catalog.ts';
 import { watchlistsThatAlert } from '../../shared/domain/members.ts';
+import { describeShape, fromStored, recordInArea, validateWatchArea, WATCH_AREA_LIMITS } from '../../shared/domain/watchAreas.ts';
 import { contentHash } from '../lib/hash.ts';
 import type { CollectorStore, WatchedAlert } from '../store/types.ts';
 import { buildDiscordPayload, sendDiscord } from './discord.ts';
@@ -50,7 +51,7 @@ export interface AlertingResult {
  */
 /** A label for public run logs that does not reveal the rule's name or a watchlist term. */
 export function publicRuleLabel(ruleId: string): string {
-  return `${ruleId.startsWith('watch-') ? 'watchlist item' : 'rule'} ${contentHash('log-label', ruleId).slice(0, 6)}`;
+  return `${ruleId.startsWith('watch-') ? 'watchlist item' : ruleId.startsWith('warea-') ? 'watch area' : 'rule'} ${contentHash('log-label', ruleId).slice(0, 6)}`;
 }
 
 export async function runAlerting(store: CollectorStore, opts: AlertingOptions): Promise<AlertingResult> {
@@ -131,6 +132,50 @@ export async function runAlerting(store: CollectorStore, opts: AlertingOptions):
     }
   } catch (err) {
     result.errors.push(`watchlist: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
+  // Watch areas (v0.74.0): one alert per new exactly located record inside an area with its alert on.
+  try {
+    for (const raw of await store.listWatchAreas()) {
+      const area = fromStored(raw);
+      const problems = validateWatchArea(area);
+      if (problems.length) {
+        result.problems.push({ ruleId: `warea-${String((raw as { id?: unknown }).id ?? '?')}`, ruleName: 'Watch area', problems });
+        continue;
+      }
+      if (!area.alert.enabled) continue;
+      const rule: AlertRule = {
+        id: `warea-${area.id}`,
+        name: `Area: ${area.name}`.slice(0, 80),
+        enabled: true,
+        severity: area.alert.severity,
+        trigger: { kind: 'event', match: { field: 'category', op: 'exists', value: true } },
+        notify: { discord: area.alert.discord },
+        cooldownMinutes: WATCH_AREA_LIMITS.cooldownMinutes,
+        version: area.version,
+        createdAt: area.createdAt,
+        updatedAt: area.updatedAt,
+      };
+      const candidates: AlertCandidate[] = opts.newEvents
+        .filter((e) => e.collectedAt >= area.createdAt && recordInArea(area, e))
+        .map((e) => ({
+          ruleId: rule.id,
+          ruleName: rule.name,
+          ruleVersion: area.version,
+          severity: area.alert.severity,
+          createdAt: nowIso,
+          title: e.title,
+          body: `Inside watch area "${area.name}" (${describeShape(area.shape)}). ${e.summary ?? ''}`.trim(),
+          regionIds: e.regionIds,
+          url: e.sourceUrl,
+          evidenceEventIds: [e.id],
+          dedupeKey: `event:${e.contentHash}`,
+        }));
+      jobs.push({ rule, candidates });
+      result.activeRules++;
+    }
+  } catch (err) {
+    result.errors.push(`watch areas: ${err instanceof Error ? err.message : String(err)}`);
   }
   result.activeRules += rules.length;
 

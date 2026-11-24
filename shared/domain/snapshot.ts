@@ -144,6 +144,8 @@ export const COLLECTIONS = {
   members: 'members',
   /** v0.67.0: incidents WATCHTOWER missed or caught late, logged by the owner or editors for the scorecard. */
   missedIncidents: 'missedIncidents',
+  /** v0.74.0: watch areas drawn by the owner and editors (shared). */
+  watchAreas: 'watchAreas',
 } as const;
 
 /**

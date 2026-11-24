@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
-import { Camera, Link2, Ruler, Search, X } from 'lucide-react';
+import { Camera, Link2, PenTool, Ruler, Search, X } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { buildSearchIndex, KIND_LABEL, searchMap, type SearchItem, type SearchSources } from '../../lib/mapSearch';
 import { formatLonLat, formatMeasurement, measure, type LonLat } from '../../lib/measure';
 
@@ -19,6 +20,9 @@ export function MapTools({
   onClearRuler,
   onCopyLink,
   onSnapshot,
+  drawing = false,
+  onDraw,
+  extra,
 }: {
   sources: SearchSources;
   /** Layers switched off, whose objects are not searched. */
@@ -33,6 +37,11 @@ export function MapTools({
   onClearRuler: () => void;
   onCopyLink: () => Promise<string | null>;
   onSnapshot: () => Promise<string | null>;
+  /** v0.74.0: start or stop drawing a watch area (absent when the user cannot edit areas). */
+  drawing?: boolean;
+  onDraw?: (on: boolean) => void;
+  /** Rendered under the tools (the draw panel). */
+  extra?: ReactNode;
 }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
@@ -134,6 +143,11 @@ export function MapTools({
         <button type="button" className={btn(measuring)} aria-pressed={measuring} title="Measure distance and bearing between two points" onClick={() => onMeasuring(!measuring)}>
           <Ruler size={10} aria-hidden /> RULER
         </button>
+        {onDraw && (
+          <button type="button" className={btn(drawing)} aria-pressed={drawing} title="Draw a watch area: a circle or polygon that can alert on records inside it" onClick={() => onDraw(!drawing)}>
+            <PenTool size={10} aria-hidden /> AREA
+          </button>
+        )}
         <button
           type="button"
           className={btn()}
@@ -173,6 +187,7 @@ export function MapTools({
           </button>
         </div>
       )}
+      {extra}
       {(measuring || ruler.length > 0) && (
         <div className="pointer-events-auto border border-wt-line-strong bg-wt-panel/95 px-1.5 py-1" role="status" aria-live="polite">
           {measurement ? (
