@@ -210,6 +210,13 @@ export default function AlertsPage() {
                         <Tag tone={DELIVERY_TONE[a.delivery.discord]} title={a.delivery.error ?? undefined}>DISCORD {a.delivery.discord}</Tag>
                         {a.dismissed ? <Tag tone="inactive">DISMISSED</Tag> : a.acknowledged ? <Tag tone="inactive">ACK</Tag> : null}
                         <FeedbackTag feedback={a.feedback} />
+                        {a.corroboration?.upgradeOf ? (
+                          <Tag tone="info" title={`Independent origins: ${a.corroboration.publishers.join(', ')}`}>CORROBORATED · FOLLOW-UP</Tag>
+                        ) : a.corroboration?.status === 'corroborated' ? (
+                          <Tag tone="info" title={`Independent origins: ${a.corroboration.publishers.join(', ')}`}>CORROBORATED</Tag>
+                        ) : a.corroboration?.status === 'unconfirmed' ? (
+                          <Tag tone="inactive" title="Single media source, and no independent report within 72 hours">UNCONFIRMED</Tag>
+                        ) : null}
                         {canTriage && !a.feedback && !expanded && (
                           <button className="text-wt-fg-dim hover:text-wt-fg" onClick={() => setOpenId(a.id)}>[RATE]</button>
                         )}
@@ -226,6 +233,13 @@ export default function AlertsPage() {
                         <div className="mt-1 space-y-1 border-l-2 border-wt-info pl-2 text-2xs">
                           {a.body && <p className="text-wt-fg-muted">{a.body}</p>}
                           <p className="text-wt-fg-dim">
+                            {a.corroboration?.status === 'corroborated' && !a.corroboration.upgradeOf && (
+                              <span className="block text-wt-info">
+                                Independently reported from {formatUtc(a.corroboration.at)} by {a.corroboration.publishers.join(', ')}; a follow-up alert was raised one level.
+                                {a.corroboration.sharedOrigins.length > 0 && ` Outlets carrying the same copy (${a.corroboration.sharedOrigins.join(', ')}) counted once.`}
+                              </span>
+                            )}
+                            {a.corroboration?.status === 'unconfirmed' && <span className="block">No independent report within 72 hours of this single media report.</span>}
                             Created {formatUtc(a.createdAt)} · rule v{a.ruleVersion}
                             {a.catalogVersion != null && ` · indicator catalog v${a.catalogVersion}`} · evidence {a.evidenceEventIds.length} record(s)
                             {a.acknowledgedAt && ` · acknowledged ${formatUtc(a.acknowledgedAt)}`}

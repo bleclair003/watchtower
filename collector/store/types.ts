@@ -3,11 +3,28 @@ import type { RadioGuide } from '../../shared/domain/shortwave.ts';
 import type { CollectionRun, IntelligenceEvent, SourceStatus } from '../../shared/domain/types.ts';
 import type { DashboardSnapshot } from '../../shared/domain/snapshot.ts';
 import type { IndicatorTransition, ScoreHistoryPoint } from '../../shared/domain/indicators/types.ts';
-import type { AlertRecord } from '../../shared/domain/alerts/types.ts';
+import type { AlertSeverity, AlertRecord } from '../../shared/domain/alerts/types.ts';
+
+/** An alert resting on one media report, watched for an independent report (v0.72.0). */
+export interface WatchedAlert {
+  alertId: string;
+  ruleId: string;
+  ruleName: string;
+  ruleVersion: number;
+  severity: AlertSeverity;
+  eventId: string;
+  title: string;
+  regionIds: string[];
+  url: string;
+  createdAt: string;
+  notifyDiscord: boolean;
+  cooldownMinutes: number;
+}
 
 export interface AlertingState {
   lastNotifiedAt: Record<string, string>;
   updatedAt: string;
+  watching?: WatchedAlert[];
 }
 
 /**
@@ -52,6 +69,7 @@ export interface CollectorStore {
   /** Creates alerts; must fail rather than overwrite an existing id. */
   putAlerts(alerts: AlertRecord[]): Promise<void>;
   updateAlertDelivery(ids: string[], delivery: AlertRecord['delivery']): Promise<void>;
+  updateAlertCorroboration(id: string, corroboration: NonNullable<AlertRecord['corroboration']>): Promise<void>;
   getAlertingState(): Promise<AlertingState | null>;
   putAlertingState(state: AlertingState): Promise<void>;
 }

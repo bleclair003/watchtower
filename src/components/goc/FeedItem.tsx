@@ -25,6 +25,8 @@ interface Props {
   /** Set when this item leads a story; `storyReports` are all its reports, newest first. */
   story?: Story | null;
   storyReports?: IntelligenceEvent[];
+  /** v0.72.0: a media report no independent origin confirmed within the story window (shown faded). */
+  unconfirmed?: boolean;
 }
 
 const PRECISION_LABEL: Record<IntelligenceEvent['locationPrecision'], string> = {
@@ -37,7 +39,7 @@ const PRECISION_LABEL: Record<IntelligenceEvent['locationPrecision'], string> = 
 
 /** One intelligence feed entry. Expanded view shows full provenance. */
 export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem(
-  { event: e, selected, onSelect, now, indicators = [], allowDossier = false, story = null, storyReports = [] },
+  { event: e, selected, onSelect, now, indicators = [], allowDossier = false, story = null, storyReports = [], unconfirmed = false },
   ref,
 ) {
   const cred = CREDIBILITY_LABELS[e.credibility];
@@ -113,7 +115,12 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem(
           {e.metadata?.geoBasis === 'text-mention' && <Tag tone="inactive" title="Location from place names mentioned in the headline, not geolocation">TXT-GEO</Tag>}
           {story && (
             <Tag tone={story.corroboration === 'single-source' ? 'muted' : 'info'} title={CORROBORATION_LABEL[story.corroboration]}>
-              STORY ×{story.memberIds.length} · {story.corroboration === 'official' ? 'OFFICIAL+' : story.corroboration === 'multi-source' ? `${story.publishers.length} PUBLISHERS` : '1 PUBLISHER'}
+              STORY ×{story.memberIds.length} · {story.corroboration === 'official' ? 'OFFICIAL+' : story.corroboration === 'multi-source' ? `${story.independentOrigins} INDEPENDENT` : story.publishers.length > 1 ? `${story.publishers.length} OUTLETS · 1 ORIGIN` : '1 PUBLISHER'}
+            </Tag>
+          )}
+          {unconfirmed && (
+            <Tag tone="inactive" title="Single media source, and no independent report within 48 hours of it">
+              UNCONFIRMED
             </Tag>
           )}
           {!(story && story.corroboration !== 'single-source' && e.credibility === 'single-source') && (
@@ -137,6 +144,8 @@ export const FeedItem = forwardRef<HTMLLIElement, Props>(function FeedItem(
               </p>
               <p className="mb-1 text-wt-fg-muted">
                 {CORROBORATION_LABEL[story.corroboration]}. Grouped because the headlines share: {story.sharedTerms.join(', ')}.
+                {story.sharedOrigins.length > 0 && ` Counted as one origin: ${story.sharedOrigins.join(', ')} (outlets carrying the same copy).`}
+                {story.corroboratedAt && ` Independently reported from ${formatUtc(story.corroboratedAt)}.`}
               </p>
               <ul className="space-y-0.5">
                 {storyReports.map((r) => {

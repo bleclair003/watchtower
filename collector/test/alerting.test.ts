@@ -184,3 +184,69 @@ describe('discord helpers', () => {
     await expect(sendDiscord('https://example.com/hook', buildDiscordPayload({ name: 'R', severity: 'INFORMATION' }, []))).rejects.toThrow(/not a Discord webhook/);
   });
 });
+
+describe('corroboration (v0.72.0)', () => {
+  // Invented headlines. Both feeds are story sources (media).
+  const news = (sourceId: string, n: number, title: string, at: number, summary = ''): IntelligenceEvent => {
+    const id = contentHash('cor-test', sourceId, n);
+    return {
+      id, contentHash: id, dataOrigin: 'live', sourceId, sourceName: `${sourceId} — feed`, sourceClass: 'media', sourceUrl: `https://example.test/${id}`,
+      title, summary, category: 'maritime', regionIds: ['middle-east'], countryCodes: [], publishedAt: new Date(at - 60_000).toISOString(),
+      collectedAt: new Date(at).toISOString(), credibility: 'single-source', verificationStatus: 'unreviewed', locationPrecision: 'none',
+    };
+  };
+  const feed = (sourceId: string, items: () => IntelligenceEvent[]): SourceAdapter<never> => ({
+    sourceId,
+    async collect() {
+      const e = items().filter((x) => x.sourceId === sourceId);
+      return { events: e, rejected: [], itemsSeen: e.length, notModified: false, state: {} as never };
+    },
+  });
+  const tankerRule = rule({ id: 'tankers', name: 'Tankers', trigger: { kind: 'event', match: { field: 'title', op: 'contains', value: 'tanker' } } });
+  const H = 3_600_000;
+  const go = (store: MemoryStore, items: IntelligenceEvent[], at: number, fetchImpl: typeof fetch) =>
+    runCollection([feed('bbc-world', () => items), feed('aljazeera', () => items)], store, { trigger: 'local', now: () => at, discordWebhookUrl: HOOK, alertFetch: fetchImpl });
+
+  it('raises one follow-up a level higher when an independent outlet reports it, and notes it on the original', async () => {
+    const store = new MemoryStore();
+    store.alertRules.set('tankers', tankerRule);
+    const fetchImpl = okFetch();
+    const a = news('bbc-world', 1, 'Testland navy seizes tanker near Testport strait', NOW);
+    await go(store, [a], NOW, fetchImpl);
+    const first = [...store.alerts.values()][0];
+    expect(first.severity).toBe('WARNING');
+    expect((await store.getAlertingState())?.watching).toHaveLength(1);
+
+    const b = news('aljazeera', 2, 'Testland navy seizes oil tanker in Testport strait', NOW + 2 * H);
+    const r = await go(store, [a, b], NOW + 2 * H, fetchImpl);
+    const all = [...store.alerts.values()];
+    const follow = all.filter((x) => x.corroboration?.upgradeOf);
+    expect(follow).toHaveLength(1);
+    expect(follow[0]).toMatchObject({ severity: 'CRITICAL', title: 'Corroborated: Testland navy seizes tanker near Testport strait', delivery: { discord: 'sent' } });
+    expect(follow[0].body).toMatch(/2 independent origins/);
+    expect(store.alerts.get(first.id)?.corroboration).toMatchObject({ status: 'corroborated', upgradeId: follow[0].id });
+    expect(r.run.alertsCreated).toBe(2); // the second outlet's own alert, and the follow-up
+    expect((await store.getAlertingState())?.watching ?? []).toHaveLength(0);
+  });
+
+  it('does not count a second outlet carrying the same agency copy, and marks the alert unconfirmed after 72 hours', async () => {
+    const store = new MemoryStore();
+    store.alertRules.set('tankers', tankerRule);
+    const fetchImpl = okFetch();
+    const a = news('bbc-world', 3, 'Testland navy seizes tanker near Testport strait', NOW, 'The navy boarded it, Reuters reported.');
+    const b = news('aljazeera', 4, 'Testland navy seizes oil tanker in Testport strait', NOW + H, 'According to Reuters, it was escorted to port.');
+    await go(store, [a], NOW, fetchImpl);
+    await go(store, [a, b], NOW + H, fetchImpl);
+    expect([...store.alerts.values()].some((x) => x.corroboration?.upgradeOf)).toBe(false);
+    await go(store, [a, b], NOW + 73 * H, fetchImpl);
+    const original = [...store.alerts.values()].find((x) => x.evidenceEventIds[0] === a.id)!;
+    expect(original.corroboration).toMatchObject({ status: 'unconfirmed', sharedOrigins: ['Reuters'] });
+  });
+
+  it('does not watch alerts resting on official or structured records', async () => {
+    const store = new MemoryStore();
+    store.alertRules.set('redsea', rule());
+    await run(store, [ev(90)], NOW, okFetch());
+    expect((await store.getAlertingState())?.watching ?? []).toHaveLength(0);
+  });
+});

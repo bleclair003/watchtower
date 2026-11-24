@@ -290,6 +290,7 @@ export async function runCollection(
       currentScores: snapshot.regionScores ?? [],
       currentEvaluations: snapshot.indicatorEvaluations ?? [],
       previousEvaluatedAt,
+      recentEvents: loaded,
       discordWebhookUrl: opts.discordWebhookUrl ?? null,
       appUrl: opts.appUrl,
       fetchImpl: opts.alertFetch,

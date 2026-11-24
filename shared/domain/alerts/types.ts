@@ -60,6 +60,25 @@ export interface AlertFeedback {
   at: string;
 }
 
+/**
+ * v0.72.0: what happened to an alert that rested on a single media report.
+ *  - corroborated: an independent origin (another publisher, not the same agency copy) reported it;
+ *    a follow-up alert one level higher was made (`upgradeId`).
+ *  - unconfirmed: no independent report within CORROBORATION_HOURS.
+ * On the follow-up alert itself, `upgradeOf` names the original.
+ */
+export interface AlertCorroboration {
+  status: 'corroborated' | 'unconfirmed';
+  at: string;
+  publishers: string[];
+  /** Agencies or "near-identical text" that made outlets count as one origin. */
+  sharedOrigins: string[];
+  upgradeId?: string;
+  upgradeOf?: string;
+}
+export const CORROBORATION_HOURS = 72;
+export const nextSeverity = (s: AlertSeverity): AlertSeverity => ALERT_SEVERITIES[Math.min(ALERT_SEVERITIES.indexOf(s) + 1, ALERT_SEVERITIES.length - 1)];
+
 export type DeliveryStatus =
   | 'sent'
   | 'failed'
@@ -93,6 +112,8 @@ export interface AlertRecord {
   catalogVersion?: number;
   /** v0.67.0: owner or editor verdict; absent or null until someone reviews it. */
   feedback?: AlertFeedback | null;
+  /** v0.72.0: corroboration outcome (original alert) or link to the original (follow-up alert). */
+  corroboration?: AlertCorroboration | null;
 }
 
 export interface AlertRuleProblem {

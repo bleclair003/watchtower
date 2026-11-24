@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { getRegion } from '@shared/domain/regions';
 import { INDICATOR_CATALOG } from '@shared/domain/indicators/catalog';
 import { scoreDelta24h } from '@shared/domain/indicators/rai';
-import { buildStories, groupFeed } from '@shared/domain/stories/stories';
+import { buildStories, groupFeed, isUnconfirmed, storyIndex } from '@shared/domain/stories/stories';
 import type { IntelligenceEvent } from '@shared/domain/types';
 import { useData } from '../state/DataContext';
 import { useNow } from '../hooks/useNow';
@@ -48,6 +48,7 @@ export default function RegionPage() {
 
   const summary = useMemo(() => summarizeRegion(data.events, id, now), [data.events, id, now]);
   const stories = useMemo(() => buildStories(summary.events), [summary.events]);
+  const storyOf = useMemo(() => storyIndex(stories), [stories]);
   const entries = useMemo(() => groupFeed(summary.events, stories).slice(0, MAX_ENTRIES), [summary.events, stories]);
   const byId = useMemo(() => new Map(summary.events.map((e) => [e.id, e])), [summary.events]);
   const changes = useMemo(() => regionChanges(data, id, now), [data, id, now]);
@@ -230,6 +231,7 @@ export default function RegionPage() {
                   now={now}
                   story={story}
                   storyReports={story ? reportsOf(story.memberIds) : undefined}
+                  unconfirmed={isUnconfirmed(e, storyOf.get(e.id), now)}
                 />
               ))}
             </ul>

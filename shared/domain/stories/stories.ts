@@ -19,6 +19,11 @@ import { matchGazetteer } from '../geo/gazetteer.ts';
  * Corroboration counts distinct PUBLISHERS (organisations), not items: two BBC pieces are
  * one source. "Multi-source" means independent outlets reported it. It does not make the
  * report true, and outlets often draw on the same news agency.
+ *
+ * Same origin (v0.72.0): publishers whose reports credit the same news agency (Reuters, AP, AFP,
+ * TASS …) or whose texts are near-identical count as ONE independent origin, so a wire story
+ * reprinted by two outlets is not corroboration. `corroboratedAt` is when a second independent
+ * origin first reported it.
  */
 
 /** Headline feeds whose items can form stories. Structured sources (KEV, USGS, IODA …) cannot. */
@@ -81,6 +86,81 @@ export interface Story {
   sharedTerms: string[];
   firstAt: string;
   lastAt: string;
+  /** Independent origins: publishers, merged when they credit the same agency or carry near-identical text. */
+  independentOrigins: number;
+  /** Why publishers were merged, e.g. ["Reuters"] or ["near-identical text"]. */
+  sharedOrigins: string[];
+  /** When a second independent origin first reported it (UTC ISO), or null. */
+  corroboratedAt: string | null;
+}
+
+/** News agencies whose credit in a report marks it as that agency's copy. */
+export const AGENCIES: [name: string, pattern: RegExp][] = [
+  ['Reuters', /\bReuters\b/],
+  ['AP', /Associated Press|\(AP\)|\bAP (?:news agency|reported|reports|said)\b/],
+  ['AFP', /\bAFP\b|Agence France-Presse/],
+  ['Xinhua', /\bXinhua\b/],
+  ['TASS', /\bTASS\b/],
+  ['RIA Novosti', /\bRIA Novosti\b/],
+  ['Interfax', /\bInterfax\b/],
+  ['IRNA', /\bIRNA\b/],
+  ['Tasnim', /\bTasnim\b/],
+  ['Yonhap', /\bYonhap\b/],
+  ['KCNA', /\bKCNA\b/],
+  ['Anadolu', /\bAnadolu\b/],
+  ['WAFA', /\bWAFA\b/],
+  ['SANA', /\bSANA\b/],
+];
+
+/** Agencies a report credits, from its headline and summary. */
+export function creditedAgencies(e: Pick<IntelligenceEvent, 'title' | 'summary'>): string[] {
+  const text = `${e.title} ${e.summary ?? ''}`;
+  return AGENCIES.filter(([, re]) => re.test(text)).map(([n]) => n);
+}
+
+/** Near-identical: at least 8 distinctive words each and 80% of them shared. */
+export const NEAR_IDENTICAL = 0.8;
+function nearIdentical(a: IntelligenceEvent, b: IntelligenceEvent): boolean {
+  const ta = new Set(storyTerms(`${a.title} ${a.summary ?? ''}`).keys());
+  const tb = new Set(storyTerms(`${b.title} ${b.summary ?? ''}`).keys());
+  if (ta.size < 8 || tb.size < 8) return false;
+  const shared = [...ta].filter((t) => tb.has(t)).length;
+  return shared / (ta.size + tb.size - shared) >= NEAR_IDENTICAL;
+}
+
+/**
+ * Independent origins among a story's reports, oldest first: publishers are merged when their reports
+ * credit the same agency or are near-identical. Returns the count, the merge reasons, and when the count
+ * first reached two.
+ */
+export function originsOf(reportsOldestFirst: IntelligenceEvent[]): { count: number; reasons: string[]; corroboratedAt: string | null } {
+  const parent = new Map<string, string>();
+  const find = (x: string): string => {
+    while (parent.get(x) !== x) x = parent.get(x)!;
+    return x;
+  };
+  const reasons = new Set<string>();
+  const seen: IntelligenceEvent[] = [];
+  let corroboratedAt: string | null = null;
+  const groups = () => new Set([...parent.keys()].map(find)).size;
+  for (const e of reportsOldestFirst) {
+    const pub = publisherOf(e);
+    if (!parent.has(pub)) parent.set(pub, pub);
+    const agencies = creditedAgencies(e);
+    for (const o of seen) {
+      const other = publisherOf(o);
+      if (other === pub) continue;
+      const common = creditedAgencies(o).find((a) => agencies.includes(a));
+      const same = common ?? (nearIdentical(e, o) ? 'near-identical text' : null);
+      if (same && find(other) !== find(pub)) {
+        parent.set(find(pub), find(other));
+        reasons.add(same);
+      }
+    }
+    seen.push(e);
+    if (!corroboratedAt && groups() >= 2) corroboratedAt = new Date(timeOf(e)).toISOString();
+  }
+  return { count: groups(), reasons: [...reasons], corroboratedAt };
 }
 
 interface Building {
@@ -162,9 +242,10 @@ export function buildStories(events: IntelligenceEvent[]): Story[] {
         if (!pubs.has(publisher)) pubs.set(publisher, { sourceId: m.sourceId, publisher, sourceClass: m.sourceClass });
       }
       const publishers = [...pubs.values()];
+      const origins = originsOf([...members].reverse());
       const corroboration: Corroboration = publishers.some((p) => p.sourceClass === 'official')
         ? 'official'
-        : publishers.length > 1
+        : origins.count > 1
           ? 'multi-source'
           : 'single-source';
       return {
@@ -176,6 +257,9 @@ export function buildStories(events: IntelligenceEvent[]): Story[] {
         sharedTerms: [...b.shared.values()].slice(0, 6),
         firstAt: new Date(timeOf(members[members.length - 1])).toISOString(),
         lastAt: new Date(timeOf(members[0])).toISOString(),
+        independentOrigins: origins.count,
+        sharedOrigins: origins.reasons,
+        corroboratedAt: origins.corroboratedAt,
       };
     })
     .sort((a, b) => b.lastAt.localeCompare(a.lastAt));
@@ -202,8 +286,25 @@ export function groupFeed(events: IntelligenceEvent[], stories: Story[]): FeedEn
   return out;
 }
 
+/**
+ * A media report from a headline feed that no independent origin has reported, once the grouping window
+ * has passed (after that it can no longer gain one). Official and sensor records are never "unconfirmed".
+ */
+export function isUnconfirmed(e: IntelligenceEvent, story: Story | null | undefined, now: number): boolean {
+  if (!STORY_SOURCES.has(e.sourceId) || e.sourceClass !== 'media') return false;
+  if (story && story.corroboration !== 'single-source') return false;
+  return now - timeOf(e) > WINDOW_HOURS * 3_600_000;
+}
+
+/** Story of each report (every member, not only the lead). */
+export const storyIndex = (stories: Story[]) => {
+  const m = new Map<string, Story>();
+  for (const s of stories) for (const id of s.memberIds) m.set(id, s);
+  return m;
+};
+
 export const CORROBORATION_LABEL: Record<Corroboration, string> = {
-  'single-source': 'Single source (several reports from one publisher)',
+  'single-source': 'Single source (one publisher, or outlets carrying the same agency copy)',
   'multi-source': 'Reported by independent publishers (not proof: outlets may share an agency source)',
   official: 'Includes official reporting (an official publisher reported it)',
 };

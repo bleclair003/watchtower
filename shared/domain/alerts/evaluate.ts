@@ -66,7 +66,7 @@ export function isFirstLook(rule: AlertRule, ctx: AlertContext): boolean {
   return !ctx.previousEvaluatedAt || rule.createdAt > ctx.previousEvaluatedAt;
 }
 
-export type AlertCandidate = Omit<AlertRecord, 'id' | 'acknowledged' | 'acknowledgedAt' | 'dismissed' | 'dismissedAt' | 'delivery' | 'feedback'>;
+export type AlertCandidate = Omit<AlertRecord, 'id' | 'acknowledged' | 'acknowledgedAt' | 'dismissed' | 'dismissedAt' | 'delivery' | 'feedback' | 'corroboration'>;
 
 /**
  * Turns this run's CHANGES into alert candidates. Pure and edge-based: an

@@ -2,10 +2,12 @@ import type { IntelligenceEvent } from '../../shared/domain/types.ts';
 import type { IndicatorEvaluation, IndicatorTransition, RegionScore } from '../../shared/domain/indicators/types.ts';
 import { evaluateRule, validateAlertRule, type AlertCandidate } from '../../shared/domain/alerts/evaluate.ts';
 import { WATCHLIST_LIMITS, compileWatchlist, validateWatchlist, type Watchlist } from '../../shared/domain/watchlist.ts';
-import type { AlertRecord, AlertRule, AlertRuleProblem, DeliveryStatus } from '../../shared/domain/alerts/types.ts';
+import { CORROBORATION_HOURS, nextSeverity, type AlertRecord, type AlertRule, type AlertRuleProblem, type DeliveryStatus } from '../../shared/domain/alerts/types.ts';
+import { STORY_SOURCES, WINDOW_HOURS, buildStories, type Story } from '../../shared/domain/stories/stories.ts';
+import { CATALOG_VERSION } from '../../shared/domain/indicators/catalog.ts';
 import { watchlistsThatAlert } from '../../shared/domain/members.ts';
 import { contentHash } from '../lib/hash.ts';
-import type { CollectorStore } from '../store/types.ts';
+import type { CollectorStore, WatchedAlert } from '../store/types.ts';
 import { buildDiscordPayload, sendDiscord } from './discord.ts';
 
 export interface AlertingOptions {
@@ -16,6 +18,8 @@ export interface AlertingOptions {
   currentScores: RegionScore[];
   currentEvaluations: IndicatorEvaluation[];
   previousEvaluatedAt: string | null;
+  /** Records loaded for this run (v0.72.0): stories are rebuilt from them to check corroboration. */
+  recentEvents?: IntelligenceEvent[];
   /** Validated webhook URL, or null if not configured. */
   discordWebhookUrl: string | null;
   appUrl?: string;
@@ -28,6 +32,9 @@ export interface AlertingResult {
   activeRules: number;
   created: number;
   notificationsSent: number;
+  /** v0.72.0: follow-up alerts made because an independent origin reported, and alerts marked unconfirmed. */
+  corroborated: number;
+  unconfirmed: number;
   problems: AlertRuleProblem[];
   errors: string[];
 }
@@ -49,7 +56,7 @@ export function publicRuleLabel(ruleId: string): string {
 export async function runAlerting(store: CollectorStore, opts: AlertingOptions): Promise<AlertingResult> {
   const log = opts.log ?? (() => {});
   const nowIso = new Date(opts.now).toISOString();
-  const result: AlertingResult = { activeRules: 0, created: 0, notificationsSent: 0, problems: [], errors: [] };
+  const result: AlertingResult = { activeRules: 0, created: 0, notificationsSent: 0, corroborated: 0, unconfirmed: 0, problems: [], errors: [] };
 
   const raw = await store.listAlertRules();
   const rules: AlertRule[] = [];
@@ -126,10 +133,45 @@ export async function runAlerting(store: CollectorStore, opts: AlertingOptions):
     result.errors.push(`watchlist: ${err instanceof Error ? err.message : String(err)}`);
   }
   result.activeRules += rules.length;
-  if (!jobs.some((j) => j.candidates.length)) return result;
 
   const state = await store.getAlertingState();
   const lastNotified = { ...(state?.lastNotifiedAt ?? {}) };
+  const watching: WatchedAlert[] = [...(state?.watching ?? [])];
+  const newById = new Map(opts.newEvents.map((e) => [e.id, e]));
+
+  /** Writes alerts first, then notifies Discord once for the batch, honouring the rule's cooldown. */
+  const deliver = async (rule: Pick<AlertRule, 'id' | 'name' | 'notify' | 'cooldownMinutes' | 'severity'>, alerts: AlertRecord[], ignoreCooldown = false): Promise<void> => {
+    let status: DeliveryStatus;
+    const last = lastNotified[rule.id];
+    if (!rule.notify.discord) status = 'not-requested';
+    else if (!opts.discordWebhookUrl) status = 'not-configured';
+    else if (!ignoreCooldown && last && opts.now - Date.parse(last) < rule.cooldownMinutes * 60_000) status = 'suppressed-cooldown';
+    else status = 'pending';
+    for (const a of alerts) a.delivery = { discord: status, at: status === 'pending' ? null : nowIso, error: null };
+
+    await store.putAlerts(alerts);
+    result.created += alerts.length;
+    let outcome: DeliveryStatus = status;
+
+    if (status === 'pending') {
+      let delivery: AlertRecord['delivery'];
+      try {
+        await sendDiscord(opts.discordWebhookUrl!, buildDiscordPayload(rule as AlertRule, alerts, opts.appUrl), { fetchImpl: opts.fetchImpl, sleep: opts.sleep });
+        delivery = { discord: 'sent', at: nowIso, error: null };
+        outcome = 'sent';
+        lastNotified[rule.id] = nowIso;
+        result.notificationsSent++;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        delivery = { discord: 'failed', at: nowIso, error: message };
+        outcome = 'failed';
+        result.errors.push(`${rule.name}: ${message}`);
+      }
+      await store.updateAlertDelivery(alerts.map((a) => a.id), delivery);
+    }
+    // Run logs are public (public repository): never print rule names or watchlist terms.
+    log(`ALRT ${publicRuleLabel(rule.id)}: ${alerts.length} new alert(s) · discord ${outcome}`);
+  };
 
   for (const { rule, candidates } of jobs) {
     if (!candidates.length) continue;
@@ -146,40 +188,83 @@ export async function runAlerting(store: CollectorStore, opts: AlertingOptions):
     const fresh = await store.filterNewAlertIds(withIds.map((a) => a.id));
     const alerts = withIds.filter((a) => fresh.has(a.id));
     if (!alerts.length) continue;
+    await deliver(rule, alerts);
 
-    // Decide delivery.
-    let status: DeliveryStatus;
-    const last = lastNotified[rule.id];
-    if (!rule.notify.discord) status = 'not-requested';
-    else if (!opts.discordWebhookUrl) status = 'not-configured';
-    else if (last && opts.now - Date.parse(last) < rule.cooldownMinutes * 60_000) status = 'suppressed-cooldown';
-    else status = 'pending';
-    for (const a of alerts) a.delivery = { discord: status, at: status === 'pending' ? null : nowIso, error: null };
-
-    await store.putAlerts(alerts);
-    result.created += alerts.length;
-    let outcome: DeliveryStatus = status;
-
-    if (status === 'pending') {
-      let delivery: AlertRecord['delivery'];
-      try {
-        await sendDiscord(opts.discordWebhookUrl!, buildDiscordPayload(rule, alerts, opts.appUrl), { fetchImpl: opts.fetchImpl, sleep: opts.sleep });
-        delivery = { discord: 'sent', at: nowIso, error: null };
-        outcome = 'sent';
-        lastNotified[rule.id] = nowIso;
-        result.notificationsSent++;
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        delivery = { discord: 'failed', at: nowIso, error: message };
-        outcome = 'failed';
-        result.errors.push(`${rule.name}: ${message}`);
-      }
-      await store.updateAlertDelivery(alerts.map((a) => a.id), delivery);
+    // v0.72.0: alerts resting on one media report are watched for an independent report.
+    for (const a of alerts) {
+      const e = a.evidenceEventIds.length === 1 ? newById.get(a.evidenceEventIds[0]) : undefined;
+      if (!e || !STORY_SOURCES.has(e.sourceId) || e.sourceClass !== 'media') continue;
+      watching.push({
+        alertId: a.id, ruleId: rule.id, ruleName: rule.name, ruleVersion: a.ruleVersion, severity: a.severity, eventId: e.id, title: a.title,
+        regionIds: a.regionIds, url: a.url, createdAt: a.createdAt, notifyDiscord: rule.notify.discord, cooldownMinutes: rule.cooldownMinutes,
+      });
     }
-    // Run logs are public (public repository): never print rule names or watchlist terms.
-    log(`ALRT ${publicRuleLabel(rule.id)}: ${alerts.length} new alert(s) · discord ${outcome}`);
   }
 
-  await store.putAlertingState({ lastNotifiedAt: lastNotified, updatedAt: nowIso });
+  // v0.72.0: corroboration. Stories are rebuilt from the loaded records each run; an alert whose report
+  // gained an independent origin gets a follow-up one level higher, once; after 72 hours without one it
+  // is marked unconfirmed.
+  const stillWatching: WatchedAlert[] = [];
+  if (watching.length) {
+    const since = opts.now - (CORROBORATION_HOURS + WINDOW_HOURS) * 3_600_000;
+    const news = (opts.recentEvents ?? []).filter((e) => STORY_SOURCES.has(e.sourceId) && Date.parse(e.publishedAt ?? e.collectedAt) >= since);
+    const storyOf = new Map<string, Story>();
+    for (const st of buildStories(news)) for (const id of st.memberIds) storyOf.set(id, st);
+    for (const w of watching) {
+      const st = storyOf.get(w.eventId);
+      const publishers = st?.publishers.map((x) => x.publisher) ?? [];
+      if (st && st.corroboratedAt && st.independentOrigins >= 2) {
+        const upgrade: AlertRecord = {
+          // One follow-up per rule and story, however many of the story's reports alerted.
+          id: contentHash('alert', w.ruleId, 'corroborated', st.id),
+          ruleId: w.ruleId,
+          ruleName: w.ruleName,
+          ruleVersion: w.ruleVersion,
+          catalogVersion: CATALOG_VERSION,
+          severity: nextSeverity(w.severity),
+          title: `Corroborated: ${w.title}`.slice(0, 300),
+          body:
+            `Now reported by ${st.independentOrigins} independent origins (${publishers.join(', ')})` +
+            `${st.sharedOrigins.length ? `; outlets carrying the same copy (${st.sharedOrigins.join(', ')}) count once` : ''}. ` +
+            `The first alert was ${w.severity} at ${w.createdAt}. Independent reports make it likelier, not certain.`,
+          regionIds: w.regionIds,
+          url: w.url,
+          evidenceEventIds: st.memberIds.slice(0, 20),
+          dedupeKey: `corroborated:${st.id}`,
+          createdAt: nowIso,
+          acknowledged: false,
+          acknowledgedAt: null,
+          dismissed: false,
+          dismissedAt: null,
+          delivery: { discord: 'pending', at: null, error: null },
+          corroboration: { status: 'corroborated', at: st.corroboratedAt, publishers, sharedOrigins: st.sharedOrigins, upgradeOf: w.alertId },
+        };
+        try {
+          const fresh = await store.filterNewAlertIds([upgrade.id]);
+          if (fresh.has(upgrade.id)) {
+            // At most once per rule and story, so a follow-up is not held back by the rule's cooldown.
+            await deliver({ id: w.ruleId, name: w.ruleName, notify: { discord: w.notifyDiscord }, cooldownMinutes: w.cooldownMinutes, severity: upgrade.severity }, [upgrade], true);
+            result.corroborated++;
+          }
+          await store.updateAlertCorroboration(w.alertId, { status: 'corroborated', at: st.corroboratedAt, publishers, sharedOrigins: st.sharedOrigins, upgradeId: upgrade.id });
+        } catch (err) {
+          result.errors.push(`corroboration: ${err instanceof Error ? err.message : String(err)}`);
+          stillWatching.push(w);
+        }
+      } else if (opts.now - Date.parse(w.createdAt) >= CORROBORATION_HOURS * 3_600_000) {
+        try {
+          await store.updateAlertCorroboration(w.alertId, { status: 'unconfirmed', at: nowIso, publishers, sharedOrigins: st?.sharedOrigins ?? [] });
+          result.unconfirmed++;
+        } catch (err) {
+          result.errors.push(`corroboration: ${err instanceof Error ? err.message : String(err)}`);
+          stillWatching.push(w);
+        }
+      } else stillWatching.push(w);
+    }
+    if (result.corroborated || result.unconfirmed) log(`ALRT corroboration: ${result.corroborated} corroborated · ${result.unconfirmed} unconfirmed after ${CORROBORATION_HOURS} h · ${stillWatching.length} still watched`);
+  }
+
+  const changed = result.created > 0 || watching.length !== (state?.watching?.length ?? 0) || stillWatching.length !== watching.length;
+  if (changed) await store.putAlertingState({ lastNotifiedAt: lastNotified, updatedAt: nowIso, watching: stillWatching.slice(-500) });
   return result;
 }

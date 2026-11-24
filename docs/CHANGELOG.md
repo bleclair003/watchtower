@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.72.0] — 2026-11-23 — Corroboration (Phase 35)
+
+### Added
+- **Independent origins.** Stories count independent origins, not just outlets. Two outlets whose reports credit the same news agency (Reuters, AP, AFP, TASS, Xinhua, IRNA, Yonhap, KCNA, Anadolu and others) count as one origin, and so do reports with near-identical text: a reprinted wire story is not corroboration. The feed shows "N OUTLETS · 1 ORIGIN" and says which agency, and each story records when a second independent origin first reported it.
+- **Alert follow-ups.** An alert that rests on a single media report is watched for 72 hours.
+  - If an independent origin reports the same story in that time, WATCHTOWER raises a follow-up alert one level higher ("Corroborated: …"), naming the publishers. There is at most one follow-up per rule and story, and it is not held back by the rule's cooldown.
+  - The original alert shows CORROBORATED.
+  - If nothing independent arrives within 72 hours, the original shows UNCONFIRMED.
+  - Alerts on official or sensor records are not watched.
+- **UNCONFIRMED in the feed.** A media report that no independent origin has confirmed 48 hours later carries an UNCONFIRMED tag (on the GOC feed and region pages). Official and sensor records never do.
+
+### Notes
+- Corroboration makes a report likelier, not true. Feeds carry headlines and short summaries, so an agency credited only in the full article is missed.
+- Unconfirmed reports are tagged, not hidden or faded (faded text would fail the contrast check).
+
 ## [0.71.0] — 2026-11-23 — Undersea cables, disputed areas, nuclear facilities, embassies (Phase 34)
 
 ### Added

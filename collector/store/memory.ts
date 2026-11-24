@@ -110,6 +110,10 @@ export class MemoryStore implements CollectorStore {
       this.alerts.set(a.id, structuredClone(a));
     }
   }
+  async updateAlertCorroboration(id: string, corroboration: NonNullable<AlertRecord['corroboration']>) {
+    const a = this.alerts.get(id);
+    if (a) a.corroboration = structuredClone(corroboration);
+  }
   async updateAlertDelivery(ids: string[], delivery: AlertRecord['delivery']) {
     for (const id of ids) {
       const a = this.alerts.get(id);

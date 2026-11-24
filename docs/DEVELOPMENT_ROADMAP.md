@@ -121,7 +121,7 @@ Legend: `[x]` done and tested · `[~]` partial / scaffolded · `[ ]` not started
 - [x] FIRMS live since 2026-11-20 (key configured); point-in-country check added after the first run
 - [x] Cloudflare Radar live since 2026-11-20; network-location and revision fixes after the first run
 - [x] ACLED evaluated and rejected (no API on personal accounts; EULA excludes dashboard use)
-- [ ] Cross-source corroboration: mark a media report `corroborated` when an independent source reports the same country and topic
+- [x] Cross-source corroboration: stories (v0.10.0); independent origins, alert follow-ups and unconfirmed marking (v0.72.0, Phase 35)
 
 ## Phase 10 — Analyst features (started 2026-11-21)
 1. **Stories** — group reports of the same event across outlets; show which sources reported it and whether it is multi-source
@@ -493,4 +493,14 @@ From the feature audit (category 4, items 3, 5, 6 and 7; category 3 item 4).
 - [ ] More embassies: only 112 missions have a location on Wikidata
 - [ ] Cable landing stations; Red Sea and Asian cables are thin on OpenStreetMap
 - [ ] Records when a sanctioned ship lingers near an undersea cable
+
+## Phase 35 — Corroboration (2026-11-23)
+
+From the feature audit (category 11 item 3; category 14 items 5 and 6).
+
+- [x] Independent origins: outlets crediting the same news agency (Reuters, AP, AFP, TASS, Xinhua, IRNA …) or carrying near-identical text count once; stories record when a second independent origin reported — v0.72.0
+- [x] Alerts resting on one media report are watched for 72 hours: a follow-up alert one level higher when an independent origin reports (once per rule and story, not held by cooldown); otherwise marked unconfirmed — v0.72.0
+- [x] Feed: UNCONFIRMED tag on media reports with no independent report after 48 hours; stories say "N outlets · 1 origin" and why — v0.72.0
+- [ ] Use corroboration in the scorecard (are corroborated alerts more often useful?)
+- [ ] Agencies credited only in the article body are missed: feeds carry headlines and short summaries
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { IntelligenceEvent, SourceClass } from '../types.ts';
 import { matchGazetteer } from '../geo/gazetteer.ts';
-import { buildStories, groupFeed, storyTerms, stripLabel } from './stories.ts';
+import { buildStories, creditedAgencies, groupFeed, isUnconfirmed, storyTerms, stripLabel } from './stories.ts';
 
 let n = 0;
 /** Headlines below are real ones seen on 2026-11-20/21 (short quotes, used as test input). */
@@ -90,5 +90,39 @@ describe('grouped feed', () => {
     expect(feed.map((f) => f.event.id)).toEqual([a.id, other.id]);
     expect(feed[0].story?.memberIds).toHaveLength(2);
     expect(feed[1].story).toBeNull();
+  });
+});
+
+describe('independent origins (v0.72.0)', () => {
+  // Invented headlines and summaries.
+  const withSummary = (e: IntelligenceEvent, summary: string) => ({ ...e, summary });
+
+  it('counts outlets crediting the same agency as one origin, and says why', () => {
+    const a = withSummary(ev('bbc-world', 'Testland navy seizes tanker near Testport strait', '2026-11-21T10:00:00Z'), 'The navy boarded the vessel, Reuters reported.');
+    const b = withSummary(ev('aljazeera', 'Testland navy seizes oil tanker in Testport strait', '2026-11-21T11:00:00Z'), 'According to Reuters, the tanker was escorted to port.');
+    const [s] = buildStories([a, b]);
+    expect(s.publishers).toHaveLength(2);
+    expect(s).toMatchObject({ independentOrigins: 1, sharedOrigins: ['Reuters'], corroboratedAt: null, corroboration: 'single-source' });
+    expect(creditedAgencies(a)).toEqual(['Reuters']);
+    expect(creditedAgencies({ title: 'AP reported the strike', summary: '' })).toEqual(['AP']);
+    expect(creditedAgencies({ title: 'Apple maps update', summary: 'An app' })).toEqual([]);
+  });
+
+  it('records when a second independent origin first reported it', () => {
+    const a = ev('bbc-world', 'Testland navy seizes tanker near Testport strait', '2026-11-21T10:00:00Z');
+    const b = ev('bbc-world', 'Testland navy seizes tanker: crew detained near Testport strait', '2026-11-21T10:30:00Z');
+    const c = ev('aljazeera', 'Testland navy seizes oil tanker in Testport strait', '2026-11-21T12:00:00Z');
+    const [s] = buildStories([a, b, c]);
+    expect(s).toMatchObject({ independentOrigins: 2, corroboratedAt: '2026-11-21T12:00:00.000Z', corroboration: 'multi-source' });
+  });
+
+  it('marks old single-source media reports unconfirmed, never official ones', () => {
+    const now = Date.parse('2026-11-24T12:00:00Z');
+    const old = ev('bbc-world', 'Testland navy seizes tanker near Testport strait', '2026-11-21T10:00:00Z');
+    const fresh = ev('bbc-world', 'Testland navy seizes tanker near Testport strait', '2026-11-24T10:00:00Z');
+    const official = ev('un-news', 'Council meets on Testland', '2026-11-20T10:00:00Z', 'official');
+    expect(isUnconfirmed(old, null, now)).toBe(true);
+    expect(isUnconfirmed(fresh, null, now)).toBe(false);
+    expect(isUnconfirmed(official, null, now)).toBe(false);
   });
 });

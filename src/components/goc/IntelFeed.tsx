@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { buildStories, groupFeed } from '@shared/domain/stories/stories';
+import { buildStories, groupFeed, isUnconfirmed, storyIndex } from '@shared/domain/stories/stories';
 import { isOffTopic } from '@shared/domain/relevance';
 import { isRoutineRecord, isRoutineOutage } from '@shared/domain/routine';
 import type { IntelligenceEvent } from '@shared/domain/types';
@@ -37,6 +37,7 @@ export function IntelFeed(props: Props) {
   // Stories are built from the filtered list, so a story's lead is always visible.
   const stories = useMemo(() => buildStories(events), [events]);
   const byId = useMemo(() => new Map(events.map((e) => [e.id, e])), [events]);
+  const storyOf = useMemo(() => storyIndex(stories), [stories]);
   const entries = useMemo(() => (grouped ? groupFeed(events, stories) : events.map((event) => ({ event, story: null }))), [grouped, events, stories]);
   // A report hidden inside a story (e.g. selected on the map) selects and expands its story.
   const visibleSelected = useMemo(() => {
@@ -134,6 +135,7 @@ export function IntelFeed(props: Props) {
               allowDossier={props.allowDossier}
               story={story}
               storyReports={story ? story.memberIds.map((id) => byId.get(id)).filter((x): x is IntelligenceEvent => !!x) : undefined}
+              unconfirmed={isUnconfirmed(e, storyOf.get(e.id), now)}
             />
           ))}
         </ul>

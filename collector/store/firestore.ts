@@ -222,6 +222,9 @@ export class FirestoreStore implements CollectorStore {
       await batch.commit();
     }
   }
+  async updateAlertCorroboration(id: string, corroboration: NonNullable<AlertRecord['corroboration']>) {
+    await this.db.collection(COLLECTIONS.alerts).doc(id).update({ corroboration });
+  }
   async updateAlertDelivery(ids: string[], delivery: AlertRecord['delivery']) {
     for (let i = 0; i < ids.length; i += 400) {
       const batch = this.db.batch();
